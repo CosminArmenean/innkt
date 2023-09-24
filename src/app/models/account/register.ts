@@ -3,4 +3,11 @@ export class Register {
     lastname = '';
     email = '';
     password = '';   
+
+    constructor(){
+        this.firstname = "";
+        this.lastname = "";
+        this.email = "";
+        this.password = "";
+    }
 }
