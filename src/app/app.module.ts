@@ -7,6 +7,7 @@ import { RegisterComponent } from './components/main/register/register.component
 import { LoginComponent } from './components/main/login/login.component';
 import { ProfileComponent } from './components/main/profile/profile.component';
 import { PostsComponent } from './components/main/profile/posts/posts/posts.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { PostsComponent } from './components/main/profile/posts/posts/posts.comp
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    BrowserAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
