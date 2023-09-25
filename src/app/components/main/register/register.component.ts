@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Register } from 'src/app/models/account/register';
-import { RegisterJoint } from 'src/app/models/account/registerJoint';
+import { RegisterJoint } from 'src/app/models/account/register-joint';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -28,17 +28,17 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  Register<T extends Register | RegisterJoint>(dto:T){
-    if(this.registrationType === 'single'){
-      this.authService.register(dto).subscribe((response) => {
-        //handle response
-      });
-    } else if(this.registrationType === 'joint'){
-      this.authService.register(dto).subscribe((response) => {
-        //handle response
-      });
-    }
-  }
+  //Register<T extends Register | RegisterJoint>(dto:T){
+  //  if(this.registrationType === 'single'){
+  //    this.authService.register(dto).subscribe((response) => {
+  //      //handle response
+  //    });
+  //  } else if(this.registrationType === 'joint'){
+  //    this.authService.register(dto).subscribe((response) => {
+  //      //handle response
+  //    });
+  //  }
+  //}
     
 
 }

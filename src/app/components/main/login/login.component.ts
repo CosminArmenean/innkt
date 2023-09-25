@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { JwtAuth } from 'src/app/models/account/jwtAuth';
+import { JwtAuth } from 'src/app/models/account/jwt-auth';
 import { Login } from 'src/app/models/account/login';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HttpClient } from '@angular/common/http';
@@ -21,13 +21,13 @@ ngOnInit(): void {
 }
 
 
-login(loginDto: Login ) {
-  this.authService.login(loginDto).subscribe((jwtDto) => {
-    // Store the JWT token in local storage
-    localStorage.setItem('jwtToken', this.jwtDto.token);
-
-    // Redirect to a protected route
-    this.router.navigate(['/profile']);
-  });
-}
+//login(loginDto: Login ) {
+ // this.authService.login(loginDto).subscribe((jwtDto) => {
+ //   // Store the JWT token in local storage
+ //   localStorage.setItem('jwtToken', this.jwtDto.token);
+//
+ //   // Redirect to a protected route
+ //   this.router.navigate(['/profile']);
+ // });
+//}
 }

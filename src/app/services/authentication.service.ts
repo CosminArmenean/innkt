@@ -2,11 +2,13 @@ import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http'
 import { Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Register } from '../models/account/register';
-import { RegisterJoint } from '../models/account/registerJoint';
+import { RegisterJoint } from '../models/account/register-joint';
 import { Observable } from 'rxjs';
-import { JwtAuth } from '../models/account/jwtAuth';
+import { JwtAuth } from '../models/account/jwt-auth';
 import { Login } from '../models/account/login';
 import { environment } from 'src/environments/environment';
+
+const TOKEN_KEY = 'TOKEN_KEY';
 
 @Injectable({
   providedIn: 'root'
@@ -16,15 +18,54 @@ export class AuthenticationService{
   loginUrl = "Identity/Login"
 
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private router: Router) { }
 
-  public register<T extends Register | RegisterJoint>(user: T): Observable<JwtAuth>{
-    return this.http.post<JwtAuth>(`${`${environment.identityApiUrl}`}/${this.registerUrl}`,user);
+
+  public saveToken(token : string): void {
+    window.sessionStorage.removeItem(TOKEN_KEY);
+    window.sessionStorage.setItem(TOKEN_KEY, token);
   }
 
-  public login(user: Login): Observable<JwtAuth>{
-    return this.http.post<JwtAuth>(`${`${environment.identityApiUrl}`}/${this.loginUrl}`,user);
+  public getToken(): string | null {
+    return window.sessionStorage.getItem(TOKEN_KEY) !== null ? window.sessionStorage.getItem(TOKEN_KEY) : null;
   }
+
+  public getUser():string | null{
+    const jwtToken = this.getToken();
+      const decodedToken: any = this.getToken() != null ? jwt_decode(jwtToken as string) : null;
+      const userId = decodedToken != null ? decodedToken?.sub : null;
+    return userId;
+  }
+  public getUserId():string | null{
+    const jwtToken = this.getToken();
+      const decodedToken: any = this.getToken() != null ? jwt_decode(jwtToken as string) : null;
+      const userId = decodedToken != null ? decodedToken?.id : null;
+    return userId;
+  }
+  public getRole(){
+    const jwtToken = this.getToken();
+      const decodedToken: any = this.getToken() != null ? jwt_decode(jwtToken as string) : null;
+      const userRole = decodedToken != null ? decodedToken?.Role : null;
+    return userRole;
+  }
+
+  signOut(): void {
+    window.sessionStorage.clear();
+    this.router.navigate(['/Home'])
+    .then(() => {
+      window.location.reload();
+    });
+  }
+
+
+
+  //public register<T extends Register | RegisterJoint>(user: T): Observable<JwtAuth>{
+   // return this.http.post<JwtAuth>(`${`${environment.identityApiUrl}`}/${this.registerUrl}`,user);
+  //}
+
+  //public login(user: Login): Observable<JwtAuth>{
+  //  return this.http.post<JwtAuth>(`${`${environment.identityApiUrl}`}/${this.loginUrl}`,user);
+  //}
 
 
   public isLoggedIn(): boolean {
@@ -41,10 +82,14 @@ export class AuthenticationService{
     this.router.navigate(['/login']);
   }
 
-  getUserProfile(): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+ // getUserProfile(): Observable<any> {
+  //  const token = localStorage.getItem('token');
+  //  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     
-    return this.http.get(`${"https://localhost:44383/api/v1.0"}/profile`, { headers });
-  }
+ //   return this.http.get(`${"https://localhost:44383/api/v1.0"}/profile`, { headers });
+ // }
 }
+function jwt_decode(arg0: string): any {
+  throw new Error('Function not implemented.');
+}
+
