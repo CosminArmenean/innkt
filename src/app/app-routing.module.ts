@@ -3,9 +3,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './components/main/login/login.component';
 import { RegisterComponent } from './components/main/register/register.component';
 import { ProfileComponent } from './components/main/profile/profile.component';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 import { PostsComponent } from './components/main/profile/posts/posts/posts.component';
-import { SecureInnerPagesGuard } from './secure-inner-pages.guard';
+import { SecureInnerPagesGuard } from './guards/secure-inner-pages.guard';
 import { AdminComponent } from './components/features/admin/admin.component';
 import { HomeComponent } from './components/features/home/home.component';
 

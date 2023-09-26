@@ -45,6 +45,7 @@ import {MatTreeModule} from '@angular/material/tree';
 import {OverlayModule} from '@angular/cdk/overlay';
 import {CdkMenuModule} from '@angular/cdk/menu';
 import {DialogModule} from '@angular/cdk/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 
 @NgModule({
@@ -69,7 +70,8 @@ import {DialogModule} from '@angular/cdk/dialog';
     MatDatepickerModule,
     MatDialogModule,
     MatDividerModule,
-    MatExpansionModule,
+    MatExpansionModule,   
+    MatFormFieldModule,
     MatGridListModule,
     MatIconModule,
     MatInputModule,

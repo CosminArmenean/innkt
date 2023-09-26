@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
+import { AuthenticationService } from './services/authentication.service';
 
 @Component({
   selector: 'app-root',
@@ -9,4 +8,20 @@ import { BrowserModule } from '@angular/platform-browser';
 })
 export class AppComponent {
   title = 'innkt';
+  isLoggedIn!: boolean;
+  constructor(private authService : AuthenticationService){}
+
+  ngOnInit(): void {
+    // check if the token exist in session storage
+    this.isLoggedIn = !!this.authService.getToken();
+  }
+
+  //get user Email Method
+  getUserName() {
+    return this.authService.getUser();
+  }
+  //Method to logout
+  signOut() {
+    this.authService.signOut();
+  }
 }

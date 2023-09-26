@@ -1,1 +1,19 @@
-<p>admin works!</p>
+<table class="table" style="margin-top: 10px;">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">First</th>
+        <th scope="col">Last</th>
+        <th scope="col">Email</th>     
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of listUSers">
+        <th scope="row">{{user.userId}}</th>
+        <td>{{user.firstname}}</td>
+        <td>{{user.lastname}}</td>
+        <td>{{user.email}}</td>
+       
+      </tr>
+    </tbody>
+  </table>

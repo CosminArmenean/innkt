@@ -1,6 +1,8 @@
 import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import jwt_decode from 'jwt-decode';
+
 import { Register } from '../models/account/register';
 import { RegisterJoint } from '../models/account/register-joint';
 import { Observable } from 'rxjs';
@@ -89,7 +91,3 @@ export class AuthenticationService{
  //   return this.http.get(`${"https://localhost:44383/api/v1.0"}/profile`, { headers });
  // }
 }
-function jwt_decode(arg0: string): any {
-  throw new Error('Function not implemented.');
-}
-
