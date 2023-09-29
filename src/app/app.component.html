@@ -1,11 +1,15 @@
 <header class="container header">
   <!-- ==== NAVBAR ==== -->
   <nav class="nav">
+    <div class="logoText">
+      <a routerLink="/Home" style="cursor: pointer;">
+        <img src="./../assets/innkt-text-only-logo-01.svg" alt="LogoText" />
+      </a>
+    </div>
     <div class="logo">
-      <h2 routerLink="/Home" style="cursor: pointer;"></h2>
-      <img src="./../assets/innkt-logo-01.svg"  />
-     
-      
+      <a routerLink="/Home" style="cursor: pointer;" class="nav_menu_link">
+        <img src="./../assets/innkt-logo-01.svg" alt="logo" class="logo" />
+      </a>
     </div>
 
     <div class="nav_menu" id="nav_menu">
@@ -14,6 +18,7 @@
       </button>
 
       <ul class="nav_menu_list">
+        
         <li class="nav_menu_item" routerLinkActive="active" *ngIf="isLoggedIn">
           <a routerLink="/User" class="nav_menu_link">User</a>
         </li>
@@ -24,7 +29,7 @@
           <a (click)="signOut()" class="nav_menu_link">LogOut</a>
         </li>
         <li class="nav_menu_item" routerLinkActive="active" *ngIf="!isLoggedIn">
-          <a routerLink="/SignIn" class="nav_menu_link">SignIn</a>
+          <a routerLink="/SignIn" class="nav_menu_link">Login</a>
         </li>
         <li class="nav_menu_item" routerLinkActive="active" *ngIf="!isLoggedIn">
           <a routerLink="/SignUp" class="nav_menu_link">SignUp</a>
@@ -37,6 +42,6 @@
       </ul>
     </div>
   </nav>
-  <hr>
+  <hr class="headerLine">
 </header>
 <router-outlet></router-outlet>

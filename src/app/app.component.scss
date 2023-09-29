@@ -1,6 +1,6 @@
 /* ==== CSS VARIABLES ==== */
 :root {
-    --primary-color: #335eea;
+    --primary-color: #6E31A6;
     --link-color: #506690;
     --active-color: #d90c0c;
     --btn-hover-color: #2b50c7;
@@ -24,6 +24,7 @@
   .container {
     width: 100%;
     margin-top: 20px;
+    margin-bottom: 0%;
   }
   @media screen and (min-width: 1040px) {
     .container {
@@ -32,9 +33,15 @@
     }
   }
   /* ==== HEADER ==== */
+  .headerLine {
+    margin-top: 5px;
+  }
+
   .header {
     height: var(--fixed-header-height);
     padding: 0 1.7rem;
+    padding-bottom: 0%;
+    margin-bottom: 0%;
   }
   /* ==== NAV ==== */
   .nav {
@@ -46,10 +53,23 @@
   }
   /* ==== LOGO ==== */
 
-  .logo {
-    width: 50px;
+  .logoText {
+    width: 80px;
+
    
   }
+
+  .logo {
+    width: 80px;
+    height: 40px;
+    position: fixed;
+    left: 48%;
+    display: inline;
+    flex-grow: 1;
+    text-align: center;   
+    max-width: 100%;
+  }
+
   .logo h2 {
     font-size: 28px;
     color: var(--primary-color);
@@ -123,5 +143,6 @@
     }
     .nav_menu_item .nav_menu_link {
       font-size: 18px;
+      text-align: center;
     }
   }
