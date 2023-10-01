@@ -10,9 +10,11 @@
   }
   ul li {
     list-style-type: none;
+    margin-bottom: -11rem;
   }
   a {
     text-decoration: none;
+    margin-bottom: -11rem;
   }
   button {
     background-color: transparent;
@@ -34,7 +36,7 @@
   }
   /* ==== HEADER ==== */
   .headerLine {
-    margin-top: 5px;
+    margin-top: 9px;
   }
 
   .header {
@@ -71,23 +73,26 @@
   }
 
   .logo h2 {
-    font-size: 28px;
+    font-size: 8px;
     color: var(--primary-color);
   }
   /* ====  NAV-MENU  ==== */
   .nav_menu_list {
     display: flex;
     align-items: center;
+    padding-top: 0;
   }
   .nav_menu_list .nav_menu_item {
-    margin: 0 2rem;
+    margin: 0 1rem;
+    padding-top: 0px;
   }
   li.active{
     color: red;
+    margin-bottom: 0;
   }
   .nav_menu_item .nav_menu_link {
     font-size: 16.5px;
-    line-height: 27px;
+    line-height: 7px;
     color: var(--link-color);
     text-transform: capitalize;
     letter-spacing: 0.5px;
@@ -104,6 +109,7 @@
   .nav_menu,
   .close_btn {
     display: none;
+    margin-bottom: -1.9rem;
   }
   .show {
     right: 3% !important;
@@ -132,17 +138,21 @@
       box-shadow: 0 0.5rem 1.5rem rgba(22, 28, 45, 0.1);
       z-index: 50;
       transition: 0.4s;
+      margin-bottom: 0%;
     }
     .nav_menu_list {
-      flex-direction: column;
+      flex-direction:row;
       align-items: flex-start;
-      margin-top: 4rem;
+      
+      margin-bottom: 0%;
     }
     .nav_menu_list .nav_menu_item {
       margin: 1rem 0;
+      margin-bottom: 0%;
     }
     .nav_menu_item .nav_menu_link {
       font-size: 18px;
-      text-align: center;
+      text-align: center;     
+      margin-bottom: 0%;
     }
   }
