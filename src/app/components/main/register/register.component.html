@@ -1,148 +1,199 @@
 <section>
-    <div class="card-body">
+    <div [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : !isContainerLayout}">
       <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
-          <form [formGroup]="form" class="mx-1 mx-md-4" (ngSubmit)="onSubmit()">
-           
-            <!-- FirstName input -->
-            <div class="d-flex flex-row align-items-center mb-3">
-              <i class="me-3">
-                <mat-icon>
-                  account_circle
-                </mat-icon>
-              </i>
-              <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
-                <mat-label class="form-label" for="firstname">
-                  First Name
-                </mat-label>
-                <input matInput type="text" id="firstname" placeholder="Enter a valid username"
-                  formControlName="firstname" [errorStateMatcher]="matcher" name="firstname" required />
-                <mat-error *ngIf="firstname?.hasError('minlength') && !firstname?.hasError('required')">
-                  Firstname must have <strong>{{firstname?.errors?.['minlength'].requiredLength}}</strong> Letters ,You
-                  have Submitted <strong>{{firstname?.errors?.['minlength'].actualLength}}</strong> Letters
+        <div class="registration-container">
+          <h2>Registration</h2>
+          <div class="registration-options">
+            <button (click)="setRegistrationType('single')" [class.active]="registrationType === 'single'">Single</button>
+            <button (click)="setRegistrationType('joint')" [class.active]="registrationType === 'joint'">Joint</button>
+          </div>
+          
+          <form [formGroup]="registrationForm" *ngIf="registrationType === 'single'" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+              <input  placeholder="First Name" formControlName="firstname" required="">
+              <input  placeholder="Last Name" formControlName="lastname" required>
+
+            </div>
+            <div class="form-group">
+              <mat-form-field>
+                <mat-label>Date of Birth</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="birthdate">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+            </div>
+            <div class="form-group">
+              <label>Gender:</label>
+              <mat-radio-group formControlName="gender">
+                <mat-radio-button *ngFor="let gender of genders" [value]="gender">
+                  {{ gender | titlecase }}
+                </mat-radio-button>                
+              </mat-radio-group>
+            </div>
+            
+            <div class="form-group">
+              <mat-form-field>
+                <input
+                  matInput
+                  placeholder="Mobile Phone Number"
+                  formControlName="mobilePhone"
+                  type="tel"
+                />
+                <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('required')">
+                  Mobile phone number is required.
                 </mat-error>
-                <mat-error *ngIf="firstname?.hasError('required')">
-                  Firstname is <strong>required</strong>
+                <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('pattern')">
+                  Please enter a valid mobile phone number.
                 </mat-error>
               </mat-form-field>
             </div>
-  
-            <!-- Lastname input -->
-            <div class="d-flex flex-row align-items-center mb-3">
-              <i class="me-3">
-                <mat-icon>
-                  account_circle
-                </mat-icon>
-              </i>
-              <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
-                <mat-label class="form-label" for="lastname">
-                  Last Name
-                </mat-label>
-                <input matInput type="text" id="lastname" placeholder="Enter a valid lastname" formControlName="lastname"
-                  [errorStateMatcher]="matcher" name="lastname" required />
-                <mat-error *ngIf="lastname?.hasError('minlength') && !lastname?.hasError('required')">
-                  Lastname must have <strong>{{lastname?.errors?.['minlength'].requiredLength}}</strong> Letters ,You have
-                  Submitted <strong>{{lastname?.errors?.['minlength'].actualLength}}</strong> Letters
-                </mat-error>
-                <mat-error *ngIf="lastname?.hasError('required')">
-                  Lastname is <strong>required</strong>
-                </mat-error>
-              </mat-form-field>
+
+            <input placeholder="Email" type="email" formControlName="email" required>
+            <div class="form-group">
+              <input placeholder="Password"  type="password" formControlName="password" required>
+              <input placeholder="Confirm Password"  type="password"  formControlName="confirmPassword" required>
+            
             </div>
-  
-            <!-- Email input -->
-            <div class="d-flex flex-row align-items-center mb-3">
-              <i class="me-3">
-                <mat-icon>
-                  email
-                </mat-icon>
-              </i>
-              <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
-                <mat-label class="form-label" for="Email">
-                  Email address
-                </mat-label>
-                <input matInput type="email" id="email" placeholder="Enter a valid email address" formControlName="email"
-                  [errorStateMatcher]="matcher" name="email" required />
-                <mat-error *ngIf="email?.hasError('email') && !email?.hasError('required')">
-                  Please enter a valid <strong>email</strong> address
-                </mat-error>
-                <mat-error *ngIf="email?.hasError('required')">
-                  Email is <strong>required</strong>
-                </mat-error>
-              </mat-form-field>
-            </div>
-  
-            <!-- Password input -->
-            <div class="d-flex flex-row align-items-center mb-3">
-              <i class="me-3">
-                <mat-icon>
-                  lock
-                </mat-icon>
-              </i>
-              <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
-                <mat-label class="form-label" for="password">
-                  Password
-                </mat-label>
-                <input matInput type="password" id="password" placeholder="Enter password" formControlName="password"
-                  [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'" name="password" required />
-                <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'"
-                  [attr.aria-pressed]="hide">
-                  <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                </button>
-                <mat-error *ngIf=" password?.hasError('pattern') && !password?.hasError('required')">
-                  Must contain at least <strong>one number</strong> and <strong>one uppercase</strong> and
-                  <strong>lowercase letters</strong> ,
-                  and at <strong>least 8</strong> or more characters.
-                </mat-error>
-                <mat-error *ngIf="password?.hasError('minlength') && !password?.hasError('required')">
-                  Password must have <strong>{{password?.errors?.['minlength'].requiredLength}}</strong> Letters ,You have
-                  Submitted <strong>{{password?.errors?.['minlength'].actualLength}}</strong> Letters
-                </mat-error>
-                <mat-error *ngIf=" password?.hasError('required')">
-                  Password is <strong>required</strong>
-                </mat-error>
-              </mat-form-field>
-            </div>
-  
             <!-- Confirmation Password input -->
-            <div class="d-flex flex-row align-items-center mb-3">
+            <div class="form-group">
               <i class="me-3">
                 <mat-icon>
                   vpn_key
                 </mat-icon>
               </i>
               <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
-                <mat-label class="form-label" for="cPassword">
+                <mat-label class="form-label" for="confirmPassword">
                   Confirm Password
                 </mat-label>
-                <input matInput type="password" id="cPassword" placeholder="Enter password" formControlName="cPassword"
-                  [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'" name="cPassword" required />
+                <input matInput type="password" id="confirmPassword" placeholder="Enter password" formControlName="confirmPassword"
+                  [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'" name="confirmPassword" required />
                 <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'"
                   [attr.aria-pressed]="hide">
                   <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
                 </button>
-                <mat-error *ngIf="cPassword?.hasError('passwordMismatch')">
+                <mat-error *ngIf="confirmPassword?.hasError('passwordMismatch')">
                   Password does not match
                 </mat-error>
-                <mat-error *ngIf=" cPassword?.hasError('required')">
+                <mat-error *ngIf=" confirmPassword?.hasError('required')">
                   Password confirmation is <strong>required</strong>
                 </mat-error>
               </mat-form-field>
             </div>
   
-            <!--Register Button-->
-            <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+            
+           <!--Register Button-->
+           <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+            <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
+              Register
+            </button>
+          </div>
+          </form>
+          
+          <form [formGroup]="registrationForm" *ngIf="registrationType === 'joint'" (ngSubmit)="onSubmit()" >
+            <input placeholder="First Name" formControlName="firstname" required>
+            <input placeholder="Last Name" formControlName="lastname" required>
+
+            <div class="form-group">
+              <label>Gender:</label>
+              <mat-radio-group formControlName="gender">
+                <mat-radio-button *ngFor="let gender of genders" [value]="gender">
+                  {{ gender | titlecase }}
+                </mat-radio-button>                
+              </mat-radio-group>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field>
+                <input
+                  matInput
+                  placeholder="Mobile Phone Number"
+                  formControlName="mobilePhone"
+                  type="tel"
+                />
+                <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('required')">
+                  Mobile phone number is required.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('pattern')">
+                  Please enter a valid mobile phone number.
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field>
+                <mat-label>Date of Birth</mat-label>
+                <input matInput [matDatepicker]="birthdatepicker" formControlName="birthdate">
+                <mat-datepicker-toggle matSuffix [for]="birthdatepicker"></mat-datepicker-toggle>
+                <mat-datepicker #birthdatepicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+            <input placeholder="Email"  type="email" formControlName="email" required>
+            <input placeholder="Password" type="password" formControlName="password" required>
+            <input placeholder="Confirm Password" type="password" formControlName="confirmPassword" required>
+      
+            <input placeholder="First Name (Joint User)" formControlName="firstnameJoint" required>
+            <input placeholder="Last Name (Joint User)" formControlName="lastnameJoint" required>
+
+            <div class="form-group">
+              <label>Gender:</label>
+              <mat-radio-group formControlName="genderJoint">
+                <mat-radio-button *ngFor="let gender of genders" [value]="gender">
+                  {{ gender | titlecase }}
+                </mat-radio-button>                
+              </mat-radio-group>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field>
+                <input
+                  matInput
+                  placeholder="Mobile Phone Number (Joint User)"
+                  formControlName="mobilePhoneJoint"
+                  type="tel"
+                />
+                <mat-error *ngIf="registrationForm.get('mobilePhoneJoint')?.hasError('required')">
+                  Mobile phone number is required.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('mobilePhoneJoint')?.hasError('pattern')">
+                  Please enter a valid mobile phone number.
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field>
+                <mat-label>Date of Birth (Joint User)</mat-label>
+                <input matInput [matDatepicker]="birthdatejointpicker" formControlName="birthdateJoint">
+                <mat-datepicker-toggle matSuffix [for]="birthdatejointpicker"></mat-datepicker-toggle>
+                <mat-datepicker #birthdatejointpicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <label>
+              Use same email and password for both accounts:
+              <input type="checkbox" [checked]="isSameCredentialsChecked" (change)="onCheckboxChange($event)" >
+            </label>
+           <div class="form-group" [hidden]="isSameCredentialsChecked">
+              <input placeholder="Email (Joint User)" type="email" formControlName="emailJoint">
+            </div>
+            <div class="form-group" [hidden]="isSameCredentialsChecked">
+              <input placeholder="Password (Joint User)" type="password" formControlName="passwordJoint">
+              <input placeholder="Confirm Password (Joint User)" type="password" formControlName="confirmPasswordJoint" required>
+            </div>
+      
+             <!--Register Button-->
+             <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
               <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
                 Register
               </button>
             </div>
-  
+           
           </form>
         </div>
   
         <!--Image-->
         <div class="col-md-9 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
-          <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp" class="img-fluid"
+          <img src="./../../../../assets/logo-innkt.svg" class="img-fluid"
             alt="Register Image">
         </div>
   

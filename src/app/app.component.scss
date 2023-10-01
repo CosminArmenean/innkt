@@ -64,9 +64,9 @@
   .logo {
     width: 80px;
     height: 40px;
-    position: fixed;
+    position:fixed;
     left: 48%;
-    display: inline;
+    display:inline-block;
     flex-grow: 1;
     text-align: center;   
     max-width: 100%;

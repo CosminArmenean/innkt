@@ -47,6 +47,7 @@ export function tokenGetter() {
     ReactiveFormsModule,
     HttpClientModule,
     MaterialModule,
+    FormsModule,
     JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,

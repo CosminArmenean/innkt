@@ -7,7 +7,7 @@ import { AuthenticationService } from './services/authentication.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'innkt';
+  title = 'innkt';  
   isLoggedIn!: boolean;
   constructor(private authService : AuthenticationService){}
 
