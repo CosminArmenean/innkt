@@ -2,6 +2,7 @@
 .container-layout {
     width: 50%; /* Adjust the width as needed */
     margin: 0 auto; /* Center the content horizontally */
+   
   }
   
   /* Fluid layout */
@@ -11,15 +12,18 @@
 
   .container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+    flex-direction: row;
+    justify-content: space-between;
+   
+  }
+  .registration-container {
+    display: flex;
+    flex-direction: row;
   }
   
   .registration-options {
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   
   .registration-options button {
@@ -32,14 +36,16 @@
   }
   
   .registration-options .active {
-    background-color: #F1DA32;
-    color: #000000;
+    background-color: #13d862;
+    color: red;
+    height: 40px;
+    padding-top: 5px;
   }
   
   .registration-form {
-    display: none;
-    width: 300px;
-    padding: 20px;
+   
+    
+    padding: 10px;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
@@ -71,5 +77,64 @@
   }
   
   .registration-form button:hover {
-    background-color: #F1DA32;
+    background-color: #e72f2f;
+  }
+
+.custom-text {
+  color: #ffffff;
+  
+}
+
+  .left-half {
+    flex: 1;
+    width: 30%;
+    height: 100vh;
+    background-color: rgb(255, 255, 255);
+    display:block;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+  
+  .right-half {
+    flex: 1;
+    width: 80%;
+    height: 100vh;
+    background-color: #6E31A6;
+    padding: 20px;
+  }
+  
+  .one-third {
+    height: 20vh;
+    text-align: center;
+    font-size: xx-large;
+  }
+
+  .two-third {
+    height: 40vh;
+    padding-right: 10px;
+  }
+
+  .three-third {
+    height: 30vh;
+    text-align: center;
+    font-size: xx-large;
+   
+  }
+
+  @media (max-width: 768px) {
+    .container-layout {
+      width: 100%;
+    }
+    .registration-container {
+      flex-direction: column; /* Stack elements vertically on smaller screens */
+    }
+
+    .left-half {
+      display: none;
+    }
+
+    .right-half {
+      width: 100%;
+    }
   }

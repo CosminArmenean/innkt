@@ -22,7 +22,7 @@ export class AppComponent {
     ){
     this.translateService.setDefaultLang('en-EN'); // Set the default language
     
-    this.languageService.setLanguage('ar-AR');
+    this.languageService.setLanguage('ro-RO');
     
     
   }
@@ -34,11 +34,8 @@ export class AppComponent {
     this.languageService.selectedLanguage$.subscribe((language) => {
       this.isRtlLayout = this.languageService.isRtlLanguage();
       //document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
-      // Load RTL styles if needed
-      console.log(this.languageService.selectedLanguage$);
-      this.loadRtlStyles();
-      console.log('preparing style rtl applied!');
-      console.log(this.isRtlLayout);
+      // Load RTL styles if needed      
+      this.loadRtlStyles();      
     });
   }
   private loadRtlStyles() {

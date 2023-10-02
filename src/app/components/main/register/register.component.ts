@@ -91,7 +91,7 @@ export class RegisterComponent implements OnInit {
       }
     );
   
-     this.translateService.use('ar-AR');
+     
   }
 
   ngOnInit(): void {
@@ -103,7 +103,7 @@ export class RegisterComponent implements OnInit {
     // Check if the language is RTL (you can implement this logic)
     this.isRtlLayout = this.languageService.isRtlLanguage();
   });
-    this.translateService.use('ar-AR');
+    
   }
   //Register<T extends Register | RegisterJoint>(dto:T){
   //  if(this.registrationType === 'single'){

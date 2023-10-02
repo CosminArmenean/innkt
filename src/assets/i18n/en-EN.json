@@ -1,11 +1,63 @@
 {
+  "navbar": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "contact": "Contact"
+
+  },
+  "home": {
+    "welcome": "Welcome to our website!",
+    "description": "We provide the best services in town."
+  },
+  "about": {
+    "title": "About Us",
+    "content": "Learn more about our company."
+  },
+  "services": {
+    "title": "Our Services",
+    "service1": "Service 1",
+    "service2": "Service 2",
+    "service3": "Service 3"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send"
+  },
+  "reg_controls_names":{
+    "registration": "Registration",
+    "single": "Single",
+    "joint": "Joint",
+    "gender": "Gender",
+    "genderJoint": "Gender (Joint Person)",
+    "register": "Register",
+    "isSameCredentialsChecked": "Use same email and password for both accounts?"
+
+  },
   "control_names": {
     "username": "User",
     "password": "Password"
   },
   "placeholders": {
     "firstname": "First Name",
-    "lastname": "Last Name"
+    "birthdate": "Birthdate",
+    "male": "Male",
+    "female": "Female",
+    "mobilephone": "Mobile Number ",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstnameJoint": "First Name (Joint Person)",
+    "lastnameJoint": "First Name (Joint Person)",
+    "birthdateJoint": "Birthdate (Joint Person)",
+    "mobilephoneJoint": "Mobile Number (Joint Person) ",
+    "emailJoint": "Email (Joint Person)",
+    "passwordJoint": "Password (Joint Person)",
+    "confirmPasswordJoint": "Confirm Password (Joint Person)"
+   
     
   },
   "errors": {
