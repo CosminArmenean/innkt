@@ -1,4 +1,4 @@
-import { CanActivate } from '@angular/router';
+
 import { TestBed, async, inject } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
