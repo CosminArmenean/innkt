@@ -7,6 +7,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { UserService } from 'src/app/services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ErrorsStateMatcher } from 'src/app/errorsStateMatcher';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
@@ -27,9 +28,10 @@ export class RegisterComponent implements OnInit {
   registrationForm : FormGroup;
   minDate = 'Jun 15, 2005, 21:43:11 UTC'; //You'll want to change this to UTC or it can mess up your date.
   genders = ['male', 'female']; 
+  welcome = '';
 
 
-  constructor(private authService: AuthenticationService, private userService:UserService, private _snackBar:MatSnackBar, private formBuilder: FormBuilder) {  
+  constructor(private authService: AuthenticationService, private userService:UserService, private _snackBar:MatSnackBar, private formBuilder: FormBuilder, private translateService: TranslateService) {  
     
     this.registrationForm = new FormGroup(
       {
@@ -85,7 +87,10 @@ export class RegisterComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
+    this.translateService.get('welcome').subscribe(translation => {
+      this.welcome = translation;
+  });
+    this.translateService.use('ro');
   }
   //Register<T extends Register | RegisterJoint>(dto:T){
   //  if(this.registrationType === 'single'){

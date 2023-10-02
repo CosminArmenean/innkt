@@ -2,7 +2,10 @@
     <div [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : !isContainerLayout}">
       <div class="row justify-content-center">
         <div class="registration-container">
+
+          <h1>{{ 'welcome' | translate }}</h1>
           <h2>Registration</h2>
+          
           <div class="registration-options">
             <button (click)="setRegistrationType('single')" [class.active]="registrationType === 'single'">Single</button>
             <button (click)="setRegistrationType('joint')" [class.active]="registrationType === 'joint'">Joint</button>
@@ -10,8 +13,8 @@
           
           <form [formGroup]="registrationForm" *ngIf="registrationType === 'single'" (ngSubmit)="onSubmit()">
             <div class="form-group">
-              <input  placeholder="First Name" formControlName="firstname" required="">
-              <input  placeholder="Last Name" formControlName="lastname" required>
+              <input  placeholder="{{ 'firstname' | translate}}" formControlName="firstname" required translate>
+              <input  placeholder="{{ 'lastname' | translate}}" formControlName="lastname" required translate>
 
             </div>
             <div class="form-group">

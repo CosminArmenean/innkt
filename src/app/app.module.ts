@@ -24,6 +24,8 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HomeComponent } from './components/features/home/home.component';
 import { AdminComponent } from './components/features/admin/admin.component';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { HttpLoader } from './http-loader';
 
 
 export function tokenGetter() {
@@ -54,6 +56,12 @@ export function tokenGetter() {
         allowedDomains: ["localhost:8081"],
         disallowedRoutes: [],
       },
+    }),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useClass: HttpLoader
+      }
     }),
   ],
   providers: [

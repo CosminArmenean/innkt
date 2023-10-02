@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthenticationService } from './services/authentication.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,10 @@ import { AuthenticationService } from './services/authentication.service';
 export class AppComponent {
   title = 'innkt';  
   isLoggedIn!: boolean;
-  constructor(private authService : AuthenticationService){}
+  constructor(private authService : AuthenticationService, private translateService: TranslateService){
+    this.translateService.setDefaultLang('en'); // Set the default language
+    this.translateService.use('en'); // Use the default language
+  }
 
   ngOnInit(): void {
     // check if the token exist in session storage
