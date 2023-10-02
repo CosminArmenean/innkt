@@ -1,0 +1,17 @@
+{
+    "control_names": {
+      "username": "اسم المستخدم",
+      "password": "كلمة المرور"
+    },
+    "placeholders": {
+      "firstname": "اسم المستخدم",
+      "lastname": "اسم المستخدم",
+      "username": "ادخل اسم المستخدم",
+      "password": "ادخل كلمة المرور"
+    },
+    "errors": {
+      "required": "هذا الحقل مطلوب",
+      "minlength": "الحد الأدنى للأحرف هو {{requiredLength}} أحرف",
+      "maxlength": "الحد الأقصى للأحرف هو {{requiredLength}} أحرف"
+    }
+  }

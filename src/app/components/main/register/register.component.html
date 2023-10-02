@@ -1,9 +1,9 @@
 <section>
     <div [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : !isContainerLayout}">
       <div class="row justify-content-center">
-        <div class="registration-container">
+        <div class="registration-container" [class.rtl]="isRtlLayout">
 
-          <h1>{{ 'welcome' | translate }}</h1>
+          <h1>welcome</h1>
           <h2>Registration</h2>
           
           <div class="registration-options">
@@ -13,8 +13,8 @@
           
           <form [formGroup]="registrationForm" *ngIf="registrationType === 'single'" (ngSubmit)="onSubmit()">
             <div class="form-group">
-              <input  placeholder="{{ 'firstname' | translate}}" formControlName="firstname" required translate>
-              <input  placeholder="{{ 'lastname' | translate}}" formControlName="lastname" required translate>
+              <input  placeholder="{{ 'placeholders.firstname' | translate}}" formControlName="firstname" required translate>
+              <input  placeholder="{{ 'placeholders.lastname' | translate}}" formControlName="lastname" required translate>
 
             </div>
             <div class="form-group">

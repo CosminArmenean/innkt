@@ -24,8 +24,10 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HomeComponent } from './components/features/home/home.component';
 import { AdminComponent } from './components/features/admin/admin.component';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslateModule, TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HttpLoader } from './http-loader';
+import { CoreModule } from './core.module';
+import { LanguageService } from './services/language.service';
 
 
 export function tokenGetter() {
@@ -40,8 +42,7 @@ export function tokenGetter() {
     ProfileComponent,
     HomeComponent,
     AdminComponent,
-    PostsComponent,
-  ],
+    PostsComponent,  ],
   imports: [
     BrowserModule,    
     AppRoutingModule,  
@@ -57,6 +58,7 @@ export function tokenGetter() {
         disallowedRoutes: [],
       },
     }),
+    CommonModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -69,6 +71,8 @@ export function tokenGetter() {
     AuthenticationService,
     DataService,
     UserService,
+    LanguageService,
+    TranslateService,
     {provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher},
     {provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {duration: 3500}},
   ],

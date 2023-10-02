@@ -1,0 +1,16 @@
+{
+    "control_names": {
+      "username": "Utilizator",
+      "password": "Parola"
+    },
+    "placeholders": {
+      "firstname": "Prenume",
+      "lastname": "Nume"
+     
+    },
+    "errors": {
+      "required": "",
+      "minlength": "",
+      "maxlength": ""
+    }
+}

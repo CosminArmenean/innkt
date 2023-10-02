@@ -1,0 +1,23 @@
+
+body.rtl {
+  direction: rtl;
+}
+
+/* Mirrored layout for elements */
+.rtl .container {
+  transform: scaleX(-1);
+}
+
+/* Adjust margins, padding, and text alignment for specific elements as needed */
+.rtl .navbar {
+  padding-left: 0;
+  padding-right: 15px;
+  text-align: right;
+}
+
+.icon {
+  transform: scaleX(-1);
+}
+.rtl .mirrored-image {
+  transform: scaleX(-1);
+}

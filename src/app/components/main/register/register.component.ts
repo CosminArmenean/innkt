@@ -8,6 +8,7 @@ import { UserService } from 'src/app/services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ErrorsStateMatcher } from 'src/app/errorsStateMatcher';
 import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from 'src/app/services/language.service'; 
 
 @Component({
   selector: 'app-register',
@@ -16,6 +17,7 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class RegisterComponent implements OnInit {
   isContainerLayout = true;
+  isRtlLayout: boolean = false;
   registrationType: 'single' | 'joint' = 'single'; // Default to single registration
   registerDto: Register = new Register;
   registerJointDto: RegisterJoint = new RegisterJoint;
@@ -31,7 +33,13 @@ export class RegisterComponent implements OnInit {
   welcome = '';
 
 
-  constructor(private authService: AuthenticationService, private userService:UserService, private _snackBar:MatSnackBar, private formBuilder: FormBuilder, private translateService: TranslateService) {  
+  constructor(
+    private authService: AuthenticationService, 
+    private userService:UserService, 
+    private _snackBar:MatSnackBar, 
+    private formBuilder: FormBuilder, 
+    private translateService: TranslateService, 
+    private languageService: LanguageService) {  
     
     this.registrationForm = new FormGroup(
       {
@@ -83,14 +91,19 @@ export class RegisterComponent implements OnInit {
       }
     );
   
-     
+     this.translateService.use('ar-AR');
   }
 
   ngOnInit(): void {
     this.translateService.get('welcome').subscribe(translation => {
       this.welcome = translation;
   });
-    this.translateService.use('ro');
+  // Subscribe to language changes
+  this.languageService.selectedLanguage$.subscribe((language) => {
+    // Check if the language is RTL (you can implement this logic)
+    this.isRtlLayout = this.languageService.isRtlLanguage();
+  });
+    this.translateService.use('ar-AR');
   }
   //Register<T extends Register | RegisterJoint>(dto:T){
   //  if(this.registrationType === 'single'){
