@@ -12,100 +12,164 @@
 
         </div>
         <div class="three-third">
-          <p>Welcome to innkt</p>
+          <p>{{ 'home.welcome' | translate }}</p>
 
         </div>
-        
-        
+
+
 
       </div>
 
 
       <div class="right-half">
-        <h2 class="custom-text">Registration</h2>
+        <h2 class="custom-text">{{ 'reg_controls_names.registration' | translate }}</h2>
 
         <div class="registration-options">
-          <button (click)="setRegistrationType('single')" [class.active]="registrationType === 'single'"><h2 class="custom-text">Single</h2></button>
-          <button (click)="setRegistrationType('joint')" [class.active]="registrationType === 'joint'"><h2 class="custom-text">Joint</h2></button>
+          <button (click)="setRegistrationType('single')" [class.active]="registrationType === 'single'">
+            <h2 class="custom-text">{{ 'reg_controls_names.single' | translate }}</h2>
+          </button>
+          <button (click)="setRegistrationType('joint')" [class.active]="registrationType === 'joint'">
+            <h2 class="custom-text">{{ 'reg_controls_names.joint' | translate }}</h2>
+          </button>
         </div>
 
-        <form [formGroup]="registrationForm" *ngIf="registrationType === 'single'" (ngSubmit)="onSubmit()">
-          <div class="form-group">
-            <input placeholder="{{ 'placeholders.firstname' | translate}}" formControlName="firstname" required
-              translate>
-            <input placeholder="{{ 'placeholders.lastname' | translate}}" formControlName="lastname" required translate>
+        <div class="single">
+          <form [formGroup]="registrationForm" *ngIf="registrationType === 'single'" (ngSubmit)="onSubmit()">
+            <div class="form-group form-outline flex-fill mb-0">
+              <div class="columnOne form-outline flex-fill mb-0">
+                <mat-form-field appearance="fill" class="form-outline flex-fill mb-0">
+                  <mat-label>{{ 'placeholders.firstname' | translate }}</mat-label>
+                  <input matInput formControlName="firstname" placeholder="{{ 'placeholders.firstname' | translate }}"
+                    required />
+                  <mat-error *ngIf="firstname?.hasError('required')">
+                    {{ 'errors.required' | translate }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="columnTwo form-outline flex-fill mb-0">
+                <mat-form-field appearance="fill" class="form-outline flex-fill mb-0">
+                  <mat-label>{{ 'placeholders.lastname' | translate }}</mat-label>
+                  <input matInput formControlName="lastname" placeholder="{{ 'placeholders.lastname' | translate }}"
+                    required />
+                  <mat-error *ngIf="firstname?.hasError('required')">
+                    {{ 'errors.required' | translate }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
 
-          </div>
-          <div class="form-group">
-            <mat-form-field>
-              <mat-label>Date of Birth</mat-label>
-              <input matInput [matDatepicker]="picker" formControlName="birthdate">
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
-          </div>
-          <div class="form-group">
-            <label>Gender:</label>
-            <mat-radio-group formControlName="gender">
-              <mat-radio-button *ngFor="let gender of genders" [value]="gender">
-                {{ gender | titlecase }}
-              </mat-radio-button>
-            </mat-radio-group>
-          </div>
 
-          <div class="form-group">
-            <mat-form-field>
-              <input matInput placeholder="Mobile Phone Number" formControlName="mobilePhone" type="tel" />
-              <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('required')">
-                Mobile phone number is required.
-              </mat-error>
-              <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('pattern')">
-                Please enter a valid mobile phone number.
-              </mat-error>
-            </mat-form-field>
-          </div>
 
-          <input placeholder="Email" type="email" formControlName="email" required>
-          <div class="form-group">
-            <input placeholder="Password" type="password" formControlName="password" required>
-            <input placeholder="Confirm Password" type="password" formControlName="confirmPassword" required>
+            </div>
+            <div class="form-group">
+              <div class="month form-outline flex-fill mb-0">
+                <!-- Month Dropdown -->
+                <mat-form-field appearance="fill" class="form-outline flex-fill mb-0">
+                  <mat-label>{{ 'placeholders.birthdate' | translate }}</mat-label>
+                  <mat-select formControlName="birthMonth" required>
+                    <mat-option *ngFor="let month of months | keyvalue" [value]="month.key"> {{ month.value
+                      }}</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="birthMonth?.hasError('required')">
+                    {{ 'errors.required' | translate }}
+                  </mat-error>
+                </mat-form-field>
 
-          </div>
-          <!-- Confirmation Password input -->
-          <div class="form-group">
-            <i class="me-3">
-              <mat-icon>
-                vpn_key
-              </mat-icon>
-            </i>
-            <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
-              <mat-label class="form-label" for="confirmPassword">
-                Confirm Password
-              </mat-label>
-              <input matInput type="password" id="confirmPassword" placeholder="Enter password"
-                formControlName="confirmPassword" [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'"
-                name="confirmPassword" required />
-              <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'"
-                [attr.aria-pressed]="hide">
-                <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </div>
+              <div class="day form-outline flex-fill mb-0">
+                <!-- Day Dropdown -->
+                <mat-form-field appearance="fill" class="form-outline flex-fill mb-0">
+                  <mat-select formControlName="birthDay" required>
+                    <mat-option *ngFor="let day of days" [value]="day">{{ day }}</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="birthDay?.hasError('required')">
+                    {{ 'errors.required' | translate }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="year form-outline flex-fill mb-0">
+                <!-- Year Dropdown -->
+                <mat-form-field appearance="fill" class="form-outline flex-fill mb-0">
+
+                  <mat-select formControlName="birthYear" required>
+                    <mat-option *ngFor="let year of years" [value]="year">{{ year }}</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="birthYear?.hasError('required')">
+                    {{ 'errors.required' | translate }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+
+
+
+
+
+
+            </div>
+            <div class="form-group">
+              <label>Gender:</label>
+              <mat-radio-group formControlName="gender">
+                <mat-radio-button *ngFor="let gender of genders" [value]="gender">
+                  {{ gender | titlecase }}
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field>
+                <input matInput placeholder="Mobile Phone Number" formControlName="mobilePhone" type="tel" />
+                <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('required')">
+                  Mobile phone number is required.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('mobilePhone')?.hasError('pattern')">
+                  Please enter a valid mobile phone number.
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <input placeholder="Email" type="email" formControlName="email" required>
+            <div class="form-group">
+              <input placeholder="Password" type="password" formControlName="password" required>
+              <input placeholder="Confirm Password" type="password" formControlName="confirmPassword" required>
+
+            </div>
+            <!-- Confirmation Password input -->
+            <div class="form-group">
+              <i class="me-3">
+                <mat-icon>
+                  vpn_key
+                </mat-icon>
+              </i>
+              <mat-form-field class="form-outline flex-fill mb-0" appearance="fill">
+                <mat-label class="form-label" for="confirmPassword">
+                  Confirm Password
+                </mat-label>
+                <input matInput type="password" id="confirmPassword" placeholder="Enter password"
+                  formControlName="confirmPassword" [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'"
+                  name="confirmPassword" required />
+                <button type="button" mat-icon-button matSuffix (click)="hide = !hide"
+                  [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                  <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+                <mat-error *ngIf="confirmPassword?.hasError('passwordMismatch')">
+                  Password does not match
+                </mat-error>
+                <mat-error *ngIf=" confirmPassword?.hasError('required')">
+                  Password confirmation is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+
+            <!--Register Button-->
+            <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+              <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
+                Register
               </button>
-              <mat-error *ngIf="confirmPassword?.hasError('passwordMismatch')">
-                Password does not match
-              </mat-error>
-              <mat-error *ngIf=" confirmPassword?.hasError('required')">
-                Password confirmation is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-
-          <!--Register Button-->
-          <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
-            <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
-              Register
-            </button>
-          </div>
-        </form>
+            </div>
+          </form>
+        </div>
 
         <form [formGroup]="registrationForm" *ngIf="registrationType === 'joint'" (ngSubmit)="onSubmit()">
           <input placeholder="First Name" formControlName="firstname" required>

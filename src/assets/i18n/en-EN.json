@@ -7,7 +7,7 @@
 
   },
   "home": {
-    "welcome": "Welcome to our website!",
+    "welcome": "Welcome to innkt",
     "description": "We provide the best services in town."
   },
   "about": {
@@ -43,7 +43,9 @@
   },
   "placeholders": {
     "firstname": "First Name",
-    "birthdate": "Birthdate",
+    "lastname": "Last Name",
+    "birthdate": "Birthday",
+    "birthday": "Birthday",
     "male": "Male",
     "female": "Female",
     "mobilephone": "Mobile Number ",
@@ -61,7 +63,7 @@
     
   },
   "errors": {
-    "required": "",
+    "required": "The minimm length is {requiredLength} ",
     "minlength": "",
     "maxlength": ""
   }

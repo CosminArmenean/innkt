@@ -1,6 +1,6 @@
 /* Container layout */
 .container-layout {
-    width: 50%; /* Adjust the width as needed */
+    width: 70%; /* Adjust the width as needed */
     margin: 0 auto; /* Center the content horizontally */
    
   }
@@ -14,6 +14,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    
    
   }
   .registration-container {
@@ -54,8 +55,15 @@
     text-align: center;
   }
   
-  .registration-form .form-group {
+  .registration-form  {
     margin-bottom: 10px;
+    
+  }
+
+  .form-group{
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
   }
   
   .registration-form input {
@@ -87,18 +95,20 @@
 
   .left-half {
     flex: 1;
-    width: 30%;
+    width: 40%;
     height: 100vh;
     background-color: rgb(255, 255, 255);
     display:block;
     align-items: center;
     justify-content: center;
     padding: 10px;
+    grid-column: 1;
   }
   
   .right-half {
     flex: 1;
-    width: 80%;
+    width: 60%;
+    grid-column: 2;
     height: 100vh;
     background-color: #6E31A6;
     padding: 20px;
@@ -108,6 +118,7 @@
     height: 20vh;
     text-align: center;
     font-size: xx-large;
+    
   }
 
   .two-third {
@@ -121,7 +132,23 @@
     font-size: xx-large;
    
   }
-
+  .columnOne {
+    flex: 1;
+    width: 50%;
+  }
+  .columnTwo {
+    flex: 1;
+    width: 50%;
+  }
+  .month{
+    width: 50%;
+  }
+  .day{
+    width: 20%;
+  }
+  .year{
+    width: 30%;
+  }
   @media (max-width: 768px) {
     .container-layout {
       width: 100%;

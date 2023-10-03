@@ -1,6 +1,6 @@
-<header class="container header">
+<header class="container header" >
   <!-- ==== NAVBAR ==== -->
-  <nav class="nav">
+  <nav class="nav" [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : !isContainerLayout}">
     <div class="logoText">
       <a routerLink="/Home" style="cursor: pointer;">
         <img src="./../assets/innkt-text-only-logo-01.svg" alt="LogoText" />

@@ -31,6 +31,9 @@ export class RegisterComponent implements OnInit {
   minDate = 'Jun 15, 2005, 21:43:11 UTC'; //You'll want to change this to UTC or it can mess up your date.
   genders = ['male', 'female']; 
   welcome = '';
+  months: string[] = [];
+  days: number[] = [];
+  years: number[] = [];
 
 
   constructor(
@@ -73,7 +76,9 @@ export class RegisterComponent implements OnInit {
           Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
         ]),
         confirmPasswordJoint: new FormControl('', [Validators.required]),    
-        birthdate: new FormControl<string>(new Date(this.minDate).toISOString().slice(0, -1)),
+        birthMonth: new FormControl('6'),
+        birthDay:  new FormControl(15),
+        birthYear:  new FormControl(1990),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
         gender: new FormControl<string>('male', [Validators.required]),
         genderJoint: new FormControl<string>('male',[Validators.required]),
@@ -103,6 +108,23 @@ export class RegisterComponent implements OnInit {
     // Check if the language is RTL (you can implement this logic)
     this.isRtlLayout = this.languageService.isRtlLanguage();
   });
+  // Fetch the months data in the user's language
+  this.languageService.getMonths().subscribe((data) => {  
+    // Convert the object into an array of key-value pairs
+    const monthsArray = Object.entries(data);
+    // Custom sorting function to sort by key (index)
+  
+    this.months = data;
+    
+    this.days = Array.from({ length: 31 }, (_, i) => i + 1);
+    const currentYear = new Date().getFullYear();
+    this.years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+     
+    console.log(this.months);
+    console.log(this.days);
+    console.log(this.years);
+  });
+   
     
   }
   //Register<T extends Register | RegisterJoint>(dto:T){
@@ -124,7 +146,11 @@ export class RegisterComponent implements OnInit {
     this.isSameCredentialsChecked = event.target.checked; // Update the property with the checkbox state
   }
 
-  
+  sortMonths(monthNames: string[]): string[] {
+    return monthNames.sort((a, b) => {
+      return a.localeCompare(b);
+    });
+  }
 
 
   //get all Form Fields
@@ -160,6 +186,15 @@ export class RegisterComponent implements OnInit {
   }
   get birthdate() {
     return this.registrationForm.get('birthdate');
+  }
+  get birthMonth() {
+    return this.registrationForm.get('birthMonth');
+  }
+  get birthDay() {
+    return this.registrationForm.get('birthDay');
+  }
+  get birthYear() {
+    return this.registrationForm.get('birthYear');
   }
   get birthdateJoint() {
     return this.registrationForm.get('birthdateJoint');

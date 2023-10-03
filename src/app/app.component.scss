@@ -8,6 +8,19 @@
     --text-content: #869ab8;
     --fixed-header-height: 4.5rem;
   }
+
+  /* Container layout */
+.container-layout {
+  width: 70%; /* Adjust the width as needed */
+  margin: 0 auto; /* Center the content horizontally */
+ 
+}
+
+/* Fluid layout */
+.fluid-layout {
+  width: 100%;
+}
+
   ul li {
     list-style-type: none;
     margin-bottom: -11rem;

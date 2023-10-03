@@ -10,6 +10,7 @@ import { LanguageService } from './services/language.service';
 })
 export class AppComponent {
   title = 'innkt';  
+  isContainerLayout = true;
   isLoggedIn!: boolean;
   isRtlLayout : boolean = false;
 
@@ -22,7 +23,7 @@ export class AppComponent {
     ){
     this.translateService.setDefaultLang('en-EN'); // Set the default language
     
-    this.languageService.setLanguage('ro-RO');
+    this.languageService.setLanguage('en-EN');
     
     
   }
