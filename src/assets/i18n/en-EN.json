@@ -56,6 +56,7 @@
     "lastnameJoint": "First Name (Joint Person)",
     "birthdateJoint": "Birthdate (Joint Person)",
     "mobilephoneJoint": "Mobile Number (Joint Person) ",
+    "country": "Country",
     "emailJoint": "Email (Joint Person)",
     "passwordJoint": "Password (Joint Person)",
     "confirmPasswordJoint": "Confirm Password (Joint Person)"
@@ -65,6 +66,8 @@
   "errors": {
     "required": "The minimm length is {requiredLength} ",
     "minlength": "",
-    "maxlength": ""
+    "maxlength": "",
+    "mobilephoneRequired": "Mobile number is required",
+    "mobilePhoneNotValid": "Please enter a valid mobile phone number."
   }
 }

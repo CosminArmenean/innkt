@@ -9,6 +9,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ErrorsStateMatcher } from 'src/app/errorsStateMatcher';
 import { TranslateService } from '@ngx-translate/core';
 import { LanguageService } from 'src/app/services/language.service'; 
+import { countries } from 'src/assets/countries/svg/countries';
+
 
 @Component({
   selector: 'app-register',
@@ -29,11 +31,13 @@ export class RegisterComponent implements OnInit {
   //form group
   registrationForm : FormGroup;
   minDate = 'Jun 15, 2005, 21:43:11 UTC'; //You'll want to change this to UTC or it can mess up your date.
-  genders = ['male', 'female']; 
+  genders : string[] = []; 
   welcome = '';
   months: string[] = [];
   days: number[] = [];
   years: number[] = [];
+  countries: any[] = countries;
+  selectedCountry: any = null;
 
 
   constructor(
@@ -76,7 +80,7 @@ export class RegisterComponent implements OnInit {
           Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
         ]),
         confirmPasswordJoint: new FormControl('', [Validators.required]),    
-        birthMonth: new FormControl('6'),
+        birthMonth: new FormControl(6),
         birthDay:  new FormControl(15),
         birthYear:  new FormControl(1990),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
@@ -90,6 +94,8 @@ export class RegisterComponent implements OnInit {
           Validators.required,
           Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
         ]),
+        countries: new FormControl(),
+        selectedCountry: new FormControl(),
       },
       {
         validators: this.passwordMatch('password', 'confirmPassword'),
@@ -111,10 +117,11 @@ export class RegisterComponent implements OnInit {
   // Fetch the months data in the user's language
   this.languageService.getMonths().subscribe((data) => {  
     // Convert the object into an array of key-value pairs
-    const monthsArray = Object.entries(data);
-    // Custom sorting function to sort by key (index)
-  
+    let monthsArray = Object.entries(data);
+    // Custom sorting function to sort by key (index)  
     this.months = data;
+    monthsArray.sort((a,b) => this.compareNumericKeys(a[0], b[0]));
+    this.months = monthsArray.map((entry) => entry[1]);
     
     this.days = Array.from({ length: 31 }, (_, i) => i + 1);
     const currentYear = new Date().getFullYear();
@@ -123,6 +130,14 @@ export class RegisterComponent implements OnInit {
     console.log(this.months);
     console.log(this.days);
     console.log(this.years);
+  });
+
+  // Fetch the months data in the user's language
+  this.languageService.getGenders().subscribe((data) => {  
+    
+    const gendersArray = Object.entries(data);   
+    this.genders = data; 
+    console.log(this.genders);
   });
    
     
@@ -146,12 +161,16 @@ export class RegisterComponent implements OnInit {
     this.isSameCredentialsChecked = event.target.checked; // Update the property with the checkbox state
   }
 
-  sortMonths(monthNames: string[]): string[] {
-    return monthNames.sort((a, b) => {
-      return a.localeCompare(b);
-    });
-  }
+  // Define a custom sorting function to sort by numeric key
+ compareNumericKeys(a: string, b: string): number {
+  const keyA = parseInt(a, 10);
+  const keyB = parseInt(b, 10);
 
+  return keyA - keyB;
+}
+onCountrySelectionChange(event: any): void {
+  this.selectedCountry = event.value;
+}
 
   //get all Form Fields
   get firstname() {
@@ -201,6 +220,9 @@ export class RegisterComponent implements OnInit {
   }
   get gender() {
     return this.registrationForm.get('gender');
+  }
+  get country() {
+    return this.registrationForm.get('country');
   }
   get genderJoint() {
     return this.registrationForm.get('genderJoint');
@@ -275,3 +297,7 @@ export class RegisterComponent implements OnInit {
     };
   }
 }
+function compareStrings(a: string, b: string): number {
+  throw new Error('Function not implemented.');
+}
+

@@ -1,7 +1,8 @@
 {
-    "control_names": {
+    "reg_controls_names": {
       "username": "اسم المستخدم",
-      "password": "كلمة المرور"
+      "password": "كلمة المرور",
+      "gender": "saa"
     },
     "placeholders": {
       "firstname": "اسم المستخدم",

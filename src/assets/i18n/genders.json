@@ -1,0 +1,42 @@
+{
+    "en-EN": {
+        "male": "male",
+        "female": "female"
+    },
+    "fr-FR": {
+        "male": "",
+        "female": ""
+    },
+    "es-ES": {
+        "male": "hombre",
+        "female": "mujer"
+    },
+    "ar-AR": {
+        "male": "sss",
+        "female": "sssa"
+      },
+      "he-HE": {
+        "male": "",
+        "female": ""
+      },
+      "hi-HI": {
+        "male": "",
+        "female": ""
+      },
+      "zh_hans": {
+        "male": "",
+        "female": ""
+      },
+      "ja-JA": {
+        "male": "",
+        "female": ""
+      },
+      "nl-NL": {
+        "male": "",
+        "female": ""
+      },
+      "hu-HU": {
+        "male": "",
+        "female": ""
+      }
+  }

@@ -12,6 +12,7 @@ export class LanguageService {
   private selectedLanguageSubject: BehaviorSubject<string>;
   public selectedLanguage$: Observable<string>;
   public months: string[] = [];
+  public genders: string[] = [];
 
   constructor(private translateService: TranslateService, private http: HttpClient) {
      // Initialize the subject with a default language, e.g., 'en' (English).
@@ -47,6 +48,18 @@ export class LanguageService {
       return (this.months = data[currentLanguage] ?? data['en-EN']); // Use English as the default language
     }));
     }
+
+
+    getGenders(): Observable<string[]> {
+      // Fetch month names based on the selected language
+      const currentLanguage = this.getLanguage();    
+   
+     return this.http
+       .get<{ [key: string]: string[] }>('../../../assets/i18n/genders.json')
+       .pipe(map((data) => {
+         return (this.genders = data[currentLanguage] ?? data['en-EN']); // Use English as the default language
+       }));
+       }
 
 
 }
