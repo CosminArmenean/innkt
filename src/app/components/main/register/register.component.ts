@@ -302,6 +302,7 @@ onCountrySelectionChange(event: any): void {
       }
     };
   }
+  
 
   calculateAge(): number {
     const birthDate = new Date(
