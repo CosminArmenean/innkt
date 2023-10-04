@@ -52,11 +52,15 @@ export class RegisterComponent implements OnInit {
       {
         firstname: new FormControl('', [
           Validators.required,
-          Validators.minLength(4),
+          Validators.minLength(2),
+          Validators.maxLength(30),
+          Validators.pattern(/^[A-Za-z]+$/),
         ]),
         lastname: new FormControl('', [
-          Validators.required,
-          Validators.minLength(4),
+          Validators.required,          
+          Validators.minLength(2),
+          Validators.maxLength(30),
+          Validators.pattern(/^[A-Za-z]+$/),
         ]),
         email: new FormControl('', [Validators.required, Validators.email]),
         password: new FormControl('', [
@@ -80,9 +84,10 @@ export class RegisterComponent implements OnInit {
           Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
         ]),
         confirmPasswordJoint: new FormControl('', [Validators.required]),    
-        birthMonth: new FormControl(6),
-        birthDay:  new FormControl(15),
-        birthYear:  new FormControl(1990),
+        birthMonth: new FormControl(6, [Validators.required]),
+        birthDay:  new FormControl(15, [Validators.required]),
+        birthYear:  new FormControl(1990, [Validators.required]),
+        age: new FormControl([Validators.required]),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
         gender: new FormControl<string>('male', [Validators.required]),
         genderJoint: new FormControl<string>('male',[Validators.required]),
@@ -99,7 +104,8 @@ export class RegisterComponent implements OnInit {
       },
       {
         validators: this.passwordMatch('password', 'confirmPassword'),
-      }
+      },
+  
     );
   
      
@@ -296,8 +302,30 @@ onCountrySelectionChange(event: any): void {
       }
     };
   }
+
+  calculateAge(): number {
+    const birthDate = new Date(
+      this.registrationForm.get('birthYear')?.value,
+      this.registrationForm.get('birthMonth')?.value - 1, // Month is 0-based
+      this.registrationForm.get('birthDay')?.value
+    );
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      return age - 1;
+    }
+  
+    return age;
+  }
+    
 }
+
+
 function compareStrings(a: string, b: string): number {
   throw new Error('Function not implemented.');
 }
+
+
 

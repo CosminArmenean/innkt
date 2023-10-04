@@ -65,9 +65,10 @@
   },
   "errors": {
     "required": "The minimm length is {requiredLength} ",
-    "minlength": "",
-    "maxlength": "",
+    "minlength": "The value is too short.",
+    "maxlength": "The value is too long.",
     "mobilephoneRequired": "Mobile number is required",
-    "mobilePhoneNotValid": "Please enter a valid mobile phone number."
+    "mobilePhoneNotValid": "Please enter a valid mobile phone number.",
+    "namePattern": "Invalid input. Please use only alphabetic characters."
   }
 }

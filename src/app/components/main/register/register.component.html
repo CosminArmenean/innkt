@@ -41,8 +41,17 @@
                   <mat-label>{{ 'placeholders.firstname' | translate }}</mat-label>
                   <input matInput formControlName="firstname" placeholder="{{ 'placeholders.firstname' | translate }}"
                     required />
-                  <mat-error *ngIf="firstname?.hasError('required')">
+                  <mat-error *ngIf="registrationForm.get('firstname')?.hasError('required')">
                     {{ 'errors.required' | translate }}
+                  </mat-error>
+                  <mat-error *ngIf="registrationForm.get('firstname')?.hasError('pattern')">
+                    {{ 'errors.namePattern' | translate }}
+                  </mat-error>
+                  <mat-error *ngIf="registrationForm.get('firstname')?.hasError('minlength')">
+                    {{ 'errors.minlength' | translate }}
+                  </mat-error>
+                  <mat-error *ngIf="registrationForm.get('firstname')?.hasError('maxlength')">
+                    {{ 'errors.maxlength' | translate }}
                   </mat-error>
                 </mat-form-field>
               </div>
@@ -51,9 +60,18 @@
                   <mat-label>{{ 'placeholders.lastname' | translate }}</mat-label>
                   <input matInput formControlName="lastname" placeholder="{{ 'placeholders.lastname' | translate }}"
                     required />
-                  <mat-error *ngIf="firstname?.hasError('required')">
-                    {{ 'errors.required' | translate }}
-                  </mat-error>
+                    <mat-error *ngIf="registrationForm.get('lastname')?.hasError('required')">
+                      {{ 'errors.required' | translate }}
+                    </mat-error>
+                    <mat-error *ngIf="registrationForm.get('lastname')?.hasError('pattern')">
+                      {{ 'errors.namePattern' | translate }}
+                    </mat-error>
+                    <mat-error *ngIf="registrationForm.get('lastname')?.hasError('minlength')">
+                      {{ 'errors.minlength' | translate }}
+                    </mat-error>
+                    <mat-error *ngIf="registrationForm.get('lastname')?.hasError('maxlength')">
+                      {{ 'errors.maxlength' | translate }}
+                    </mat-error>
                 </mat-form-field>
               </div>
 
@@ -106,7 +124,7 @@
               <!-- country Dropdown -->
               <div class="country form-outline flex-fill mb-0">
                 <mat-form-field class="form-outline flex-fill mb-0">
-                  <mat-label>Select a country</mat-label>
+                  <mat-label>Country</mat-label>
                   <mat-select formControlName="selectedCountry" (selectionChange)="onCountrySelectionChange($event)">
                     <mat-option *ngFor="let country of countries" [value]="country.code">
                       <img [src]="'assets/countries/svg/' + country.flag" alt="{{ country.name }} Flag" width="20"

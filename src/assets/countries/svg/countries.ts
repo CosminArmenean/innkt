@@ -20,7 +20,7 @@ export const countries = [
     },
     {
     "name": "Algeria",
-    "flag": "dx.svg",
+    "flag": "dz.svg",
     "dial_code": "+213",
     "code": "DZ"
     },
@@ -260,7 +260,7 @@ export const countries = [
     },
     {
     "name": "China",
-    "flag": "ch.svg",
+    "flag": "cn.svg",
     "dial_code": "+86",
     "code": "CN"
     },
@@ -548,7 +548,7 @@ export const countries = [
     },
     {
     "name": "Haiti",
-    "flag": "hht.svg",
+    "flag": "ht.svg",
     "dial_code": "+509",
     "code": "HT"
     },
@@ -673,13 +673,13 @@ export const countries = [
     "code": "KI"
     },
     {
-    "name": "Korea, Democratic People's Republic of Korea",
+    "name": "North Korea",
     "flag": "kp.svg",
     "dial_code": "+850",
     "code": "KP"
     },
     {
-    "name": "Korea, Republic of South Korea",
+    "name": "South Korea",
     "flag": "kr.svg",
     "dial_code": "+82",
     "code": "KR"
@@ -835,7 +835,7 @@ export const countries = [
     "code": "MX"
     },
     {
-    "name": "Micronesia, Federated States of Micronesia",
+    "name": "Micronesia",
     "flag": "fm.svg",
     "dial_code": "+691",
     "code": "FM"
@@ -912,12 +912,11 @@ export const countries = [
     "dial_code": "+31",
     "code": "NL"
     },
-    {
-    "name": "Netherlands Antilles",
-    "flag": "an.svg",
-    "dial_code": "+599",
-    "code": "AN"
-    },
+    //{
+    //"name": "Netherlands Antilles",    
+    //"dial_code": "+599",
+    //"code": "AN"
+    //},
     {
     "name": "New Caledonia",
     "flag": "nc.svg",

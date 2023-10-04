@@ -96,7 +96,7 @@
   .left-half {
     flex: 1;
     width: 40%;
-    height: 100vh;
+    height: auto;
     background-color: rgb(255, 255, 255);
     display:block;
     align-items: center;
@@ -109,7 +109,7 @@
     flex: 1;
     width: 60%;
     grid-column: 2;
-    height: 100vh;
+    height: auto;
     background-color: #6E31A6;
     padding: 20px;
   }
@@ -127,7 +127,7 @@
   }
 
   .three-third {
-    height: 30vh;
+    height: auto;
     text-align: center;
     font-size: xx-large;
    
@@ -157,7 +157,7 @@
   }
 .country{
   flex: 1;
-  width: 30%;
+  width: 35%;
 }
 .phone{
   flex: 1;
@@ -167,7 +167,7 @@
 .radio{
   flex: 1;
  
-  width: 40%;
+ 
 }
 .email{
   width: 50%;
