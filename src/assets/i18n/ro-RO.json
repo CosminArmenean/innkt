@@ -11,6 +11,7 @@
     "errors": {
       "required": "",
       "minlength": "",
-      "maxlength": ""
+      "maxlength": "",
+      "namePattern": "Invalid inputbhhh. Please use only alphabetic characters."
     }
 }
