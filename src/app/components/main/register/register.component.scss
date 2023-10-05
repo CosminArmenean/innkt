@@ -69,9 +69,11 @@
   .registration-form input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #aa4343;
     border-radius: 5px;
+    
   }
+
   
   .registration-form button {
     width: 100%;
@@ -92,6 +94,8 @@
   color: #ffffff;
   
 }
+
+
 
   .left-half {
     flex: 1;
@@ -176,6 +180,8 @@
   display: flex;
   flex-direction: row;
 }
+
+
   @media (max-width: 768px) {
     .container-layout {
       width: 100%;

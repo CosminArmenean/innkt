@@ -100,9 +100,10 @@
               "src/assets"
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/deeppurple-amber.css",
+              "src/styles/theme-styles.scss",
               "src/styles.scss",
-              "src/styles/rtl-styles.scss"
+              "src/styles/rtl-styles.scss",
+              "src/styles/theme-styles.scss"
             ],
             "scripts": []
           }
