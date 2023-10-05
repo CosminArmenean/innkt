@@ -62,13 +62,25 @@ export class RegisterComponent implements OnInit {
           Validators.maxLength(30),
           Validators.pattern(/^[A-Za-z]+$/),
         ]),
-        email: new FormControl('', [Validators.required, Validators.email]),
+        email: new FormControl('', [
+          Validators.required, 
+          Validators.minLength(4),
+          Validators.maxLength(50),
+          Validators.email,
+          Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
+        ]),
         password: new FormControl('', [
           Validators.required,
           Validators.minLength(8),
+          Validators.maxLength(100),
           Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
         ]),
-        confirmPassword: new FormControl('', [Validators.required]),
+        confirmPassword: new FormControl('', [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(100),
+          Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
+        ]),
         firstnameJoint: new FormControl('', [
           Validators.required,
           Validators.minLength(4),
@@ -89,18 +101,24 @@ export class RegisterComponent implements OnInit {
         birthYear:  new FormControl(1990, [Validators.required]),
         age: new FormControl([Validators.required]),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
-        gender: new FormControl<string>('male', [Validators.required]),
+        gender: new FormControl('', []),
         genderJoint: new FormControl<string>('male',[Validators.required]),
         mobilePhone : new FormControl('', [
           Validators.required,
+          Validators.minLength(7),
+          Validators.maxLength(16),
           Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
         ]),
         mobilePhoneJoint : new FormControl('', [
           Validators.required,
+          Validators.minLength(7),
+          Validators.maxLength(16),
           Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
         ]),
         countries: new FormControl(),
-        selectedCountry: new FormControl(),
+        selectedCountry: new FormControl('', [
+          Validators.required,
+        ]),
       },
       {
         validators: this.passwordMatch('password', 'confirmPassword'),

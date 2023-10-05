@@ -95,6 +95,14 @@
   
 }
 
+.smaller-control {
+  font-size: 15px; /* Adjust font size as needed */
+  padding-bottom: 10px;
+  margin: 0; /* Adjust padding as needed */
+  /* Add other styles for smaller controls */
+  scale: 0.9;
+}
+
 
 
   .left-half {
@@ -165,18 +173,25 @@
 }
 .phone{
   flex: 1;
-  
+  font-size: 30px;
+  scale: 1;
   width: 30%;
+ 
 }
 .radio{
   flex: 1;
- 
+ width: 40%;
  
 }
 .email{
-  width: 50%;
+  flex: 1;
+  width: 60%;
 }
 .rowThree{
+  display: flex;
+  flex-direction: row;
+}
+.rowFour{
   display: flex;
   flex-direction: row;
 }
