@@ -1,47 +1,74 @@
-<header class="container header" >
-  <!-- ==== NAVBAR ==== -->
-  <nav class="nav" [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : !isContainerLayout}">
-    <div class="logoText">
-      <a routerLink="/Home" style="cursor: pointer;">
-        <img src="./../assets/innkt-text-only-logo-01.svg" alt="LogoText" />
+<mat-toolbar color="primary" class="page-container">
+  <mat-toolbar-row 
+    [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : (!isContainerLayout && isLoggedIn)}">
+
+
+    <div class="left-logo-container">
+      <a routerLink="/left-logo">
+        <img src="./../assets/logo/innkt-logo-text-white.svg" alt="Left Logo" class="left-logo" />
       </a>
     </div>
-    <div class="logo" >
-      <a routerLink="/Home" style="cursor: pointer;" class="nav_menu_link">
-        <img src="./../assets/logo-innkt.svg" alt="logo" class="logo" />
+    
+    <div class="logo-container">
+      <a routerLink="/home">
+        <img src="./../assets/logo/innkt-logo-dots-white.svg" alt="Logo" class="logo-dots" />
       </a>
     </div>
+    <span class="spacer"></span>
 
-    <div class="nav_menu" id="nav_menu">
-      <button class="close_btn" id="close_btn">
-        <i class="ri-close-fill"></i>
-      </button>
-
-      <ul class="nav_menu_list">
-        
-        <li class="nav_menu_item" routerLinkActive="active" *ngIf="isLoggedIn">
-          <a routerLink="/User" class="nav_menu_link">User</a>
-        </li>
-        <li class="nav_menu_item" routerLinkActive="active" *ngIf="isLoggedIn">
-          <a routerLink="/Admin" class="nav_menu_link">Admin</a>
-        </li>
-        <li class="nav_menu_item" *ngIf="isLoggedIn" style="cursor: pointer;">
-          <a (click)="signOut()" class="nav_menu_link">LogOut</a>
-        </li>
-        <li class="nav_menu_item" routerLinkActive="active" *ngIf="!isLoggedIn">
-          <a routerLink="/SignIn" class="nav_menu_link">Login</a>
-        </li>
-        <li class="nav_menu_item" routerLinkActive="active" *ngIf="!isLoggedIn">
-          <a routerLink="/SignUp" class="nav_menu_link">Sign Up</a>
-        </li>
-        <li class="nav_menu_item" *ngIf="isLoggedIn">
-          <p class="toggle_btn">
-            {{getUserName()}}
-          </p>
-        </li>
+    <button mat-icon-button [ngClass]="{ 'active': hamburgerOpen }" id="nav_check" (click)="toggleMenu()" *ngIf="isSmallScreen">
+      <mat-icon>{{ hamburgerOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+    <nav>
+      <ng-container *ngIf="!isLoggedIn">
+      <ul >
+    
+        <li>
+          <a href="/SignIn" class="active" routerLink="/SignIn" mat-button>Login</a>
+        </li> 
+        <li>
+          <a href=""  routerLink="/SignUp" mat-button>Sign Up</a> 
+        </li> 
       </ul>
+      </ng-container>
+
+      <ng-container  *ngIf="isLoggedIn">
+        <ul>
+    
+          <li>
+            <a class="menu-item" class="active" routerLink="/profile" mat-button>Profile</a>
+          </li> 
+          <li>
+            <a class="menu-item" routerLink="/home" mat-button>Home</a>
+          </li> 
+          <li>
+            <a>
+              <mat-form-field appearance="fill" class="search-field">
+                <input matInput placeholder="Search" />
+              </mat-form-field>
+              <button mat-icon-button type="submit">
+                <mat-icon>search</mat-icon>
+              </button>
+            </a>
+          </li> 
+        </ul>
+      </ng-container>
+      
+    </nav>
+
+    <label for="nav_check" class="hamburger">
+     
+    </label>  
+
+    
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-sidenav-container>
+ 
+  <mat-sidenav-content>
+    <div class="content mat-elevation-z8">
+      <router-outlet></router-outlet>
     </div>
-  </nav>
-  <hr class="headerLine">
-</header>
-<router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,8 +1,14 @@
-import { Component, Renderer2 } from '@angular/core';
+import { Component, Renderer2, ViewChild } from '@angular/core';
 import { AuthenticationService } from './services/authentication.service';
 import { TranslateService } from '@ngx-translate/core';
 import { LanguageService } from './services/language.service';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { MatSidenav } from '@angular/material/sidenav';
+import { NavigationEnd, Router } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { delay, filter } from 'rxjs';
 
+@UntilDestroy()
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -10,16 +16,24 @@ import { LanguageService } from './services/language.service';
 })
 export class AppComponent {
   title = 'innkt';  
-  isContainerLayout = true;
-  isLoggedIn!: boolean;
+  isContainerLayout = false;
+  hamburgerOpen  = false;
+  isLoggedIn: boolean = true;
+  isSmallScreen = false;
   isRtlLayout : boolean = false;
+
+  @ViewChild(MatSidenav)
+  sidenav!: MatSidenav;
+
 
   
   constructor(
     private authService : AuthenticationService, 
     private translateService: TranslateService, 
     private languageService: LanguageService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private breakpointObserver: BreakpointObserver,
+    private router:Router
     ){
     this.translateService.setDefaultLang('en-EN'); // Set the default language
     
@@ -29,8 +43,15 @@ export class AppComponent {
   }
 
   ngOnInit(): void {
+    this.breakpointObserver
+    .observe([Breakpoints.XSmall, Breakpoints.Small])
+    .subscribe((result) => {
+      this.isSmallScreen = result.matches;
+      //this.isSmallScreen = false;
+    });
     // check if the token exist in session storage
-    this.isLoggedIn = !!this.authService.getToken();
+    //this.isLoggedIn = !!this.authService.getToken();
+    this.isLoggedIn = false;
 
     this.languageService.selectedLanguage$.subscribe((language) => {
       this.isRtlLayout = this.languageService.isRtlLanguage();
@@ -39,6 +60,34 @@ export class AppComponent {
       this.loadRtlStyles();      
     });
   }
+
+  ngAfterViewInit() {
+    this.breakpointObserver
+      .observe(['(max-width: 768px)'])
+      .pipe(delay(1), untilDestroyed(this))
+      .subscribe((res) => {
+        if (res.matches) {
+          this.sidenav.mode = 'over';
+          this.sidenav.close();
+        } else {
+          this.sidenav.mode = 'side';
+          this.sidenav.open();
+        }
+      });
+
+    this.router.events
+      .pipe(
+        untilDestroyed(this),
+        filter((e) => e instanceof NavigationEnd)
+      )
+      .subscribe(() => {
+        if (this.sidenav.mode === 'over') {
+          this.sidenav.close();
+        }
+      });
+  }
+
+
   private loadRtlStyles() {
     if (this.isRtlLayout) {
       // Create a link element for the RTL styles
@@ -53,6 +102,10 @@ export class AppComponent {
       this.renderer.setAttribute(document.body, 'dir', dir);
       console.log('style rtl applied!');
     }
+  }
+
+  toggleMenu() {
+    this.hamburgerOpen  = !this.hamburgerOpen;
   }
   //get user Email Method
   getUserName() {

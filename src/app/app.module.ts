@@ -49,7 +49,7 @@ export function tokenGetter() {
     BrowserAnimationsModule,    
     ReactiveFormsModule,
     HttpClientModule,
-    MaterialModule,
+    MaterialModule,   
     FormsModule,
     JwtModule.forRoot({
       config: {
