@@ -45,6 +45,14 @@ $menuHeight: 50px;
   /* Vertically center items */
 }
 
+.custom-toolbar {
+  
+  //background: linear-gradient(45deg, rgba(110,49,166,1) 40%, rgba(255,255,255,0.927608543417367) 50%, rgba(110,49,166,1) 60%);
+  background: radial-gradient(circle, rgba(255,255,255,0.927608543417367) 2%, rgba(110,49,166,1) 12%, rgba(110,49,166,1) 13%);
+
+  
+}
+
 .logo-container {
   display: flex;
   width: 10%;
@@ -56,7 +64,7 @@ $menuHeight: 50px;
 
 .left-logo-container {
 
-  width: 48%;
+  width: 45%;
   flex-direction: row;
 
 }
@@ -114,7 +122,7 @@ nav ul{
 }
 
 nav ul li a{
-  color:#161c2d ;
+  color: whitesmoke ;
   display: block;
   margin: 0 ;
   margin-top: 10px;
@@ -126,7 +134,7 @@ nav ul li a{
 }
 
 nav ul li a:hover{
-  background: #869ab8;
+  background: #13d862;
   padding-top: 0px;
 }
 
@@ -171,7 +179,7 @@ mat-toolbar {
   background-color: #6E31A6;
 }
 
-@media only screen and  (max-width: 768px) {
+@media only screen and  (max-width: 960px) {
   .menu-button {
     display: flex;
     margin: 0 auto;
@@ -222,6 +230,7 @@ mat-toolbar {
     margin-bottom: 5px;
     padding: 10px 15px;
     border-radius: 5px;
+    
    }
    nav ul {
     display: block;

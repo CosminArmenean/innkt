@@ -23,7 +23,7 @@ export class RegisterComponent implements OnInit {
   registrationType: 'single' | 'joint' = 'single'; // Default to single registration
   registerDto: Register = new Register;
   registerJointDto: RegisterJoint = new RegisterJoint;
-  isSameCredentialsChecked: boolean = false;
+  isSameCredentialsChecked: boolean = true;
   // check the form is submitted or not yet
   isSubmited: boolean = false;
   // hide attribute for the password input
@@ -95,14 +95,23 @@ export class RegisterComponent implements OnInit {
           Validators.minLength(8),
           Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
         ]),
-        confirmPasswordJoint: new FormControl('', [Validators.required]),    
+        confirmPasswordJoint: new FormControl('', [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(100),
+          Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),          
+        ]),    
         birthMonth: new FormControl(6, [Validators.required]),
         birthDay:  new FormControl(15, [Validators.required]),
         birthYear:  new FormControl(1990, [Validators.required]),
+        birthMonthJoint: new FormControl(6, [Validators.required]),
+        birthDayJoint:  new FormControl(15, [Validators.required]),
+        birthYearJoint:  new FormControl(1990, [Validators.required]),
         age: new FormControl([Validators.required]),
+        ageJoint: new FormControl([Validators.required]),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
-        gender: new FormControl('', []),
-        genderJoint: new FormControl<string>('male',[Validators.required]),
+        gender: new FormControl('male', [Validators.required]),
+        genderJoint: new FormControl('male',[Validators.required]),
         mobilePhone : new FormControl('', [
           Validators.required,
           Validators.minLength(7),
@@ -237,6 +246,15 @@ onCountrySelectionChange(event: any): void {
     return this.registrationForm.get('birthDay');
   }
   get birthYear() {
+    return this.registrationForm.get('birthYear');
+  }
+  get birthMonthJoint() {
+    return this.registrationForm.get('birthMonth');
+  }
+  get birthDayJoint() {
+    return this.registrationForm.get('birthDay');
+  }
+  get birthYearJoint() {
     return this.registrationForm.get('birthYear');
   }
   get birthdateJoint() {
