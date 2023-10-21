@@ -97,6 +97,8 @@
 
 .custom-checkbox {
   color: #13d862; /* Change the color of the checkbox */
+  margin-top: -25px;
+  margin-bottom: 10px;
 
 }
 
@@ -107,7 +109,15 @@
   /* Add other styles for smaller controls */
   scale: 0.9;
 }
-
+.divider {
+  display: flex;
+  width: auto;        /* Adjust the width as needed */
+  height: 2px;     /* The height should match the container height */
+  margin: 13px;
+  margin: 13px;
+  margin-top: 0px;
+  background-color: #dbe60d; /* The color of the divider line */
+}
 
 
   .left-half {
@@ -159,6 +169,15 @@
     width: 50%;
     display: flex;
   }
+  .country-joint {
+    width: 40%;
+  }
+  .email-joint {
+    width: 100%;
+    
+    display: flex;
+  }
+
   .month{
     width: 30%;
     margin-left: 0;
@@ -216,6 +235,12 @@
 .rowFour{
   display: flex;
   flex-direction: row;
+}
+.rowFive {
+  margin-bottom: 0px;
+}
+.rowSix {
+  margin-top: 10px;
 }
 .rowEight {
   margin-top: 0 auto;

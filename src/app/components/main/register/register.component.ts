@@ -38,6 +38,7 @@ export class RegisterComponent implements OnInit {
   years: number[] = [];
   countries: any[] = countries;
   selectedCountry: any = null;
+  selectedCountryJoint: any = null;
 
 
   constructor(
@@ -89,7 +90,13 @@ export class RegisterComponent implements OnInit {
           Validators.required,
           Validators.minLength(4),
         ]),
-        emailJoint: new FormControl('', [Validators.required, Validators.email]),
+        emailJoint: new FormControl('', [
+          Validators.required, 
+          Validators.minLength(4),
+          Validators.maxLength(50),
+          Validators.email,
+          Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
+        ]),
         passwordJoint: new FormControl('', [
           Validators.required,
           Validators.minLength(8),
@@ -125,7 +132,11 @@ export class RegisterComponent implements OnInit {
           Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
         ]),
         countries: new FormControl(),
+        isSameCredentialsChecked: new FormControl(''),
         selectedCountry: new FormControl('', [
+          Validators.required,
+        ]),
+        selectedCountryJoint: new FormControl('', [
           Validators.required,
         ]),
       },
@@ -172,7 +183,7 @@ export class RegisterComponent implements OnInit {
     this.genders = data; 
     console.log(this.genders);
   });
-   
+  this.isSameCredentialsChecked = true;
     
   }
   //Register<T extends Register | RegisterJoint>(dto:T){
@@ -190,8 +201,10 @@ export class RegisterComponent implements OnInit {
     this.registrationType = type;
   }  
 
-  onCheckboxChange(event: any) {
-    this.isSameCredentialsChecked = event.target.checked; // Update the property with the checkbox state
+  onCheckboxChange() {
+    //this.isSameCredentialsChecked = event.target.checked; // Update the property with the checkbox state
+    this.isSameCredentialsChecked = !this.isSameCredentialsChecked;
+    //this.isSameCredentialsChecked = (event.target as HTMLInputElement).checked;
   }
 
   // Define a custom sorting function to sort by numeric key
@@ -203,6 +216,9 @@ export class RegisterComponent implements OnInit {
 }
 onCountrySelectionChange(event: any): void {
   this.selectedCountry = event.value;
+}
+onCountryJointSelectionChange(event: any): void {
+  this.selectedCountryJoint = event.value;
 }
 
   //get all Form Fields
@@ -275,6 +291,7 @@ onCountrySelectionChange(event: any): void {
   get mobilePhoneJoint() {
     return this.registrationForm.get('mobilePhoneJoint');
   }
+ 
   
   // match errors in the submition of form
   matcher = new ErrorsStateMatcher();

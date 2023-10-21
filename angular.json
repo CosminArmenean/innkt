@@ -103,7 +103,7 @@
               "src/styles/theme-styles.scss",
               "src/styles.scss",
               "src/styles/rtl-styles.scss",
-              "src/styles/theme-styles.scss"
+              "src/styles/reusable-styles.scss"
             ],
             "scripts": []
           }

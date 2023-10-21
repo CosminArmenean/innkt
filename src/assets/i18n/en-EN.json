@@ -55,8 +55,9 @@
     "firstnameJoint": "First Name (Joint Person)",
     "lastnameJoint": "Last Name (Joint Person)",
     "birthdateJoint": "Birthdate (Joint Person)",
-    "mobilephoneJoint": "Mobile Number (Joint Person) ",
+    "mobilePhoneJoint": "Mobile Nr. (Joint Person)",
     "country": "Country",
+    "countryJoint": "Country (Joint Person)",
     "emailJoint": "Email (Joint Person)",
     "passwordJoint": "Password (Joint Person)",
     "confirmPasswordJoint": "Confirm Password (Joint Person)"
