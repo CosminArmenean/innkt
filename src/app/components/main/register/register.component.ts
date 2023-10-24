@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Register } from 'src/app/models/account/register';
 import { RegisterJoint } from 'src/app/models/account/register-joint';
@@ -8,7 +8,7 @@ import { UserService } from 'src/app/services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ErrorsStateMatcher } from 'src/app/errorsStateMatcher';
 import { TranslateService } from '@ngx-translate/core';
-import { LanguageService } from 'src/app/services/language.service'; 
+import { LanguageService } from 'src/app/services/language.service';
 import { countries } from 'src/assets/countries/svg/countries';
 
 
@@ -29,9 +29,10 @@ export class RegisterComponent implements OnInit {
   // hide attribute for the password input
   hide: boolean = true;
   //form group
-  registrationForm : FormGroup;
+  registrationForm: FormGroup;
+  registrationJointForm : FormGroup;
   minDate = 'Jun 15, 2005, 21:43:11 UTC'; //You'll want to change this to UTC or it can mess up your date.
-  genders : string[] = []; 
+  genders: string[] = [];
   welcome = '';
   months: string[] = [];
   days: number[] = [];
@@ -42,13 +43,14 @@ export class RegisterComponent implements OnInit {
 
 
   constructor(
-    private authService: AuthenticationService, 
-    private userService:UserService, 
-    private _snackBar:MatSnackBar, 
-    private formBuilder: FormBuilder, 
-    private translateService: TranslateService, 
-    private languageService: LanguageService) {  
-    
+    private authService: AuthenticationService,
+    private userService: UserService,
+    private _snackBar: MatSnackBar,
+    private formBuilder: FormBuilder,
+    private translateService: TranslateService,
+    private languageService: LanguageService) {
+
+
     this.registrationForm = new FormGroup(
       {
         firstname: new FormControl('', [
@@ -58,18 +60,31 @@ export class RegisterComponent implements OnInit {
           Validators.pattern(/^[A-Za-z]+$/),
         ]),
         lastname: new FormControl('', [
-          Validators.required,          
+          Validators.required,
           Validators.minLength(2),
           Validators.maxLength(30),
           Validators.pattern(/^[A-Za-z]+$/),
         ]),
+        birthMonth: new FormControl(6, [Validators.required]),
+        birthDay: new FormControl(15, [Validators.required]),
+        birthYear: new FormControl(1990, [Validators.required]),
+        selectedCountry: new FormControl('', [
+          Validators.required,
+        ]),
+        mobilePhone: new FormControl('', [
+          Validators.required,
+          Validators.minLength(7),
+          Validators.maxLength(16),
+          Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
+        ]),
         email: new FormControl('', [
-          Validators.required, 
+          Validators.required,
           Validators.minLength(4),
           Validators.maxLength(50),
           Validators.email,
           Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
         ]),
+        gender: new FormControl('male', [Validators.required]),
         password: new FormControl('', [
           Validators.required,
           Validators.minLength(8),
@@ -82,109 +97,190 @@ export class RegisterComponent implements OnInit {
           Validators.maxLength(100),
           Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
         ]),
-        firstnameJoint: new FormControl('', [
-          Validators.required,
-          Validators.minLength(4),
-        ]),
-        lastnameJoint: new FormControl('', [
-          Validators.required,
-          Validators.minLength(4),
-        ]),
-        emailJoint: new FormControl('', [
-          Validators.required, 
-          Validators.minLength(4),
-          Validators.maxLength(50),
-          Validators.email,
-          Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
-        ]),
-        passwordJoint: new FormControl('', [
-          Validators.required,
-          Validators.minLength(8),
-          Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
-        ]),
-        confirmPasswordJoint: new FormControl('', [
-          Validators.required,
-          Validators.minLength(8),
-          Validators.maxLength(100),
-          Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),          
-        ]),    
-        birthMonth: new FormControl(6, [Validators.required]),
-        birthDay:  new FormControl(15, [Validators.required]),
-        birthYear:  new FormControl(1990, [Validators.required]),
-        birthMonthJoint: new FormControl(6, [Validators.required]),
-        birthDayJoint:  new FormControl(15, [Validators.required]),
-        birthYearJoint:  new FormControl(1990, [Validators.required]),
-        age: new FormControl([Validators.required]),
-        ageJoint: new FormControl([Validators.required]),
+        firstnameJoint: new FormControl('', this.getValidatorsForName()),
+        lastnameJoint: new FormControl('', this.getValidatorsForName()),
+        emailJoint: new FormControl('', this.getValidatorsForEmail()),
+        birthMonthJoint: new FormControl(6, this.getValidatorsForBirthDate()),
+        birthDayJoint: new FormControl(15, this.getValidatorsForBirthDate()),
+        birthYearJoint: new FormControl(1990, this.getValidatorsForBirthDate()),
+        selectedCountryJoint: new FormControl('', this.getValidatorsForControlRequired()),
+        mobilePhoneJoint: new FormControl('',   this.getValidatorsForMobile() ),
+        //mobilePhoneJoint: new FormControl('', !this.isSameCredentialsChecked ? this.getValidatorsForMobile() : []),
+        genderJoint: new FormControl('male', this.getValidatorsForBirthDate()),
+        passwordJoint: new FormControl('', this.getValidatorsForPassword()),
+        confirmPasswordJoint: new FormControl('', this.getValidatorsForPassword()),
+        age: new FormControl(),
+        ageJoint: new FormControl(),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
-        gender: new FormControl('male', [Validators.required]),
-        genderJoint: new FormControl('male',[Validators.required]),
-        mobilePhone : new FormControl('', [
-          Validators.required,
-          Validators.minLength(7),
-          Validators.maxLength(16),
-          Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
-        ]),
-        mobilePhoneJoint : new FormControl('', [
-          Validators.required,
-          Validators.minLength(7),
-          Validators.maxLength(16),
-          Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/), // Define your phone number pattern here
-        ]),
+
         countries: new FormControl(),
-        isSameCredentialsChecked: new FormControl(''),
-        selectedCountry: new FormControl('', [
-          Validators.required,
-        ]),
-        selectedCountryJoint: new FormControl('', [
-          Validators.required,
-        ]),
+        isSameCredentialsChecked: new FormControl(false),
+
       },
       {
-        validators: this.passwordMatch('password', 'confirmPassword'),
-      },
-  
+        validators: Validators.compose([
+          this.checkPasswordMatch('password', 'confirmPassword'),
+          //this.validateForm(),
+        ])
+        //validators: this.validateForm()       
+
+        //validators: this.passwordMatch('password', 'confirmPassword'),
+      }
     );
-  
-     
+
+    this.registrationJointForm = new FormGroup({
+      
+    })
   }
+
+
+  // Custom function to get validators for firstnameJoint control
+  getValidatorsForName() {
+    const validators = [
+      Validators.minLength(2),
+      Validators.maxLength(30),
+      Validators.pattern(/^[A-Za-z]+$/),
+    ];
+
+    if (this.registrationType === 'joint') {
+      validators.unshift(Validators.required);
+    }
+
+    return validators;
+  }
+
+  getValidatorsForBirthDate() {
+    const validators = [
+      
+    ];
+
+    if (this.registrationType === 'joint') {
+      
+      validators.unshift(Validators.required);
+    }
+
+    return validators;
+  }
+  getValidatorsForControlRequired() {
+    const validators =  [
+      Validators.required,
+    ];
+
+   if( this.registrationType === 'single')
+   {
+     validators.shift();
+   }
+    if (this.registrationType === 'joint') {
+      if(this.isSameCredentialsChecked === true){
+        
+        
+        return validators;
+      }
+      
+      validators.unshift(Validators.required);
+    }
+
+    return validators;
+  }
+
+  getValidatorsForEmail() {
+    const validators = [
+      Validators.minLength(4),
+    Validators.maxLength(50),
+    Validators.email,
+    Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
+    ];
+   
+    if (this.registrationType === 'joint') {
+      if(this.isSameCredentialsChecked === true){
+      
+        return validators;
+      }
+      validators.unshift(Validators.required);
+    }
+
+    return validators;
+  }
+  getValidatorsForMobile() {
+    const validators = [
+      Validators.minLength(7),
+      Validators.maxLength(16),
+      Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/),
+    ];
+    
+    if (this.registrationType === 'joint' ) {     
+        validators.unshift(Validators.required);   
+    }    
+    
+
+    return validators;
+  }
+ 
+  getValidatorsForPassword() {
+    const validators = [
+      Validators.required,
+      Validators.minLength(8),
+    Validators.maxLength(100),
+    Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
+    ];
+
+    if( this.registrationType === 'single') {
+      validators.shift();
+    }
+    if (this.registrationType === 'joint') {
+      if(this.isSameCredentialsChecked === true){
+       
+        return validators;
+      }
+      validators.unshift(Validators.required);
+    }
+
+    return validators;
+  }
+  
+
 
   ngOnInit(): void {
     this.translateService.get('welcome').subscribe(translation => {
       this.welcome = translation;
-  });
-  // Subscribe to language changes
-  this.languageService.selectedLanguage$.subscribe((language) => {
-    // Check if the language is RTL (you can implement this logic)
-    this.isRtlLayout = this.languageService.isRtlLanguage();
-  });
-  // Fetch the months data in the user's language
-  this.languageService.getMonths().subscribe((data) => {  
-    // Convert the object into an array of key-value pairs
-    let monthsArray = Object.entries(data);
-    // Custom sorting function to sort by key (index)  
-    this.months = data;
-    monthsArray.sort((a,b) => this.compareNumericKeys(a[0], b[0]));
-    this.months = monthsArray.map((entry) => entry[1]);
-    
-    this.days = Array.from({ length: 31 }, (_, i) => i + 1);
-    const currentYear = new Date().getFullYear();
-    this.years = Array.from({ length: 100 }, (_, i) => currentYear - i);
-     
-    console.log(this.months);
-    console.log(this.days);
-    console.log(this.years);
-  });
+    });
+    // Subscribe to language changes
+    this.languageService.selectedLanguage$.subscribe((language) => {
+      // Check if the language is RTL (you can implement this logic)
+      this.isRtlLayout = this.languageService.isRtlLanguage();
+    });
+    // Fetch the months data in the user's language
+    this.languageService.getMonths().subscribe((data) => {
+      // Convert the object into an array of key-value pairs
+      let monthsArray = Object.entries(data);
+      // Custom sorting function to sort by key (index)  
+      this.months = data;
+      monthsArray.sort((a, b) => this.compareNumericKeys(a[0], b[0]));
+      this.months = monthsArray.map((entry) => entry[1]);
 
-  // Fetch the months data in the user's language
-  this.languageService.getGenders().subscribe((data) => {  
+      this.days = Array.from({ length: 31 }, (_, i) => i + 1);
+      const currentYear = new Date().getFullYear();
+      this.years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+
+      console.log(this.months);
+      console.log(this.days);
+      console.log(this.years);
+    });
+
+    // Fetch the months data in the user's language
+    this.languageService.getGenders().subscribe((data) => {
+
+      const gendersArray = Object.entries(data);
+      this.genders = data;
+      console.log(this.genders);
+
+      this.isSameCredentialsChecked = true;   
+      
+    });
     
-    const gendersArray = Object.entries(data);   
-    this.genders = data; 
-    console.log(this.genders);
-  });
-  this.isSameCredentialsChecked = true;
-    
+
+
+
   }
   //Register<T extends Register | RegisterJoint>(dto:T){
   //  if(this.registrationType === 'single'){
@@ -197,29 +293,30 @@ export class RegisterComponent implements OnInit {
   //    });
   //  }
   //}
+
   setRegistrationType(type: 'single' | 'joint') {
-    this.registrationType = type;
-  }  
+    this.registrationType = type;   
+  }
 
   onCheckboxChange() {
-    //this.isSameCredentialsChecked = event.target.checked; // Update the property with the checkbox state
     this.isSameCredentialsChecked = !this.isSameCredentialsChecked;
-    //this.isSameCredentialsChecked = (event.target as HTMLInputElement).checked;
+
+    
   }
 
   // Define a custom sorting function to sort by numeric key
- compareNumericKeys(a: string, b: string): number {
-  const keyA = parseInt(a, 10);
-  const keyB = parseInt(b, 10);
+  compareNumericKeys(a: string, b: string): number {
+    const keyA = parseInt(a, 10);
+    const keyB = parseInt(b, 10);
 
-  return keyA - keyB;
-}
-onCountrySelectionChange(event: any): void {
-  this.selectedCountry = event.value;
-}
-onCountryJointSelectionChange(event: any): void {
-  this.selectedCountryJoint = event.value;
-}
+    return keyA - keyB;
+  }
+  onCountrySelectionChange(event: any): void {
+    this.selectedCountry = event.value;
+  }
+  onCountryJointSelectionChange(event: any): void {
+    this.selectedCountryJoint = event.value;
+  }
 
   //get all Form Fields
   get firstname() {
@@ -292,21 +389,63 @@ onCountryJointSelectionChange(event: any): void {
     return this.registrationForm.get('mobilePhoneJoint');
   }
  
-  
+
+
   // match errors in the submition of form
   matcher = new ErrorsStateMatcher();
+  // Get a list of all form controls in the form
+
+  //ignoreRequiredIfCheckboxCheckedValidator(control: AbstractControl): ValidationErrors | null {
+  //  const ignoreRequiredMobile = control.get('mobilePhoneJoint');
+  //  const ignoreRequiredselectedCountryJoint = control.get('selectedCountryJoint');
+  //  const ignoreRequiredEmail = control.get('emailJoint');
+  //  const ignoreRequiredPassword = control.get('passwordJoint');
+  //  const ignoreRequiredPasswordConfirm = control.get('confirmPasswordJoint');
+//
+  //
+  //  if (this.isSameCredentialsChecked) {
+  //    control.clearValidators();
+  //    control.updateValueAndValidity();
+  //    return null;
+  //  }
+  //  else{
+  //    control.setValidators(this.getValidatorsForMobile());
+  //    control.updateValueAndValidity();
+  //  }
+  //
+  //  return null;
+  //}
+//
+  // A method to check the validity of each control
+  checkControlValidity(controlName: AbstractControl)  {
+    const control = this.registrationForm.get('mobilePhoneJoint');
+    if(!this.isSameCredentialsChecked){
+      return control?.clearValidators();
+
+    }
+    return control?.setValidators(this.getValidatorsForMobile());
+  }
+
   // submit fntc
   onSubmit() {
 
-    
-    if(this.registrationType === 'single'){
+    if (this.registrationType === 'single') {
       console.log(this.registrationType);
+      if (this.registrationForm.valid) {
+        this.registerDto.firstname = this.registrationForm.value.firstname;
+        this.registerDto.lastname = this.registrationForm.value.lastname;
+        this.registerDto.birthdate.parse = this.getBirthDate().getUTCDate;
+        console.log(this.registerDto.birthdate);
+
+      }
+
+
       this.userService.Create(this.registerDto).subscribe(() => {
         this._snackBar.open('Your account has been created successfully', '✔️');
         setTimeout(() => (window.location.href = '/SignIn'), 2000);
       });
     }
-    else if(this.registrationType === 'joint'){
+    else if (this.registrationType === 'joint') {
       this.userService.Create(this.registerJointDto).subscribe(() => {
         this._snackBar.open('Your account has been created successfully', '✔️');
         setTimeout(() => (window.location.href = '/SignIn'), 2000);
@@ -325,7 +464,7 @@ onCountryJointSelectionChange(event: any): void {
       console.log(user);
       console.log(this.registerDto);
       console.log(this.registerJointDto);
-      
+
     } else {
       console.log(this.registrationForm);
       this._snackBar.open('Enter valid informations !!!', '❌');
@@ -355,7 +494,70 @@ onCountryJointSelectionChange(event: any): void {
       }
     };
   }
-  
+
+  private checkPasswordMatch(password: string, confirmPassword: string): ValidatorFn {
+    return (formGroup: AbstractControl) => {
+      const control = formGroup.get(password);
+      const matchingControl = formGroup.get(confirmPassword);
+
+      if (!control || !matchingControl) {
+        return null;
+      }
+
+      const controlValue = control.value;
+      const matchingControlValue = matchingControl.value;
+
+      if (controlValue !== matchingControlValue) {
+        matchingControl.setErrors({ passwordMismatch: true });
+      } else {
+        matchingControl.setErrors(null);
+      }
+      return null;
+    };
+  }
+
+  passwordStrengthValidator = (control: AbstractControl): ValidationErrors | null => {
+    const passwordtyped = this.registrationForm.get('password');
+
+    if (passwordtyped != null && passwordtyped.value.length < 8) {
+      return { passwordStrength: true };
+    }
+
+    return null;
+  };
+
+
+  conditionalRequiredValidator(controlName: string): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (this.registrationType === 'single') {
+        const controlForm = control.get(controlName);
+        
+     
+
+
+
+
+      }
+      
+      return null;
+    }
+  }
+
+
+
+
+  getBirthDate(): Date {
+    // Handle the selected date
+    if (this.registrationForm.valid) {
+      const birthdate = new Date(this.registrationForm.value.birthYear, this.months.indexOf(this.registrationForm.value.birthMonth), this.registrationForm.value.birthDay);
+      console.log('Selected Date:', birthdate);
+      return birthdate;
+    } else {
+      this._snackBar.open('Birth Date information not valid!', '❌');
+      return new Date;
+    }
+  }
+
 
   calculateAge(): number {
     const birthDate = new Date(
@@ -366,14 +568,14 @@ onCountryJointSelectionChange(event: any): void {
     const today = new Date();
     const age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       return age - 1;
     }
-  
+
     return age;
   }
-    
+
 }
 
 

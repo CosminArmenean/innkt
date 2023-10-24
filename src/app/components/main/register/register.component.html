@@ -12,7 +12,7 @@
 
         </div>
         <div class="three-third">
-          <p>{{ 'home.welcome' | translate }}</p>
+         <!--  <p>{{ 'home.welcome' | translate }}</p> -->
 
         </div>
 
@@ -73,6 +73,7 @@
                     {{ 'errors.maxlength' | translate }}
                   </mat-error>
                 </mat-form-field>
+
               </div>
 
 
@@ -104,6 +105,7 @@
                     {{ 'errors.required' | translate }}
                   </mat-error>
                 </mat-form-field>
+
               </div>
 
               <div class="year form-outline flex-fill mb-0">
@@ -118,6 +120,7 @@
                     {{ 'errors.required' | translate }}
                   </mat-error>
                 </mat-form-field>
+
               </div>
 
             </div>
@@ -160,6 +163,7 @@
                     {{ 'errors.mobilePhoneNotValid' | translate}}
                   </mat-error>
                 </mat-form-field>
+
               </div>
             </div>
 
@@ -185,6 +189,7 @@
                     {{ 'errors.maxlength' | translate }}
                   </mat-error>
                 </mat-form-field>
+
               </div>
 
 
@@ -201,6 +206,7 @@
                       <label class="custom-text">{{ gender.value}}</label>
                     </mat-radio-button>
                   </mat-radio-group>
+
                 </div>
               </div>
             </div>
@@ -232,6 +238,7 @@
                     {{ 'errors.maxlength' | translate }}
                   </mat-error>
                 </mat-form-field>
+
               </div>
 
 
@@ -260,14 +267,16 @@
                     {{ 'errors.maxlength' | translate }}
                   </mat-error>
                 </mat-form-field>
+
               </div>
             </div>
 
             <!--Register Button-->
             <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
-              <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
+              <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block" [disabled]="registrationForm.invalid"> 
                 {{ 'reg_controls_names.register' | translate }}
               </button>
+              <!-- [disabled]="registrationForm.invalid" -->
             </div>
           </form>
         </div>
@@ -606,7 +615,7 @@
 
             <!-- Row Eight-->
             <div class="rowEight form-group form-outline flex-fill mb-0">
-              <mat-checkbox (change)="onCheckboxChange()" class="custom-checkbox">
+              <mat-checkbox (change)="onCheckboxChange()"  formControlName="isSameCredentialsChecked" class="custom-checkbox">
                 <mat-label class="custom-text">{{ 'reg_controls_names.isSameCredentialsChecked' | translate
                   }}</mat-label>
               </mat-checkbox>
@@ -679,7 +688,7 @@
                 </mat-form-field>
 
               </div>
-              <div class=" form-outline flex-fill mb-0"></div>
+              <div class=" mb-0"></div>
             </div>
 
 
@@ -744,7 +753,7 @@
 
             <!--Register Button-->
             <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
-              <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
+              <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block" [disabled]="registrationForm.invalid">
                 {{ 'reg_controls_names.register' | translate }}
               </button>
             </div>
