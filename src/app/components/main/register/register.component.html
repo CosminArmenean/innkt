@@ -397,7 +397,7 @@
                 <mat-form-field appearance="fill" class="smaller-control form-outline flex-fill mb-0">
                   <mat-label>{{ 'reg_controls_names.gender' | translate }}</mat-label>
                   <mat-select formControlName="gender" required>
-                    <mat-option class="smaller-control" *ngFor="let gender of genders | keyvalue" [value]="gender">
+                    <mat-option class="smaller-control" *ngFor="let gender of genders | keyvalue" [value]="gender.value">
                       {{ gender.value }}
                     </mat-option>
                   </mat-select>
@@ -602,7 +602,7 @@
                 <mat-form-field appearance="fill" class="smaller-control form-outline flex-fill mb-0">
                   <mat-label>{{ 'reg_controls_names.genderJoint' | translate }}</mat-label>
                   <mat-select formControlName="genderJoint" required>
-                    <mat-option class="smaller-control" *ngFor="let gender of genders | keyvalue" [value]="gender">
+                    <mat-option class="smaller-control" *ngFor="let gender of genders | keyvalue" [value]="gender.value">
                       {{ gender.value }}
                     </mat-option>
                   </mat-select>

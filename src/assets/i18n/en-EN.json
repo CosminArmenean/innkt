@@ -76,5 +76,8 @@
     "passwordRequired" : "Confirm Password field is required",
     "passwordConfirmationRequired" : "Confirm Password field is required",
     "passwordNotMatching" : "Password does not match"
+  },
+  "snackbar": {
+    "birthdateLow" : "Age to low to sign up!"
   }
 }

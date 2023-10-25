@@ -1,8 +1,8 @@
 export class Register {
     firstname = '';
     lastname = '';
-    birthdate = Date;
-    countryPhoneCode = '';
+    birthdate = '';
+    countryCode = '';
     mobile = '';    
     email = '';
     gender = '';    
@@ -12,8 +12,8 @@ export class Register {
     constructor(){
         this.firstname = '';
         this.lastname = '';
-        this.birthdate = Date;
-        this.countryPhoneCode = '';
+        this.birthdate = '';
+        this.countryCode = '';
         this.mobile = '';
         this.email = '';
         this.gender = '';
