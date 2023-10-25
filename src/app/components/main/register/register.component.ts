@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
 import { Register } from 'src/app/models/account/register';
 import { RegisterJoint } from 'src/app/models/account/register-joint';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -12,12 +13,14 @@ import { LanguageService } from 'src/app/services/language.service';
 import { countries } from 'src/assets/countries/svg/countries';
 
 
+
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent implements OnInit {
+  
   isContainerLayout = true;
   isRtlLayout: boolean = false;
   registrationType: 'single' | 'joint' = 'single'; // Default to single registration
@@ -30,7 +33,6 @@ export class RegisterComponent implements OnInit {
   hide: boolean = true;
   //form group
   registrationForm: FormGroup;
-  registrationJointForm : FormGroup;
   minDate = 'Jun 15, 2005, 21:43:11 UTC'; //You'll want to change this to UTC or it can mess up your date.
   genders: string[] = [];
   welcome = '';
@@ -47,8 +49,10 @@ export class RegisterComponent implements OnInit {
     private userService: UserService,
     private _snackBar: MatSnackBar,
     private formBuilder: FormBuilder,
+    private cdRef: ChangeDetectorRef,
     private translateService: TranslateService,
     private languageService: LanguageService) {
+     
 
 
     this.registrationForm = new FormGroup(
@@ -103,12 +107,12 @@ export class RegisterComponent implements OnInit {
         birthMonthJoint: new FormControl(6, this.getValidatorsForBirthDate()),
         birthDayJoint: new FormControl(15, this.getValidatorsForBirthDate()),
         birthYearJoint: new FormControl(1990, this.getValidatorsForBirthDate()),
-        selectedCountryJoint: new FormControl('', this.getValidatorsForControlRequired()),
-        mobilePhoneJoint: new FormControl('',   this.getValidatorsForMobile() ),
-        //mobilePhoneJoint: new FormControl('', !this.isSameCredentialsChecked ? this.getValidatorsForMobile() : []),
+        selectedCountryJoint: new FormControl('', this.getValidatorsForBirthDate()),
+        mobilePhoneJoint: new FormControl('', this.getValidatorsForMobile()),
         genderJoint: new FormControl('male', this.getValidatorsForBirthDate()),
         passwordJoint: new FormControl('', this.getValidatorsForPassword()),
         confirmPasswordJoint: new FormControl('', this.getValidatorsForPassword()),
+
         age: new FormControl(),
         ageJoint: new FormControl(),
         birthdateJoint: new FormControl(new Date(this.minDate).toISOString().slice(0, -1)),
@@ -128,9 +132,7 @@ export class RegisterComponent implements OnInit {
       }
     );
 
-    this.registrationJointForm = new FormGroup({
-      
-    })
+
   }
 
 
@@ -151,32 +153,25 @@ export class RegisterComponent implements OnInit {
 
   getValidatorsForBirthDate() {
     const validators = [
-      
+
     ];
 
     if (this.registrationType === 'joint') {
-      
+
       validators.unshift(Validators.required);
     }
 
     return validators;
   }
   getValidatorsForControlRequired() {
-    const validators =  [
-      Validators.required,
+    const validators = [
+
     ];
 
-   if( this.registrationType === 'single')
-   {
-     validators.shift();
-   }
+
     if (this.registrationType === 'joint') {
-      if(this.isSameCredentialsChecked === true){
-        
-        
-        return validators;
-      }
-      
+
+
       validators.unshift(Validators.required);
     }
 
@@ -186,14 +181,14 @@ export class RegisterComponent implements OnInit {
   getValidatorsForEmail() {
     const validators = [
       Validators.minLength(4),
-    Validators.maxLength(50),
-    Validators.email,
-    Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
+      Validators.maxLength(50),
+      Validators.email,
+      Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'),
     ];
-   
+
     if (this.registrationType === 'joint') {
-      if(this.isSameCredentialsChecked === true){
-      
+      if (this.isSameCredentialsChecked === true) {
+
         return validators;
       }
       validators.unshift(Validators.required);
@@ -207,29 +202,29 @@ export class RegisterComponent implements OnInit {
       Validators.maxLength(16),
       Validators.pattern(/^\+?\d{1,4}[-.\s]?\d{1,14}$/),
     ];
-    
-    if (this.registrationType === 'joint' ) {     
-        validators.unshift(Validators.required);   
-    }    
-    
+
+    if (this.registrationType === 'joint') {
+      validators.unshift(Validators.required);
+    }
+
 
     return validators;
   }
- 
+
   getValidatorsForPassword() {
     const validators = [
       Validators.required,
       Validators.minLength(8),
-    Validators.maxLength(100),
-    Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
+      Validators.maxLength(100),
+      Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
     ];
 
-    if( this.registrationType === 'single') {
+    if (this.registrationType === 'single') {
       validators.shift();
     }
     if (this.registrationType === 'joint') {
-      if(this.isSameCredentialsChecked === true){
-       
+      if (this.isSameCredentialsChecked === true) {
+
         return validators;
       }
       validators.unshift(Validators.required);
@@ -237,7 +232,7 @@ export class RegisterComponent implements OnInit {
 
     return validators;
   }
-  
+
 
 
   ngOnInit(): void {
@@ -274,10 +269,10 @@ export class RegisterComponent implements OnInit {
       this.genders = data;
       console.log(this.genders);
 
-      this.isSameCredentialsChecked = true;   
-      
+      this.isSameCredentialsChecked = true;
+
     });
-    
+
 
 
 
@@ -295,13 +290,35 @@ export class RegisterComponent implements OnInit {
   //}
 
   setRegistrationType(type: 'single' | 'joint') {
-    this.registrationType = type;   
+    this.registrationType = type;
   }
 
   onCheckboxChange() {
     this.isSameCredentialsChecked = !this.isSameCredentialsChecked;
 
-    
+    // Trigger a new change detection cycle
+    this.cdRef.detectChanges();
+    // Enable or disable required validator based on the condition
+    if (!this.isSameCredentialsChecked) {
+      this.registrationForm.get('selectedCountryJoint')?.clearValidators();
+      this.registrationForm.get('mobilePhoneJoint')?.clearValidators();
+      this.registrationForm.get('emailJoint')?.clearValidators();
+      this.registrationForm.get('passwordJoint')?.clearValidators();
+      this.registrationForm.get('confirmPasswordJoint')?.clearValidators();
+    } else {
+      this.registrationForm.get('selectedCountryJoint')?.setValidators(this.getValidatorsForBirthDate());
+      this.registrationForm.get('mobilePhoneJoint')?.setValidators(this.getValidatorsForMobile());
+      this.registrationForm.get('emailJoint')?.setValidators(this.getValidatorsForEmail());
+      this.registrationForm.get('passwordJoint')?.setValidators(this.getValidatorsForPassword());
+      this.registrationForm.get('confirmPasswordJoint')?.setValidators(this.getValidatorsForPassword());
+    }
+
+    // Update the form controls
+    this.registrationForm.get('selectedCountryJoint')?.updateValueAndValidity();
+    this.registrationForm.get('mobilePhoneJoint')?.updateValueAndValidity();
+    this.registrationForm.get('emailJoint')?.updateValueAndValidity();
+    this.registrationForm.get('passwordJoint')?.updateValueAndValidity();
+    this.registrationForm.get('confirmPasswordJoint')?.updateValueAndValidity();
   }
 
   // Define a custom sorting function to sort by numeric key
@@ -388,44 +405,12 @@ export class RegisterComponent implements OnInit {
   get mobilePhoneJoint() {
     return this.registrationForm.get('mobilePhoneJoint');
   }
- 
+
 
 
   // match errors in the submition of form
   matcher = new ErrorsStateMatcher();
-  // Get a list of all form controls in the form
-
-  //ignoreRequiredIfCheckboxCheckedValidator(control: AbstractControl): ValidationErrors | null {
-  //  const ignoreRequiredMobile = control.get('mobilePhoneJoint');
-  //  const ignoreRequiredselectedCountryJoint = control.get('selectedCountryJoint');
-  //  const ignoreRequiredEmail = control.get('emailJoint');
-  //  const ignoreRequiredPassword = control.get('passwordJoint');
-  //  const ignoreRequiredPasswordConfirm = control.get('confirmPasswordJoint');
-//
-  //
-  //  if (this.isSameCredentialsChecked) {
-  //    control.clearValidators();
-  //    control.updateValueAndValidity();
-  //    return null;
-  //  }
-  //  else{
-  //    control.setValidators(this.getValidatorsForMobile());
-  //    control.updateValueAndValidity();
-  //  }
-  //
-  //  return null;
-  //}
-//
-  // A method to check the validity of each control
-  checkControlValidity(controlName: AbstractControl)  {
-    const control = this.registrationForm.get('mobilePhoneJoint');
-    if(!this.isSameCredentialsChecked){
-      return control?.clearValidators();
-
-    }
-    return control?.setValidators(this.getValidatorsForMobile());
-  }
-
+ 
   // submit fntc
   onSubmit() {
 
@@ -531,14 +516,14 @@ export class RegisterComponent implements OnInit {
     return (control: AbstractControl) => {
       if (this.registrationType === 'single') {
         const controlForm = control.get(controlName);
-        
-     
+
+
 
 
 
 
       }
-      
+
       return null;
     }
   }

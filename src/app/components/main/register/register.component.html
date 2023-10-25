@@ -623,7 +623,8 @@
 
 
             <!-- Row Nine-->
-            <div class="form-group form-outline flex-fill mb-0" [hidden]="!isSameCredentialsChecked">
+            <!-- *ngIf="!isSameCredentialsChecked" -->
+            <div class="form-group form-outline flex-fill mb-0"  [hidden]="!isSameCredentialsChecked">
               <div class="columnOne country-joint form-outline flex-fill mb-0">
                 <div class="country form-outline flex-fill mb-0">
                   <mat-form-field class="smaller-control form-outline flex-fill mb-0">
