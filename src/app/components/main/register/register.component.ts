@@ -127,7 +127,9 @@ export class RegisterComponent implements OnInit {
       },
       {
         validators: Validators.compose([
-          this.checkPasswordMatch('password', 'confirmPassword'),
+          this.passwordMatch('password', 'confirmPassword'),
+          this.passwordMatch('passwordJoint', 'confirmPasswordJoint'),
+          //this.checkPasswordMatch('password', 'confirmPassword'),
           //this.validateForm(),
         ])
         //validators: this.validateForm()       
@@ -390,7 +392,11 @@ export class RegisterComponent implements OnInit {
       if (this.registrationForm.valid) {
         this.registerDto.firstname = this.registrationForm.value.firstname;
         this.registerDto.lastname = this.registrationForm.value.lastname;
-        this.registerDto.birthdate = this.getBirthDate().toUTCString();
+         const date = this.getBirthDate(this.registrationForm.value.birthYear, this.registrationForm.value.birthMonth, this.registrationForm.value.birthDay);
+         if(date.getFullYear() > 2500){
+            return;
+         }
+        this.registerDto.birthdate = this.getBirthDate(this.registrationForm.value.birthYear, this.registrationForm.value.birthMonth, this.registrationForm.value.birthDay).toUTCString();
         this.registerDto.countryCode = this.registrationForm.value.selectedCountry;
         this.registerDto.mobile = this.registrationForm.value.mobilePhone;
         this.registerDto.email = this.registrationForm.value.email;
@@ -398,16 +404,53 @@ export class RegisterComponent implements OnInit {
         this.registerDto.password = this.registrationForm.value.password;
         this.registerDto.confirmPassword = this.registrationForm.value.confirmPassword;
         console.log(this.registerDto);
-
       }
-
-
-      this.userService.Create(this.registerDto).subscribe(() => {
+      else{
+        const message = this.translateService.instant('snackbar.unexpectedError');
+        this._snackBar.open(message, '❌');
+        return;
+      }
+      this.userService.register(this.registerDto).subscribe(() => {
         this._snackBar.open('Your account has been created successfully', '✔️');
         setTimeout(() => (window.location.href = '/SignIn'), 2000);
       });
     }
     else if (this.registrationType === 'joint') {
+      if (this.registrationForm.valid) {
+        this.registerJointDto.firstname = this.registrationForm.value.firstname;
+        this.registerJointDto.lastname = this.registrationForm.value.lastname;
+         const date_temp = this.getBirthDate(this.registrationForm.value.birthYear, this.registrationForm.value.birthMonth, this.registrationForm.value.birthDay);
+         if(date_temp.getFullYear() > 2500){
+            return;
+         }
+        this.registerJointDto.birthdate = date_temp.toDateString();
+        this.registerJointDto.countryCode = this.registrationForm.value.selectedCountry;
+        this.registerJointDto.mobile = this.registrationForm.value.mobilePhone;
+        this.registerJointDto.email = this.registrationForm.value.email;
+        this.registerJointDto.gender = this.registrationForm.value.gender;
+        this.registerJointDto.password = this.registrationForm.value.password;
+        this.registerJointDto.confirmPassword = this.registrationForm.value.confirmPassword;
+        //joint user
+        this.registerJointDto.firstnameJoint = this.registrationForm.value.firstname;
+        this.registerJointDto.lastnameJoint = this.registrationForm.value.lastname;
+         const date = this.getBirthDate(this.registrationForm.value.birthYearJoint, this.registrationForm.value.birthMonthJoint, this.registrationForm.value.birthDayJoint);
+         if(date.getFullYear() > 2500){
+            return;
+         }
+        this.registerJointDto.birthdateJoint = date.toDateString();
+        this.registerJointDto.countryCodeJoint = this.registrationForm.value.selectedCountry;
+        this.registerJointDto.mobileJoint = this.registrationForm.value.mobilePhone;
+        this.registerJointDto.emailJoint = this.registrationForm.value.email;
+        this.registerJointDto.genderJoint = this.registrationForm.value.gender;
+        this.registerJointDto.passwordJoint = this.registrationForm.value.password;
+        this.registerJointDto.confirmPasswordJoint = this.registrationForm.value.confirmPassword;
+        console.log(this.registerJointDto);
+      }
+      else{
+        const message = this.translateService.instant('snackbar.unexpectedError');
+        this._snackBar.open(message, '❌');
+        return;
+      }
       this.userService.Create(this.registerJointDto).subscribe(() => {
         this._snackBar.open('Your account has been created successfully', '✔️');
         setTimeout(() => (window.location.href = '/SignIn'), 2000);
@@ -478,24 +521,24 @@ export class RegisterComponent implements OnInit {
     };
   }
 
-  passwordStrengthValidator = (control: AbstractControl): ValidationErrors | null => {
-    const passwordtyped = this.registrationForm.get('password');
+ // passwordStrengthValidator = (control: AbstractControl): ValidationErrors | null => {
+ //   const passwordtyped = this.registrationForm.get('password');
+//
+ //   if (passwordtyped != null && passwordtyped.value.length < 8) {
+ //     return { passwordStrength: true };
+ //   }
+//
+ //   return null;
+ // };
+//
 
-    if (passwordtyped != null && passwordtyped.value.length < 8) {
-      return { passwordStrength: true };
-    }
 
-    return null;
-  };
-
-
-
-  getBirthDate(): Date {
+  getBirthDate(year: any, month: any, day: any): Date {
     // Handle the selected date
     if (this.registrationForm.valid) {
-      const birthYear = this.registrationForm.value.birthYear;  
-      const birthMonth = this.registrationForm.value.birthMonth;
-      const birthDay = this.registrationForm.value.birthDay;
+      const birthYear = year;  
+      const birthMonth = month; //this.registrationForm.value.birthMonth;
+      const birthDay = day;
 
       // Validate the selected day based on the month (e.g., avoid February 30)
       if (birthDay < 1 || birthDay > new Date(birthYear, birthMonth, 0).getDate()) {
@@ -525,7 +568,8 @@ export class RegisterComponent implements OnInit {
       console.log('Selected Date (UTC):', birthdateUTC);
       return birthdateUTC;
     } else {
-      this._snackBar.open('Birth Date information not valid!', '❌');
+      const message = this.translateService.instant('snackbar.birthdateInvalid');
+      this._snackBar.open(message, '❌');
       return  new Date(3000, 0, 1);
     }
   }

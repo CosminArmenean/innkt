@@ -78,6 +78,9 @@
     "passwordNotMatching" : "Password does not match"
   },
   "snackbar": {
-    "birthdateLow" : "Age to low to sign up!"
+    "birthdateLow" : "Age to low to sign up!",
+    "birthdateInvalid" : "Birth Date information not valid!",
+    "accountCreated" : "Your account has been created successfully",
+    "unexpectedError": "Unexpected error. Please review and try again."
   }
 }

@@ -167,8 +167,6 @@
               </div>
             </div>
 
-
-
             <div class="rowFour form-group">
               <div class="email  form-outline flex-fill mb-0">
                 <!-- email input -->
@@ -219,8 +217,9 @@
                   <mat-label class="form-label" for="confirmPassword">
                     {{'placeholders.password' | translate}}
                   </mat-label>
-                  <input matInput type="password" id="password" placeholder="Enter password" formControlName="password"
-                    [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'" name="password" required />
+                   <!-- [errorStateMatcher]="matcher" --> 
+                  <input matInput type="password" id="password" placeholder="{{ 'placeholders.password' | translate }}" formControlName="password"
+                   [type]="hide ? 'password' : 'text'" name="password" required />
                   <button type="button" mat-icon-button matSuffix (click)="hide = !hide"
                     [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
                     <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
@@ -247,8 +246,8 @@
                   <mat-label class="form-label" for="confirmPassword">
                     {{'placeholders.confirmPassword' | translate}}
                   </mat-label>
-                  <input matInput type="confirmPassword" id="confirmPassword" placeholder="Enter password"
-                    formControlName="confirmPassword" [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'"
+                  <input matInput type="confirmPassword" id="confirmPassword" placeholder="{{'placeholders.confirmPassword' | translate}}"
+                    formControlName="confirmPassword"  [type]="hide ? 'password' : 'text'"
                     name="confirmPassword" required />
                   <button type="button" mat-icon-button matSuffix (click)="hide = !hide"
                     [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
