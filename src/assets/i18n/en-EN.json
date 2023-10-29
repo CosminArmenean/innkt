@@ -82,5 +82,6 @@
     "birthdateInvalid" : "Birth Date information not valid!",
     "accountCreated" : "Your account has been created successfully",
     "unexpectedError": "Unexpected error. Please review and try again."
+
   }
 }

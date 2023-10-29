@@ -15,6 +15,7 @@ import { MobileValidators } from 'src/app/validators/mobile-validators';
 import { PasswordsValidators } from 'src/app/validators/password-validators';
 import { EmailValidators } from 'src/app/validators/email-validators';
 import { NameValidators } from 'src/app/validators/name-validators';
+import { RegisterOutbound } from 'src/app/models/account/outbound/registerOutbound';
 
 
 
@@ -29,7 +30,9 @@ export class RegisterComponent implements OnInit {
   isRtlLayout: boolean = false;
   registrationType: 'single' | 'joint' = 'single'; // Default to single registration
   registerDto: Register = new Register;
+  registerDualDto: Register = new Register;
   registerJointDto: RegisterJoint = new RegisterJoint;
+  
   isSameCredentialsChecked: boolean = true;
   // check the form is submitted or not yet
   isSubmited: boolean = false;
@@ -384,8 +387,11 @@ export class RegisterComponent implements OnInit {
   // match errors in the submition of form
   matcher = new ErrorsStateMatcher();
 
+
+ 
   // submit fntc
   onSubmit() {
+   
 
     if (this.registrationType === 'single') {
       console.log(this.registrationType);
@@ -409,50 +415,66 @@ export class RegisterComponent implements OnInit {
         const message = this.translateService.instant('snackbar.unexpectedError');
         this._snackBar.open(message, '❌');
         return;
-      }
-      this.userService.register(this.registerDto).subscribe(() => {
-        this._snackBar.open('Your account has been created successfully', '✔️');
+      }     
+       //convert to an outbound model
+       var registerOutboundDto: RegisterOutbound = <RegisterOutbound>{
+        Accounts : [this.registerDto], 
+        IsJointAccount : false, 
+        SharedAccount : false,
+      };
+      
+      this.userService.register(registerOutboundDto).subscribe(() => {
+        const accountCretedMessage = this.translateService.instant('snackbar.accountCreated');
+        this._snackBar.open(accountCretedMessage, '✔️');
         setTimeout(() => (window.location.href = '/SignIn'), 2000);
       });
     }
     else if (this.registrationType === 'joint') {
       if (this.registrationForm.valid) {
-        this.registerJointDto.firstname = this.registrationForm.value.firstname;
-        this.registerJointDto.lastname = this.registrationForm.value.lastname;
+        this.registerDto.firstname = this.registrationForm.value.firstname;
+        this.registerDto.lastname = this.registrationForm.value.lastname;
          const date_temp = this.getBirthDate(this.registrationForm.value.birthYear, this.registrationForm.value.birthMonth, this.registrationForm.value.birthDay);
          if(date_temp.getFullYear() > 2500){
             return;
          }
-        this.registerJointDto.birthdate = date_temp.toDateString();
-        this.registerJointDto.countryCode = this.registrationForm.value.selectedCountry;
-        this.registerJointDto.mobile = this.registrationForm.value.mobilePhone;
-        this.registerJointDto.email = this.registrationForm.value.email;
-        this.registerJointDto.gender = this.registrationForm.value.gender;
-        this.registerJointDto.password = this.registrationForm.value.password;
-        this.registerJointDto.confirmPassword = this.registrationForm.value.confirmPassword;
+        this.registerDto.birthdate = date_temp.toDateString();
+        this.registerDto.countryCode = this.registrationForm.value.selectedCountry;
+        this.registerDto.mobile = this.registrationForm.value.mobilePhone;
+        this.registerDto.email = this.registrationForm.value.email;
+        this.registerDto.gender = this.registrationForm.value.gender;
+        this.registerDto.password = this.registrationForm.value.password;
+        this.registerDto.confirmPassword = this.registrationForm.value.confirmPassword;
         //joint user
-        this.registerJointDto.firstnameJoint = this.registrationForm.value.firstname;
-        this.registerJointDto.lastnameJoint = this.registrationForm.value.lastname;
+        this.registerDualDto.firstname = this.registrationForm.value.firstnameJoint;
+        this.registerDualDto.lastname = this.registrationForm.value.lastnameJoint;
          const date = this.getBirthDate(this.registrationForm.value.birthYearJoint, this.registrationForm.value.birthMonthJoint, this.registrationForm.value.birthDayJoint);
          if(date.getFullYear() > 2500){
             return;
          }
-        this.registerJointDto.birthdateJoint = date.toDateString();
-        this.registerJointDto.countryCodeJoint = this.registrationForm.value.selectedCountry;
-        this.registerJointDto.mobileJoint = this.registrationForm.value.mobilePhone;
-        this.registerJointDto.emailJoint = this.registrationForm.value.email;
-        this.registerJointDto.genderJoint = this.registrationForm.value.gender;
-        this.registerJointDto.passwordJoint = this.registrationForm.value.password;
-        this.registerJointDto.confirmPasswordJoint = this.registrationForm.value.confirmPassword;
-        console.log(this.registerJointDto);
+        this.registerDualDto.birthdate = date.toDateString();
+        this.registerDualDto.countryCode = this.registrationForm.value.selectedCountryJoint;
+        this.registerDualDto.mobile = this.registrationForm.value.mobilePhoneJoint;
+        this.registerDualDto.email = this.registrationForm.value.emailJoint;
+        this.registerDualDto.gender = this.registrationForm.value.genderJoint;
+        this.registerDualDto.password = this.registrationForm.value.passwordJoint;
+        this.registerDualDto.confirmPassword = this.registrationForm.value.confirmPasswordJoint;
+        console.log(this.registerDualDto);
       }
       else{
         const message = this.translateService.instant('snackbar.unexpectedError');
         this._snackBar.open(message, '❌');
         return;
       }
-      this.userService.Create(this.registerJointDto).subscribe(() => {
-        this._snackBar.open('Your account has been created successfully', '✔️');
+
+       //convert to an outbound model
+       var registerOutboundDto: RegisterOutbound = <RegisterOutbound>{
+        Accounts : [this.registerDto, this.registerDualDto], 
+        IsJointAccount : true, 
+        SharedAccount : this.registrationForm.value.isSameCredentialsChecked,
+      };
+      this.userService.register(registerOutboundDto).subscribe(() => {
+        const accountCretedMessage = this.translateService.instant('snackbar.accountCreated');
+        this._snackBar.open(accountCretedMessage, '✔️');
         setTimeout(() => (window.location.href = '/SignIn'), 2000);
       });
     }
