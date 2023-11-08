@@ -28,6 +28,9 @@ import { TranslateLoader, TranslateModule, TranslatePipe, TranslateService } fro
 import { HttpLoader } from './http-loader';
 import { CoreModule } from './core.module';
 import { LanguageService } from './services/language.service';
+import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
+import { environment } from 'src/environments/environment';
+import { authConfig } from './configs/authConfig';
 
 
 export function tokenGetter() {
@@ -54,8 +57,21 @@ export function tokenGetter() {
     JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,
-        allowedDomains: ["localhost:8081"],
+        allowedDomains: ["localhost:5000"],
         disallowedRoutes: [],
+      },
+    }),
+    AuthModule.forRoot({
+      config: {
+        authority: environment.identityApiUrl,
+        redirectUrl: window.location.origin,
+        postLogoutRedirectUri: window.location.origin,
+        clientId: 'm2m.client',
+        scope: 'openid innkt.read',
+        responseType: 'code',
+        silentRenew: true,
+        useRefreshToken: true,
+        logLevel: LogLevel.Debug,
       },
     }),
     CommonModule,

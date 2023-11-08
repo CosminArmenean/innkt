@@ -8,6 +8,7 @@ import { UserService } from 'src/app/services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorsStateMatcher } from 'src/app/errorsStateMatcher';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -23,6 +24,7 @@ export class LoginComponent implements OnInit {
   constructor(
     private authService: AuthenticationService, 
     private userService: UserService, 
+    private translateService: TranslateService,
     private _snackBar: MatSnackBar, 
     private router: Router) {
        //form validators
@@ -101,7 +103,8 @@ export class LoginComponent implements OnInit {
         },
       });
     } else {
-      this._snackBar.open('Enter a valid informations !!!', '❌');
+      const messageInvalid = this.translateService.instant('snackbar.invalidInformations');
+      this._snackBar.open(messageInvalid, '❌');
     }
   }
 }
