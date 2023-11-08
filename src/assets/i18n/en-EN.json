@@ -1,5 +1,8 @@
 {
   "navbar": {
+    "login": "Login",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
     "home": "Home",
     "about": "About",
     "services": "Services",
@@ -15,10 +18,7 @@
     "content": "Learn more about our company."
   },
   "services": {
-    "title": "Our Services",
-    "service1": "Service 1",
-    "service2": "Service 2",
-    "service3": "Service 3"
+    "title": "Our Services" 
   },
   "contact": {
     "title": "Contact Us",
@@ -34,7 +34,8 @@
     "gender": "Gender",
     "genderJoint": "Gender (Joint Person)",
     "register": "Register",
-    "isSameCredentialsChecked": "Use same email and password for both accounts?"
+    "isSameCredentialsChecked": "Use same email and password for both accounts?",
+    "dontHaveAccount": "Don't have an account?"
 
   },
   "control_names": {
@@ -60,7 +61,8 @@
     "countryJoint": "Country (Joint Person)",
     "emailJoint": "Email (Joint Person)",
     "passwordJoint": "Password (Joint Person)",
-    "confirmPasswordJoint": "Confirm Password (Joint Person)"
+    "confirmPasswordJoint": "Confirm Password (Joint Person)",
+    "loginEmailOrPhone": "Email address or phone"
    
     
   },

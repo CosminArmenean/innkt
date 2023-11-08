@@ -8,6 +8,7 @@ export class Register {
     gender = '';    
     password = '';   
     confirmPassword = '';
+    main = false;
 
     constructor(){
         this.firstname = '';
@@ -19,5 +20,6 @@ export class Register {
         this.gender = '';
         this.password = '';
         this.confirmPassword = '';
+        this.main = false;
     }
 }

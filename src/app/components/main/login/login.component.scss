@@ -1,3 +1,35 @@
+/* Container layout */
+.container-layout {
+  width: 60%; /* Adjust the width as needed */
+  margin: 0 auto; /* Center the content horizontally */
+ 
+}
+
+/* Fluid layout */
+.fluid-layout {
+  width: 100%;
+}
+.left-half {
+  flex: 1;
+  width: 40%;
+  height: auto;
+ 
+  display:block;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  grid-column: 1;
+}
+
+.right-half {
+  flex: 1;
+  width:auto;
+  
+  height: auto;
+  padding: 20px;
+}
+
+
 .divider:after
 .divider:before {
 content: "";

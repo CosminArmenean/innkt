@@ -409,6 +409,7 @@ export class RegisterComponent implements OnInit {
         this.registerDto.gender = this.registrationForm.value.gender;
         this.registerDto.password = this.registrationForm.value.password;
         this.registerDto.confirmPassword = this.registrationForm.value.confirmPassword;
+        this.registerDto.main = true;
         console.log(this.registerDto);
       }
       else{
@@ -444,6 +445,7 @@ export class RegisterComponent implements OnInit {
         this.registerDto.gender = this.registrationForm.value.gender;
         this.registerDto.password = this.registrationForm.value.password;
         this.registerDto.confirmPassword = this.registrationForm.value.confirmPassword;
+        this.registerDto.main = true;
         //joint user
         this.registerDualDto.firstname = this.registrationForm.value.firstnameJoint;
         this.registerDualDto.lastname = this.registrationForm.value.lastnameJoint;

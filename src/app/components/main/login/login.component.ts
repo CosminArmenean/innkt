@@ -14,11 +14,34 @@ import { ErrorsStateMatcher } from 'src/app/errorsStateMatcher';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
+  isContainerLayout = true;
+  loginForm : FormGroup;
   loginDto: Login = new Login;
   jwtDto: JwtAuth = new JwtAuth;
 
-  constructor(private authService: AuthenticationService, private userService: UserService, private _snackBar: MatSnackBar, private router: Router) {}
+  constructor(
+    private authService: AuthenticationService, 
+    private userService: UserService, 
+    private _snackBar: MatSnackBar, 
+    private router: Router) {
+       //form validators
+     this.loginForm = new FormGroup({
+      emailPhone: new FormControl('', [
+      Validators.required,
+      Validators.minLength(4),
+      Validators.maxLength(50),      
+      Validators.pattern(/^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$|^[0-9]{7,15}$/)
+    ]),
+    password: new FormControl('', [
+      Validators.required,
+      Validators.minLength(8),
+      Validators.maxLength(100),
+      Validators.pattern('(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,}'),
+    ]),
+  });
+
+    }
 
 
 
@@ -42,31 +65,29 @@ export class LoginComponent {
   //To display Login Error in case of failure
   errorMessage = '';
 
-  //form validators
-  form: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [
-      Validators.required,
-      Validators.minLength(8),
-    ]),
-  });
+ 
 
   //get all Form Fields
-  get email() {
-    return this.form.get('email');
+  get emailPhone() {
+    return this.loginForm.get('emailPhone');
   }
   get password() {
-    return this.form.get('password');
+    return this.loginForm.get('password');
+  }
+
+
+  ngOnInit(): void {
+    
   }
   // match errors in the submition of form
   matcher = new ErrorsStateMatcher();
   // submit fntc
   onSubmit() {
     const LoginInfo = {
-      email: this.email?.value,
+      email: this.emailPhone?.value,
       password: this.password?.value,
     };
-    if (this.form.valid) {
+    if (this.loginForm.valid) {
       this.userService.signIn(LoginInfo).subscribe({
         next: (data: any) => {
           this.authService.saveToken(data.token);

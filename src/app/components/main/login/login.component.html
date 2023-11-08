@@ -1,69 +1,88 @@
 <section>
-    <div class="container-fluid h-custom">
+  <div [ngClass]="{'container-layout' : isContainerLayout, 'fluid-layout' : !isContainerLayout}">
       <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col-md-9 col-lg-6 col-xl-5">
-          <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" class="img-fluid"
+     
+        <div class="left-half">
+          <div class="one-third">
+  
+          </div>
+          <div class="two-third">
+            <img src="../../../../assets/logo/innkt-logo-dots-purple.svg" class="img-fluid"
             alt="Login Image">
+  
+          </div>
+          <div class="three-third">   
+  
+          </div>
         </div>
-        <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-          <form [formGroup]="form" (ngSubmit)="onSubmit()"><br>
+       <div class="right-half">
+  
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()"><br>
   
             <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">
-              <p class="lead fw-normal mb-2 me-3"><b>Sign In</b></p>
+              <p class="lead fw-normal mb-2 me-3"><b>{{ 'navbar.signIn' | translate }}</b></p>
             </div>
   
-            <!-- Email input -->
-            <mat-form-field class="form-group mb-3" appearance="fill">
-              <mat-label class="form-label" for="Email">
-                <i class="me-3"> <mat-icon> email</mat-icon></i> Email address
-              </mat-label>
-              <input matInput type="email" id="email" placeholder="Enter a valid email address" formControlName="email"
-                [errorStateMatcher]="matcher" name="email" required />
-              <mat-error *ngIf="email?.hasError('email') && !email?.hasError('required')">
-                Please enter a valid <strong>email</strong> address
+            <!-- Email input  -->
+            <mat-form-field appearance="fill" class="smaller-control form-outline flex-fill mb-0">
+              <mat-label>{{ 'placeholders.loginEmailOrPhone' | translate }}</mat-label>
+              <input matInput formControlName="emailPhone" placeholder="{{ 'placeholders.loginEmailOrPhone' | translate }}"
+                required />
+              <mat-error *ngIf="loginForm.get('emailPhone')?.hasError('required')">
+                {{ 'errors.required' | translate}}
               </mat-error>
-              <mat-error *ngIf="email?.hasError('required')">
-                Email is <strong>required</strong>
+              <mat-error *ngIf="loginForm.get('emailPhone')?.hasError('pattern')">
+                {{ 'errors.emailPattern' | translate}}
+              </mat-error>
+              <mat-error *ngIf="loginForm.get('emailPhone')?.hasError('minlength')">
+                {{ 'errors.minlength' | translate }}
+              </mat-error>
+              <mat-error *ngIf="loginForm.get('emailPhone')?.hasError('maxlength')">
+                {{ 'errors.maxlength' | translate }}
               </mat-error>
             </mat-form-field>
   
             <!-- Password input -->
             <mat-form-field class="form-group mb-3" appearance="fill">
               <mat-label class="form-label" for="password">
-                <i class="me-3"><mat-icon>lock</mat-icon></i> Password
+                <i class="me-3"><mat-icon>lock</mat-icon></i> {{ 'placeholders.password' | translate }}
               </mat-label>
-              <input matInput type="password" id="password" placeholder="Enter password" formControlName="password"
+              <input matInput type="password" id="password" placeholder="{{ 'placeholders.password' | translate }}" formControlName="password"
                 [errorStateMatcher]="matcher" [type]="hide ? 'password' : 'text'" name="password" required />
               <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'"
                 [attr.aria-pressed]="hide">
                 <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
               </button>
-              <mat-error *ngIf="password?.hasError('minlength') && !password?.hasError('required')">
-                Password must have <strong>{{password?.errors?.['minlength'].requiredLength}}</strong> Letters ,You have
-                Submitted <strong>{{password?.errors?.['minlength'].actualLength}}</strong> Letters
+              <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+                {{ 'errors.passwordRequired' | translate}}
               </mat-error>
-              <mat-error *ngIf=" password?.hasError('required')">
-                Password is <strong>required</strong>
+              <mat-error *ngIf="loginForm.get('password')?.hasError('pattern')">
+                {{ 'errors.passwordPattern' | translate}}
+              </mat-error>
+              <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+                {{ 'errors.minlength' | translate }}
+              </mat-error>
+              <mat-error *ngIf="loginForm.get('password')?.hasError('maxlength')">
+                {{ 'errors.maxlength' | translate }}
               </mat-error>
             </mat-form-field>
   
             <!--Login Button -->
             <div class="text-center mt-4 pt-2">
               <button mat-raised-button type="submit" color="primary" class="btn btn-primary btn-lg btn-block">
-                Login
+                {{ 'navbar.login' | translate }}
               </button>
               
             </div>
   
             <!--Redirectio to register components -->
             <div class="text-center text-lg-start mt-4 pt-2">
-              <p class="small mt-2 pt-1 mb-0">Don't have an account?
-                <a routerLink="/SignUp" class="link-danger">Register</a>
+              <p class="small mt-2 pt-1 mb-0">{{ 'reg_controls_names.dontHaveAccount' | translate }}
+                <a routerLink="/SignUp" class="link-danger">{{ 'reg_controls_names.register' | translate }}</a>
               </p>
-            </div>
-  
-          </form>
-        </div>
+            </div>  
+          </form>    
+       </div>
       </div>
     </div>
   </section>
