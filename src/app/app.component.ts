@@ -59,6 +59,8 @@ export class AppComponent {
       // Load RTL styles if needed      
       this.loadRtlStyles();      
     });
+
+    this.authService.initAuth();
   }
 
   //ngAfterViewInit() {

@@ -63,11 +63,11 @@ export function tokenGetter() {
     }),
     AuthModule.forRoot({
       config: {
-        authority: environment.identityApiUrl,
+        authority: environment.identityAuthority,
         redirectUrl: window.location.origin,
         postLogoutRedirectUri: window.location.origin,
         clientId: 'm2m.client',
-        scope: 'openid innkt.read',
+        scope: 'openid role profile innkt.read innkt.write',
         responseType: 'code',
         silentRenew: true,
         useRefreshToken: true,

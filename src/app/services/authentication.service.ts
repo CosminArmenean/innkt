@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { JwtAuth } from '../models/account/jwt-auth';
 import { Login } from '../models/account/login';
 import { environment } from 'src/environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 const TOKEN_KEY = 'TOKEN_KEY';
 
@@ -20,7 +21,38 @@ export class AuthenticationService{
   loginUrl = "Identity/Login"
 
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private oidcSecurityService: OidcSecurityService ) { }
+
+  initAuth(): void {
+    this.oidcSecurityService.checkAuth().subscribe((auth) => {
+      if (!auth) {
+        this.oidcSecurityService.authorize();
+      }
+    });
+  }
+  getAccessToken(): Observable<string> {
+    return new Observable((observer) => {
+      // Get the access token from the oidcSecurityService
+      this.oidcSecurityService.getAccessToken().subscribe(
+        (token: string | null) => {
+          if (token) {
+            // Save the access token to session storage
+            sessionStorage.setItem(TOKEN_KEY, token);
+            console.log(token);
+          }
+
+          // Emit the token to the observer
+          observer.next(token || '');
+          observer.complete();
+        },
+        (error) => {
+          // Handle error if needed
+          console.error('Error getting access token:', error);
+          observer.error(error);
+        }
+      );
+    });
+  }
 
 
   public saveToken(token : string): void {

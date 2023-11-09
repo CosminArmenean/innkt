@@ -1,5 +1,4 @@
 import { LogLevel, OpenIdConfigLoader } from "angular-auth-oidc-client";
-import { config } from "process";
 import { environment } from "src/environments/environment";
 
 export const authConfig = {
