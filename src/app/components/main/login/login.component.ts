@@ -93,6 +93,10 @@ export class LoginComponent implements OnInit {
     };
    
     if (this.loginForm.valid) {
+      const token = this.authService.getAccessToken();
+      console.log(sessionStorage.getItem('TOKEN_KEY'));
+
+
       this.userService.signIn(loginInfo).subscribe({
         next: (data: any) => {
           this.authService.saveToken(data.token);

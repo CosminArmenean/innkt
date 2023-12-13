@@ -31,6 +31,7 @@ import { LanguageService } from './services/language.service';
 import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
 import { environment } from 'src/environments/environment';
 import { authConfig } from './configs/authConfig';
+import { AuthConfigModule } from './auth/auth-config.module';
 
 
 export function tokenGetter() {
@@ -57,7 +58,7 @@ export function tokenGetter() {
     JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,
-        allowedDomains: ["localhost:5000"],
+        allowedDomains: ['localhost:5001', 'localhost:5100'],
         disallowedRoutes: [],
       },
     }),
@@ -81,6 +82,7 @@ export function tokenGetter() {
         useClass: HttpLoader
       }
     }),
+    AuthConfigModule,
   ],
   providers: [
     authInterceptorProviders,  

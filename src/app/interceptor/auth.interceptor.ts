@@ -20,7 +20,11 @@ export class AuthInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
     let authReq = req;
-    const token = this.token.getToken();
+    let token = this.token.getToken();
+    if(token == null){
+    const token_new = this.token.getAccessToken();
+      token = token_new as any;
+    }
     if (token != null) {
     // Add JWT token to the request header
     authReq = req.clone({

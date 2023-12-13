@@ -1,4 +1,4 @@
-import { Component, Renderer2, ViewChild } from '@angular/core';
+import { Component, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { AuthenticationService } from './services/authentication.service';
 import { TranslateService } from '@ngx-translate/core';
 import { LanguageService } from './services/language.service';
@@ -7,6 +7,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { delay, filter } from 'rxjs';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @UntilDestroy()
 @Component({
@@ -14,7 +15,7 @@ import { delay, filter } from 'rxjs';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent  implements OnInit{
   title = 'innkt';  
   isContainerLayout = false;
   hamburgerOpen  = false;
@@ -33,7 +34,8 @@ export class AppComponent {
     private languageService: LanguageService,
     private renderer: Renderer2,
     private breakpointObserver: BreakpointObserver,
-    private router:Router
+    private router:Router,
+    private oidcSecurityService: OidcSecurityService
     ){
     this.translateService.setDefaultLang('en-EN'); // Set the default language
     
@@ -49,6 +51,8 @@ export class AppComponent {
       this.isSmallScreen = result.matches;
       //this.isSmallScreen = false;
     });
+    //subscribe to identity server
+    this.oidcSecurityService.checkAuth().subscribe();
     // check if the token exist in session storage
     //this.isLoggedIn = !!this.authService.getToken();
     this.isLoggedIn = false;

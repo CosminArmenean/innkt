@@ -5,7 +5,7 @@ import jwt_decode from 'jwt-decode';
 
 import { Register } from '../models/account/register';
 import { RegisterJoint } from '../models/account/register-joint';
-import { Observable } from 'rxjs';
+import { Observable, catchError, from, map } from 'rxjs';
 import { JwtAuth } from '../models/account/jwt-auth';
 import { Login } from '../models/account/login';
 import { environment } from 'src/environments/environment';
@@ -30,30 +30,30 @@ export class AuthenticationService{
       }
     });
   }
+ 
+ 
   getAccessToken(): Observable<string> {
-    return new Observable((observer) => {
-      // Get the access token from the oidcSecurityService
-      this.oidcSecurityService.getAccessToken().subscribe(
-        (token: string | null) => {
-          if (token) {
-            // Save the access token to session storage
-            sessionStorage.setItem(TOKEN_KEY, token);
-            console.log(token);
-          }
-
-          // Emit the token to the observer
-          observer.next(token || '');
-          observer.complete();
-        },
-        (error) => {
-          // Handle error if needed
-          console.error('Error getting access token:', error);
-          observer.error(error);
+    return from(this.oidcSecurityService.getAccessToken()).pipe(
+      map((token: string | null) => {
+        if(token){
+          sessionStorage.setItem(TOKEN_KEY, token);
+          console.log('Token' + token);
+        } else {
+          console.warn('Token is null or undefined.');
         }
-      );
-    });
+        return token  || '';
+      }),
+      catchError((error) => {
+        console.error('Error getting access token:', error);
+        throw error;
+      })
+    );        
   }
 
+  clearSessionStorage(): void {
+    // Clear the token from session storage
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
 
   public saveToken(token : string): void {
     window.sessionStorage.removeItem(TOKEN_KEY);

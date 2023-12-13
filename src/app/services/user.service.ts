@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment.development';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 const APIUrlUser = "http://localhost:8080/api/users";
-const loginEndPoint = "Identity/login";
+const loginEndPoint = "Identity/Login";
 @Injectable({
   providedIn: 'root'
 })
@@ -21,7 +21,7 @@ export class UserService extends DataService {
  
   // Login Method
   signIn(data: { email: string, password: string }): Observable<any> {
-    console.log(data)
+    console.log('Data sign in: ' + data)
     // Set username and password for ROPC flow
     const body = {
       grant_type: 'password',
