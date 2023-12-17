@@ -7,7 +7,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { delay, filter } from 'rxjs';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { LoginResponse, OidcSecurityService } from 'angular-auth-oidc-client';
 
 @UntilDestroy()
 @Component({
@@ -51,8 +51,27 @@ export class AppComponent  implements OnInit{
       this.isSmallScreen = result.matches;
       //this.isSmallScreen = false;
     });
+
+    this.oidcSecurityService
+    .checkAuth()
+    .subscribe((loginResponse: LoginResponse) => {
+      const { isAuthenticated, userData, accessToken, idToken, configId } =
+        loginResponse;
+        console.log('app authenticated', isAuthenticated);
+        console.log(`Current access token is '${accessToken}'`);
+        console.log(`Current access token is '${idToken}'`);
+        console.log(`Current access token is '${userData}'`);
+        console.log(`Current access token is '${configId}'`);
+      /*...*/
+    });
     //subscribe to identity server
-    this.oidcSecurityService.checkAuth().subscribe();
+    this.oidcSecurityService
+    .checkAuth()
+    .subscribe(({ isAuthenticated, userData, accessToken }) => {
+      console.log('app authenticated', isAuthenticated);
+      console.log(`Current access token is '${accessToken}'`);
+    });
+    console.log('here!!');
     // check if the token exist in session storage
     //this.isLoggedIn = !!this.authService.getToken();
     this.isLoggedIn = false;

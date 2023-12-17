@@ -28,10 +28,12 @@ import { TranslateLoader, TranslateModule, TranslatePipe, TranslateService } fro
 import { HttpLoader } from './http-loader';
 import { CoreModule } from './core.module';
 import { LanguageService } from './services/language.service';
-import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
+import { AuthModule, EventTypes, LogLevel, PublicEventsService } from 'angular-auth-oidc-client';
 import { environment } from 'src/environments/environment';
 import { authConfig } from './configs/authConfig';
 import { AuthConfigModule } from './auth/auth-config.module';
+import { UnauthorizedComponent } from './components/shared/unauthorized/unauthorized/unauthorized.component';
+import { filter } from 'rxjs';
 
 
 export function tokenGetter() {
@@ -55,10 +57,16 @@ export function tokenGetter() {
     HttpClientModule,
     MaterialModule,   
     FormsModule,
+    RouterModule.forRoot([
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: HomeComponent },
+      { path: 'forbidden', component: UnauthorizedComponent },
+      { path: 'unauthorized', component: UnauthorizedComponent },
+    ]),
     JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,
-        allowedDomains: ['localhost:5001', 'localhost:5100'],
+        allowedDomains: ['localhost:44383', 'localhost:5100', 'http://localhost:4200'],
         disallowedRoutes: [],
       },
     }),
@@ -67,8 +75,8 @@ export function tokenGetter() {
         authority: environment.identityAuthority,
         redirectUrl: window.location.origin,
         postLogoutRedirectUri: window.location.origin,
-        clientId: 'm2m.client',
-        scope: 'openid role profile innkt.read innkt.write',
+        clientId: 'interactive',       
+        scope: 'openid offline_access profile innkt.read',
         responseType: 'code',
         silentRenew: true,
         useRefreshToken: true,
@@ -99,4 +107,15 @@ export function tokenGetter() {
     CUSTOM_ELEMENTS_SCHEMA
   ]
 })
-export class AppModule { }
+export class AppModule { 
+  constructor(private readonly eventService: PublicEventsService) {
+    this.eventService
+      .registerForEvents()
+      .pipe(
+        filter((notification) => notification.type === EventTypes.ConfigLoaded)
+      )
+      .subscribe((config) => {
+        console.log('ConfigLoaded', config);
+      });
+  }
+}

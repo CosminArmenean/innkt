@@ -91,7 +91,8 @@ export class LoginComponent implements OnInit {
       email: this.emailPhone?.value,
       password: this.password?.value,
     };
-   
+    this.userService.signInIdentity(loginInfo);
+    
     if (this.loginForm.valid) {
       const token = this.authService.getAccessToken();
       console.log(sessionStorage.getItem('TOKEN_KEY'));

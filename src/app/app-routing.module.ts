@@ -8,6 +8,7 @@ import { PostsComponent } from './components/main/profile/posts/posts/posts.comp
 import { SecureInnerPagesGuard } from './guards/secure-inner-pages.guard';
 import { AdminComponent } from './components/features/admin/admin.component';
 import { HomeComponent } from './components/features/home/home.component';
+import { UnauthorizedComponent } from './components/shared/unauthorized/unauthorized/unauthorized.component';
 
 const routes: Routes = [
   { 
@@ -42,10 +43,14 @@ const routes: Routes = [
     },
   },
   {
-    path: 'Home', component: HomeComponent
+    path: 'home', component: HomeComponent
   },
-  { path: '', redirectTo: '/Home', pathMatch: 'full' }, // redirect to Home component on root path
-
+  { path: '', redirectTo: '/home', pathMatch: 'full' 
+  }, // redirect to Home component on root path
+  { 
+    path: 'unauthorized',  
+    component: UnauthorizedComponent 
+  },
 ];
 
 @NgModule({

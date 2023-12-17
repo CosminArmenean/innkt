@@ -49,7 +49,7 @@ export class AuthGuard  {
         if (route.data['role'] && route.data['role'].indexOf(userRole) === -1) {
           // Check if the user's role is not granted access
           this._snackBar.open('Access Denied! Role Not Granted.', '❌');
-          this.router.navigate(['/Home'], {
+          this.router.navigate(['/home'], {
             queryParams: { returnUrl: state.url },
           });
           return false;
