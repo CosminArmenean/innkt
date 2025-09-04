@@ -1,0 +1,6 @@
+@innkt.NeuroSpark_HostAddress = http://localhost:5193
+
+GET {{innkt.NeuroSpark_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

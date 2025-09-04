@@ -1,0 +1,1472 @@
+[
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "ApplyStyle",
+    "RelativePath": "api/AdvancedImageProcessing/apply-style",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "Style",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Intensity",
+        "Type": "System.Single",
+        "IsRequired": false
+      },
+      {
+        "Name": "OutputFormat",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Quality",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "AssessImageQuality",
+    "RelativePath": "api/AdvancedImageProcessing/assess-quality",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "GetAvailableStyles",
+    "RelativePath": "api/AdvancedImageProcessing/available-styles",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "ProcessBatch",
+    "RelativePath": "api/AdvancedImageProcessing/batch-process",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "images",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile[]",
+        "IsRequired": false
+      },
+      {
+        "Name": "ProcessInParallel",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "MaxConcurrentTasks",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "OutputFormat",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Quality",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "EnhanceImageAdvanced",
+    "RelativePath": "api/AdvancedImageProcessing/enhance-advanced",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "EnhanceBrightness",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "EnhanceContrast",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "EnhanceSharpness",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "EnhanceColors",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "OutputFormat",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Quality",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "GetProcessingOptions",
+    "RelativePath": "api/AdvancedImageProcessing/processing-options",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "RemoveBackgroundAdvanced",
+    "RelativePath": "api/AdvancedImageProcessing/remove-background-advanced",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "Algorithm",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "PreserveEdges",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "OutputFormat",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Quality",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "SmartFaceCrop",
+    "RelativePath": "api/AdvancedImageProcessing/smart-face-crop",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "TargetSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "MaintainAspectRatio",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "OutputFormat",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Quality",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedImageProcessingController",
+    "Method": "GetProcessingStatistics",
+    "RelativePath": "api/AdvancedImageProcessing/statistics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "RevokeApiKey",
+    "RelativePath": "api/AdvancedSecurity/apikey/{apiKeyId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "apiKeyId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "GenerateApiKey",
+    "RelativePath": "api/AdvancedSecurity/apikey/generate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Services.ApiKeyGenerationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "GetUserApiKeys",
+    "RelativePath": "api/AdvancedSecurity/apikey/user/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "ValidateApiKey",
+    "RelativePath": "api/AdvancedSecurity/apikey/validate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.ApiKeyValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "LogRequest",
+    "RelativePath": "api/AdvancedSecurity/audit/log-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.AuditRequestRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "LogSecurityEvent",
+    "RelativePath": "api/AdvancedSecurity/audit/log-security-event",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.SecurityEventRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "GetAuditLogs",
+    "RelativePath": "api/AdvancedSecurity/audit/logs",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "from",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "to",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "eventType",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "GetSecurityEvents",
+    "RelativePath": "api/AdvancedSecurity/audit/security-events",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "from",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "to",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "severity",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "DecryptText",
+    "RelativePath": "api/AdvancedSecurity/encryption/decrypt",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.DecryptionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "EncryptText",
+    "RelativePath": "api/AdvancedSecurity/encryption/encrypt",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.EncryptionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "GenerateEncryptionKey",
+    "RelativePath": "api/AdvancedSecurity/encryption/generate-key",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.EncryptionKeyRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.AdvancedSecurityController",
+    "Method": "GetEncryptionKeys",
+    "RelativePath": "api/AdvancedSecurity/encryption/keys",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "ClearAllCache",
+    "RelativePath": "api/CacheManagement/clear-all",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "ClearImageProcessingCache",
+    "RelativePath": "api/CacheManagement/image-processing/clear",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "GetImageProcessingCacheStats",
+    "RelativePath": "api/CacheManagement/image-processing/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "GetCacheKeys",
+    "RelativePath": "api/CacheManagement/keys/{pattern}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "pattern",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "GetCacheOverview",
+    "RelativePath": "api/CacheManagement/overview",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "GetCachePerformance",
+    "RelativePath": "api/CacheManagement/performance",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "ClearQrCodeCache",
+    "RelativePath": "api/CacheManagement/qrcode/clear",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CacheManagementController",
+    "Method": "GetQrCodeCacheStats",
+    "RelativePath": "api/CacheManagement/qrcode/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CertificateController",
+    "Method": "GenerateNewCertificate",
+    "RelativePath": "api/Certificate/generate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.GenerateCertificateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CertificateController",
+    "Method": "GetCertificateHealth",
+    "RelativePath": "api/Certificate/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CertificateController",
+    "Method": "GetOfficerCertificateInfo",
+    "RelativePath": "api/Certificate/officer",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CertificateController",
+    "Method": "GetServiceCertificateInfo",
+    "RelativePath": "api/Certificate/service",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.CertificateController",
+    "Method": "ValidateCertificate",
+    "RelativePath": "api/Certificate/validate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.ValidateCertificateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "AggregateData",
+    "RelativePath": "api/gateway/aggregate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Services.AggregationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "GetServicesHealth",
+    "RelativePath": "api/gateway/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "GetServiceHealth",
+    "RelativePath": "api/gateway/health/{serviceName}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "serviceName",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "RouteRequest",
+    "RelativePath": "api/gateway/route",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Services.ApiGatewayRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "GetRegisteredServices",
+    "RelativePath": "api/gateway/services",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "RegisterService",
+    "RelativePath": "api/gateway/services",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "endpoint",
+        "Type": "innkt.NeuroSpark.Services.ServiceEndpoint",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "GetGatewayStats",
+    "RelativePath": "api/gateway/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ApiGatewayController",
+    "Method": "TestConnection",
+    "RelativePath": "api/gateway/test-connection",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.TestConnectionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ImageProcessingController",
+    "Method": "EnhanceImage",
+    "RelativePath": "api/ImageProcessing/enhance",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.ImageProcessingResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ImageProcessingController",
+    "Method": "ProcessProfilePicture",
+    "RelativePath": "api/ImageProcessing/profile-picture",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.ImageProcessingResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ImageProcessingController",
+    "Method": "RemoveBackground",
+    "RelativePath": "api/ImageProcessing/remove-background",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "image",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.ImageProcessingResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "GetHealth",
+    "RelativePath": "api/Kafka/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "GetMetrics",
+    "RelativePath": "api/Kafka/metrics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "PublishEvent",
+    "RelativePath": "api/Kafka/publish",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.PublishEventRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "PublishHealthEvent",
+    "RelativePath": "api/Kafka/publish/health",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.ServiceHealthEvent",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "PublishImageProcessingResult",
+    "RelativePath": "api/Kafka/publish/image-processing-result",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.ImageProcessingResultEvent",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "PublishQrCodeResult",
+    "RelativePath": "api/Kafka/publish/qr-code-result",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.QrCodeResultEvent",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.KafkaController",
+    "Method": "GetConnectionStatus",
+    "RelativePath": "api/Kafka/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "GetCategoryMetrics",
+    "RelativePath": "api/Performance/category/{category}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "category",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Services.CategoryMetrics",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "ExportPerformanceData",
+    "RelativePath": "api/Performance/export",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Services.PerformanceExport",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "GetSystemHealth",
+    "RelativePath": "api/Performance/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "ResetRateLimit",
+    "RelativePath": "api/Performance/ratelimit/reset/{identifier}/{endpoint}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "identifier",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "endpoint",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "GetRateLimitRules",
+    "RelativePath": "api/Performance/ratelimit/rules",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[innkt.NeuroSpark.Services.RateLimitRule, innkt.NeuroSpark, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "UpdateRateLimitRules",
+    "RelativePath": "api/Performance/ratelimit/rules",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "rules",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[innkt.NeuroSpark.Services.RateLimitRule, innkt.NeuroSpark, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "GetRateLimitStatus",
+    "RelativePath": "api/Performance/ratelimit/status/{identifier}/{endpoint}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "identifier",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "endpoint",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Services.RateLimitStatus",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "CheckRedisPoolHealth",
+    "RelativePath": "api/Performance/redis/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "PerformRedisMaintenance",
+    "RelativePath": "api/Performance/redis/maintenance",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "GetRedisPoolStats",
+    "RelativePath": "api/Performance/redis/pool",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Services.RedisPoolStats",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "ResetMetrics",
+    "RelativePath": "api/Performance/reset",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.PerformanceController",
+    "Method": "GetPerformanceStats",
+    "RelativePath": "api/Performance/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Services.PerformanceStats",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.QrCodeController",
+    "Method": "GenerateQrCode",
+    "RelativePath": "api/QrCode/generate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Models.QrCodeGenerationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.QrCodeResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.QrCodeController",
+    "Method": "GenerateKidPairingQrCode",
+    "RelativePath": "api/QrCode/generate-kid-pairing",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Models.KidPairingQrRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.QrCodeResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.QrCodeController",
+    "Method": "ScanQrCode",
+    "RelativePath": "api/QrCode/scan",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "qrCodeImage",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.QrCodeScanResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.QrCodeController",
+    "Method": "ValidateQrCode",
+    "RelativePath": "api/QrCode/validate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Models.QrCodeValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "innkt.NeuroSpark.Models.QrCodeValidationResult",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.RedisController",
+    "Method": "ClearCache",
+    "RelativePath": "api/Redis/clear",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.RedisController",
+    "Method": "GetHealth",
+    "RelativePath": "api/Redis/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.RedisController",
+    "Method": "DeleteKey",
+    "RelativePath": "api/Redis/keys/{key}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "key",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.RedisController",
+    "Method": "GetKeyTtl",
+    "RelativePath": "api/Redis/keys/{key}/ttl",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "key",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.RedisController",
+    "Method": "GetKeys",
+    "RelativePath": "api/Redis/keys/{pattern}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "pattern",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.RedisController",
+    "Method": "GetStats",
+    "RelativePath": "api/Redis/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "SanitizeHtml",
+    "RelativePath": "api/Security/sanitize/html",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.HtmlSanitizationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "TestRateLimit",
+    "RelativePath": "api/Security/test/rate-limit",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "TestSecurityHeaders",
+    "RelativePath": "api/Security/test/security-headers",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "ValidateEmail",
+    "RelativePath": "api/Security/validate/email",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.EmailValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "ValidateHeaders",
+    "RelativePath": "api/Security/validate/headers",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.HeadersValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "ValidateJson",
+    "RelativePath": "api/Security/validate/json",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.JsonValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "ValidateString",
+    "RelativePath": "api/Security/validate/string",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.StringValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.SecurityController",
+    "Method": "ValidateUrl",
+    "RelativePath": "api/Security/validate/url",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.UrlValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ServiceAuthController",
+    "Method": "GetServiceCredentials",
+    "RelativePath": "api/ServiceAuth/credentials",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ServiceAuthController",
+    "Method": "GenerateServiceToken",
+    "RelativePath": "api/ServiceAuth/generate-token",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ServiceAuthController",
+    "Method": "GetAuthStatus",
+    "RelativePath": "api/ServiceAuth/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ServiceAuthController",
+    "Method": "TestOfficerConnection",
+    "RelativePath": "api/ServiceAuth/test-connection",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.ServiceAuthController",
+    "Method": "ValidateSignature",
+    "RelativePath": "api/ServiceAuth/validate-signature",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "innkt.NeuroSpark.Controllers.SignatureValidationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.HealthController",
+    "Method": "Get",
+    "RelativePath": "Health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "innkt.NeuroSpark.Controllers.HealthController",
+    "Method": "GetStatus",
+    "RelativePath": "Health/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

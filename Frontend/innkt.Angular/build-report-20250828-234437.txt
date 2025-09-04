@@ -1,0 +1,22 @@
+﻿INNKT Angular Production Build Report
+=====================================
+Build Date: 08/28/2025 23:44:37
+Build Time: 23:44:37
+Node Version: v24.6.0
+npm Version: 11.5.1
+Angular CLI Version: 20.2.1
+
+Build Output:
+- Build Directory: dist\innkt\browser
+- Build Size: 1.83 MB
+- Total Files: 30
+
+Essential Files:
+- [OK] index.html (82.38 KB)
+- [MISSING] main.js
+- [MISSING] polyfills.js
+- [MISSING] runtime.js
+- [MISSING] styles.css
+Service Worker:
+- [OK] Service Worker generated
+Build completed successfully!

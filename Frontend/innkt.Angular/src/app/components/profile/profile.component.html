@@ -1,0 +1,84 @@
+<div class="profile-container" *ngIf="user">
+  <div class="profile-header">
+    <mat-card class="profile-card">
+      <div class="profile-cover">
+        <div class="profile-avatar">
+          <img [src]="user.profilePicture" [alt]="user.firstName + ' ' + user.lastName">
+        </div>
+      </div>
+      
+      <mat-card-content class="profile-info">
+        <h1>{{ user.firstName }} {{ user.lastName }}</h1>
+        <p class="profile-email">{{ user.email }}</p>
+        <p class="profile-joined">{{ 'PROFILE.JOINED' | translate }} {{ user.createdAt | date:'longDate' }}</p>
+        
+        <div class="profile-stats">
+          <div class="stat">
+            <span class="stat-number">{{ posts.length }}</span>
+            <span class="stat-label">{{ 'PROFILE.POSTS' | translate }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">{{ followers.length }}</span>
+            <span class="stat-label">{{ 'PROFILE.FOLLOWERS' | translate }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">{{ following.length }}</span>
+            <span class="stat-label">{{ 'PROFILE.FOLLOWING' | translate }}</span>
+          </div>
+        </div>
+        
+        <div class="profile-actions" *ngIf="!isOwnProfile">
+          <button mat-raised-button color="primary" (click)="followUser()">
+            <mat-icon>person_add</mat-icon>
+            {{ 'PROFILE.FOLLOW' | translate }}
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="profile-content">
+    <mat-tab-group>
+      <mat-tab [label]="'PROFILE.POSTS' | translate">
+        <div class="posts-grid">
+          <mat-card *ngFor="let post of posts" class="post-card">
+            <mat-card-header>
+              <mat-card-title>{{ post.title }}</mat-card-title>
+              <mat-card-subtitle>{{ post.createdAt | date:'medium' }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p>{{ post.content }}</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+      
+      <mat-tab [label]="'PROFILE.FOLLOWERS' | translate">
+        <div class="users-list">
+          <mat-card *ngFor="let follower of followers" class="user-card">
+            <div class="user-info">
+              <img [src]="follower.profilePicture || 'assets/default-avatar.jpg'" [alt]="follower.firstName + ' ' + follower.lastName" class="user-avatar">
+              <div class="user-details">
+                <h3>{{ follower.firstName }} {{ follower.lastName }}</h3>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+      </mat-tab>
+      
+      <mat-tab [label]="'PROFILE.FOLLOWING' | translate">
+        <div class="users-list">
+          <mat-card *ngFor="let followingUser of following" class="user-card">
+            <div class="user-info">
+              <img [src]="followingUser.profilePicture || 'assets/default-avatar.jpg'" [alt]="followingUser.firstName + ' ' + followingUser.lastName" class="user-avatar">
+              <div class="user-details">
+                <h3>{{ followingUser.firstName }} {{ followingUser.lastName }}</h3>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+

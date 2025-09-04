@@ -1,0 +1,12 @@
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\bin\Debug\net9.0\innkt.Common.deps.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\bin\Debug\net9.0\innkt.Common.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\bin\Debug\net9.0\innkt.Common.pdb
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.csproj.AssemblyReference.cache
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.AssemblyInfoInputs.cache
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.AssemblyInfo.cs
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.csproj.CoreCompileInputs.cache
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\refint\innkt.Common.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.pdb
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\ref\innkt.Common.dll

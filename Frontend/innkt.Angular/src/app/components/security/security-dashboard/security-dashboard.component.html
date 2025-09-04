@@ -1,0 +1,276 @@
+<div class="security-dashboard">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">
+        <span class="title-icon">{{ icons.shield }}</span>
+        Security Dashboard
+      </h1>
+      <div class="header-actions">
+        <button 
+          class="btn btn-outline-primary me-2" 
+          (click)="refreshData()"
+          [disabled]="isLoading">
+          <span class="me-2">{{ icons.refresh }}</span>
+          {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+        <button 
+          class="btn btn-success me-2" 
+          (click)="startMonitoring()"
+          *ngIf="!(isMonitoring$ | async)">
+          <span class="me-2">{{ icons.play }}</span>
+          Start Monitoring
+        </button>
+        <button 
+          class="btn btn-warning me-2" 
+          (click)="stopMonitoring()"
+          *ngIf="isMonitoring$ | async">
+          <span class="me-2">{{ icons.pause }}</span>
+          Stop Monitoring
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="createNewIncident()">
+          <span class="me-2">{{ icons.warning }}</span>
+          New Incident
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitoring Status -->
+  <div class="monitoring-status" *ngIf="isMonitoring$ | async">
+    <div class="status-indicator active">
+      <div class="pulse"></div>
+      <span class="status-text">Real-time Monitoring Active</span>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Grid -->
+  <div class="dashboard-grid">
+    <!-- Threat Metrics Overview -->
+    <div class="dashboard-card metrics-overview">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="me-2">{{ icons.chart }}</span>
+          Threat Overview
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="metrics-grid" *ngIf="metrics$ | async as metrics">
+          <div class="metric-item">
+            <div class="metric-value total">{{ metrics.totalThreats }}</div>
+            <div class="metric-label">Total Threats</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value high">{{ metrics.highThreats }}</div>
+            <div class="metric-label">High Threats</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value medium">{{ metrics.mediumThreats }}</div>
+            <div class="metric-label">Medium Threats</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value low">{{ metrics.lowThreats }}</div>
+            <div class="metric-label">Low Threats</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value risk">{{ metrics.averageRiskScore.toFixed(2) }}</div>
+            <div class="metric-label">Avg Risk Score</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value timestamp">
+              {{ formatDate(metrics.generatedAt) }}
+            </div>
+            <div class="metric-label">Last Updated</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threat Level Distribution Chart -->
+    <div class="dashboard-card chart-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="me-2">{{ icons.chart }}</span>
+          Threat Level Distribution
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="threatLevelChartData"
+            [options]="chartOptions"
+            [type]="'doughnut'">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threat Trends Chart -->
+    <div class="dashboard-card chart-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="me-2">{{ icons.chart }}</span>
+          Threat Trends (7 Days)
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="threatTrendChartData"
+            [options]="chartOptions"
+            [type]="'line'">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Incidents -->
+    <div class="dashboard-card incidents-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="me-2">{{ icons.list }}</span>
+          Active Incidents
+        </h3>
+        <span class="incident-count" *ngIf="incidents$ | async as incidents">
+          {{ incidents.length }}
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="incidents-list" *ngIf="incidents$ | async as incidents">
+          <div class="incident-item" 
+               *ngFor="let incident of incidents"
+               (click)="viewIncidentDetails(incident)">
+            <div class="incident-header">
+              <span class="incident-title">{{ incident.title }}</span>
+              <span class="incident-severity" 
+                    [style.background-color]="getThreatLevelColor(incident.severity)">
+                {{ incident.severity }}
+              </span>
+            </div>
+            <div class="incident-details">
+              <span class="incident-status" 
+                    [style.color]="getStatusColor(incident.status)">
+                {{ incident.status }}
+              </span>
+              <span class="incident-date">{{ formatDate(incident.createdAt) }}</span>
+            </div>
+            <div class="incident-tags">
+              <span class="tag" *ngFor="let tag of incident.tags">{{ tag }}</span>
+            </div>
+          </div>
+          <div class="no-incidents" *ngIf="incidents.length === 0">
+            <span class="no-incidents-icon">{{ icons.shield }}</span>
+            <p>No active incidents</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threat Patterns -->
+    <div class="dashboard-card patterns-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="me-2">{{ icons.shield }}</span>
+          Active Threat Patterns
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="patterns-list" *ngIf="patterns$ | async as patterns">
+          <div class="pattern-item" *ngFor="let pattern of patterns">
+            <div class="pattern-header">
+              <span class="pattern-name">{{ pattern.name }}</span>
+              <span class="pattern-severity" 
+                    [style.background-color]="getThreatLevelColor(pattern.severity)">
+                {{ pattern.severity }}
+              </span>
+            </div>
+            <div class="pattern-description">{{ pattern.description }}</div>
+            <div class="pattern-actions">
+              <span class="action" *ngFor="let action of pattern.actions">{{ action }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dashboard-card actions-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="me-2">{{ icons.cog }}</span>
+          Quick Actions
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="actions-grid">
+          <button class="action-btn" (click)="analyzeCurrentRequest()">
+            <span class="me-2">{{ icons.shield }}</span>
+            Analyze Current Request
+          </button>
+          <button class="action-btn" (click)="createNewIncident()">
+            <span class="me-2">{{ icons.warning }}</span>
+            Create Incident
+          </button>
+          <button class="action-btn" (click)="refreshData()">
+            <span class="me-2">{{ icons.refresh }}</span>
+            Refresh Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incident Details Modal -->
+  <div class="modal-overlay" *ngIf="showIncidentDetailsModal" (click)="showIncidentDetailsModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedIncident">
+      <div class="modal-header">
+        <h3>Incident Details</h3>
+        <button class="close-btn" (click)="showIncidentDetailsModal = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="incident-detail">
+          <strong>Title:</strong> {{ selectedIncident.title }}
+        </div>
+        <div class="incident-detail">
+          <strong>Description:</strong> {{ selectedIncident.description }}
+        </div>
+        <div class="incident-detail">
+          <strong>Severity:</strong> 
+          <span class="severity-badge" [style.background-color]="getThreatLevelColor(selectedIncident.severity)">
+            {{ selectedIncident.severity }}
+          </span>
+        </div>
+        <div class="incident-detail">
+          <strong>Status:</strong> 
+          <span class="status-badge" [style.color]="getStatusColor(selectedIncident.status)">
+            {{ selectedIncident.status }}
+          </span>
+        </div>
+        <div class="incident-detail">
+          <strong>Assigned To:</strong> {{ selectedIncident.assignedTo }}
+        </div>
+        <div class="incident-detail">
+          <strong>Created:</strong> {{ formatDate(selectedIncident.createdAt) }}
+        </div>
+        <div class="incident-detail" *ngIf="selectedIncident.resolvedAt">
+          <strong>Resolved:</strong> {{ formatDate(selectedIncident.resolvedAt) }}
+        </div>
+        <div class="incident-detail">
+          <strong>Tags:</strong>
+          <span class="tag" *ngFor="let tag of selectedIncident.tags">{{ tag }}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary me-2" (click)="executeAutomatedResponse(selectedIncident)">
+          Execute Response
+        </button>
+        <button class="btn btn-secondary" (click)="showIncidentDetailsModal = false">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

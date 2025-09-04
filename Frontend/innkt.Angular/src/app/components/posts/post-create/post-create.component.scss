@@ -1,0 +1,143 @@
+.post-create-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.post-create-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+mat-card-header {
+  text-align: center;
+  margin-bottom: 24px;
+  
+  mat-card-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  
+  mat-card-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+  }
+}
+
+.tags-section {
+  margin: 24px 0;
+  
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+  }
+  
+  h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 12px;
+  }
+}
+
+.selected-tags {
+  margin-bottom: 24px;
+  
+  .tag-chip {
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background-color: #667eea;
+    color: white;
+  }
+}
+
+.available-tags {
+  .tag-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    .tag-button {
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background-color: white;
+      color: #666;
+      transition: all 0.2s ease;
+      
+      &:hover:not(:disabled) {
+        border-color: #667eea;
+        color: #667eea;
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 32px;
+  
+  button {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    
+    &[type="submit"] {
+      min-width: 120px;
+    }
+  }
+}
+
+// RTL support
+[dir="rtl"] {
+  .selected-tags .tag-chip {
+    margin-right: 0;
+    margin-left: 8px;
+  }
+  
+  .form-actions {
+    justify-content: flex-start;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .post-create-container {
+    padding: 16px;
+  }
+  
+  mat-card-header mat-card-title {
+    font-size: 1.5rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+  
+  .available-tags .tag-buttons {
+    justify-content: center;
+  }
+}
+

@@ -1,0 +1,130 @@
+{
+  "configVersion": 1,
+  "timestamp": 1756654955843,
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/127.4908acc38efea1be.js",
+        "/128.8a3afaca6d7cc8ba.js",
+        "/155.149bf2c0fed6adad.js",
+        "/173.093f5847bd3067fc.js",
+        "/205.90f0c6d397d445ab.js",
+        "/206.7fc110c68b363760.js",
+        "/245.32ab5fafd148c1cb.js",
+        "/423.d69beca187e8c85f.js",
+        "/596.b7d93192af4d6b2d.js",
+        "/641.bbdc5e01e33e7c5a.js",
+        "/695.2d1c777ba92f9310.js",
+        "/798.80d62b45516099c0.js",
+        "/822.61337ade68d7a595.js",
+        "/83.cbe12fd5c798c411.js",
+        "/860.2070a41fa6167f6d.js",
+        "/916.0143ee4e34527e1c.js",
+        "/common.401bb79ff9c1ead1.js",
+        "/index.html",
+        "/main.dd171abc807fe2d7.js",
+        "/polyfills.57a04d90e1919fce.js",
+        "/runtime.e844e4e243e03b54.js",
+        "/styles.d7ee1d30a85ba8b4.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/assets/i18n/en.json",
+        "/assets/i18n/he.json"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-freshness",
+      "patterns": [
+        "\\/api\\/posts",
+        "\\/api\\/users",
+        "\\/api\\/search"
+      ],
+      "strategy": "freshness",
+      "maxSize": 100,
+      "maxAge": 259200000,
+      "timeoutMs": 10000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "api-performance",
+      "patterns": [
+        "\\/api\\/notifications",
+        "\\/api\\/chat\\/.*"
+      ],
+      "strategy": "performance",
+      "maxSize": 100,
+      "maxAge": 3600000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    }
+  ],
+  "hashTable": {
+    "/127.4908acc38efea1be.js": "d8ac9a4c8b45dee860a48f3343783e91e80f9603",
+    "/128.8a3afaca6d7cc8ba.js": "857c2223fde2e369685d2ce65cf367c21c8b9812",
+    "/155.149bf2c0fed6adad.js": "c0cea75062d2cfac64ad3784eb74c9a68c3c9924",
+    "/173.093f5847bd3067fc.js": "c8b768db169e9a2ba8ae5cdac54538535bdf1d70",
+    "/205.90f0c6d397d445ab.js": "ee9e3c6422505ec5ec791d835232f43997c769e5",
+    "/206.7fc110c68b363760.js": "f5eca6eafd74101eb1c6174e9b401f947fd9bf29",
+    "/245.32ab5fafd148c1cb.js": "7abf4313101ef4c7532109d1ea0802f2855afbbf",
+    "/423.d69beca187e8c85f.js": "0895212bd780d890777fce76e482a615b91d4a4b",
+    "/596.b7d93192af4d6b2d.js": "33cca8960a396789440c99c8415ebfd951aabe1c",
+    "/641.bbdc5e01e33e7c5a.js": "32cadddc750d07b86a0a0c133de1014e04046cc8",
+    "/695.2d1c777ba92f9310.js": "96d556b692f8992e81ec5a06d2914e837ae652a9",
+    "/798.80d62b45516099c0.js": "8fbaf016a30f0353a4e29efbcf8605a1dd483ef5",
+    "/822.61337ade68d7a595.js": "25826114433ce5a3ffa16cb37fd40877032606f5",
+    "/83.cbe12fd5c798c411.js": "1264fc0ca32201fac7434ba5c9959100f5063a44",
+    "/860.2070a41fa6167f6d.js": "b1df7acc9f66a0fdff1001b476aa669104ae99c4",
+    "/916.0143ee4e34527e1c.js": "4db913f005f89f6546752964decae2eb23ceb80e",
+    "/assets/i18n/en.json": "d28b4ce953029657a06791301416712a2821f815",
+    "/assets/i18n/he.json": "49b8b3a36215b165a5da15ce8d84774c48bb1245",
+    "/common.401bb79ff9c1ead1.js": "b38a3f5d8870696972c7f66ffbc0270897f500b0",
+    "/index.html": "f54cee56fe38dd808d6465769c53b69234ba81b7",
+    "/main.dd171abc807fe2d7.js": "b866560a890a0bf3216c4d8beea40b64ec4d491e",
+    "/polyfills.57a04d90e1919fce.js": "73710386dd6c6f6baa75afa725b5f4803d4c4e6e",
+    "/runtime.e844e4e243e03b54.js": "c23c309311105ce55b04f848d99df88297116335",
+    "/styles.d7ee1d30a85ba8b4.css": "63ccb12cec0bc4db4a9edd2d4dcffdb23cf0bb58"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}

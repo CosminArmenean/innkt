@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\innkt.NeuroSpark.props" />
+</Project>

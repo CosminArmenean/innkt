@@ -1,0 +1,140 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const Home: React.FC = () => {
+  const features = [
+    {
+      title: 'Joint Accounts',
+      description: 'Create shared accounts with your partner, family, or friends. One password, two people, endless possibilities.',
+      icon: '👥',
+      href: '/register'
+    },
+    {
+      title: 'Advanced Security',
+      description: 'Built-in threat detection, real-time monitoring, and blockchain verification for ultimate trust.',
+      icon: '🛡️',
+      href: '/security'
+    },
+    {
+      title: 'Kid Account Management',
+      description: 'Safe, controlled environments for children with parental oversight and educational features.',
+      icon: '👶',
+      href: '/register'
+    },
+    {
+      title: 'AI-Powered Features',
+      description: 'Smart image processing, QR code generation, and intelligent content moderation.',
+      icon: '🤖',
+      href: '/dashboard'
+    },
+    {
+      title: 'Multi-Language Support',
+      description: 'Global accessibility with RTL support for Hebrew and other languages.',
+      icon: '🌍',
+      href: '/dashboard'
+    },
+    {
+      title: 'Blockchain Integration',
+      description: 'Verified accounts and blockchain posts for enhanced trust and authenticity.',
+      icon: '⛓️',
+      href: '/dashboard'
+    }
+  ];
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-innkt-primary via-innkt-secondary to-innkt-accent text-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-8">
+            {/* INNKT Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
+                <span className="text-innkt-primary font-bold text-4xl">I</span>
+              </div>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Welcome to <span className="text-innkt-light">innkt</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-innkt-light mb-8 max-w-3xl mx-auto">
+              The next generation of social networking, built for families, 
+              with advanced security, AI features, and blockchain integration.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/register"
+                className="bg-white text-innkt-primary hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200 shadow-lg"
+              >
+                Get Started
+              </Link>
+              <Link
+                to="/login"
+                className="border-2 border-white text-white hover:bg-white hover:text-innkt-primary px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200"
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Why Choose INNKT?
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We've built a platform that combines the best of social networking 
+              with cutting-edge technology for families and communities.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="card hover:shadow-lg transition-shadow duration-200">
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {feature.description}
+                </p>
+                <Link
+                  to={feature.href}
+                  className="text-innkt-primary hover:text-innkt-dark font-medium transition-colors duration-200"
+                >
+                  Learn more →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Ready to Join the Future?
+          </h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Experience the most advanced social networking platform designed 
+            with families in mind. Secure, intelligent, and innovative.
+          </p>
+          <Link
+            to="/register"
+            className="btn-primary text-lg px-10 py-4"
+          >
+            Create Your Account
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Home;
+
+

@@ -1,0 +1,12 @@
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.csproj.AssemblyReference.cache
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.AssemblyInfoInputs.cache
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.AssemblyInfo.cs
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.csproj.CoreCompileInputs.cache
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\bin\Debug\net9.0\innkt.StringLibrary.deps.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\bin\Debug\net9.0\innkt.StringLibrary.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\bin\Debug\net9.0\innkt.StringLibrary.pdb
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\refint\innkt.StringLibrary.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.pdb
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\ref\innkt.StringLibrary.dll

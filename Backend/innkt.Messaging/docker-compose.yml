@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  messaging:
+    build: .
+    ports:
+      - "5003:5003"
+    environment:
+      - NODE_ENV=development
+      - PORT=5003
+      - MONGODB_URI=mongodb://mongodb:27017/innkt_messaging
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - innkt-network
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=innkt_messaging
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - innkt-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - innkt-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  innkt-network:
+    driver: bridge
