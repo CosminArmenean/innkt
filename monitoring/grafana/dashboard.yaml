@@ -1,0 +1,277 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-innkt
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  innkt-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "INNKT Platform Dashboard",
+        "tags": ["innkt", "social-platform"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Health Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=~\"innkt-.*\"}",
+                "legendFormat": "{{job}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "id": 2,
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=~\"innkt-.*\"}[5m])",
+                "legendFormat": "{{job}} - {{method}}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 0
+            }
+          },
+          {
+            "id": 3,
+            "title": "Response Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\"innkt-.*\"}[5m]))",
+                "legendFormat": "95th percentile - {{job}}"
+              },
+              {
+                "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=~\"innkt-.*\"}[5m]))",
+                "legendFormat": "50th percentile - {{job}}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 8
+            }
+          },
+          {
+            "id": 4,
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=~\"innkt-.*\",status=~\"5..\"}[5m])",
+                "legendFormat": "5xx errors - {{job}}"
+              },
+              {
+                "expr": "rate(http_requests_total{job=~\"innkt-.*\",status=~\"4..\"}[5m])",
+                "legendFormat": "4xx errors - {{job}}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 8
+            }
+          },
+          {
+            "id": 5,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "postgres_stat_activity_count{job=\"postgres\"}",
+                "legendFormat": "PostgreSQL Connections"
+              },
+              {
+                "expr": "redis_connected_clients{job=\"redis\"}",
+                "legendFormat": "Redis Connections"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 16
+            }
+          },
+          {
+            "id": 6,
+            "title": "Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{pod=~\"innkt-.*\"}",
+                "legendFormat": "{{pod}}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 16
+            }
+          },
+          {
+            "id": 7,
+            "title": "CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{pod=~\"innkt-.*\"}[5m])",
+                "legendFormat": "{{pod}}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 24
+            }
+          },
+          {
+            "id": 8,
+            "title": "Active Users",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "innkt_active_users",
+                "legendFormat": "Active Users"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 24
+            }
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: "admin123"
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: grafana-dashboards
+          mountPath: /etc/grafana/provisioning/dashboards
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      - name: grafana-storage
+        emptyDir: {}
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboard-innkt
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+  - port: 80
+    targetPort: 3000
+    name: web
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus-server:80
+      isDefault: true
