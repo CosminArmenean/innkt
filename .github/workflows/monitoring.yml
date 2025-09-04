@@ -1,0 +1,126 @@
+name: Monitoring and Analytics Setup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *' # Daily at 2 AM
+
+jobs:
+  setup-monitoring:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Deploy Prometheus
+      run: |
+        # Create monitoring namespace
+        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+        
+        # Deploy Prometheus
+        kubectl apply -f monitoring/prometheus.yml -n monitoring
+        
+        # Wait for Prometheus to be ready
+        kubectl wait --for=condition=available --timeout=300s deployment/prometheus-server -n monitoring
+    
+    - name: Deploy Grafana
+      run: |
+        # Deploy Grafana
+        kubectl apply -f monitoring/grafana/ -n monitoring
+        
+        # Wait for Grafana to be ready
+        kubectl wait --for=condition=available --timeout=300s deployment/grafana -n monitoring
+    
+    - name: Setup service monitoring
+      run: |
+        # Create ServiceMonitor for INNKT services
+        cat <<EOF | kubectl apply -f -
+        apiVersion: monitoring.coreos.com/v1
+        kind: ServiceMonitor
+        metadata:
+          name: innkt-services
+          namespace: monitoring
+          labels:
+            app: innkt
+        spec:
+          selector:
+            matchLabels:
+              app: innkt
+          endpoints:
+          - port: http
+            path: /metrics
+            interval: 30s
+        EOF
+    
+    - name: Verify monitoring setup
+      run: |
+        # Check if Prometheus is scraping metrics
+        kubectl port-forward service/prometheus-server 9090:80 -n monitoring &
+        sleep 10
+        
+        # Test Prometheus query
+        curl -s "http://localhost:9090/api/v1/query?query=up" | grep -q "innkt" && echo "✅ Prometheus monitoring active" || echo "❌ Prometheus monitoring not working"
+        
+        # Check Grafana
+        kubectl port-forward service/grafana 3000:80 -n monitoring &
+        sleep 10
+        
+        curl -f http://localhost:3000 && echo "✅ Grafana accessible" || echo "❌ Grafana not accessible"
+
+  performance-analysis:
+    runs-on: ubuntu-latest
+    needs: setup-monitoring
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Run performance analysis
+      run: |
+        # Get resource usage
+        kubectl top pods -n innkt --sort-by=memory
+        
+        # Get service metrics
+        kubectl get pods -n innkt -o wide
+        
+        # Check service health
+        kubectl get services -n innkt
+        
+        # Analyze logs for errors
+        kubectl logs -n innkt deployment/officer-service --tail=100 | grep -i error || echo "No errors in Officer service"
+        kubectl logs -n innkt deployment/messaging-service --tail=100 | grep -i error || echo "No errors in Messaging service"
+    
+    - name: Generate performance report
+      run: |
+        echo "# INNKT Platform Performance Report" > performance-report.md
+        echo "Generated: $(date)" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        echo "## Resource Usage" >> performance-report.md
+        kubectl top pods -n innkt --sort-by=memory >> performance-report.md
+        echo "" >> performance-report.md
+        
+        echo "## Service Status" >> performance-report.md
+        kubectl get pods -n innkt >> performance-report.md
+        echo "" >> performance-report.md
+        
+        echo "## Recent Errors" >> performance-report.md
+        kubectl logs -n innkt deployment/officer-service --tail=50 | grep -i error >> performance-report.md || echo "No errors found" >> performance-report.md
+        kubectl logs -n innkt deployment/messaging-service --tail=50 | grep -i error >> performance-report.md || echo "No errors found" >> performance-report.md
+    
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: performance-report.md

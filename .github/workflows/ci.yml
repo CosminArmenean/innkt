@@ -1,0 +1,320 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Frontend Tests
+  frontend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Frontend/innkt.react
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: Frontend/innkt.react/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linting
+      run: npm run lint --if-present
+    
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: Frontend/innkt.react/build/
+
+  # Backend Tests
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Backend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+    
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: Backend/**/TestResults/
+
+  # Messaging Service Tests
+  messaging-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Backend/innkt.Messaging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: Backend/innkt.Messaging/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linting
+      run: npm run lint --if-present
+    
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+    
+    - name: Build application
+      run: npm run build
+
+  # Security Scan
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Build and Push Docker Images
+  build-and-push:
+    needs: [frontend-test, backend-test, messaging-test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    # Build Officer Service
+    - name: Build and push Officer service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Backend
+        file: ./Backend/innkt.Officer/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/officer:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    # Build Frontier Service
+    - name: Build and push Frontier service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Backend
+        file: ./Backend/innkt.Frontier/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontier:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    # Build NeuroSpark Service
+    - name: Build and push NeuroSpark service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Backend
+        file: ./Backend/innkt.NeuroSpark/innkt.NeuroSpark/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/neurospark:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    # Build Messaging Service
+    - name: Build and push Messaging service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Backend/innkt.Messaging
+        file: ./Backend/innkt.Messaging/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/messaging:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    # Build Frontend
+    - name: Build and push Frontend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Frontend/innkt.react
+        file: ./Frontend/innkt.react/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Deploy to Kubernetes
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Setup Kind
+      uses: helm/kind-action@v1.8.0
+      with:
+        cluster_name: innkt-cluster
+        config: |
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+          - role: control-plane
+            kubeadmConfigPatches:
+            - |
+              kind: InitConfiguration
+              nodeRegistration:
+                kubeletExtraArgs:
+                  node-labels: "ingress-ready=true"
+            extraPortMappings:
+            - containerPort: 80
+              hostPort: 80
+              protocol: TCP
+            - containerPort: 443
+              hostPort: 443
+              protocol: TCP
+    
+    - name: Load Docker images into Kind
+      run: |
+        kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/officer:${{ github.sha }} --name innkt-cluster
+        kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontier:${{ github.sha }} --name innkt-cluster
+        kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/neurospark:${{ github.sha }} --name innkt-cluster
+        kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/messaging:${{ github.sha }} --name innkt-cluster
+        kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} --name innkt-cluster
+    
+    - name: Deploy to Kubernetes
+      run: |
+        # Update image tags in deployment files
+        sed -i "s|image: innkt-officer:latest|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/officer:${{ github.sha }}|g" k8s/officer-deployment.yaml
+        sed -i "s|image: innkt-frontier:latest|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontier:${{ github.sha }}|g" k8s/frontier-deployment.yaml
+        sed -i "s|image: innkt-neurospark:latest|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/neurospark:${{ github.sha }}|g" k8s/neurospark-deployment.yaml
+        sed -i "s|image: innkt-messaging:latest|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/messaging:${{ github.sha }}|g" k8s/messaging-deployment.yaml
+        
+        # Deploy to Kubernetes
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/secrets.yaml
+        kubectl apply -f k8s/infrastructure.yaml
+        kubectl apply -f k8s/officer-deployment.yaml
+        kubectl apply -f k8s/frontier-deployment.yaml
+        kubectl apply -f k8s/neurospark-deployment.yaml
+        kubectl apply -f k8s/messaging-deployment.yaml
+        kubectl apply -f k8s/frontend-deployment.yaml
+        kubectl apply -f k8s/ingress.yaml
+    
+    - name: Wait for deployment
+      run: |
+        kubectl wait --for=condition=available --timeout=300s deployment/officer-service -n innkt
+        kubectl wait --for=condition=available --timeout=300s deployment/messaging-service -n innkt
+        kubectl wait --for=condition=available --timeout=300s deployment/frontend-service -n innkt
+    
+    - name: Run health checks
+      run: |
+        # Port forward services for testing
+        kubectl port-forward service/officer-service 5001:5001 -n innkt &
+        kubectl port-forward service/messaging-service 5003:5003 -n innkt &
+        kubectl port-forward service/frontend-service 8080:80 -n innkt &
+        
+        # Wait for port forwarding
+        sleep 10
+        
+        # Test health endpoints
+        curl -f http://localhost:5001/health || exit 1
+        curl -f http://localhost:5003/health || exit 1
+        curl -f http://localhost:8080 || exit 1
+        
+        echo "✅ All health checks passed!"
+    
+    - name: Run load tests
+      run: |
+        cd scripts
+        npm install
+        node simple-load-test.js
