@@ -1,0 +1,77 @@
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <!-- Company Info -->
+      <div class="footer-section">
+        <h3 class="footer-title">
+          <i class="fas fa-users"></i>
+          Innkt
+        </h3>
+        <p class="footer-description">
+          {{ 'FOOTER.DESCRIPTION' | translate }}
+        </p>
+        <div class="social-links">
+          <a href="#" class="social-link" title="Facebook">
+            <i class="fab fa-facebook"></i>
+          </a>
+          <a href="#" class="social-link" title="Twitter">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="#" class="social-link" title="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="#" class="social-link" title="LinkedIn">
+            <i class="fab fa-linkedin"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-section">
+        <h4 class="footer-subtitle">{{ 'FOOTER.QUICK_LINKS' | translate }}</h4>
+        <ul class="footer-links">
+          <li><a routerLink="/dashboard">{{ 'FOOTER.DASHBOARD' | translate }}</a></li>
+          <li><a routerLink="/posts">{{ 'FOOTER.POSTS' | translate }}</a></li>
+          <li><a routerLink="/about">{{ 'FOOTER.ABOUT' | translate }}</a></li>
+          <li><a routerLink="/contact">{{ 'FOOTER.CONTACT' | translate }}</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div class="footer-section">
+        <h4 class="footer-subtitle">{{ 'FOOTER.SUPPORT' | translate }}</h4>
+        <ul class="footer-links">
+          <li><a routerLink="/help">{{ 'FOOTER.HELP_CENTER' | translate }}</a></li>
+          <li><a routerLink="/faq">{{ 'FOOTER.FAQ' | translate }}</a></li>
+          <li><a routerLink="/support">{{ 'FOOTER.CONTACT_SUPPORT' | translate }}</a></li>
+          <li><a routerLink="/status">{{ 'FOOTER.SYSTEM_STATUS' | translate }}</a></li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div class="footer-section">
+        <h4 class="footer-subtitle">{{ 'FOOTER.LEGAL' | translate }}</h4>
+        <ul class="footer-links">
+          <li><a routerLink="/privacy">{{ 'FOOTER.PRIVACY_POLICY' | translate }}</a></li>
+          <li><a routerLink="/terms">{{ 'FOOTER.TERMS_OF_SERVICE' | translate }}</a></li>
+          <li><a routerLink="/cookies">{{ 'FOOTER.COOKIE_POLICY' | translate }}</a></li>
+          <li><a routerLink="/gdpr">{{ 'FOOTER.GDPR' | translate }}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <p class="copyright">
+          © {{ currentYear }} Innkt. {{ 'FOOTER.ALL_RIGHTS_RESERVED' | translate }}
+        </p>
+        <div class="footer-bottom-links">
+          <a routerLink="/sitemap">{{ 'FOOTER.SITEMAP' | translate }}</a>
+          <a routerLink="/accessibility">{{ 'FOOTER.ACCESSIBILITY' | translate }}</a>
+          <a routerLink="/security">{{ 'FOOTER.SECURITY' | translate }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,98 @@
+<div class="rich-text-editor" [class.focused]="isFocused">
+  
+  <!-- Toolbar -->
+  <div class="editor-toolbar" *ngIf="showToolbar">
+    <div class="toolbar-section">
+      <button 
+        *ngFor="let action of toolbarActions" 
+        mat-icon-button
+        [class.divider]="action.icon === 'divider'"
+        [class.active]="action.icon === 'divider'"
+        (click)="action.icon !== 'divider' ? executeCommand(action.action) : null"
+        [matTooltip]="action.label + (action.shortcut ? ' (' + action.shortcut + ')' : '')"
+        matTooltipPosition="below">
+        
+        <mat-icon *ngIf="action.icon !== 'divider'">{{ action.icon }}</mat-icon>
+        <mat-divider *ngIf="action.icon === 'divider'" vertical></mat-divider>
+      </button>
+    </div>
+  </div>
+
+  <!-- Emoji Picker -->
+  <div class="emoji-picker" *ngIf="showEmojiPicker">
+    <div class="emoji-header">
+      <h4>Insert Emoji</h4>
+      <button mat-icon-button (click)="showEmojiPicker = false">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div class="emoji-categories">
+      <div *ngFor="let category of emojiCategories" class="emoji-category">
+        <h5>{{ category.name }}</h5>
+        <div class="emoji-grid">
+          <button 
+            *ngFor="let emoji of category.emojis"
+            mat-button
+            class="emoji-button"
+            (click)="insertEmoji(emoji)"
+            [matTooltip]="emoji">
+            {{ emoji }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor Content Area -->
+  <div class="editor-content">
+    <div 
+      #editor
+      class="editor-body"
+      contenteditable="true"
+      [attr.placeholder]="placeholder"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      (input)="onInput()"
+      (paste)="onPaste($event)"
+      (keydown)="onKeyDown($event)"
+      [class.placeholder]="!content">
+    </div>
+  </div>
+
+  <!-- Editor Footer -->
+  <div class="editor-footer" *ngIf="showWordCount || showReadingTime">
+    <div class="editor-stats">
+      <span class="stat-item" *ngIf="showWordCount">
+        <mat-icon>text_fields</mat-icon>
+        {{ wordCount }} words
+      </span>
+      
+      <span class="stat-item" *ngIf="showReadingTime">
+        <mat-icon>schedule</mat-icon>
+        {{ readingTime }} min read
+      </span>
+      
+      <span class="stat-item character-count" [class.warning]="content.length > maxLength * 0.8">
+        <mat-icon>character_count</mat-icon>
+        {{ content.length }}/{{ maxLength }} characters
+      </span>
+    </div>
+  </div>
+
+  <!-- Content Validation Warning -->
+  <div class="validation-warning" *ngIf="content.length > maxLength * 0.8">
+    <mat-icon>warning</mat-icon>
+    <span *ngIf="content.length > maxLength">
+      Content exceeds maximum length. Please shorten your content.
+    </span>
+    <span *ngIf="content.length <= maxLength">
+      Approaching character limit. {{ maxLength - content.length }} characters remaining.
+    </span>
+  </div>
+</div>
+
+
+
+
+

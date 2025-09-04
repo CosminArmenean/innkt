@@ -1,0 +1,109 @@
+<div class="chat-container">
+  <div class="chat-sidebar">
+    <mat-card class="sidebar-card">
+      <mat-card-header>
+        <mat-card-title>{{ 'CHAT.ONLINE_USERS' | translate }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ 'CHAT.ONLINE' | translate }} ({{ getOnlineUsersCount() }})
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item 
+            *ngFor="let user of onlineUsers" 
+            (click)="selectUser(user)"
+            [class.selected]="selectedUser?.id === user.id"
+            class="user-item">
+            <div class="user-avatar">
+              <img [src]="user.avatar" [alt]="user.name" class="avatar-img">
+              <div class="status-indicator" [class.online]="user.isOnline"></div>
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{ user.name }}</div>
+              <div class="user-status">
+                <span *ngIf="user.isOnline" class="online-text">{{ 'CHAT.ONLINE' | translate }}</span>
+                <span *ngIf="!user.isOnline" class="offline-text">
+                  {{ 'CHAT.LAST_SEEN' | translate }} {{ user.lastSeen | date:'short' }}
+                </span>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="chat-main">
+    <div class="chat-header">
+      <mat-card class="header-card">
+        <mat-card-header>
+          <mat-card-title *ngIf="selectedUser">
+            {{ selectedUser.name }}
+          </mat-card-title>
+          <mat-card-title *ngIf="!selectedUser">
+            {{ 'CHAT.SELECT_USER' | translate }}
+          </mat-card-title>
+          <mat-card-subtitle *ngIf="selectedUser">
+            <span *ngIf="selectedUser.isOnline" class="online-text">{{ 'CHAT.ONLINE' | translate }}</span>
+            <span *ngIf="!selectedUser.isOnline" class="offline-text">{{ 'CHAT.OFFLINE' | translate }}</span>
+          </mat-card-subtitle>
+        </mat-card-header>
+      </mat-card>
+    </div>
+
+    <div class="chat-messages" *ngIf="selectedUser">
+      <div class="messages-container">
+        <div 
+          *ngFor="let message of messages" 
+          class="message"
+          [class.own-message]="message.isOwn"
+          [class.other-message]="!message.isOwn">
+          <div class="message-content">
+            <div class="message-text">{{ message.content }}</div>
+            <div class="message-time">{{ message.timestamp | date:'shortTime' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input" *ngIf="selectedUser">
+      <mat-card class="input-card">
+        <mat-card-content>
+          <div class="input-container">
+            <mat-form-field appearance="outline" class="message-input">
+              <mat-label>{{ 'CHAT.TYPE_MESSAGE' | translate }}</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="newMessage" 
+                (keyup.enter)="sendMessage()"
+                placeholder="{{ 'CHAT.TYPE_MESSAGE' | translate }}"
+                maxlength="1000">
+              <mat-hint align="end">{{ newMessage.length }}/1000</mat-hint>
+            </mat-form-field>
+            <button 
+              mat-fab 
+              color="primary" 
+              (click)="sendMessage()"
+              [disabled]="!newMessage.trim()"
+              class="send-button">
+              <mat-icon>send</mat-icon>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="chat-placeholder" *ngIf="!selectedUser">
+      <mat-card class="placeholder-card">
+        <mat-card-content>
+          <div class="placeholder-content">
+            <mat-icon class="placeholder-icon">chat</mat-icon>
+            <h3>{{ 'CHAT.SELECT_USER_TO_START' | translate }}</h3>
+            <p>{{ 'CHAT.CHOOSE_USER_FROM_SIDEBAR' | translate }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

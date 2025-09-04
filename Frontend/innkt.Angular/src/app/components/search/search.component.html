@@ -1,0 +1,218 @@
+<div class="search-container">
+  <mat-card class="search-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>search</mat-icon>
+        Advanced Search
+      </mat-card-title>
+      <mat-card-subtitle>Search across posts and users</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="searchForm" class="search-form">
+        <div class="search-row">
+          <mat-form-field appearance="outline" class="search-input">
+            <mat-label>Search Query</mat-label>
+            <input matInput formControlName="query" placeholder="Enter your search terms...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="category">
+              <mat-option value="">All Categories</mat-option>
+              <mat-option value="technology">Technology</mat-option>
+              <mat-option value="business">Business</mat-option>
+              <mat-option value="lifestyle">Lifestyle</mat-option>
+              <mat-option value="education">Education</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Tags</mat-label>
+            <mat-select formControlName="tags">
+              <mat-option value="">All Tags</mat-option>
+              <mat-option value="angular">Angular</mat-option>
+              <mat-option value=".net">.NET</mat-option>
+              <mat-option value="web-development">Web Development</mat-option>
+              <mat-option value="mobile">Mobile</mat-option>
+              <mat-option value="ai">AI</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Sort By</mat-label>
+            <mat-select formControlName="sortBy">
+              <mat-option value="createdAt">Date Created</mat-option>
+              <mat-option value="updatedAt">Date Updated</mat-option>
+              <mat-option value="likes">Likes</mat-option>
+              <mat-option value="comments">Comments</mat-option>
+              <mat-option value="title">Title</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Sort Order</mat-label>
+            <mat-select formControlName="sortOrder">
+              <mat-option value="desc">Descending</mat-option>
+              <mat-option value="asc">Ascending</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="actions-row">
+          <button mat-raised-button color="primary" (click)="performSearch()" [disabled]="!searchForm.get('query')?.value">
+            <mat-icon>search</mat-icon>
+            Search
+          </button>
+          <button mat-stroked-button (click)="clearSearch()">
+            <mat-icon>clear</mat-icon>
+            Clear
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Search Results -->
+  <div class="results-container" *ngIf="searchQuery">
+    <mat-tab-group (selectedTabChange)="onTabChange($event.index)" [selectedIndex]="activeTab">
+      
+      <!-- Posts Tab -->
+      <mat-tab label="Posts">
+        <div class="tab-content">
+          <div *ngIf="postsLoading" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Searching posts...</p>
+          </div>
+
+          <div *ngIf="!postsLoading && posts.length === 0" class="no-results">
+            <mat-icon>search_off</mat-icon>
+            <p>No posts found matching your search criteria.</p>
+          </div>
+
+          <div *ngIf="!postsLoading && posts.length > 0" class="results-list">
+            <div class="results-header">
+              <h3>Found {{ postsTotal }} posts</h3>
+            </div>
+
+            <div class="post-item" *ngFor="let post of posts">
+              <mat-card class="post-card">
+                <mat-card-header>
+                  <img mat-card-avatar [src]="post.author.avatar || 'assets/default-avatar.png'" [alt]="post.author.firstName">
+                  <mat-card-title>{{ post.title }}</mat-card-title>
+                  <mat-card-subtitle>
+                    By {{ post.author.firstName }} {{ post.author.lastName }} • 
+                    {{ post.createdAt | date:'mediumDate' }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                
+                <mat-card-content>
+                  <p class="post-content">{{ post.content | slice:0:200 }}{{ post.content.length > 200 ? '...' : '' }}</p>
+                  
+                  <div class="post-meta">
+                    <mat-chip-set>
+                      <mat-chip *ngFor="let tag of post.tags" color="primary" variant="outlined">
+                        {{ tag }}
+                      </mat-chip>
+                    </mat-chip-set>
+                    
+                    <div class="post-stats">
+                      <span class="stat">
+                        <mat-icon>thumb_up</mat-icon>
+                        {{ post.likes }}
+                      </span>
+                      <span class="stat">
+                        <mat-icon>comment</mat-icon>
+                        {{ post.comments }}
+                      </span>
+                    </div>
+                  </div>
+                </mat-card-content>
+
+                <mat-card-actions>
+                  <button mat-button color="primary" [routerLink]="['/posts', post.id]">
+                    Read More
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+
+            <mat-paginator 
+              *ngIf="postsTotal > postsPageSize"
+              [length]="postsTotal"
+              [pageSize]="postsPageSize"
+              [pageIndex]="postsPage"
+              [pageSizeOptions]="[5, 10, 25, 50]"
+              (page)="onPostsPageChange($event)">
+            </mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Users Tab -->
+      <mat-tab label="Users">
+        <div class="tab-content">
+          <div *ngIf="usersLoading" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Searching users...</p>
+          </div>
+
+          <div *ngIf="!usersLoading && users.length === 0" class="no-results">
+            <mat-icon>people_off</mat-icon>
+            <p>No users found matching your search criteria.</p>
+          </div>
+
+          <div *ngIf="!usersLoading && users.length > 0" class="results-list">
+            <div class="results-header">
+              <h3>Found {{ usersTotal }} users</h3>
+            </div>
+
+            <div class="user-item" *ngFor="let user of users">
+              <mat-card class="user-card">
+                <mat-card-header>
+                  <img mat-card-avatar [src]="user.profilePicture || 'assets/default-avatar.png'" [alt]="user.firstName">
+                  <mat-card-title>{{ user.firstName }} {{ user.lastName }}</mat-card-title>
+                  <mat-card-subtitle>
+                    @{{ user.username || user.email }} • 
+                    Member since {{ user.createdAt | date:'mediumDate' }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                
+                <mat-card-content>
+                  <p *ngIf="user.bio" class="user-bio">{{ user.bio }}</p>
+                  <p *ngIf="user.location" class="user-location">
+                    <mat-icon>location_on</mat-icon>
+                    {{ user.location }}
+                  </p>
+                </mat-card-content>
+
+                <mat-card-actions>
+                  <button mat-button color="primary" [routerLink]="['/profile', user.id]">
+                    View Profile
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+
+            <mat-paginator 
+              *ngIf="usersTotal > usersPageSize"
+              [length]="usersTotal"
+              [pageSize]="usersPageSize"
+              [pageIndex]="usersPage"
+              [pageSizeOptions]="[10, 20, 50, 100]"
+              (page)="onUsersPageChange($event)">
+            </mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+
+
+
+
+

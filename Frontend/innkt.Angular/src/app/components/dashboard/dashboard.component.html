@@ -1,0 +1,79 @@
+<div class="dashboard-container">
+  <div class="welcome-section">
+    <h1>{{ 'DASHBOARD.WELCOME' | translate }}, {{ currentUser?.firstName }}!</h1>
+    <p>{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
+  </div>
+
+  <mat-grid-list cols="2" rowHeight="200px" gutterSize="16px" class="stats-grid">
+    <mat-grid-tile>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>article</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.posts }}</h3>
+            <p>{{ 'DASHBOARD.POSTS' | translate }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <mat-grid-tile>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.followers }}</h3>
+            <p>{{ 'DASHBOARD.FOLLOWERS' | translate }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <mat-grid-tile>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>person_add</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.following }}</h3>
+            <p>{{ 'DASHBOARD.FOLLOWING' | translate }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <mat-grid-tile>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>favorite</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.likes }}</h3>
+            <p>{{ 'DASHBOARD.LIKES' | translate }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+
+  <div class="quick-actions">
+    <h2>{{ 'DASHBOARD.QUICK_ACTIONS' | translate }}</h2>
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" routerLink="/posts/create">
+        <mat-icon>add</mat-icon>
+        {{ 'DASHBOARD.CREATE_POST' | translate }}
+      </button>
+      <button mat-raised-button color="accent" routerLink="/profile/{{ currentUser?.id }}">
+        <mat-icon>person</mat-icon>
+        {{ 'DASHBOARD.VIEW_PROFILE' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,562 @@
+2025-08-29 20:23:24.853 +03:00 [INF] Starting Duende IdentityServer version 7.0.0+2f7360ca39ed849ea5ca7c501edf404be7286722 (.NET 9.0.8)
+2025-08-29 20:23:25.084 +03:00 [WRN] You do not have a valid license key for the Duende software. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please start a conversation with us: https://duendesoftware.com/contact
+2025-08-29 20:23:25.089 +03:00 [WRN] You have automatic key management enabled, but you do not have a license. This feature requires the Business or Enterprise Edition tier of license. Alternatively you can disable automatic key management by setting the KeyManagement.Enabled property to false on the IdentityServerOptions.
+2025-08-29 20:23:25.579 +03:00 [INF] Using the default authentication scheme Identity.Application for IdentityServer
+2025-08-29 20:23:28.086 +03:00 [INF] Executed DbCommand (66ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:23:28.470 +03:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:23:28.491 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:23:28.500 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:23:28.505 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:23:28.522 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:23:28.721 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:23:28.911 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:23:28.916 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:23:28.918 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:23:28.922 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:23:28.926 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:23:28.960 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:23:29.033 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:23:29.038 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:23:29.040 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:23:29.043 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:23:29.048 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:23:29.052 +03:00 [INF] Current language set to 'en'
+2025-08-29 20:23:29.059 +03:00 [INF] String 'auth.login.success' updated for language 'en'
+2025-08-29 20:23:29.061 +03:00 [INF] String 'auth.login.failed' updated for language 'en'
+2025-08-29 20:23:29.063 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'en'
+2025-08-29 20:23:29.066 +03:00 [INF] String 'auth.login.account_locked' updated for language 'en'
+2025-08-29 20:23:29.068 +03:00 [INF] String 'auth.login.account_inactive' updated for language 'en'
+2025-08-29 20:23:29.071 +03:00 [INF] String 'auth.logout.success' updated for language 'en'
+2025-08-29 20:23:29.073 +03:00 [INF] String 'auth.registration.success' updated for language 'en'
+2025-08-29 20:23:29.076 +03:00 [INF] String 'auth.registration.failed' updated for language 'en'
+2025-08-29 20:23:29.078 +03:00 [INF] String 'auth.registration.email_exists' updated for language 'en'
+2025-08-29 20:23:29.080 +03:00 [INF] String 'auth.registration.username_exists' updated for language 'en'
+2025-08-29 20:23:29.083 +03:00 [INF] String 'mfa.setup.required' updated for language 'en'
+2025-08-29 20:23:29.086 +03:00 [INF] String 'mfa.setup.success' updated for language 'en'
+2025-08-29 20:23:29.090 +03:00 [INF] String 'mfa.setup.failed' updated for language 'en'
+2025-08-29 20:23:29.093 +03:00 [INF] String 'mfa.enable.success' updated for language 'en'
+2025-08-29 20:23:29.096 +03:00 [INF] String 'mfa.enable.failed' updated for language 'en'
+2025-08-29 20:23:29.100 +03:00 [INF] String 'mfa.verification.required' updated for language 'en'
+2025-08-29 20:23:29.104 +03:00 [INF] String 'mfa.verification.success' updated for language 'en'
+2025-08-29 20:23:29.107 +03:00 [INF] String 'mfa.verification.failed' updated for language 'en'
+2025-08-29 20:23:29.109 +03:00 [INF] String 'verification.credit_card.required' updated for language 'en'
+2025-08-29 20:23:29.112 +03:00 [INF] String 'verification.credit_card.success' updated for language 'en'
+2025-08-29 20:23:29.115 +03:00 [INF] String 'verification.driver_license.required' updated for language 'en'
+2025-08-29 20:23:29.118 +03:00 [INF] String 'verification.driver_license.success' updated for language 'en'
+2025-08-29 20:23:29.121 +03:00 [INF] String 'kid_account.creation.success' updated for language 'en'
+2025-08-29 20:23:29.124 +03:00 [INF] String 'kid_account.pairing.success' updated for language 'en'
+2025-08-29 20:23:29.126 +03:00 [INF] String 'kid_account.independence.activated' updated for language 'en'
+2025-08-29 20:23:29.128 +03:00 [INF] String 'general.success' updated for language 'en'
+2025-08-29 20:23:29.131 +03:00 [INF] String 'general.error' updated for language 'en'
+2025-08-29 20:23:29.134 +03:00 [INF] String 'general.warning' updated for language 'en'
+2025-08-29 20:23:29.136 +03:00 [INF] String 'general.info' updated for language 'en'
+2025-08-29 20:23:29.139 +03:00 [INF] String 'validation.required' updated for language 'en'
+2025-08-29 20:23:29.141 +03:00 [INF] String 'validation.invalid_email' updated for language 'en'
+2025-08-29 20:23:29.143 +03:00 [INF] String 'validation.too_long' updated for language 'en'
+2025-08-29 20:23:29.145 +03:00 [INF] String 'validation.too_short' updated for language 'en'
+2025-08-29 20:23:29.150 +03:00 [INF] String 'auth.login.success' updated for language 'es'
+2025-08-29 20:23:29.152 +03:00 [INF] String 'auth.login.failed' updated for language 'es'
+2025-08-29 20:23:29.155 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'es'
+2025-08-29 20:23:29.157 +03:00 [INF] String 'auth.logout.success' updated for language 'es'
+2025-08-29 20:23:29.159 +03:00 [INF] String 'auth.registration.success' updated for language 'es'
+2025-08-29 20:23:29.162 +03:00 [INF] String 'mfa.setup.required' updated for language 'es'
+2025-08-29 20:23:29.164 +03:00 [INF] String 'mfa.setup.success' updated for language 'es'
+2025-08-29 20:23:29.167 +03:00 [INF] String 'general.success' updated for language 'es'
+2025-08-29 20:23:29.170 +03:00 [INF] String 'general.error' updated for language 'es'
+2025-08-29 20:23:29.172 +03:00 [INF] String 'validation.required' updated for language 'es'
+2025-08-29 20:23:29.174 +03:00 [INF] String 'validation.invalid_email' updated for language 'es'
+2025-08-29 20:23:29.177 +03:00 [INF] String 'auth.login.success' updated for language 'fr'
+2025-08-29 20:23:29.179 +03:00 [INF] String 'auth.login.failed' updated for language 'fr'
+2025-08-29 20:23:29.182 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'fr'
+2025-08-29 20:23:29.185 +03:00 [INF] String 'general.success' updated for language 'fr'
+2025-08-29 20:23:29.188 +03:00 [INF] String 'general.error' updated for language 'fr'
+2025-08-29 20:23:29.190 +03:00 [INF] String 'validation.required' updated for language 'fr'
+2025-08-29 20:23:29.192 +03:00 [INF] String 'validation.invalid_email' updated for language 'fr'
+2025-08-29 20:23:29.195 +03:00 [INF] String 'auth.login.success' updated for language 'de'
+2025-08-29 20:23:29.197 +03:00 [INF] String 'auth.login.failed' updated for language 'de'
+2025-08-29 20:23:29.200 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'de'
+2025-08-29 20:23:29.203 +03:00 [INF] String 'general.success' updated for language 'de'
+2025-08-29 20:23:29.206 +03:00 [INF] String 'general.error' updated for language 'de'
+2025-08-29 20:23:29.208 +03:00 [INF] String 'validation.required' updated for language 'de'
+2025-08-29 20:23:29.210 +03:00 [INF] String 'validation.invalid_email' updated for language 'de'
+2025-08-29 20:23:29.213 +03:00 [INF] String 'auth.login.success' updated for language 'ro'
+2025-08-29 20:23:29.217 +03:00 [INF] String 'auth.login.failed' updated for language 'ro'
+2025-08-29 20:23:29.219 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'ro'
+2025-08-29 20:23:29.222 +03:00 [INF] String 'general.success' updated for language 'ro'
+2025-08-29 20:23:29.225 +03:00 [INF] String 'general.error' updated for language 'ro'
+2025-08-29 20:23:29.227 +03:00 [INF] String 'validation.required' updated for language 'ro'
+2025-08-29 20:23:29.229 +03:00 [INF] String 'validation.invalid_email' updated for language 'ro'
+2025-08-29 20:23:29.233 +03:00 [INF] Database seeded successfully
+2025-08-29 20:23:29.274 +03:00 [INF] User profile is available. Using 'C:\Users\cosmi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-29 20:23:29.377 +03:00 [WRN] The WebRootPath was not found: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\wwwroot. Static files may be unavailable.
+2025-08-29 20:23:29.447 +03:00 [WRN] Overriding address(es) 'http://localhost:5000, https://localhost:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2025-08-29 20:23:29.473 +03:00 [ERR] Hosting failed to start
+System.IO.IOException: Failed to bind to address http://127.0.0.1:5000: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+2025-08-29 20:29:52.581 +03:00 [INF] Starting Duende IdentityServer version 7.0.0+2f7360ca39ed849ea5ca7c501edf404be7286722 (.NET 9.0.8)
+2025-08-29 20:29:52.656 +03:00 [WRN] You do not have a valid license key for the Duende software. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please start a conversation with us: https://duendesoftware.com/contact
+2025-08-29 20:29:52.658 +03:00 [WRN] You have automatic key management enabled, but you do not have a license. This feature requires the Business or Enterprise Edition tier of license. Alternatively you can disable automatic key management by setting the KeyManagement.Enabled property to false on the IdentityServerOptions.
+2025-08-29 20:29:52.814 +03:00 [INF] Using the default authentication scheme Identity.Application for IdentityServer
+2025-08-29 20:29:53.875 +03:00 [INF] Executed DbCommand (23ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:29:54.131 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:29:54.144 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:29:54.147 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:29:54.151 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:29:54.166 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:29:54.358 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:29:54.521 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:29:54.525 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:29:54.527 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:29:54.530 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:29:54.533 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:29:54.557 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:29:54.618 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:29:54.623 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:29:54.624 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:29:54.628 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:29:54.631 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:29:54.635 +03:00 [INF] Current language set to 'en'
+2025-08-29 20:29:54.642 +03:00 [INF] String 'auth.login.success' updated for language 'en'
+2025-08-29 20:29:54.645 +03:00 [INF] String 'auth.login.failed' updated for language 'en'
+2025-08-29 20:29:54.647 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'en'
+2025-08-29 20:29:54.649 +03:00 [INF] String 'auth.login.account_locked' updated for language 'en'
+2025-08-29 20:29:54.651 +03:00 [INF] String 'auth.login.account_inactive' updated for language 'en'
+2025-08-29 20:29:54.654 +03:00 [INF] String 'auth.logout.success' updated for language 'en'
+2025-08-29 20:29:54.657 +03:00 [INF] String 'auth.registration.success' updated for language 'en'
+2025-08-29 20:29:54.659 +03:00 [INF] String 'auth.registration.failed' updated for language 'en'
+2025-08-29 20:29:54.661 +03:00 [INF] String 'auth.registration.email_exists' updated for language 'en'
+2025-08-29 20:29:54.663 +03:00 [INF] String 'auth.registration.username_exists' updated for language 'en'
+2025-08-29 20:29:54.665 +03:00 [INF] String 'mfa.setup.required' updated for language 'en'
+2025-08-29 20:29:54.667 +03:00 [INF] String 'mfa.setup.success' updated for language 'en'
+2025-08-29 20:29:54.669 +03:00 [INF] String 'mfa.setup.failed' updated for language 'en'
+2025-08-29 20:29:54.671 +03:00 [INF] String 'mfa.enable.success' updated for language 'en'
+2025-08-29 20:29:54.673 +03:00 [INF] String 'mfa.enable.failed' updated for language 'en'
+2025-08-29 20:29:54.675 +03:00 [INF] String 'mfa.verification.required' updated for language 'en'
+2025-08-29 20:29:54.677 +03:00 [INF] String 'mfa.verification.success' updated for language 'en'
+2025-08-29 20:29:54.679 +03:00 [INF] String 'mfa.verification.failed' updated for language 'en'
+2025-08-29 20:29:54.681 +03:00 [INF] String 'verification.credit_card.required' updated for language 'en'
+2025-08-29 20:29:54.683 +03:00 [INF] String 'verification.credit_card.success' updated for language 'en'
+2025-08-29 20:29:54.687 +03:00 [INF] String 'verification.driver_license.required' updated for language 'en'
+2025-08-29 20:29:54.689 +03:00 [INF] String 'verification.driver_license.success' updated for language 'en'
+2025-08-29 20:29:54.691 +03:00 [INF] String 'kid_account.creation.success' updated for language 'en'
+2025-08-29 20:29:54.693 +03:00 [INF] String 'kid_account.pairing.success' updated for language 'en'
+2025-08-29 20:29:54.694 +03:00 [INF] String 'kid_account.independence.activated' updated for language 'en'
+2025-08-29 20:29:54.697 +03:00 [INF] String 'general.success' updated for language 'en'
+2025-08-29 20:29:54.699 +03:00 [INF] String 'general.error' updated for language 'en'
+2025-08-29 20:29:54.701 +03:00 [INF] String 'general.warning' updated for language 'en'
+2025-08-29 20:29:54.704 +03:00 [INF] String 'general.info' updated for language 'en'
+2025-08-29 20:29:54.706 +03:00 [INF] String 'validation.required' updated for language 'en'
+2025-08-29 20:29:54.708 +03:00 [INF] String 'validation.invalid_email' updated for language 'en'
+2025-08-29 20:29:54.709 +03:00 [INF] String 'validation.too_long' updated for language 'en'
+2025-08-29 20:29:54.712 +03:00 [INF] String 'validation.too_short' updated for language 'en'
+2025-08-29 20:29:54.715 +03:00 [INF] String 'auth.login.success' updated for language 'es'
+2025-08-29 20:29:54.717 +03:00 [INF] String 'auth.login.failed' updated for language 'es'
+2025-08-29 20:29:54.720 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'es'
+2025-08-29 20:29:54.723 +03:00 [INF] String 'auth.logout.success' updated for language 'es'
+2025-08-29 20:29:54.725 +03:00 [INF] String 'auth.registration.success' updated for language 'es'
+2025-08-29 20:29:54.727 +03:00 [INF] String 'mfa.setup.required' updated for language 'es'
+2025-08-29 20:29:54.729 +03:00 [INF] String 'mfa.setup.success' updated for language 'es'
+2025-08-29 20:29:54.731 +03:00 [INF] String 'general.success' updated for language 'es'
+2025-08-29 20:29:54.733 +03:00 [INF] String 'general.error' updated for language 'es'
+2025-08-29 20:29:54.736 +03:00 [INF] String 'validation.required' updated for language 'es'
+2025-08-29 20:29:54.739 +03:00 [INF] String 'validation.invalid_email' updated for language 'es'
+2025-08-29 20:29:54.742 +03:00 [INF] String 'auth.login.success' updated for language 'fr'
+2025-08-29 20:29:54.744 +03:00 [INF] String 'auth.login.failed' updated for language 'fr'
+2025-08-29 20:29:54.746 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'fr'
+2025-08-29 20:29:54.748 +03:00 [INF] String 'general.success' updated for language 'fr'
+2025-08-29 20:29:54.751 +03:00 [INF] String 'general.error' updated for language 'fr'
+2025-08-29 20:29:54.754 +03:00 [INF] String 'validation.required' updated for language 'fr'
+2025-08-29 20:29:54.756 +03:00 [INF] String 'validation.invalid_email' updated for language 'fr'
+2025-08-29 20:29:54.759 +03:00 [INF] String 'auth.login.success' updated for language 'de'
+2025-08-29 20:29:54.760 +03:00 [INF] String 'auth.login.failed' updated for language 'de'
+2025-08-29 20:29:54.762 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'de'
+2025-08-29 20:29:54.764 +03:00 [INF] String 'general.success' updated for language 'de'
+2025-08-29 20:29:54.766 +03:00 [INF] String 'general.error' updated for language 'de'
+2025-08-29 20:29:54.769 +03:00 [INF] String 'validation.required' updated for language 'de'
+2025-08-29 20:29:54.770 +03:00 [INF] String 'validation.invalid_email' updated for language 'de'
+2025-08-29 20:29:54.773 +03:00 [INF] String 'auth.login.success' updated for language 'ro'
+2025-08-29 20:29:54.774 +03:00 [INF] String 'auth.login.failed' updated for language 'ro'
+2025-08-29 20:29:54.776 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'ro'
+2025-08-29 20:29:54.779 +03:00 [INF] String 'general.success' updated for language 'ro'
+2025-08-29 20:29:54.781 +03:00 [INF] String 'general.error' updated for language 'ro'
+2025-08-29 20:29:54.783 +03:00 [INF] String 'validation.required' updated for language 'ro'
+2025-08-29 20:29:54.786 +03:00 [INF] String 'validation.invalid_email' updated for language 'ro'
+2025-08-29 20:29:54.789 +03:00 [INF] Database seeded successfully
+2025-08-29 20:29:54.810 +03:00 [INF] User profile is available. Using 'C:\Users\cosmi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-29 20:29:54.847 +03:00 [WRN] The WebRootPath was not found: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\wwwroot. Static files may be unavailable.
+2025-08-29 20:29:54.880 +03:00 [WRN] Overriding address(es) 'https://localhost:51300, http://localhost:51302'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2025-08-29 20:29:54.912 +03:00 [INF] Now listening on: http://localhost:5002
+2025-08-29 20:29:54.915 +03:00 [INF] Now listening on: https://localhost:5003
+2025-08-29 20:29:54.917 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-29 20:29:54.920 +03:00 [INF] Hosting environment: Development
+2025-08-29 20:29:54.922 +03:00 [INF] Content root path: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer
+2025-08-29 20:42:55.747 +03:00 [INF] Application is shutting down...
+2025-08-29 20:43:11.414 +03:00 [INF] Starting Duende IdentityServer version 7.0.0+2f7360ca39ed849ea5ca7c501edf404be7286722 (.NET 9.0.8)
+2025-08-29 20:43:11.470 +03:00 [WRN] You do not have a valid license key for the Duende software. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please start a conversation with us: https://duendesoftware.com/contact
+2025-08-29 20:43:11.472 +03:00 [WRN] You have automatic key management enabled, but you do not have a license. This feature requires the Business or Enterprise Edition tier of license. Alternatively you can disable automatic key management by setting the KeyManagement.Enabled property to false on the IdentityServerOptions.
+2025-08-29 20:43:11.600 +03:00 [INF] Using the default authentication scheme Identity.Application for IdentityServer
+2025-08-29 20:43:12.576 +03:00 [INF] Executed DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:43:12.805 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:43:12.817 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:43:12.820 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:43:12.824 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:43:12.836 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:43:12.990 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:43:13.113 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:43:13.119 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:43:13.121 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:43:13.123 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:43:13.126 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:43:13.148 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:43:13.205 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:43:13.209 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:43:13.210 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:43:13.213 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:43:13.216 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:43:13.219 +03:00 [INF] Current language set to 'en'
+2025-08-29 20:43:13.225 +03:00 [INF] String 'auth.login.success' updated for language 'en'
+2025-08-29 20:43:13.227 +03:00 [INF] String 'auth.login.failed' updated for language 'en'
+2025-08-29 20:43:13.228 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'en'
+2025-08-29 20:43:13.230 +03:00 [INF] String 'auth.login.account_locked' updated for language 'en'
+2025-08-29 20:43:13.232 +03:00 [INF] String 'auth.login.account_inactive' updated for language 'en'
+2025-08-29 20:43:13.236 +03:00 [INF] String 'auth.logout.success' updated for language 'en'
+2025-08-29 20:43:13.237 +03:00 [INF] String 'auth.registration.success' updated for language 'en'
+2025-08-29 20:43:13.239 +03:00 [INF] String 'auth.registration.failed' updated for language 'en'
+2025-08-29 20:43:13.241 +03:00 [INF] String 'auth.registration.email_exists' updated for language 'en'
+2025-08-29 20:43:13.242 +03:00 [INF] String 'auth.registration.username_exists' updated for language 'en'
+2025-08-29 20:43:13.244 +03:00 [INF] String 'mfa.setup.required' updated for language 'en'
+2025-08-29 20:43:13.245 +03:00 [INF] String 'mfa.setup.success' updated for language 'en'
+2025-08-29 20:43:13.247 +03:00 [INF] String 'mfa.setup.failed' updated for language 'en'
+2025-08-29 20:43:13.249 +03:00 [INF] String 'mfa.enable.success' updated for language 'en'
+2025-08-29 20:43:13.252 +03:00 [INF] String 'mfa.enable.failed' updated for language 'en'
+2025-08-29 20:43:13.253 +03:00 [INF] String 'mfa.verification.required' updated for language 'en'
+2025-08-29 20:43:13.255 +03:00 [INF] String 'mfa.verification.success' updated for language 'en'
+2025-08-29 20:43:13.256 +03:00 [INF] String 'mfa.verification.failed' updated for language 'en'
+2025-08-29 20:43:13.258 +03:00 [INF] String 'verification.credit_card.required' updated for language 'en'
+2025-08-29 20:43:13.260 +03:00 [INF] String 'verification.credit_card.success' updated for language 'en'
+2025-08-29 20:43:13.261 +03:00 [INF] String 'verification.driver_license.required' updated for language 'en'
+2025-08-29 20:43:13.263 +03:00 [INF] String 'verification.driver_license.success' updated for language 'en'
+2025-08-29 20:43:13.264 +03:00 [INF] String 'kid_account.creation.success' updated for language 'en'
+2025-08-29 20:43:13.267 +03:00 [INF] String 'kid_account.pairing.success' updated for language 'en'
+2025-08-29 20:43:13.270 +03:00 [INF] String 'kid_account.independence.activated' updated for language 'en'
+2025-08-29 20:43:13.271 +03:00 [INF] String 'general.success' updated for language 'en'
+2025-08-29 20:43:13.273 +03:00 [INF] String 'general.error' updated for language 'en'
+2025-08-29 20:43:13.274 +03:00 [INF] String 'general.warning' updated for language 'en'
+2025-08-29 20:43:13.276 +03:00 [INF] String 'general.info' updated for language 'en'
+2025-08-29 20:43:13.277 +03:00 [INF] String 'validation.required' updated for language 'en'
+2025-08-29 20:43:13.279 +03:00 [INF] String 'validation.invalid_email' updated for language 'en'
+2025-08-29 20:43:13.280 +03:00 [INF] String 'validation.too_long' updated for language 'en'
+2025-08-29 20:43:13.283 +03:00 [INF] String 'validation.too_short' updated for language 'en'
+2025-08-29 20:43:13.286 +03:00 [INF] String 'auth.login.success' updated for language 'es'
+2025-08-29 20:43:13.288 +03:00 [INF] String 'auth.login.failed' updated for language 'es'
+2025-08-29 20:43:13.291 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'es'
+2025-08-29 20:43:13.292 +03:00 [INF] String 'auth.logout.success' updated for language 'es'
+2025-08-29 20:43:13.294 +03:00 [INF] String 'auth.registration.success' updated for language 'es'
+2025-08-29 20:43:13.295 +03:00 [INF] String 'mfa.setup.required' updated for language 'es'
+2025-08-29 20:43:13.297 +03:00 [INF] String 'mfa.setup.success' updated for language 'es'
+2025-08-29 20:43:13.299 +03:00 [INF] String 'general.success' updated for language 'es'
+2025-08-29 20:43:13.301 +03:00 [INF] String 'general.error' updated for language 'es'
+2025-08-29 20:43:13.303 +03:00 [INF] String 'validation.required' updated for language 'es'
+2025-08-29 20:43:13.305 +03:00 [INF] String 'validation.invalid_email' updated for language 'es'
+2025-08-29 20:43:13.307 +03:00 [INF] String 'auth.login.success' updated for language 'fr'
+2025-08-29 20:43:13.308 +03:00 [INF] String 'auth.login.failed' updated for language 'fr'
+2025-08-29 20:43:13.310 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'fr'
+2025-08-29 20:43:13.311 +03:00 [INF] String 'general.success' updated for language 'fr'
+2025-08-29 20:43:13.313 +03:00 [INF] String 'general.error' updated for language 'fr'
+2025-08-29 20:43:13.315 +03:00 [INF] String 'validation.required' updated for language 'fr'
+2025-08-29 20:43:13.317 +03:00 [INF] String 'validation.invalid_email' updated for language 'fr'
+2025-08-29 20:43:13.320 +03:00 [INF] String 'auth.login.success' updated for language 'de'
+2025-08-29 20:43:13.322 +03:00 [INF] String 'auth.login.failed' updated for language 'de'
+2025-08-29 20:43:13.323 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'de'
+2025-08-29 20:43:13.325 +03:00 [INF] String 'general.success' updated for language 'de'
+2025-08-29 20:43:13.327 +03:00 [INF] String 'general.error' updated for language 'de'
+2025-08-29 20:43:13.328 +03:00 [INF] String 'validation.required' updated for language 'de'
+2025-08-29 20:43:13.330 +03:00 [INF] String 'validation.invalid_email' updated for language 'de'
+2025-08-29 20:43:13.332 +03:00 [INF] String 'auth.login.success' updated for language 'ro'
+2025-08-29 20:43:13.335 +03:00 [INF] String 'auth.login.failed' updated for language 'ro'
+2025-08-29 20:43:13.336 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'ro'
+2025-08-29 20:43:13.338 +03:00 [INF] String 'general.success' updated for language 'ro'
+2025-08-29 20:43:13.340 +03:00 [INF] String 'general.error' updated for language 'ro'
+2025-08-29 20:43:13.341 +03:00 [INF] String 'validation.required' updated for language 'ro'
+2025-08-29 20:43:13.343 +03:00 [INF] String 'validation.invalid_email' updated for language 'ro'
+2025-08-29 20:43:13.345 +03:00 [INF] Database seeded successfully
+2025-08-29 20:43:13.362 +03:00 [INF] User profile is available. Using 'C:\Users\cosmi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-29 20:43:13.397 +03:00 [WRN] The WebRootPath was not found: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\wwwroot. Static files may be unavailable.
+2025-08-29 20:43:13.427 +03:00 [WRN] Overriding address(es) 'https://localhost:51300, http://localhost:51302'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2025-08-29 20:43:13.454 +03:00 [INF] Now listening on: http://localhost:5002
+2025-08-29 20:43:13.456 +03:00 [INF] Now listening on: https://localhost:5003
+2025-08-29 20:43:13.458 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-29 20:43:13.459 +03:00 [INF] Hosting environment: Development
+2025-08-29 20:43:13.460 +03:00 [INF] Content root path: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer
+2025-08-29 20:45:26.712 +03:00 [INF] Application is shutting down...
+2025-08-29 20:45:56.504 +03:00 [INF] Starting Duende IdentityServer version 7.0.0+2f7360ca39ed849ea5ca7c501edf404be7286722 (.NET 9.0.8)
+2025-08-29 20:45:56.584 +03:00 [WRN] You do not have a valid license key for the Duende software. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please start a conversation with us: https://duendesoftware.com/contact
+2025-08-29 20:45:56.587 +03:00 [WRN] You have automatic key management enabled, but you do not have a license. This feature requires the Business or Enterprise Edition tier of license. Alternatively you can disable automatic key management by setting the KeyManagement.Enabled property to false on the IdentityServerOptions.
+2025-08-29 20:45:56.740 +03:00 [INF] Using the default authentication scheme Identity.Application for IdentityServer
+2025-08-29 20:45:57.905 +03:00 [INF] Executed DbCommand (27ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:45:58.140 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:45:58.155 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:45:58.159 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:45:58.162 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:45:58.174 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:45:58.355 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:45:58.511 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:45:58.517 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:45:58.519 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:45:58.522 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:45:58.525 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:45:58.551 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:45:58.618 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2025-08-29 20:45:58.623 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-29 20:45:58.624 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2025-08-29 20:45:58.627 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-08-29 20:45:58.631 +03:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-29 20:45:58.636 +03:00 [INF] Current language set to 'en'
+2025-08-29 20:45:58.641 +03:00 [INF] String 'auth.login.success' updated for language 'en'
+2025-08-29 20:45:58.643 +03:00 [INF] String 'auth.login.failed' updated for language 'en'
+2025-08-29 20:45:58.645 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'en'
+2025-08-29 20:45:58.648 +03:00 [INF] String 'auth.login.account_locked' updated for language 'en'
+2025-08-29 20:45:58.651 +03:00 [INF] String 'auth.login.account_inactive' updated for language 'en'
+2025-08-29 20:45:58.653 +03:00 [INF] String 'auth.logout.success' updated for language 'en'
+2025-08-29 20:45:58.655 +03:00 [INF] String 'auth.registration.success' updated for language 'en'
+2025-08-29 20:45:58.656 +03:00 [INF] String 'auth.registration.failed' updated for language 'en'
+2025-08-29 20:45:58.658 +03:00 [INF] String 'auth.registration.email_exists' updated for language 'en'
+2025-08-29 20:45:58.659 +03:00 [INF] String 'auth.registration.username_exists' updated for language 'en'
+2025-08-29 20:45:58.661 +03:00 [INF] String 'mfa.setup.required' updated for language 'en'
+2025-08-29 20:45:58.662 +03:00 [INF] String 'mfa.setup.success' updated for language 'en'
+2025-08-29 20:45:58.665 +03:00 [INF] String 'mfa.setup.failed' updated for language 'en'
+2025-08-29 20:45:58.669 +03:00 [INF] String 'mfa.enable.success' updated for language 'en'
+2025-08-29 20:45:58.670 +03:00 [INF] String 'mfa.enable.failed' updated for language 'en'
+2025-08-29 20:45:58.672 +03:00 [INF] String 'mfa.verification.required' updated for language 'en'
+2025-08-29 20:45:58.674 +03:00 [INF] String 'mfa.verification.success' updated for language 'en'
+2025-08-29 20:45:58.675 +03:00 [INF] String 'mfa.verification.failed' updated for language 'en'
+2025-08-29 20:45:58.677 +03:00 [INF] String 'verification.credit_card.required' updated for language 'en'
+2025-08-29 20:45:58.678 +03:00 [INF] String 'verification.credit_card.success' updated for language 'en'
+2025-08-29 20:45:58.680 +03:00 [INF] String 'verification.driver_license.required' updated for language 'en'
+2025-08-29 20:45:58.684 +03:00 [INF] String 'verification.driver_license.success' updated for language 'en'
+2025-08-29 20:45:58.687 +03:00 [INF] String 'kid_account.creation.success' updated for language 'en'
+2025-08-29 20:45:58.689 +03:00 [INF] String 'kid_account.pairing.success' updated for language 'en'
+2025-08-29 20:45:58.691 +03:00 [INF] String 'kid_account.independence.activated' updated for language 'en'
+2025-08-29 20:45:58.693 +03:00 [INF] String 'general.success' updated for language 'en'
+2025-08-29 20:45:58.694 +03:00 [INF] String 'general.error' updated for language 'en'
+2025-08-29 20:45:58.696 +03:00 [INF] String 'general.warning' updated for language 'en'
+2025-08-29 20:45:58.699 +03:00 [INF] String 'general.info' updated for language 'en'
+2025-08-29 20:45:58.702 +03:00 [INF] String 'validation.required' updated for language 'en'
+2025-08-29 20:45:58.704 +03:00 [INF] String 'validation.invalid_email' updated for language 'en'
+2025-08-29 20:45:58.706 +03:00 [INF] String 'validation.too_long' updated for language 'en'
+2025-08-29 20:45:58.708 +03:00 [INF] String 'validation.too_short' updated for language 'en'
+2025-08-29 20:45:58.710 +03:00 [INF] String 'auth.login.success' updated for language 'es'
+2025-08-29 20:45:58.711 +03:00 [INF] String 'auth.login.failed' updated for language 'es'
+2025-08-29 20:45:58.713 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'es'
+2025-08-29 20:45:58.717 +03:00 [INF] String 'auth.logout.success' updated for language 'es'
+2025-08-29 20:45:58.720 +03:00 [INF] String 'auth.registration.success' updated for language 'es'
+2025-08-29 20:45:58.722 +03:00 [INF] String 'mfa.setup.required' updated for language 'es'
+2025-08-29 20:45:58.724 +03:00 [INF] String 'mfa.setup.success' updated for language 'es'
+2025-08-29 20:45:58.726 +03:00 [INF] String 'general.success' updated for language 'es'
+2025-08-29 20:45:58.728 +03:00 [INF] String 'general.error' updated for language 'es'
+2025-08-29 20:45:58.731 +03:00 [INF] String 'validation.required' updated for language 'es'
+2025-08-29 20:45:58.734 +03:00 [INF] String 'validation.invalid_email' updated for language 'es'
+2025-08-29 20:45:58.738 +03:00 [INF] String 'auth.login.success' updated for language 'fr'
+2025-08-29 20:45:58.740 +03:00 [INF] String 'auth.login.failed' updated for language 'fr'
+2025-08-29 20:45:58.742 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'fr'
+2025-08-29 20:45:58.744 +03:00 [INF] String 'general.success' updated for language 'fr'
+2025-08-29 20:45:58.746 +03:00 [INF] String 'general.error' updated for language 'fr'
+2025-08-29 20:45:58.748 +03:00 [INF] String 'validation.required' updated for language 'fr'
+2025-08-29 20:45:58.752 +03:00 [INF] String 'validation.invalid_email' updated for language 'fr'
+2025-08-29 20:45:58.755 +03:00 [INF] String 'auth.login.success' updated for language 'de'
+2025-08-29 20:45:58.757 +03:00 [INF] String 'auth.login.failed' updated for language 'de'
+2025-08-29 20:45:58.759 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'de'
+2025-08-29 20:45:58.761 +03:00 [INF] String 'general.success' updated for language 'de'
+2025-08-29 20:45:58.763 +03:00 [INF] String 'general.error' updated for language 'de'
+2025-08-29 20:45:58.767 +03:00 [INF] String 'validation.required' updated for language 'de'
+2025-08-29 20:45:58.770 +03:00 [INF] String 'validation.invalid_email' updated for language 'de'
+2025-08-29 20:45:58.773 +03:00 [INF] String 'auth.login.success' updated for language 'ro'
+2025-08-29 20:45:58.775 +03:00 [INF] String 'auth.login.failed' updated for language 'ro'
+2025-08-29 20:45:58.778 +03:00 [INF] String 'auth.login.invalid_credentials' updated for language 'ro'
+2025-08-29 20:45:58.780 +03:00 [INF] String 'general.success' updated for language 'ro'
+2025-08-29 20:45:58.783 +03:00 [INF] String 'general.error' updated for language 'ro'
+2025-08-29 20:45:58.785 +03:00 [INF] String 'validation.required' updated for language 'ro'
+2025-08-29 20:45:58.787 +03:00 [INF] String 'validation.invalid_email' updated for language 'ro'
+2025-08-29 20:45:58.789 +03:00 [INF] Database seeded successfully
+2025-08-29 20:45:58.808 +03:00 [INF] User profile is available. Using 'C:\Users\cosmi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-29 20:45:58.847 +03:00 [WRN] The WebRootPath was not found: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\wwwroot. Static files may be unavailable.
+2025-08-29 20:45:58.876 +03:00 [WRN] Overriding address(es) 'https://localhost:51300, http://localhost:51302'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2025-08-29 20:45:58.905 +03:00 [INF] Now listening on: http://localhost:5002
+2025-08-29 20:45:58.907 +03:00 [INF] Now listening on: https://localhost:5003
+2025-08-29 20:45:58.908 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-29 20:45:58.909 +03:00 [INF] Hosting environment: Development
+2025-08-29 20:45:58.910 +03:00 [INF] Content root path: C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer
+2025-08-29 20:47:29.197 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5002/ - null null
+2025-08-29 20:47:29.211 +03:00 [INF] HTTP GET / responded 307 in 4.5510 ms
+2025-08-29 20:47:29.219 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5002/ - 307 0 null 22.4912ms
+2025-08-29 20:47:29.421 +03:00 [INF] Request starting HTTP/2 GET https://localhost:5003/ - null null
+2025-08-29 20:47:29.596 +03:00 [INF] HTTP GET / responded 404 in 167.5269 ms
+2025-08-29 20:47:29.609 +03:00 [INF] Request finished HTTP/2 GET https://localhost:5003/ - 404 0 null 187.9677ms
+2025-08-29 20:47:29.627 +03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:5003/, Response status code: 404
+2025-08-29 20:48:03.155 +03:00 [INF] Application is shutting down...
