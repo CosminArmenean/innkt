@@ -187,3 +187,4 @@ conversationSchema.statics.createGroupConversation = function(name, participants
 };
 
 module.exports = mongoose.model('Conversation', conversationSchema);
+

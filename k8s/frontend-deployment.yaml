@@ -17,32 +17,18 @@ spec:
     spec:
       containers:
       - name: frontend-service
-        image: nginx:alpine
+        image: innkt-frontend:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
           name: http
-        volumeMounts:
-        - name: frontend-files
-          mountPath: /usr/share/nginx/html
-        - name: nginx-config
-          mountPath: /etc/nginx/conf.d
-        env:
-        - name: NGINX_PORT
-          value: "80"
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
             memory: "128Mi"
             cpu: "100m"
-      volumes:
-      - name: frontend-files
-        configMap:
-          name: frontend-config
-      - name: nginx-config
-        configMap:
-          name: nginx-config
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
 ---
 apiVersion: v1
 kind: Service
@@ -59,110 +45,3 @@ spec:
     targetPort: 80
     name: http
   type: ClusterIP
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: frontend-config
-  namespace: innkt
-data:
-  index.html: |
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="description" content="INNKT Social Platform" />
-        <title>INNKT</title>
-    </head>
-    <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
-        <div id="root"></div>
-        <script>
-            // Simple React app placeholder
-            document.getElementById('root').innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: Arial, sans-serif; background: linear-gradient(135deg, #6E31A6, #8B5CF6); color: white;">
-                    <h1 style="font-size: 3rem; margin-bottom: 1rem;">🚀 INNKT Platform</h1>
-                    <p style="font-size: 1.2rem; margin-bottom: 2rem;">Social Platform is Running!</p>
-                    <div style="display: flex; gap: 1rem;">
-                        <button onclick="testOfficer()" style="padding: 10px 20px; background: #A855F7; border: none; border-radius: 5px; color: white; cursor: pointer;">Test Officer API</button>
-                        <button onclick="testMessaging()" style="padding: 10px 20px; background: #A855F7; border: none; border-radius: 5px; color: white; cursor: pointer;">Test Messaging API</button>
-                    </div>
-                    <div id="result" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 5px; min-height: 50px;"></div>
-                </div>
-            `;
-            
-            async function testOfficer() {
-                const result = document.getElementById('result');
-                result.innerHTML = 'Testing Officer API...';
-                try {
-                    const response = await fetch('http://localhost:5001/health');
-                    const data = await response.text();
-                    result.innerHTML = `✅ Officer API: ${data}`;
-                } catch (error) {
-                    result.innerHTML = `❌ Officer API Error: ${error.message}`;
-                }
-            }
-            
-            async function testMessaging() {
-                const result = document.getElementById('result');
-                result.innerHTML = 'Testing Messaging API...';
-                try {
-                    const response = await fetch('http://localhost:5003/health');
-                    const data = await response.json();
-                    result.innerHTML = `✅ Messaging API: ${JSON.stringify(data)}`;
-                } catch (error) {
-                    result.innerHTML = `❌ Messaging API Error: ${error.message}`;
-                }
-            }
-        </script>
-    </body>
-    </html>
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-config
-  namespace: innkt
-data:
-  default.conf: |
-    server {
-        listen 80;
-        server_name localhost;
-        root /usr/share/nginx/html;
-        index index.html;
-        
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-        
-        # API proxy configuration
-        location /api/officer/ {
-            proxy_pass http://officer-service:5001/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-        
-        location /api/messaging/ {
-            proxy_pass http://messaging-service:5003/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-        
-        location /socket.io/ {
-            proxy_pass http://messaging-service:3000/;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }

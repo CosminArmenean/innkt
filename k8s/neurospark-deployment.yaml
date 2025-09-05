@@ -34,8 +34,6 @@ spec:
           value: "http://+:5003"
         - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
           value: "http://+:5003"
-        - name: ASPNETCORE_Kestrel__Endpoints__Https__Url
-          value: ""
         - name: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT
           value: "1"
         - name: Kafka__BootstrapServers

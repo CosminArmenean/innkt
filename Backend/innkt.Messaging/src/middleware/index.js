@@ -46,3 +46,4 @@ function setupMiddleware(app) {
 }
 
 module.exports = { setupMiddleware };
+

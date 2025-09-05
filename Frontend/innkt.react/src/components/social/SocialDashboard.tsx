@@ -3,6 +3,8 @@ import { socialService, UserProfile, Group, Post } from '../../services/social.s
 import UserProfileComponent from './UserProfile';
 import PostCreation from './PostCreation';
 import SocialFeed from './SocialFeed';
+import LinkedAccountsPost from './LinkedAccountsPost';
+import GroupChatButton from '../chat/GroupChatButton';
 
 interface SocialDashboardProps {
   currentUserId?: string;
@@ -13,11 +15,13 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [recommendedUsers, setRecommendedUsers] = useState<UserProfile[]>([]);
   const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
+  const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (currentUserId) {
       loadCurrentUser();
+      loadLinkedAccounts();
     }
     loadRecommendations();
   }, [currentUserId]);
@@ -35,6 +39,33 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     }
   };
 
+  const loadLinkedAccounts = async () => {
+    try {
+      // Mock linked accounts data - in real app, this would come from API
+      const mockLinkedAccounts = [
+        {
+          id: '1',
+          name: 'John Doe',
+          username: '@johndoe',
+          avatar: '/api/placeholder/40/40',
+          platform: 'twitter',
+          isActive: true
+        },
+        {
+          id: '2',
+          name: 'Jane Smith',
+          username: '@janesmith',
+          avatar: '/api/placeholder/40/40',
+          platform: 'instagram',
+          isActive: true
+        }
+      ];
+      setLinkedAccounts(mockLinkedAccounts);
+    } catch (error) {
+      console.error('Failed to load linked accounts:', error);
+    }
+  };
+
   const loadRecommendations = async () => {
     try {
       const [users, topics] = await Promise.all([
@@ -46,6 +77,11 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     } catch (error) {
       console.error('Failed to load recommendations:', error);
     }
+  };
+
+  const handleStartGroupChat = (accountIds: string[]) => {
+    console.log('Starting group chat with accounts:', accountIds);
+    // Implement group chat logic
   };
 
   const handleTabChange = (tab: typeof activeTab) => {
@@ -144,6 +180,13 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
                 <button className="w-full btn-secondary py-2">
                   🔍 Search Users
                 </button>
+                {linkedAccounts.length > 0 && (
+                  <GroupChatButton
+                    linkedAccounts={linkedAccounts}
+                    onStartGroupChat={handleStartGroupChat}
+                    className="w-full"
+                  />
+                )}
               </div>
             </div>
 
@@ -208,7 +251,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
           {/* Main Content Area */}
           <div className="lg:col-span-2">
             {activeTab === 'feed' && (
-              <SocialFeed />
+              <SocialFeed linkedAccounts={linkedAccounts} />
             )}
             
             {activeTab === 'profile' && currentUser && (
@@ -353,5 +396,6 @@ const MessagesTab: React.FC = () => (
 );
 
 export default SocialDashboard;
+
 
 

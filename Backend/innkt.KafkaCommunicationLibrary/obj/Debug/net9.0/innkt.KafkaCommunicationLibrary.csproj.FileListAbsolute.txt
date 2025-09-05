@@ -13,3 +13,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.KafkaCommunicationLibrary\obj\De
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.KafkaCommunicationLibrary\obj\Debug\net9.0\refint\innkt.KafkaCommunicationLibrary.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.KafkaCommunicationLibrary\obj\Debug\net9.0\innkt.KafkaCommunicationLibrary.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.KafkaCommunicationLibrary\obj\Debug\net9.0\ref\innkt.KafkaCommunicationLibrary.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.KafkaCommunicationLibrary\obj\Debug\net9.0\innkt.KafkaCommunicationLibrary.sourcelink.json

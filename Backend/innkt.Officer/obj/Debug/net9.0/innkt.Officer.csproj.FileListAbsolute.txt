@@ -149,3 +149,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\HealthC
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Npgsql.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\obj\Debug\net9.0\innkt.Officer.sourcelink.json

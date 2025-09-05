@@ -4,8 +4,8 @@ const { io } = require('socket.io-client');
 // Configuration
 const CONFIG = {
   baseUrl: 'http://localhost:5001',
-  messagingUrl: 'http://localhost:5003',
-  wsUrl: 'ws://localhost:5003',
+  messagingUrl: 'http://localhost:5004',
+  wsUrl: 'ws://localhost:5004',
   concurrentUsers: 10,
   messagesPerUser: 5,
   testDuration: 30000 // 30 seconds

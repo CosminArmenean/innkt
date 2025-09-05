@@ -218,3 +218,4 @@ class PresenceService {
 }
 
 module.exports = { PresenceService };
+

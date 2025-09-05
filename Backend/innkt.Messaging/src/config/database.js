@@ -4,13 +4,10 @@ const logger = require('../utils/logger');
 async function connectDatabase(uri) {
   try {
     const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      bufferCommands: false,
-      bufferMaxEntries: 0
+      bufferCommands: false
     };
 
     await mongoose.connect(uri, options);

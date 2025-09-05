@@ -1,6 +1,24 @@
-version: '3.8'
-
 services:
+  # PostgreSQL - Primary database
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=innkt_db
+      - POSTGRES_USER=innkt_user
+      - POSTGRES_PASSWORD=dev_password_123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./Backend/innkt.Officer/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - innkt-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U innkt_user -d innkt_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Redis - Shared cache and pub/sub
   redis:
     image: redis:7-alpine
@@ -66,14 +84,14 @@ services:
   # Officer Service - User management and authentication
   officer:
     build:
-      context: ./Backend/innkt.Officer
-      dockerfile: Dockerfile
+      context: ./Backend
+      dockerfile: innkt.Officer/Dockerfile
     ports:
       - "5001:5001"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:5001;http://+:5000
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OfficerDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ASPNETCORE_URLS=http://+:5001
+      - ConnectionStrings__DefaultConnection=Server=postgres;Database=innkt_officer;User Id=innkt_user;Password=dev_password_123;TrustServerCertificate=true;
       - ConnectionStrings__Redis=redis:6379
       - Kafka__BootstrapServers=kafka:9092
     depends_on:
@@ -90,16 +108,16 @@ services:
   # NeuroSpark Service - AI and image processing
   neurospark:
     build:
-      context: ./Backend/innkt.NeuroSpark
-      dockerfile: Dockerfile
+      context: ./Backend
+      dockerfile: innkt.NeuroSpark/Dockerfile
     ports:
       - "5002:5002"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:5002;http://+:5003
+      - ASPNETCORE_URLS=http://+:5002
       - ConnectionStrings__Redis=redis:6379
       - Kafka__BootstrapServers=kafka:9092
-      - OfficerService__BaseUrl=https://officer:5001
+      - OfficerService__BaseUrl=http://officer:5001
     depends_on:
       - redis
       - kafka
@@ -129,8 +147,8 @@ services:
     depends_on:
       - mongodb
       - redis
-    volumes:
-      - ./Backend/innkt.Messaging/logs:/app/logs
+    # volumes:
+      # - ./Backend/innkt.Messaging/logs:/app/logs
     networks:
       - innkt-network
     healthcheck:
@@ -142,13 +160,13 @@ services:
   # Frontier Service - API Gateway and load balancer
   frontier:
     build:
-      context: ./Backend/innkt.Frontier
-      dockerfile: Dockerfile
+      context: ./Backend
+      dockerfile: innkt.Frontier/Dockerfile
     ports:
       - "5004:5004"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:5004;http://+:5005
+      - ASPNETCORE_URLS=http://+:5004
       - ConnectionStrings__Redis=redis:6379
       - Kafka__BootstrapServers=kafka:9092
     depends_on:
@@ -220,6 +238,7 @@ services:
       - innkt-network
 
 volumes:
+  postgres_data:
   redis_data:
   mongodb_data:
   prometheus_data:
