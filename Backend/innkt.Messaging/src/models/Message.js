@@ -122,3 +122,4 @@ messageSchema.statics.getUnreadCount = function(conversationId, userId) {
 };
 
 module.exports = mongoose.model('Message', messageSchema);
+

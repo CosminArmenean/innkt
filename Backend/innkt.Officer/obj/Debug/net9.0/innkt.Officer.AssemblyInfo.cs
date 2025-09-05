@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("innkt.Officer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4d282893cc0f2b8123a704ebde882236020689fd")]
 [assembly: System.Reflection.AssemblyProductAttribute("innkt.Officer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("innkt.Officer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

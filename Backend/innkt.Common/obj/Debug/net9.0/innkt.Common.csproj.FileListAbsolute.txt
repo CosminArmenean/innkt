@@ -10,3 +10,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Co
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\refint\innkt.Common.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\ref\innkt.Common.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Common\obj\Debug\net9.0\innkt.Common.sourcelink.json

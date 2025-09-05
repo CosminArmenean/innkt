@@ -106,8 +106,8 @@ builder.Services.AddIdentityServer(options =>
 
 // Add Health Checks
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!)
-    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379");
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, tags: new[] { "ready" })
+    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379", tags: new[] { "ready" });
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -145,8 +145,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Health Check endpoint
+// Health Check endpoints
 app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 // Seed the database
 using (var serviceScope = app.Services.CreateScope())

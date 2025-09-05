@@ -248,3 +248,4 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
 };
 
 export default MessageComposer;
+

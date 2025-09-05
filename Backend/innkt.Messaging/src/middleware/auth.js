@@ -14,12 +14,50 @@ async function authenticateSocket(socket, next) {
 
     const decoded = jwt.verify(token, JWT_SECRET);
     
+    logger.info('JWT decoded successfully:', {
+      userId: decoded.userId,
+      nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+      emailAddress: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+      name: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+      firstName: decoded.firstName,
+      lastName: decoded.lastName
+    });
+    
+    // Map JWT fields to expected format
+    const userId = decoded.userId || 
+                   decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+                   decoded.sub;
+    
+    const username = decoded.username || 
+                     decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+                     decoded.email;
+    
+    const displayName = decoded.displayName || 
+                        decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+                        decoded.name ||
+                        `${decoded.firstName || ''} ${decoded.lastName || ''}`.trim();
+    
+    const avatar = decoded.avatar || null;
+    
+    logger.info('Mapped user info:', { userId, username, displayName, avatar });
+    
+    // Validate required fields
+    if (!userId) {
+      logger.error('Missing userId in JWT token');
+      return next(new Error('Invalid authentication token - missing userId'));
+    }
+    
+    if (!username) {
+      logger.error('Missing username in JWT token');
+      return next(new Error('Invalid authentication token - missing username'));
+    }
+    
     // Attach user info to socket
-    socket.userId = decoded.userId;
+    socket.userId = userId;
     socket.userInfo = {
-      username: decoded.username,
-      displayName: decoded.displayName,
-      avatar: decoded.avatar
+      username: username,
+      displayName: displayName,
+      avatar: avatar
     };
 
     next();
@@ -49,3 +87,4 @@ function authenticateToken(req, res, next) {
 }
 
 module.exports = { authenticateSocket, authenticateToken };
+

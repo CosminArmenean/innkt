@@ -1,7 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import SocialDashboard from '../social/SocialDashboard';
+import Logo from '../common/Logo';
 
 const Home: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
+
+  // If user is authenticated, show the social dashboard
+  if (isAuthenticated) {
+    return <SocialDashboard currentUserId={user?.id || 'demo-user'} />;
+  }
   const features = [
     {
       title: 'Joint Accounts',
@@ -49,12 +58,12 @@ const Home: React.FC = () => {
           <div className="mb-8">
             {/* INNKT Logo */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
-                <span className="text-innkt-primary font-bold text-4xl">I</span>
+              <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-2xl p-4">
+                <Logo variant="icon" size="xl" color="purple" />
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Welcome to <span className="text-innkt-light">innkt</span>
+              Welcome to <span className="text-innkt-light">INNKT</span>
             </h1>
             <p className="text-xl md:text-2xl text-innkt-light mb-8 max-w-3xl mx-auto">
               The next generation of social networking, built for families, 
@@ -136,5 +145,6 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
 
 

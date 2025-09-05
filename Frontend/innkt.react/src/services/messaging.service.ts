@@ -1,4 +1,4 @@
-import { BaseApiService, officerApi } from './api.service';
+import { BaseApiService, messagingApi } from './api.service';
 import { io, Socket } from 'socket.io-client';
 
 // Message Interfaces
@@ -96,7 +96,7 @@ class MessagingService extends BaseApiService {
   private isConnected: boolean = false;
 
   constructor() {
-    super(officerApi);
+    super(messagingApi);
   }
 
   // Conversation Management

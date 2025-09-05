@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, Post, UserProfile } from '../../services/social.service';
 import PostCreation from './PostCreation';
+import LinkedAccountsPost from './LinkedAccountsPost';
 
 interface SocialFeedProps {
   groupId?: string;
   userId?: string;
   showPostCreation?: boolean;
+  linkedAccounts?: any[];
 }
 
 const SocialFeed: React.FC<SocialFeedProps> = ({ 
   groupId, 
   userId, 
-  showPostCreation = true 
+  showPostCreation = true,
+  linkedAccounts = []
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [linkedPosts, setLinkedPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
@@ -23,6 +27,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 
   useEffect(() => {
     loadPosts(true);
+    loadLinkedPosts();
   }, [groupId, userId, filter, sortBy]);
 
   const loadPosts = async (reset = false) => {
@@ -53,6 +58,39 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadLinkedPosts = () => {
+    // Mock linked posts data
+    const mockLinkedPosts = [
+      {
+        id: '1',
+        content: 'Just finished an amazing project! Excited to share it with everyone.',
+        image: '/api/placeholder/400/300',
+        authorId: 'current',
+        linkedAccountId: '1',
+        isLinkedPost: true,
+        branchType: 'linked' as const,
+        createdAt: new Date().toISOString(),
+        likes: 12,
+        comments: 5,
+        shares: 3
+      },
+      {
+        id: '2',
+        content: 'Beautiful sunset today! 🌅 This is why I love photography.',
+        image: '/api/placeholder/400/300',
+        authorId: 'current',
+        linkedAccountId: '2',
+        isLinkedPost: true,
+        branchType: 'shared' as const,
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        likes: 25,
+        comments: 8,
+        shares: 12
+      }
+    ];
+    setLinkedPosts(mockLinkedPosts);
   };
 
   const handlePostCreated = (newPost: Post) => {
@@ -263,17 +301,30 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             </p>
           </div>
         ) : (
-          sortedPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={handleLike}
-              onShare={handleShare}
-              formatDate={formatDate}
-              getPostVisibilityIcon={getPostVisibilityIcon}
-              getPostTypeIcon={getPostTypeIcon}
-            />
-          ))
+          <>
+            {/* Linked Accounts Posts */}
+            {linkedPosts.map((post) => (
+              <LinkedAccountsPost
+                key={`linked-${post.id}`}
+                post={post}
+                linkedAccounts={linkedAccounts}
+                currentUserId="current"
+              />
+            ))}
+            
+            {/* Regular Posts */}
+            {sortedPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={handleLike}
+                onShare={handleShare}
+                formatDate={formatDate}
+                getPostVisibilityIcon={getPostVisibilityIcon}
+                getPostTypeIcon={getPostTypeIcon}
+              />
+            ))}
+          </>
         )}
 
         {/* Load More */}
