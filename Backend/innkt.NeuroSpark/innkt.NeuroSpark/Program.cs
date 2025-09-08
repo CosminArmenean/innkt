@@ -88,6 +88,16 @@ builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 // Add Threat Detection Services
 builder.Services.AddScoped<IThreatDetectionService, ThreatDetectionService>();
 
+// Add AI Moderation Services
+builder.Services.AddScoped<IAIModerationService, AIModerationService>();
+builder.Services.AddScoped<INudeNetModerationService, NudeNetModerationService>();
+builder.Services.AddScoped<IBackgroundRemovalService, BackgroundRemovalService>();
+
+// Add HTTP Client for AI Moderation services
+builder.Services.AddHttpClient<IAIModerationService, AIModerationService>();
+builder.Services.AddHttpClient<INudeNetModerationService, NudeNetModerationService>();
+builder.Services.AddHttpClient<IBackgroundRemovalService, BackgroundRemovalService>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

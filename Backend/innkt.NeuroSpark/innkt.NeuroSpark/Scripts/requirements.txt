@@ -1,0 +1,29 @@
+# AI Processing Dependencies for innkt.NeuroSpark
+# Install with: pip install -r requirements.txt
+
+# Core AI Libraries
+nudenet==1.0.0
+rembg==2.0.50
+
+# Computer Vision and Image Processing
+opencv-python==4.8.1.78
+Pillow==10.0.1
+numpy==1.24.3
+
+# HTTP requests for URL-based image analysis
+requests==2.31.0
+
+# Additional ML dependencies
+torch==2.0.1
+torchvision==0.15.2
+
+# Background removal specific dependencies
+onnxruntime==1.15.1
+scikit-image==0.21.0
+
+# Optional: For better performance
+# tensorflow==2.13.0
+
+# Development and testing
+pytest==7.4.2
+pytest-cov==4.1.0

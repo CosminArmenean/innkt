@@ -1,5 +1,6 @@
-# Use Node.js 18 LTS
-FROM node:18-alpine
+# Multi-stage Dockerfile for innkt.Messaging (Node.js)
+# Stage 1: Build stage
+FROM node:20-alpine AS build
 
 # Set working directory
 WORKDIR /app
@@ -8,28 +9,52 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --omit=dev
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy source code
-COPY . .
+# Stage 2: Runtime stage
+FROM node:20-alpine AS final
 
-# Create logs directory
-RUN mkdir -p logs
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S appuser -u 1001
 
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+# Set working directory
+WORKDIR /app
+
+# Copy node_modules from build stage
+COPY --from=build /app/node_modules ./node_modules
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads /app/temp && \
+    chown -R appuser:appuser /app
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV MONGODB_URI=mongodb://mongodb:27017/innkt_messaging
+ENV REDIS_URL=redis://redis:6379/0
+ENV JWT_SECRET=your-jwt-secret-key
+ENV KAFKA_BROKERS=kafka:9092
 
 # Expose port
-EXPOSE 5003
+EXPOSE 3001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5003/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Switch to non-root user
+USER appuser
 
 # Start the application
-CMD ["npm", "start"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "src/server.js"]

@@ -1,81 +1,9 @@
-import React, { useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-
-declare global {
-  interface Window {
-    google: any;
-    gapi: any;
-  }
-}
+import React from 'react';
 
 const GoogleAuth: React.FC = () => {
-  const { login } = useAuth();
-
-  useEffect(() => {
-    // Load Google API script
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-
-    script.onload = () => {
-      // Initialize Google API
-      window.gapi.load('auth2', () => {
-        window.gapi.auth2.init({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'your-google-client-id',
-        });
-      });
-    };
-
-    return () => {
-      // Cleanup
-      const existingScript = document.querySelector('script[src="https://apis.google.com/js/api.js"]');
-      if (existingScript) {
-        document.body.removeChild(existingScript);
-      }
-    };
-  }, []);
-
-  const handleGoogleLogin = async () => {
-    try {
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      const user = await authInstance.signIn();
-      const profile = user.getBasicProfile();
-      
-      // Extract user information
-      const userData = {
-        email: profile.getEmail(),
-        firstName: profile.getGivenName(),
-        lastName: profile.getFamilyName(),
-        avatar: profile.getImageUrl(),
-        googleId: profile.getId(),
-      };
-
-      // Call your backend to authenticate with Google
-      const response = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          googleToken: user.getAuthResponse().id_token,
-          userData,
-        }),
-      });
-
-      if (response.ok) {
-        const { accessToken, user: authenticatedUser } = await response.json();
-        localStorage.setItem('accessToken', accessToken);
-        // Update auth context
-        window.location.reload(); // Simple refresh for now
-      } else {
-        throw new Error('Google authentication failed');
-      }
-    } catch (error) {
-      console.error('Google login failed:', error);
-      alert('Google login failed. Please try again.');
-    }
+  const handleGoogleLogin = () => {
+    // Placeholder for Google authentication
+    alert('Google authentication will be implemented soon!');
   };
 
   return (

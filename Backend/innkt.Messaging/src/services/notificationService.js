@@ -1,8 +1,13 @@
 const logger = require('../utils/logger');
+const KafkaService = require('./kafkaService');
+const PushNotificationService = require('./pushNotificationService');
+const PushSubscription = require('../models/PushSubscription');
 
 class NotificationService {
-  constructor(redisClient) {
+  constructor(redisClient, kafkaService = null) {
     this.redis = redisClient;
+    this.kafka = kafkaService;
+    this.pushService = new PushNotificationService();
     this.notificationKey = 'notifications';
     this.userNotificationsKey = 'user:notifications';
   }
@@ -193,9 +198,69 @@ class NotificationService {
   // Publish notification to real-time subscribers
   async publishNotification(notification) {
     try {
+      // Publish to Redis for real-time delivery
       await this.redis.publish(`notifications:${notification.userId}`, JSON.stringify(notification));
+      
+      // Publish to Kafka for event streaming
+      if (this.kafka) {
+        await this.kafka.publishNotification(notification);
+      }
+      
+      // Send push notification if user has subscriptions
+      await this.sendPushNotification(notification);
+      
+      logger.debug(`Notification published for user ${notification.userId}`);
     } catch (error) {
       logger.error('Error publishing notification:', error);
+    }
+  }
+
+  // Send push notification
+  async sendPushNotification(notification) {
+    try {
+      const subscriptions = await PushSubscription.find({
+        userId: notification.userId,
+        isActive: true
+      });
+
+      if (subscriptions.length === 0) {
+        return;
+      }
+
+      const payload = {
+        title: notification.title,
+        body: notification.body,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        data: {
+          notificationId: notification.id,
+          type: notification.type,
+          ...notification.data
+        },
+        actions: [
+          {
+            action: 'view',
+            title: 'View',
+            icon: '/favicon.ico'
+          },
+          {
+            action: 'dismiss',
+            title: 'Dismiss'
+          }
+        ]
+      };
+
+      await this.pushService.sendToMultipleUsers(
+        subscriptions.map(sub => ({
+          endpoint: sub.endpoint,
+          keys: sub.keys
+        })),
+        payload
+      );
+
+      logger.debug(`Push notification sent to ${subscriptions.length} devices for user ${notification.userId}`);
+    } catch (error) {
+      logger.error('Error sending push notification:', error);
     }
   }
 

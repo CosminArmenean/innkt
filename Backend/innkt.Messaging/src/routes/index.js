@@ -5,6 +5,9 @@ const messageRoutes = require('./messages');
 const userRoutes = require('./users');
 const fileRoutes = require('./files');
 const notificationRoutes = require('./notifications');
+const pushNotificationRoutes = require('./pushNotifications');
+const groupChatRoutes = require('./groupChat');
+const fileUploadRoutes = require('./fileUpload');
 const analyticsRoutes = require('./analytics');
 const backupRoutes = require('./backup');
 
@@ -24,6 +27,9 @@ function setupRoutes(app) {
   app.use('/api/users', authenticateToken, userRoutes);
   app.use('/api/files', authenticateToken, fileRoutes);
   app.use('/api/notifications', authenticateToken, notificationRoutes);
+  app.use('/api/push-notifications', pushNotificationRoutes);
+  app.use('/api/group-chat', authenticateToken, groupChatRoutes);
+  app.use('/api/file-upload', authenticateToken, fileUploadRoutes);
   app.use('/api/analytics', authenticateToken, analyticsRoutes);
   app.use('/api/backup', authenticateToken, backupRoutes);
 

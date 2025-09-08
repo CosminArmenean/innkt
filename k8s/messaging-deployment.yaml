@@ -38,6 +38,16 @@ spec:
             secretKeyRef:
               name: innkt-secrets
               key: jwt-secret
+        - name: VAPID_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: innkt-secrets
+              key: vapid-public-key
+        - name: VAPID_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: innkt-secrets
+              key: vapid-private-key
         resources:
           requests:
             memory: "256Mi"
