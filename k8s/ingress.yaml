@@ -61,3 +61,19 @@ spec:
             name: neurospark-service
             port:
               number: 5003
+      # Seer Service (WebRTC)
+      - path: /webrtc
+        pathType: Prefix
+        backend:
+          service:
+            name: seer-service
+            port:
+              number: 5002
+      # WebRTC SignalR Hub
+      - path: /signalr
+        pathType: Prefix
+        backend:
+          service:
+            name: seer-service
+            port:
+              number: 5003

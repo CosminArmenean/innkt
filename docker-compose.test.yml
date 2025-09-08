@@ -1,0 +1,109 @@
+# Simple Docker Compose for testing innkt platform
+version: '3.8'
+
+services:
+  # Messaging Service (Node.js) - Simple version
+  messaging:
+    build:
+      context: ./Backend/innkt.Messaging
+      dockerfile: Dockerfile.minimal
+    container_name: innkt-messaging-test
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://innkt_user:innkt_password@mongodb:27017/innkt_messaging?authSource=admin
+      - REDIS_URL=redis://:innkt_redis_password@redis:6379/0
+      - JWT_SECRET=your-jwt-secret-key
+      - KAFKA_BROKERS=kafka:29092
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+      - redis
+      - kafka
+    networks:
+      - innkt-dev-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Use existing database services
+  postgres:
+    image: postgres:15-alpine
+    container_name: innkt-postgres-test
+    environment:
+      POSTGRES_DB: innkt_officer
+      POSTGRES_USER: innkt_user
+      POSTGRES_PASSWORD: innkt_password
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - innkt-dev-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: innkt-mongodb-test
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: innkt_user
+      MONGO_INITDB_ROOT_PASSWORD: innkt_password
+      MONGO_INITDB_DATABASE: innkt_messaging
+    volumes:
+      - mongodb_test_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - innkt-dev-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: innkt-redis-test
+    command: redis-server --appendonly yes --requirepass innkt_redis_password
+    volumes:
+      - redis_test_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - innkt-dev-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: innkt-zookeeper-test
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - innkt-dev-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: innkt-kafka-test
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+    volumes:
+      - kafka_test_data:/var/lib/kafka/data
+    networks:
+      - innkt-dev-network
+
+volumes:
+  postgres_test_data:
+  mongodb_test_data:
+  redis_test_data:
+  kafka_test_data:
+
+networks:
+  innkt-dev-network:
+    driver: bridge

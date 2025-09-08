@@ -1,0 +1,50 @@
+# Simple Dockerfile for innkt.Messaging (Node.js)
+FROM node:20-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S appuser -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads /app/temp && \
+    chown -R appuser:appuser /app
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV MONGODB_URI=mongodb://innkt_user:innkt_password@mongodb:27017/innkt_messaging?authSource=admin
+ENV REDIS_URL=redis://:innkt_redis_password@redis:6379/0
+ENV JWT_SECRET=your-jwt-secret-key
+ENV KAFKA_BROKERS=kafka:29092
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Switch to non-root user
+USER appuser
+
+# Start the application
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "src/server.js"]

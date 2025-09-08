@@ -1,0 +1,6 @@
+@innkt.Seer_HostAddress = http://localhost:5267
+
+GET {{innkt.Seer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

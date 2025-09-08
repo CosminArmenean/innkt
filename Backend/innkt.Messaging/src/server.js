@@ -19,6 +19,7 @@ const { EncryptionService } = require('./services/encryptionService');
 const { KeyManagementService } = require('./services/keyManagementService');
 const { AnalyticsService } = require('./services/analyticsService');
 const { BackupService } = require('./services/backupService');
+const KafkaService = require('./services/kafkaService');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -40,6 +41,7 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 // Global variables
 global.io = io;
 global.redisClient = null;
+global.kafkaService = null;
 global.presenceService = null;
 global.notificationService = null;
 global.mediaService = null;
@@ -57,9 +59,13 @@ async function startServer() {
     await connectDatabase(MONGODB_URI);
     global.redisClient = await connectRedis(REDIS_URL);
 
+    // Initialize Kafka service
+    global.kafkaService = new KafkaService();
+    await global.kafkaService.connect();
+
     // Initialize services
     global.presenceService = new PresenceService(global.redisClient);
-    global.notificationService = new NotificationService(global.redisClient);
+    global.notificationService = new NotificationService(global.redisClient, global.kafkaService);
     global.mediaService = new MediaService();
     global.encryptionService = new EncryptionService();
     global.keyManagementService = new KeyManagementService(global.redisClient);
@@ -108,6 +114,12 @@ async function gracefulShutdown(signal) {
     if (global.redisClient) {
       await global.redisClient.quit();
       logger.info('Redis connection closed');
+    }
+
+    // Close Kafka service
+    if (global.kafkaService) {
+      await global.kafkaService.disconnect();
+      logger.info('Kafka service disconnected');
     }
 
     await mongoose.connection.close();

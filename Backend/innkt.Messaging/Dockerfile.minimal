@@ -1,0 +1,28 @@
+# Minimal Dockerfile for innkt.Messaging (Node.js)
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy application code
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV PORT=3001
+ENV MONGODB_URI=mongodb://innkt_user:innkt_password@mongodb:27017/innkt_messaging?authSource=admin
+ENV REDIS_URL=redis://:innkt_redis_password@redis:6379/0
+ENV JWT_SECRET=your-jwt-secret-key
+ENV KAFKA_BROKERS=kafka:29092
+
+# Expose port
+EXPOSE 3001
+
+# Start the application
+CMD ["node", "src/server.js"]
