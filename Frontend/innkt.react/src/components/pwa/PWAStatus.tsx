@@ -6,7 +6,7 @@ import {
   DevicePhoneMobileIcon,
   CpuChipIcon,
   BellIcon,
-  DatabaseIcon,
+  CircleStackIcon,
   TrashIcon,
   ArrowPathIcon,
   CheckCircleIcon,
@@ -185,7 +185,7 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
           </div>
 
           <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-            <DatabaseIcon className="w-5 h-5 text-green-500" />
+            <CircleStackIcon className="w-5 h-5 text-green-500" />
             <div>
               <p className="text-sm font-medium text-gray-900">Offline Storage</p>
               <p className={`text-sm ${getStatusColor(appInfo?.hasIndexedDB)}`}>

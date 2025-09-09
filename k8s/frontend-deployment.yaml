@@ -1,27 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-service
+  name: frontend
   namespace: innkt
   labels:
-    app: frontend-service
+    app: frontend
+    service: frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: frontend-service
+      app: frontend
   template:
     metadata:
       labels:
-        app: frontend-service
+        app: frontend
+        service: frontend
     spec:
       containers:
-      - name: frontend-service
-        image: innkt-frontend:latest
+      - name: frontend
+        image: innkt-frontend:sha-3d733d25 # Using immutable tag
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
           name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: REACT_APP_API_URL
+          value: "http://messaging-service:5003"
+        - name: REACT_APP_WS_URL
+          value: "ws://messaging-service:3000"
         resources:
           requests:
             memory: "128Mi"
@@ -29,6 +38,20 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -36,12 +59,13 @@ metadata:
   name: frontend-service
   namespace: innkt
   labels:
-    app: frontend-service
+    app: frontend
 spec:
   selector:
-    app: frontend-service
+    app: frontend
   ports:
-  - port: 80
+  - name: http
+    port: 80
     targetPort: 80
-    name: http
+    protocol: TCP
   type: ClusterIP

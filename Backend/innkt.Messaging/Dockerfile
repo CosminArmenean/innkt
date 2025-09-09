@@ -57,4 +57,4 @@ USER appuser
 
 # Start the application
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "src/server.js"]
+CMD ["node", "src/server-robust.js"]

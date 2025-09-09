@@ -3,7 +3,7 @@ import { databaseOptimizationService, DatabaseHealthReport, SlowQuery, TableStat
 import { 
   ChartBarIcon, 
   CpuChipIcon, 
-  DatabaseIcon, 
+  CircleStackIcon, 
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -139,7 +139,7 @@ const DatabaseOptimizationDashboard: React.FC<DatabaseOptimizationDashboardProps
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <DatabaseIcon className="w-8 h-8 text-blue-600" />
+              <CircleStackIcon className="w-8 h-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Tables</p>
                 <p className="text-2xl font-semibold text-gray-900">{databaseStats.totalTables}</p>
@@ -533,7 +533,7 @@ const DatabaseOptimizationDashboard: React.FC<DatabaseOptimizationDashboardProps
             { id: 'overview', name: 'Overview', icon: EyeIcon },
             { id: 'performance', name: 'Performance', icon: ChartBarIcon },
             { id: 'cache', name: 'Cache', icon: CpuChipIcon },
-            { id: 'tables', name: 'Tables', icon: DatabaseIcon },
+            { id: 'tables', name: 'Tables', icon: CircleStackIcon },
             { id: 'indexes', name: 'Indexes', icon: ChartBarIcon }
           ].map((tab) => {
             const Icon = tab.icon;
