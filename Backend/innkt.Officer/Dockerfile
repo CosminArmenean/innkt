@@ -6,15 +6,17 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy project files
-COPY ["innkt.Officer.csproj", "./"]
-COPY ["../innkt.Common/innkt.Common.csproj", "../innkt.Common/"]
-COPY ["../innkt.KafkaCommunicationLibrary/innkt.KafkaCommunicationLibrary.csproj", "../innkt.KafkaCommunicationLibrary/"]
+COPY ["innkt.Officer/innkt.Officer.csproj", "./"]
+COPY ["innkt.Common/innkt.Common.csproj", "innkt.Common/"]
+COPY ["innkt.KafkaCommunicationLibrary/innkt.KafkaCommunicationLibrary.csproj", "innkt.KafkaCommunicationLibrary/"]
 
 # Restore dependencies
 RUN dotnet restore "innkt.Officer.csproj"
 
 # Copy source code
-COPY . .
+COPY ["innkt.Officer/", "./"]
+COPY ["innkt.Common/", "innkt.Common/"]
+COPY ["innkt.KafkaCommunicationLibrary/", "innkt.KafkaCommunicationLibrary/"]
 
 # Build the application
 RUN dotnet build "innkt.Officer.csproj" -c Release -o /app/build

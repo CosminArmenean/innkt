@@ -1,11 +1,19 @@
-const webpush = require('web-push');
+// DISABLED - This service is temporarily disabled
+// const webpush = require('web-push');
 const logger = require('../utils/logger');
 
 class PushNotificationService {
   constructor() {
+    // Use VAPID keys directly from environment (already in correct format)
+    const publicKey = process.env.VAPID_PUBLIC_KEY || 
+      'BKSRjqn8VcnBP3156H-S5GA6e4GKACqYWzOIvDfISpBmk9AWh_kT31FD8k2Bzm_8wscXes2JuXrc6X_Lxw-nbzA';
+    
+    const privateKey = process.env.VAPID_PRIVATE_KEY || 
+      'ejWg3xRY9zdp153DT3SEEVMtnWOw1mfEMjsy9p_ZG1c';
+    
     this.vapidKeys = {
-      publicKey: process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa40HI8F7j7wOD7K4BwK5BQj7h2_dFv44BrnFkDz6BfFjQqOJfQx4gB1nVxlI',
-      privateKey: process.env.VAPID_PRIVATE_KEY || 'K0X2pE2mHFhtESDN0KiXxYgUz0Icu6bkVVzltF6AZy0'
+      publicKey,
+      privateKey
     };
     
     webpush.setVapidDetails(

@@ -1,13 +1,13 @@
 const logger = require('../utils/logger');
 const KafkaService = require('./kafkaService');
-const PushNotificationService = require('./pushNotificationService');
+// const PushNotificationService = require('./pushNotificationService'); // Temporarily disabled
 const PushSubscription = require('../models/PushSubscription');
 
 class NotificationService {
   constructor(redisClient, kafkaService = null) {
     this.redis = redisClient;
     this.kafka = kafkaService;
-    this.pushService = new PushNotificationService();
+    // this.pushService = new PushNotificationService(); // Temporarily disabled
     this.notificationKey = 'notifications';
     this.userNotificationsKey = 'user:notifications';
   }

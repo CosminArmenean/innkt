@@ -19,7 +19,7 @@ const { EncryptionService } = require('./services/encryptionService');
 const { KeyManagementService } = require('./services/keyManagementService');
 const { AnalyticsService } = require('./services/analyticsService');
 const { BackupService } = require('./services/backupService');
-const KafkaService = require('./services/kafkaService');
+// const KafkaService = require('./services/kafkaService'); // Temporarily disabled
 const logger = require('./utils/logger');
 
 const app = express();
@@ -59,9 +59,9 @@ async function startServer() {
     await connectDatabase(MONGODB_URI);
     global.redisClient = await connectRedis(REDIS_URL);
 
-    // Initialize Kafka service
-    global.kafkaService = new KafkaService();
-    await global.kafkaService.connect();
+    // Initialize Kafka service (temporarily disabled)
+    logger.info('⚠️ Kafka service temporarily disabled for debugging');
+    global.kafkaService = null;
 
     // Initialize services
     global.presenceService = new PresenceService(global.redisClient);

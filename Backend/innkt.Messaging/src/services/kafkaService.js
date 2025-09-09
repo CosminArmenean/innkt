@@ -1,10 +1,10 @@
-const { Kafka } = require('kafkajs');
+const kafkajs = require('kafkajs');
 const kafkaConfig = require('../config/kafkaConfig');
 const logger = require('../utils/logger');
 
 class KafkaService {
   constructor() {
-    this.kafka = Kafka({
+    this.kafka = new kafkajs.Kafka({
       clientId: kafkaConfig.consumer.clientId,
       brokers: [kafkaConfig.bootstrapServers],
       retry: {

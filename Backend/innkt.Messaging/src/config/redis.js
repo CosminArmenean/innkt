@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 
 async function connectRedis(url) {
   try {
-    const client = redis.createClient({
+    const client = new redis.createClient({
       url: url,
       retry_strategy: (options) => {
         if (options.error && options.error.code === 'ECONNREFUSED') {
