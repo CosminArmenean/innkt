@@ -1,0 +1,1 @@
+{"ast":null,"code":"export const environment = {\n  production: false,\n  apiUrl: 'http://localhost:5006',\n  officerUrl: 'http://localhost:5004',\n  neurosparkUrl: 'http://localhost:5006',\n  enableDebug: true,\n  logLevel: 'debug',\n  version: '1.0.0'\n};","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

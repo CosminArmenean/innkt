@@ -145,10 +145,10 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   };
 
   const handleItemClick = (item: DropdownItem) => {
-    setQuery(item.query);
+    setQuery(item.query || '');
     setShowDropdown(false);
     setActiveIndex(-1);
-    handleSearch(item.query);
+    handleSearch(item.query || '');
   };
 
   const clearSearch = () => {

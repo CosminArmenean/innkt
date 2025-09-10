@@ -46,7 +46,7 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-16 h-16 bg-innkt-primary rounded-2xl flex items-center justify-center">
+          <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center">
             <span className="text-white font-bold text-2xl">I</span>
           </div>
         </div>
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
           Or{' '}
           <Link
             to="/register"
-            className="font-medium text-innkt-primary hover:text-innkt-dark"
+            className="font-medium text-purple-600 hover:text-purple-800"
           >
             create a new account
           </Link>
@@ -113,7 +113,7 @@ const Login: React.FC = () => {
                   type="checkbox"
                   checked={formData.rememberMe}
                   onChange={handleChange}
-                  className="h-4 w-4 text-innkt-primary focus:ring-innkt-primary border-gray-300 rounded"
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                 />
                 <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
                   Remember me
@@ -121,7 +121,7 @@ const Login: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-innkt-primary hover:text-innkt-dark">
+                <a href="#" className="font-medium text-purple-600 hover:text-purple-800">
                   Forgot your password?
                 </a>
               </div>

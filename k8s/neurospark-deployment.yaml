@@ -5,9 +5,9 @@ metadata:
   namespace: innkt
   labels:
     app: neurospark-service
-    service: ai
+    service: ai-ml
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: neurospark-service
@@ -15,14 +15,14 @@ spec:
     metadata:
       labels:
         app: neurospark-service
-        service: ai
+        service: ai-ml
     spec:
       containers:
       - name: neurospark-service
-        image: innkt-neurospark:latest
+        image: innkt-neurospark:sha-3d733d25
         imagePullPolicy: IfNotPresent  # Use local image if available
         ports:
-        - containerPort: 5003
+        - containerPort: 8080
           name: http
         env:
         - name: ASPNETCORE_ENVIRONMENT
@@ -31,16 +31,22 @@ spec:
               name: innkt-config
               key: ASPNETCORE_ENVIRONMENT
         - name: ASPNETCORE_URLS
-          value: "http://+:5003"
-        - name: ASPNETCORE_Kestrel__Endpoints__Http__Url
-          value: "http://+:5003"
-        - name: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT
-          value: "1"
+          value: "http://+:8080"
+        - name: ConnectionStrings__Redis
+          valueFrom:
+            configMapKeyRef:
+              name: innkt-config
+              key: REDIS_CONNECTION_STRING
         - name: Kafka__BootstrapServers
           valueFrom:
             configMapKeyRef:
               name: innkt-config
               key: KAFKA_BOOTSTRAP_SERVERS
+        - name: OfficerService__BaseUrl
+          valueFrom:
+            configMapKeyRef:
+              name: innkt-config
+              key: OFFICER_SERVICE_URL
         resources:
           requests:
             memory: "512Mi"
@@ -51,15 +57,29 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 5003
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health/ready
-            port: 5003
+            path: /health
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        - name: processed
+          mountPath: /app/processed
+        - name: qrcodes
+          mountPath: /app/qrcodes
+      volumes:
+      - name: uploads
+        emptyDir: {}
+      - name: processed
+        emptyDir: {}
+      - name: qrcodes
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -73,7 +93,7 @@ spec:
     app: neurospark-service
   ports:
   - name: http
-    port: 5003
-    targetPort: 5003
+    port: 8080
+    targetPort: 8080
     protocol: TCP
   type: ClusterIP

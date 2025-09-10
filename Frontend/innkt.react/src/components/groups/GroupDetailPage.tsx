@@ -302,22 +302,22 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
                 {group.admins.map((admin) => (
                   <div key={admin.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                      {admin.avatar ? (
-                        <img src={admin.avatar} alt={admin.displayName} className="w-full h-full object-cover" />
+                      {admin.profile?.avatar ? (
+                        <img src={admin.profile.avatar} alt={admin.profile.displayName} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-gray-600 text-sm">{admin.displayName.charAt(0)}</span>
+                          <span className="text-gray-600 text-sm">{admin.profile?.displayName?.charAt(0) || 'U'}</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900 truncate">{admin.displayName}</span>
+                        <span className="font-medium text-gray-900 truncate">{admin.profile?.displayName || 'Unknown User'}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor('admin')}`}>
                           Admin
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">@{admin.username}</p>
+                      <p className="text-sm text-gray-500">@{admin.profile?.username || 'unknown'}</p>
                     </div>
                   </div>
                 ))}
@@ -326,22 +326,22 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
                 {group.moderators.map((moderator) => (
                   <div key={moderator.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                      {moderator.avatar ? (
-                        <img src={moderator.avatar} alt={moderator.displayName} className="w-full h-full object-cover" />
+                      {moderator.profile?.avatar ? (
+                        <img src={moderator.profile.avatar} alt={moderator.profile.displayName} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-gray-600 text-sm">{moderator.displayName.charAt(0)}</span>
+                          <span className="text-gray-600 text-sm">{moderator.profile?.displayName?.charAt(0) || 'U'}</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900 truncate">{moderator.displayName}</span>
+                        <span className="font-medium text-gray-900 truncate">{moderator.profile?.displayName || 'Unknown User'}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor('moderator')}`}>
                           Moderator
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">@{moderator.username}</p>
+                      <p className="text-sm text-gray-500">@{moderator.profile?.username || 'unknown'}</p>
                     </div>
                   </div>
                 ))}

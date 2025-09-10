@@ -19,10 +19,10 @@ spec:
     spec:
       containers:
       - name: officer-service
-        image: innkt-officer:latest
+        image: innkt-officer:sha-b421d442
         imagePullPolicy: IfNotPresent  # Use local image if available
         ports:
-        - containerPort: 5001
+        - containerPort: 8080
           name: http
         env:
         - name: ASPNETCORE_ENVIRONMENT
@@ -36,7 +36,7 @@ spec:
               name: innkt-config
               key: ASPNETCORE_URLS
         - name: ConnectionStrings__DefaultConnection
-          value: "Server=postgres-service;Database=innkt_officer;User Id=innkt_user;Password=dev_password_123;TrustServerCertificate=true;"
+          value: "Host=postgres-service;Port=5432;Database=innkt_officer;Username=admin_officer;Password=@CAvp57rt26;TrustServerCertificate=true;"
         - name: ConnectionStrings__Redis
           valueFrom:
             configMapKeyRef:
@@ -52,13 +52,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 5001
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: 5001
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
 ---
@@ -74,7 +74,7 @@ spec:
     app: officer-service
   ports:
   - name: http
-    port: 5001
-    targetPort: 5001
+    port: 8080
+    targetPort: 8080
     protocol: TCP
   type: ClusterIP

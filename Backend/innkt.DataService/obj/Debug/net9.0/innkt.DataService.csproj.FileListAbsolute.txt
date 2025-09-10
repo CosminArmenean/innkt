@@ -17,3 +17,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.DataService\obj\Debug\net9.0\ref
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.DataService\obj\Debug\net9.0\innkt.DataService.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.DataService\obj\Debug\net9.0\innkt.DataService.genruntimeconfig.cache
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.DataService\obj\Debug\net9.0\ref\innkt.DataService.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.DataService\obj\Debug\net9.0\innkt.DataService.sourcelink.json

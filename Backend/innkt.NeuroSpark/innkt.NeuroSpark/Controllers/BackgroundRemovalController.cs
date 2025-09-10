@@ -207,14 +207,14 @@ namespace innkt.NeuroSpark.Controllers
                 }
 
                 var userId = GetUserId();
-                var backgroundRemovalRequests = new List<BackgroundRemovalRequest>();
+                var backgroundRemovalRequests = new List<Services.BackgroundRemovalRequest>();
 
                 foreach (var file in request.ImageFiles)
                 {
                     using var memoryStream = new MemoryStream();
                     await file.CopyToAsync(memoryStream);
                     
-                    var options = new BackgroundRemovalOptions
+                    var options = new Services.BackgroundRemovalOptions
                     {
                         Model = request.Model ?? "u2net",
                         OutputFormat = request.OutputFormat ?? "PNG",
@@ -224,7 +224,7 @@ namespace innkt.NeuroSpark.Controllers
                         OptimizeForWeb = request.OptimizeForWeb ?? true
                     };
 
-                    backgroundRemovalRequests.Add(new BackgroundRemovalRequest
+                    backgroundRemovalRequests.Add(new Services.BackgroundRemovalRequest
                     {
                         ImageData = memoryStream.ToArray(),
                         UserId = userId,

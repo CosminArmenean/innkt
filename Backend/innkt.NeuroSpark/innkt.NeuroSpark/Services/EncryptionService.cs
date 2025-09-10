@@ -360,7 +360,7 @@ public class EncryptionService : IEncryptionService
         }
     }
 
-    public async Task<EncryptionKeyInfo?> GetKeyInfoAsync(string keyId)
+    public async Task<EncryptionKeyInfo> GetKeyInfoAsync(string keyId)
     {
         try
         {

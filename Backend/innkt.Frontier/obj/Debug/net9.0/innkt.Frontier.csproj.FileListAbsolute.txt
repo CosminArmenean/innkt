@@ -100,3 +100,5 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Frontier\obj\Debug\net9.0\refint
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Frontier\obj\Debug\net9.0\innkt.Frontier.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Frontier\obj\Debug\net9.0\innkt.Frontier.genruntimeconfig.cache
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Frontier\obj\Debug\net9.0\ref\innkt.Frontier.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Frontier\bin\Debug\net9.0\ocelot_updated.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Frontier\obj\Debug\net9.0\innkt.Frontier.sourcelink.json

@@ -21,16 +21,20 @@ public class KafkaService : IKafkaProducer, IDisposable
         IOptions<KafkaProducerSettings> producerOptions,
         IOptions<KafkaConsumerSettings> consumerOptions,
         IOptions<KafkaServiceSettings> serviceOptions,
-        ILogger<KafkaService> logger)
+        ILogger<KafkaService> logger,
+        ILoggerFactory loggerFactory)
     {
         _producerSettings = producerOptions.Value;
         _consumerSettings = consumerOptions.Value;
         _serviceSettings = serviceOptions.Value;
         _logger = logger;
 
-        // Initialize producer and consumer
-        _producer = new innkt.KafkaCommunicationLibrary.Producers.KafkaProducer(_producerSettings, _logger);
-        _consumer = new innkt.KafkaCommunicationLibrary.Consumers.KafkaConsumer(_consumerSettings, _logger);
+        // Initialize producer and consumer with correct logger types
+        var producerLogger = loggerFactory.CreateLogger<innkt.KafkaCommunicationLibrary.Producers.KafkaProducer>();
+        var consumerLogger = loggerFactory.CreateLogger<innkt.KafkaCommunicationLibrary.Consumers.KafkaConsumer>();
+        
+        _producer = new innkt.KafkaCommunicationLibrary.Producers.KafkaProducer(_producerSettings, producerLogger);
+        _consumer = new innkt.KafkaCommunicationLibrary.Consumers.KafkaConsumer(_consumerSettings, consumerLogger);
     }
 
     // Publish user events
@@ -214,17 +218,17 @@ public class KafkaService : IKafkaProducer, IDisposable
         }
     }
 
-    // Subscribe to social events
-    public async Task SubscribeToSocialEventsAsync(Func<KafkaMessage<object>, Task> messageHandler, CancellationToken cancellationToken = default)
+    // Subscribe to identity events (for cross-service communication)
+    public async Task SubscribeToIdentityEventsAsync(Func<KafkaMessage<object>, Task> messageHandler, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _consumer.StartConsumingAsync("social.events", messageHandler, cancellationToken);
-            _logger.LogInformation("Subscribed to social.events topic");
+            await _consumer.StartConsumingAsync("identity.events", messageHandler, cancellationToken);
+            _logger.LogInformation("Subscribed to identity.events topic");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to subscribe to social.events topic");
+            _logger.LogError(ex, "Failed to subscribe to identity.events topic");
             throw;
         }
     }
@@ -275,8 +279,8 @@ public class KafkaService : IKafkaProducer, IDisposable
     {
         if (!_disposed && disposing)
         {
-            _producer?.Dispose();
-            _consumer?.Dispose();
+            (_producer as IDisposable)?.Dispose();
+            (_consumer as IDisposable)?.Dispose();
             _disposed = true;
         }
     }

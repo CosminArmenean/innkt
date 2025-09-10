@@ -37,25 +37,23 @@ namespace innkt.Officer.Services
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphores;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        // Cache key prefixes
+        // Cache key prefixes (Identity only)
         public const string USER_PREFIX = "user:";
-        public const string POST_PREFIX = "post:";
-        public const string GROUP_PREFIX = "group:";
-        public const string FOLLOW_PREFIX = "follow:";
-        public const string TRENDING_PREFIX = "trending:";
-        public const string SEARCH_PREFIX = "search:";
         public const string SESSION_PREFIX = "session:";
         public const string NOTIFICATION_PREFIX = "notification:";
+        public const string VERIFICATION_PREFIX = "verification:";
+        public const string MFA_PREFIX = "mfa:";
+        public const string KID_ACCOUNT_PREFIX = "kid:";
+        public const string JOINT_ACCOUNT_PREFIX = "joint:";
 
         // Cache expiry times
         public static readonly TimeSpan USER_CACHE_EXPIRY = TimeSpan.FromMinutes(30);
-        public static readonly TimeSpan POST_CACHE_EXPIRY = TimeSpan.FromMinutes(15);
-        public static readonly TimeSpan GROUP_CACHE_EXPIRY = TimeSpan.FromMinutes(20);
-        public static readonly TimeSpan FOLLOW_CACHE_EXPIRY = TimeSpan.FromMinutes(10);
-        public static readonly TimeSpan TRENDING_CACHE_EXPIRY = TimeSpan.FromMinutes(5);
-        public static readonly TimeSpan SEARCH_CACHE_EXPIRY = TimeSpan.FromMinutes(10);
         public static readonly TimeSpan SESSION_CACHE_EXPIRY = TimeSpan.FromHours(24);
         public static readonly TimeSpan NOTIFICATION_CACHE_EXPIRY = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan VERIFICATION_CACHE_EXPIRY = TimeSpan.FromMinutes(15);
+        public static readonly TimeSpan MFA_CACHE_EXPIRY = TimeSpan.FromMinutes(10);
+        public static readonly TimeSpan KID_ACCOUNT_CACHE_EXPIRY = TimeSpan.FromMinutes(20);
+        public static readonly TimeSpan JOINT_ACCOUNT_CACHE_EXPIRY = TimeSpan.FromMinutes(20);
 
         public CacheService(IDatabase database, ILogger<CacheService> logger)
         {
@@ -456,13 +454,16 @@ namespace innkt.Officer.Services
                 var server = _database.Multiplexer.GetServer(_database.Multiplexer.GetEndPoints().First());
                 var info = await server.InfoAsync();
                 
+                // Flatten the grouped info into a dictionary
+                var infoDict = info.SelectMany(g => g).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                
                 var stats = new CacheStats
                 {
-                    ConnectedClients = info.FirstOrDefault(i => i.Key == "connected_clients")?.Value ?? "0",
-                    UsedMemory = info.FirstOrDefault(i => i.Key == "used_memory_human")?.Value ?? "0",
-                    TotalKeys = info.FirstOrDefault(i => i.Key == "db0")?.Value?.Split(',').FirstOrDefault()?.Split('=').LastOrDefault() ?? "0",
+                    ConnectedClients = infoDict.GetValueOrDefault("connected_clients", "0"),
+                    UsedMemory = infoDict.GetValueOrDefault("used_memory_human", "0"),
+                    TotalKeys = infoDict.GetValueOrDefault("db0", "0")?.Split(',').FirstOrDefault()?.Split('=').LastOrDefault() ?? "0",
                     HitRate = "0%", // Would need to calculate from keyspace_hits and keyspace_misses
-                    Uptime = info.FirstOrDefault(i => i.Key == "uptime_in_seconds")?.Value ?? "0"
+                    Uptime = infoDict.GetValueOrDefault("uptime_in_seconds", "0")
                 };
 
                 return stats;
@@ -474,15 +475,14 @@ namespace innkt.Officer.Services
             }
         }
 
-        // Utility methods for common cache operations
+        // Utility methods for common cache operations (Identity only)
         public string GetUserKey(string userId) => $"{USER_PREFIX}{userId}";
-        public string GetPostKey(string postId) => $"{POST_PREFIX}{postId}";
-        public string GetGroupKey(string groupId) => $"{GROUP_PREFIX}{groupId}";
-        public string GetFollowKey(string userId) => $"{FOLLOW_PREFIX}{userId}";
-        public string GetTrendingKey(string type) => $"{TRENDING_PREFIX}{type}";
-        public string GetSearchKey(string query) => $"{SEARCH_PREFIX}{query.GetHashCode()}";
         public string GetSessionKey(string sessionId) => $"{SESSION_PREFIX}{sessionId}";
         public string GetNotificationKey(string userId) => $"{NOTIFICATION_PREFIX}{userId}";
+        public string GetVerificationKey(string token) => $"{VERIFICATION_PREFIX}{token}";
+        public string GetMfaKey(string userId) => $"{MFA_PREFIX}{userId}";
+        public string GetKidAccountKey(string userId) => $"{KID_ACCOUNT_PREFIX}{userId}";
+        public string GetJointAccountKey(string accountId) => $"{JOINT_ACCOUNT_PREFIX}{accountId}";
 
         public void Dispose()
         {

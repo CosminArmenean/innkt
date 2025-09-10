@@ -93,6 +93,9 @@ builder.Services.AddScoped<IAIModerationService, AIModerationService>();
 builder.Services.AddScoped<INudeNetModerationService, NudeNetModerationService>();
 builder.Services.AddScoped<IBackgroundRemovalService, BackgroundRemovalService>();
 
+// Add Search Services
+builder.Services.AddScoped<ISearchService, SearchService>();
+
 // Add HTTP Client for AI Moderation services
 builder.Services.AddHttpClient<IAIModerationService, AIModerationService>();
 builder.Services.AddHttpClient<INudeNetModerationService, NudeNetModerationService>();

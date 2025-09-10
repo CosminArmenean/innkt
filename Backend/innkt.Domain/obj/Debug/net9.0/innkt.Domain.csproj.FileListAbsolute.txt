@@ -13,3 +13,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Domain\obj\Debug\net9.0\innkt.Do
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Domain\obj\Debug\net9.0\refint\innkt.Domain.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Domain\obj\Debug\net9.0\innkt.Domain.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Domain\obj\Debug\net9.0\ref\innkt.Domain.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Domain\obj\Debug\net9.0\innkt.Domain.sourcelink.json

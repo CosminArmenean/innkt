@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { pwaService, PWACacheInfo } from '../../services/pwa.service';
 import { 
   WifiIcon, 
-  WifiSlashIcon,
+  SignalSlashIcon,
   DevicePhoneMobileIcon,
   CpuChipIcon,
   BellIcon,
@@ -94,7 +94,7 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
           {isOnline ? (
             <WifiIcon className="w-4 h-4 text-green-500" />
           ) : (
-            <WifiSlashIcon className="w-4 h-4 text-red-500" />
+            <SignalSlashIcon className="w-4 h-4 text-red-500" />
           )}
           <span className={`text-sm ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
             {isOnline ? 'Online' : 'Offline'}
@@ -133,7 +133,7 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
             {isOnline ? (
               <WifiIcon className="w-6 h-6 text-green-500" />
             ) : (
-              <WifiSlashIcon className="w-6 h-6 text-red-500" />
+              <SignalSlashIcon className="w-6 h-6 text-red-500" />
             )}
             <div>
               <p className="font-medium text-gray-900">Connection Status</p>

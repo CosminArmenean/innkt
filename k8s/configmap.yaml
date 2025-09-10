@@ -16,11 +16,11 @@ data:
   KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
   
   # Service URLs
-  OFFICER_SERVICE_URL: "http://officer-service:5001"
-  FRONTIER_SERVICE_URL: "http://frontier-service:5002"
-  NEUROSPARK_SERVICE_URL: "http://neurospark-service:5003"
+  OFFICER_SERVICE_URL: "http://officer-service:8080"
+  NEUROSPARK_SERVICE_URL: "http://neurospark-service:8080"
+  SEER_SERVICE_URL: "http://seer-service:8080"
   MESSAGING_SERVICE_URL: "http://messaging-service:5003"
   
   # Environment
   ASPNETCORE_ENVIRONMENT: "Development"
-  ASPNETCORE_URLS: "http://+:5001"
+  ASPNETCORE_URLS: "http://+:8080"

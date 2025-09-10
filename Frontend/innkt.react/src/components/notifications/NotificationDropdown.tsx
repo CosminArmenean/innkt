@@ -51,7 +51,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   }, [isOpen, onClose]);
 
   const handleNotificationClick = async (notification: any) => {
-    if (!notification.read) {
+    if (!notification.isRead) {
       await markAsRead(notification.id);
     }
     
@@ -73,15 +73,52 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   const getNotificationIcon = (type: string) => {
-    return notificationService.getNotificationIcon(type);
+    const iconMap: { [key: string]: string } = {
+      'message': '💬',
+      'mention': '@',
+      'group_invitation': '👥',
+      'follow': '👤',
+      'like': '❤️',
+      'comment': '💭',
+      'post': '📝',
+      'system': '⚙️'
+    };
+    return iconMap[type] || '🔔';
   };
 
   const getNotificationColor = (type: string) => {
-    return notificationService.getNotificationColor(type);
+    const colorMap: { [key: string]: string } = {
+      'message': 'text-blue-500',
+      'mention': 'text-yellow-500',
+      'group_invitation': 'text-green-500',
+      'follow': 'text-purple-500',
+      'like': 'text-red-500',
+      'comment': 'text-blue-500',
+      'post': 'text-gray-500',
+      'system': 'text-gray-500'
+    };
+    return colorMap[type] || 'text-gray-500';
   };
 
   const formatTime = (timestamp: number) => {
-    return notificationService.formatNotificationTime(timestamp);
+    const now = Date.now();
+    const diff = now - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (seconds < 60) {
+      return 'Just now';
+    } else if (minutes < 60) {
+      return `${minutes}m ago`;
+    } else if (hours < 24) {
+      return `${hours}h ago`;
+    } else if (days < 7) {
+      return `${days}d ago`;
+    } else {
+      return new Date(timestamp).toLocaleDateString();
+    }
   };
 
   if (!isOpen) return null;
@@ -159,7 +196,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
                 className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                  !notification.read ? 'bg-blue-50' : ''
+                  !notification.isRead ? 'bg-blue-50' : ''
                 }`}
               >
                 <div className="flex items-start space-x-3">
@@ -171,20 +208,20 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className={`text-sm font-medium ${
-                          !notification.read ? 'text-gray-900' : 'text-gray-700'
+                          !notification.isRead ? 'text-gray-900' : 'text-gray-700'
                         }`}>
                           {notification.title}
                         </p>
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {notification.body}
+                          {notification.message}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatTime(notification.timestamp)}
+                          {formatTime(new Date(notification.createdAt).getTime())}
                         </p>
                       </div>
                       
                       <div className="flex items-center space-x-1 ml-2">
-                        {!notification.read && (
+                        {!notification.isRead && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
                         <button
@@ -244,7 +281,7 @@ const NotificationSettings: React.FC = () => {
             <span className="text-sm text-gray-700">{label}</span>
             <input
               type="checkbox"
-              checked={localSettings[key as keyof typeof localSettings]}
+              checked={typeof localSettings[key as keyof typeof localSettings] === 'boolean' ? localSettings[key as keyof typeof localSettings] as boolean : false}
               onChange={(e) => handleSettingChange(key as keyof typeof settings, e.target.checked)}
               className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
             />

@@ -30,10 +30,23 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Confluent.Kafka" Version="2.4.0" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\innkt.StringLibrary\innkt.StringLibrary.csproj" />
+    <ProjectReference Include="..\innkt.Common\innkt.Common.csproj" />
+    <ProjectReference Include="..\innkt.KafkaCommunicationLibrary\innkt.KafkaCommunicationLibrary.csproj" />
+    <ProjectReference Include="..\innkt.Domain\innkt.Domain.csproj" />
+    <ProjectReference Include="..\innkt.DataService\innkt.DataService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Tests_backup\**" />
+    <Content Remove="Tests_backup\**" />
+    <EmbeddedResource Remove="Tests_backup\**" />
+    <None Remove="Tests_backup\**" />
   </ItemGroup>
 
 </Project>

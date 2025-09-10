@@ -6,7 +6,7 @@ import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
   WifiIcon,
-  WifiSlashIcon
+  SignalSlashIcon
 } from '@heroicons/react/24/outline';
 
 interface PWAInstallPromptProps {
@@ -132,7 +132,7 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
               </>
             ) : (
               <>
-                <WifiSlashIcon className="w-4 h-4 text-red-500" />
+                <SignalSlashIcon className="w-4 h-4 text-red-500" />
                 <span className="text-red-700">Offline - Install when online</span>
               </>
             )}

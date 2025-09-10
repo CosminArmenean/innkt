@@ -1,4 +1,4 @@
-import { apiClient } from './api.service';
+import { neurosparkApi } from './api.service';
 
 export interface BackgroundRemovalOptions {
   model?: string;
@@ -67,7 +67,7 @@ export class BackgroundRemovalService {
       }
     }
 
-    const response = await apiClient.post(`${this.baseUrl}/remove`, formData, {
+    const response = await neurosparkApi.post(`${this.baseUrl}/remove`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -83,7 +83,7 @@ export class BackgroundRemovalService {
     imageUrl: string,
     options?: BackgroundRemovalOptions
   ): Promise<BackgroundRemovalResult> {
-    const response = await apiClient.post(`${this.baseUrl}/remove/url`, {
+    const response = await neurosparkApi.post(`${this.baseUrl}/remove/url`, {
       imageUrl,
       ...options,
     });
@@ -119,7 +119,7 @@ export class BackgroundRemovalService {
       if (options.cornerRadius) formData.append('cornerRadius', options.cornerRadius.toString());
     }
 
-    const response = await apiClient.post(`${this.baseUrl}/avatar`, formData, {
+    const response = await neurosparkApi.post(`${this.baseUrl}/avatar`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -155,7 +155,7 @@ export class BackgroundRemovalService {
       }
     }
 
-    const response = await apiClient.post(`${this.baseUrl}/batch`, formData, {
+    const response = await neurosparkApi.post(`${this.baseUrl}/batch`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -168,7 +168,7 @@ export class BackgroundRemovalService {
    * Get background removal model information
    */
   async getModelInfo(): Promise<BackgroundRemovalModelInfo> {
-    const response = await apiClient.get(`${this.baseUrl}/info`);
+    const response = await neurosparkApi.get(`${this.baseUrl}/info`);
     return response.data.data;
   }
 
@@ -176,7 +176,7 @@ export class BackgroundRemovalService {
    * Check if background removal service is available
    */
   async getServiceStatus(): Promise<boolean> {
-    const response = await apiClient.get(`${this.baseUrl}/status`);
+    const response = await neurosparkApi.get(`${this.baseUrl}/status`);
     return response.data.data;
   }
 
@@ -184,7 +184,7 @@ export class BackgroundRemovalService {
    * Get processed image by path
    */
   async getProcessedImage(imagePath: string): Promise<Blob> {
-    const response = await apiClient.get(`${this.baseUrl}/image/${imagePath}`, {
+    const response = await neurosparkApi.get(`${this.baseUrl}/image/${imagePath}`, {
       responseType: 'blob',
     });
     return response.data;
@@ -194,7 +194,7 @@ export class BackgroundRemovalService {
    * Create a preview URL for processed image
    */
   createProcessedImageUrl(imagePath: string): string {
-    return `${apiClient.defaults.baseURL}${this.baseUrl}/image/${imagePath}`;
+    return `${neurosparkApi.defaults.baseURL}${this.baseUrl}/image/${imagePath}`;
   }
 
   /**

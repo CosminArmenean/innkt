@@ -1,5 +1,4 @@
-import { BaseApiService } from './base-api.service';
-import { apiConfig } from './api.config';
+import { BaseApiService } from './api.service';
 
 export interface SearchRequest {
   query: string;
