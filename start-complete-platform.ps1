@@ -176,6 +176,6 @@ Write-Host "`n🔗 API Gateway Routes:" -ForegroundColor Cyan
 Write-Host "• All services accessible through: http://localhost:51303" -ForegroundColor White
 Write-Host "`n💡 Note: Services are running in background windows" -ForegroundColor Yellow
 Write-Host "💡 Check individual windows for any error messages" -ForegroundColor Yellow
-Write-Host "💡 Use the API Gateway for end-to-end testing" -ForegroundColor Yellow
-Write-Host "`nPress any key to continue..." -ForegroundColor Gray
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+Write-Host "Use the API Gateway for end-to-end testing" -ForegroundColor Yellow
+Write-Host "Press any key to continue..." -ForegroundColor Gray
+Read-Host

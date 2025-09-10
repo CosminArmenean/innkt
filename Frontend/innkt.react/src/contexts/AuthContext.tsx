@@ -83,16 +83,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      // Verify token with backend
-      const response = await officerApi.get('/api/auth/me');
-      if (response.data) {
-        setUser(response.data);
-      }
+      // For now, skip auth verification since /api/auth/me doesn't exist
+      // TODO: Implement proper user profile endpoint
+      setIsLoading(false);
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('accessToken');
       setUser(null);
-    } finally {
       setIsLoading(false);
     }
   };

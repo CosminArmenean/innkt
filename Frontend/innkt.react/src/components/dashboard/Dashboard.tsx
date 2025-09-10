@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const Dashboard: React.FC = () => {
   const [selectedPerson, setSelectedPerson] = useState('1');
   
-  // Mock data - replace with actual data from microservices
+  // TODO: Replace with actual data from microservices
   const mockPersons = [
     { id: '1', name: 'John Doe', avatar: '👨', isActive: true },
     { id: '2', name: 'Jane Doe', avatar: '👩', isActive: false }

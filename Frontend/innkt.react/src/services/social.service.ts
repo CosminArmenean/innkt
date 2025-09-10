@@ -1,4 +1,4 @@
-import { BaseApiService, officerApi, neurosparkApi } from './api.service';
+import { BaseApiService, socialApi, officerApi, neurosparkApi } from './api.service';
 
 // User Profile Interfaces
 export interface UserProfile {
@@ -212,14 +212,53 @@ export interface SearchResult {
 
 export class SocialService extends BaseApiService {
   constructor() {
-    super(officerApi);
+    super(socialApi);
   }
 
   // User Profile Methods
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
-      const response = await this.get<UserProfile>(`/users/${userId}/profile`);
-      return response;
+      // TODO: Implement user profile endpoint in Officer service
+      // For now, return a mock profile
+      return {
+        id: userId,
+        username: 'demo-user',
+        displayName: 'Demo User',
+        email: 'demo@example.com',
+        avatar: undefined,
+        bio: 'Demo user profile',
+        location: undefined,
+        website: undefined,
+        dateOfBirth: undefined,
+        isVerified: false,
+        isKidAccount: false,
+        parentId: undefined,
+        independenceDate: undefined,
+        followersCount: 0,
+        followingCount: 0,
+        postsCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preferences: {
+          privacyLevel: 'public',
+          allowDirectMessages: true,
+          allowMentions: true,
+          notificationSettings: {
+            newFollowers: true,
+            newPosts: true,
+            mentions: true,
+            directMessages: true,
+            groupUpdates: true,
+            emailNotifications: true,
+            pushNotifications: true,
+          },
+          theme: 'light',
+          language: 'en',
+          timezone: 'UTC',
+        },
+        socialLinks: {},
+        parentalControls: undefined,
+      };
     } catch (error) {
       console.error('Failed to get user profile:', error);
       throw error;
@@ -259,7 +298,9 @@ export class SocialService extends BaseApiService {
     limit?: number;
   }): Promise<{ posts: Post[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get<{ posts: Post[]; totalCount: number; hasMore: boolean }>('/posts', filters);
+      // If userId is provided, get user posts, otherwise get feed
+      const endpoint = filters?.userId ? `/posts/user/${filters.userId}` : '/posts/feed';
+      const response = await this.get<{ posts: Post[]; totalCount: number; hasMore: boolean }>(endpoint, filters);
       return response;
     } catch (error) {
       console.error('Failed to get posts:', error);
@@ -523,8 +564,9 @@ export class SocialService extends BaseApiService {
 
   async getTrendingTopics(): Promise<string[]> {
     try {
-      const response = await this.get<string[]>('/trending/topics');
-      return response;
+      // TODO: Implement trending topics endpoint in backend
+      // For now, return empty array
+      return [];
     } catch (error) {
       console.error('Failed to get trending topics:', error);
       throw error;
@@ -533,8 +575,9 @@ export class SocialService extends BaseApiService {
 
   async getRecommendedUsers(): Promise<UserProfile[]> {
     try {
-      const response = await this.get<UserProfile[]>('/recommendations/users');
-      return response;
+      // TODO: Implement recommendations endpoint in backend
+      // For now, return empty array
+      return [];
     } catch (error) {
       console.error('Failed to get recommended users:', error);
       throw error;
@@ -543,8 +586,9 @@ export class SocialService extends BaseApiService {
 
   async getRecommendedGroups(): Promise<Group[]> {
     try {
-      const response = await this.get<Group[]>('/recommendations/groups');
-      return response;
+      // TODO: Implement recommendations endpoint in backend
+      // For now, return empty array
+      return [];
     } catch (error) {
       console.error('Failed to get recommended groups:', error);
       throw error;

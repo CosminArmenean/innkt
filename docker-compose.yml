@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: innkt_officer
       POSTGRES_USER: admin_officer
-      POSTGRES_PASSWORD: @CAvp57rt26
+      POSTGRES_PASSWORD: "CAvp57rt26"
       POSTGRES_MULTIPLE_DATABASES: innkt_social,innkt_groups,innkt_follow
     ports:
       - "5432:5432"
