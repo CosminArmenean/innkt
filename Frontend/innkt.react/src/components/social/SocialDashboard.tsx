@@ -42,26 +42,9 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
   const loadLinkedAccounts = async () => {
     try {
-      // Mock linked accounts data - in real app, this would come from API
-      const mockLinkedAccounts = [
-        {
-          id: '1',
-          name: 'John Doe',
-          username: '@johndoe',
-          avatar: '/api/placeholder/40/40',
-          platform: 'twitter',
-          isActive: true
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          username: '@janesmith',
-          avatar: '/api/placeholder/40/40',
-          platform: 'instagram',
-          isActive: true
-        }
-      ];
-      setLinkedAccounts(mockLinkedAccounts);
+      // TODO: Implement linked accounts API endpoint
+      // For now, return empty array
+      setLinkedAccounts([]);
     } catch (error) {
       console.error('Failed to load linked accounts:', error);
     }

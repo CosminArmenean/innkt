@@ -1,5 +1,4 @@
-import { BaseApiService } from './base-api.service';
-import { apiConfig } from './api.config';
+import { BaseApiService, officerApi } from './api.service';
 
 // Notification Interfaces
 export interface Notification {
@@ -61,14 +60,14 @@ class NotificationService extends BaseApiService {
   private notificationHandlers: ((notification: Notification) => void)[] = [];
 
   constructor() {
-    super(apiConfig.officerApi.baseUrl);
+    super(officerApi);
   }
 
   // WebSocket Connection
   connect(userId: string, token: string): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const wsUrl = `${apiConfig.messagingApi.wsUrl}/notifications?userId=${userId}&token=${token}`;
+        const wsUrl = `ws://localhost:3000/notifications?userId=${userId}&token=${token}`;
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {

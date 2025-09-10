@@ -1,7 +1,7 @@
 export const apiConfig = {
   officerApi: {
-    baseUrl: 'http://localhost:8080',
-    wsUrl: 'ws://localhost:8080'
+    baseUrl: 'http://localhost:5001',
+    wsUrl: 'ws://localhost:5001'
   },
   socialApi: {
     baseUrl: 'http://localhost:8081',

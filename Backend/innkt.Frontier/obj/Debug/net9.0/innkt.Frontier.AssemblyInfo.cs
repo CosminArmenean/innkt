@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("innkt.Frontier")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b421d4422c595f72e98ec16fe989088ebae8f808")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5d570bbbb63ce4a883196d65594115158325862c")]
 [assembly: System.Reflection.AssemblyProductAttribute("innkt.Frontier")]
 [assembly: System.Reflection.AssemblyTitleAttribute("innkt.Frontier")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

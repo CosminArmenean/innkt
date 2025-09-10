@@ -6,8 +6,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "officer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/api/identity/{everything}",
@@ -21,8 +21,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "officer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/connect/{everything}",
@@ -33,8 +33,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "officer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/.well-known/{everything}",
@@ -47,8 +47,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "social-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 8081
         }
       ],
       "UpstreamPathTemplate": "/api/social/{everything}",
@@ -65,7 +65,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "groups-service",
-          "Port": 8080
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/api/groups/{everything}",
@@ -82,7 +82,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "follow-service",
-          "Port": 8080
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/api/follow/{everything}",
@@ -98,8 +98,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5003
         }
       ],
       "UpstreamPathTemplate": "/api/neurospark/{everything}",
@@ -113,8 +113,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/api/search/{everything}",
@@ -128,8 +128,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/api/imageprocessing/{everything}",
@@ -143,8 +143,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/api/qrcode/{everything}",
@@ -160,8 +160,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "messaging-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 3000
         }
       ],
       "UpstreamPathTemplate": "/api/messaging/{everything}",
@@ -177,8 +177,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "seer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5267
         }
       ],
       "UpstreamPathTemplate": "/api/seer/{everything}",
@@ -192,8 +192,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "seer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/hubs/{everything}",
@@ -206,8 +206,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "officer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/identity",
@@ -218,8 +218,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "social-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/social",
@@ -231,7 +231,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "groups-service",
-          "Port": 8080
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/groups",
@@ -243,7 +243,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "follow-service",
-          "Port": 8080
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/follow",
@@ -254,8 +254,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/neurospark",
@@ -266,8 +266,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "messaging-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/messaging",
@@ -278,8 +278,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "seer-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/health/seer",
@@ -292,8 +292,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/qrcodes/{everything}",
@@ -304,8 +304,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/uploads/{everything}",
@@ -316,8 +316,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "neurospark-service",
-          "Port": 8080
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
       "UpstreamPathTemplate": "/processed/{everything}",

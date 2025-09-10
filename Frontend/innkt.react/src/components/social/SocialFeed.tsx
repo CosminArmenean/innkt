@@ -63,36 +63,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   };
 
   const loadLinkedPosts = () => {
-    // Mock linked posts data
-    const mockLinkedPosts = [
-      {
-        id: '1',
-        content: 'Just finished an amazing project! Excited to share it with everyone.',
-        image: '/api/placeholder/400/300',
-        authorId: 'current',
-        linkedAccountId: '1',
-        isLinkedPost: true,
-        branchType: 'linked' as const,
-        createdAt: new Date().toISOString(),
-        likes: 12,
-        comments: 5,
-        shares: 3
-      },
-      {
-        id: '2',
-        content: 'Beautiful sunset today! 🌅 This is why I love photography.',
-        image: '/api/placeholder/400/300',
-        authorId: 'current',
-        linkedAccountId: '2',
-        isLinkedPost: true,
-        branchType: 'shared' as const,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        likes: 25,
-        comments: 8,
-        shares: 12
-      }
-    ];
-    setLinkedPosts(mockLinkedPosts);
+    // TODO: Implement linked posts API endpoint
+    // For now, return empty array
+    setLinkedPosts([]);
   };
 
   const handlePostCreated = (newPost: Post) => {

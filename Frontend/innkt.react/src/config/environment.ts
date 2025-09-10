@@ -3,7 +3,8 @@ export const environment = {
   
   // API Endpoints
   api: {
-    officer: process.env.REACT_APP_OFFICER_API_URL || 'http://localhost:8080',
+    officer: process.env.REACT_APP_OFFICER_API_URL || 'http://localhost:5001',
+    social: process.env.REACT_APP_SOCIAL_API_URL || 'http://localhost:8081',
     neurospark: process.env.REACT_APP_NEUROSPARK_API_URL || 'http://localhost:5003',
     messaging: process.env.REACT_APP_MESSAGING_API_URL || 'http://localhost:3000',
     frontier: process.env.REACT_APP_FRONTIER_API_URL || 'http://localhost:51303',
