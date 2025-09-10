@@ -19,13 +19,11 @@ spec:
     spec:
       containers:
       - name: seer-service
-        image: innkt-seer:latest
-        imagePullPolicy: IfNotPresent
+        image: innkt-seer:sha-3d733d25
+        imagePullPolicy: IfNotPresent  # Use local image if available
         ports:
-        - containerPort: 5002
+        - containerPort: 8080
           name: http
-        - containerPort: 5003
-          name: signalr
         env:
         - name: ASPNETCORE_ENVIRONMENT
           valueFrom:
@@ -33,22 +31,32 @@ spec:
               name: innkt-config
               key: ASPNETCORE_ENVIRONMENT
         - name: ASPNETCORE_URLS
-          value: "http://+:5002"
+          valueFrom:
+            configMapKeyRef:
+              name: innkt-config
+              key: ASPNETCORE_URLS
         - name: ConnectionStrings__Redis
           valueFrom:
             configMapKeyRef:
               name: innkt-config
               key: REDIS_CONNECTION_STRING
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: innkt-secrets
-              key: JWT_SECRET
-        - name: KAFKA_BROKERS
+        - name: Kafka__BootstrapServers
           valueFrom:
             configMapKeyRef:
               name: innkt-config
               key: KAFKA_BOOTSTRAP_SERVERS
+        - name: Jwt__Issuer
+          value: "innkt-officer"
+        - name: Jwt__Audience
+          value: "innkt-seer"
+        - name: Jwt__SecretKey
+          value: "your-super-secret-jwt-key-that-is-at-least-32-characters-long"
+        - name: WEBRTC_STUN_SERVERS
+          value: "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+        - name: WEBRTC_MAX_PARTICIPANTS
+          value: "8"
+        - name: WEBRTC_CALL_TIMEOUT
+          value: "3600"
         resources:
           requests:
             memory: "256Mi"
@@ -59,15 +67,21 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 5002
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health/ready
-            port: 5002
+            path: /health
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+        volumeMounts:
+        - name: webrtc
+          mountPath: /app/webrtc
+      volumes:
+      - name: webrtc
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -81,11 +95,7 @@ spec:
     app: seer-service
   ports:
   - name: http
-    port: 5002
-    targetPort: 5002
-    protocol: TCP
-  - name: signalr
-    port: 5003
-    targetPort: 5003
+    port: 8080
+    targetPort: 8080
     protocol: TCP
   type: ClusterIP

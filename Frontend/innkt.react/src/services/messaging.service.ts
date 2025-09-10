@@ -102,7 +102,7 @@ class MessagingService extends BaseApiService {
   // Conversation Management
   async getConversations(): Promise<Conversation[]> {
     try {
-      const response = await this.get('/api/messaging/conversations');
+      const response = await this.get('/api/conversations');
       return (response as any).conversations || [];
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
@@ -112,7 +112,7 @@ class MessagingService extends BaseApiService {
 
   async getConversation(conversationId: string): Promise<Conversation> {
     try {
-      const response = await this.get(`/api/messaging/conversations/${conversationId}`);
+      const response = await this.get(`/api/conversations/${conversationId}`);
       return (response as any).conversation;
     } catch (error) {
       console.error('Failed to fetch conversation:', error);
@@ -122,7 +122,7 @@ class MessagingService extends BaseApiService {
 
   async createDirectConversation(userId: string): Promise<Conversation> {
     try {
-      const response = await this.post('/api/messaging/conversations/direct', { userId });
+      const response = await this.post('/api/conversations/direct', { userId });
       return (response as any).conversation;
     } catch (error) {
       console.error('Failed to create direct conversation:', error);
@@ -137,7 +137,7 @@ class MessagingService extends BaseApiService {
     settings?: Partial<ConversationSettings>;
   }): Promise<Conversation> {
     try {
-      const response = await this.post('/api/messaging/conversations/group', data);
+      const response = await this.post('/api/conversations/group', data);
       return (response as any).conversation;
     } catch (error) {
       console.error('Failed to create group conversation:', error);
@@ -279,7 +279,7 @@ class MessagingService extends BaseApiService {
   connect(): void {
     if (this.socket?.connected) return;
 
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       console.error('No auth token available for messaging');
       return;

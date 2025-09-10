@@ -1,4 +1,4 @@
-import { BaseApiService } from './base-api.service';
+import { BaseApiService } from './api.service';
 import { apiConfig } from './api.config';
 
 export interface TrendingPost {

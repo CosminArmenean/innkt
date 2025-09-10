@@ -1,4 +1,3 @@
-# Docker Compose configuration for innkt platform
 version: '3.8'
 
 services:
@@ -8,60 +7,59 @@ services:
     container_name: innkt-postgres
     environment:
       POSTGRES_DB: innkt_officer
-      POSTGRES_USER: innkt_user
-      POSTGRES_PASSWORD: innkt_password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./Backend/innkt.Officer/init.sql:/docker-entrypoint-initdb.d/init.sql
+      POSTGRES_USER: admin_officer
+      POSTGRES_PASSWORD: @CAvp57rt26
+      POSTGRES_MULTIPLE_DATABASES: innkt_social,innkt_groups,innkt_follow
     ports:
       - "5432:5432"
-    networks:
-      - innkt-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U innkt_user -d innkt_officer"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: innkt-mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: innkt_user
-      MONGO_INITDB_ROOT_PASSWORD: innkt_password
-      MONGO_INITDB_DATABASE: innkt_messaging
     volumes:
-      - mongodb_data:/data/db
-      - ./Backend/innkt.Messaging/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
-    ports:
-      - "27017:27017"
+      - postgres_data:/var/lib/postgresql/data
+      - ./Backend/innkt.Officer/init_identity_only.sql:/docker-entrypoint-initdb.d/01-init-identity.sql
     networks:
       - innkt-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "pg_isready -U admin_officer -d innkt_officer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: innkt-redis
-    command: redis-server --appendonly yes --requirepass innkt_redis_password
-    volumes:
-      - redis_data:/data
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - innkt-network
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Kafka
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: innkt-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: innkt_messaging
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - innkt-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka Message Broker
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: innkt-zookeeper
@@ -85,193 +83,35 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
       - innkt-network
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Officer Service (.NET)
-  officer:
-    build:
-      context: ./Backend/innkt.Officer
-      dockerfile: Dockerfile
-    container_name: innkt-officer
+  # Kafka UI (for monitoring)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: innkt-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=innkt_officer;Username=innkt_user;Password=innkt_password
-      - ConnectionStrings__Redis=redis:6379,password=innkt_redis_password
-      - Kafka__BootstrapServers=kafka:29092
-      - Jwt__Key=your-super-secret-jwt-key-that-is-at-least-32-characters-long
-      - Jwt__Issuer=innkt
-      - Jwt__Audience=innkt
-    ports:
-      - "5000:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
     networks:
       - innkt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # NeuroSpark Service (.NET with Python)
-  neurospark:
-    build:
-      context: ./Backend/innkt.NeuroSpark/innkt.NeuroSpark
-      dockerfile: Dockerfile
-    container_name: innkt-neurospark
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Redis=redis:6379,password=innkt_redis_password
-      - Kafka__BootstrapServers=kafka:29092
-      - Jwt__Key=your-super-secret-jwt-key-that-is-at-least-32-characters-long
-      - Jwt__Issuer=innkt
-      - Jwt__Audience=innkt
-    ports:
-      - "5001:8080"
-    depends_on:
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    networks:
-      - innkt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Seer Service (.NET WebRTC)
-  seer:
-    build:
-      context: ./Backend/innkt.Seer
-      dockerfile: Dockerfile
-    container_name: innkt-seer
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Redis=redis:6379,password=innkt_redis_password
-      - Kafka__BootstrapServers=kafka:29092
-      - Jwt__Key=your-super-secret-jwt-key-that-is-at-least-32-characters-long
-      - Jwt__Issuer=innkt
-      - Jwt__Audience=innkt
-      - WebRTC__StunServers=stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302
-      - WebRTC__MaxParticipants=8
-    ports:
-      - "5002:8080"
-    depends_on:
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    networks:
-      - innkt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Messaging Service (Node.js)
-  messaging:
-    build:
-      context: ./Backend/innkt.Messaging
-      dockerfile: Dockerfile
-    container_name: innkt-messaging
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - MONGODB_URI=mongodb://innkt_user:innkt_password@mongodb:27017/innkt_messaging?authSource=admin
-      - REDIS_URL=redis://:innkt_redis_password@redis:6379/0
-      - JWT_SECRET=your-super-secret-jwt-key-that-is-at-least-32-characters-long
-      - KAFKA_BROKERS=kafka:29092
-      - VAPID_PUBLIC_KEY=your-vapid-public-key
-      - VAPID_PRIVATE_KEY=your-vapid-private-key
-      - VAPID_SUBJECT=mailto:admin@innkt.com
-    ports:
-      - "3001:3001"
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    networks:
-      - innkt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # React Frontend
-  frontend:
-    build:
-      context: ./Frontend/innkt.react
-      dockerfile: Dockerfile
-    container_name: innkt-frontend
-    environment:
-      - NODE_ENV=production
-      - REACT_APP_API_URL=http://localhost:5000
-      - REACT_APP_WS_URL=ws://localhost:3001
-    ports:
-      - "3000:80"
-    depends_on:
-      - officer
-      - messaging
-    networks:
-      - innkt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: innkt-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    depends_on:
-      - frontend
-      - officer
-      - messaging
-      - neurospark
-      - seer
-    networks:
-      - innkt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   postgres_data:
-  mongodb_data:
   redis_data:
+  mongodb_data:
   kafka_data:
 
 networks:

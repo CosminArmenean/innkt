@@ -9,6 +9,9 @@ WORKDIR /src
 COPY ["innkt.Officer/innkt.Officer.csproj", "./"]
 COPY ["innkt.Common/innkt.Common.csproj", "innkt.Common/"]
 COPY ["innkt.KafkaCommunicationLibrary/innkt.KafkaCommunicationLibrary.csproj", "innkt.KafkaCommunicationLibrary/"]
+COPY ["innkt.StringLibrary/innkt.StringLibrary.csproj", "innkt.StringLibrary/"]
+COPY ["innkt.Domain/innkt.Domain.csproj", "innkt.Domain/"]
+COPY ["innkt.DataService/innkt.DataService.csproj", "innkt.DataService/"]
 
 # Restore dependencies
 RUN dotnet restore "innkt.Officer.csproj"
@@ -17,6 +20,9 @@ RUN dotnet restore "innkt.Officer.csproj"
 COPY ["innkt.Officer/", "./"]
 COPY ["innkt.Common/", "innkt.Common/"]
 COPY ["innkt.KafkaCommunicationLibrary/", "innkt.KafkaCommunicationLibrary/"]
+COPY ["innkt.StringLibrary/", "innkt.StringLibrary/"]
+COPY ["innkt.Domain/", "innkt.Domain/"]
+COPY ["innkt.DataService/", "innkt.DataService/"]
 
 # Build the application
 RUN dotnet build "innkt.Officer.csproj" -c Release -o /app/build

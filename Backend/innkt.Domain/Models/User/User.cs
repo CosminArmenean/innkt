@@ -28,6 +28,25 @@ public class User : BaseEntity
     [MaxLength(20)]
     public string? MobilePhone { get; set; }
     
+    // Additional properties for compatibility
+    public string Username { get; set; } = string.Empty;
+    
+    public string DisplayName { get; set; } = string.Empty;
+    
+    public string? Bio { get; set; }
+    
+    public string? AvatarUrl { get; set; }
+    
+    public string? CoverImageUrl { get; set; }
+    
+    public bool IsVerified { get; set; } = false;
+    
+    public bool IsPrivate { get; set; } = false;
+    
+    public int FollowersCount { get; set; } = 0;
+    
+    public int FollowingCount { get; set; } = 0;
+    
     public DateTime? BirthDate { get; set; }
     
     [MaxLength(10)]

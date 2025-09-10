@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: innkt-frontend:sha-3d733d25 # Using immutable tag
+        image: innkt-frontend-react:sha-b421d442 # Using immutable tag for React frontend
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80

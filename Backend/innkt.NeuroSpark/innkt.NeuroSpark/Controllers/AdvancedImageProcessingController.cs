@@ -22,7 +22,7 @@ public class AdvancedImageProcessingController : ControllerBase
     [HttpPost("remove-background-advanced")]
     public async Task<IActionResult> RemoveBackgroundAdvanced(
         IFormFile image, 
-        [FromForm] BackgroundRemovalOptions options)
+        [FromForm] Models.BackgroundRemovalOptions options)
     {
         try
         {
@@ -36,7 +36,17 @@ public class AdvancedImageProcessingController : ControllerBase
                 return BadRequest(new { Error = "Invalid image format. Supported formats: PNG, JPEG, WebP" });
             }
 
-            var result = await _advancedImageService.RemoveBackgroundAdvancedAsync(image, options);
+            // Convert Models.BackgroundRemovalOptions to Services.BackgroundRemovalOptions
+            var serviceOptions = new Services.BackgroundRemovalOptions
+            {
+                Model = options.Algorithm == "AI" ? "u2net" : "basic",
+                OutputFormat = options.OutputFormat,
+                Quality = options.Quality,
+                PreserveTransparency = options.PreserveEdges,
+                OptimizeForWeb = true
+            };
+            
+            var result = await _advancedImageService.RemoveBackgroundAdvancedAsync(image, serviceOptions);
             
             if (result.Status == ProcessingStatus.Completed)
             {

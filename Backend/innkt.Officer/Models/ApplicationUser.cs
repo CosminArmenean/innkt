@@ -160,6 +160,21 @@ public class ApplicationUser : IdentityUser
     
     public string? UpdatedBy { get; set; }
     
+    // Additional properties expected by services
+    public string Username => UserName ?? string.Empty;
+    
+    public string DisplayName => FullName;
+    
+    public string? Bio { get; set; }
+    
+    public string? AvatarUrl => ProfilePictureUrl;
+    
+    public string? CoverImageUrl { get; set; }
+    
+    public bool IsVerified => IsIdentityVerified;
+    
+    public bool IsPrivate { get; set; } = false;
+    
     // Computed properties
     public string FullName => $"{FirstName} {LastName}".Trim();
     

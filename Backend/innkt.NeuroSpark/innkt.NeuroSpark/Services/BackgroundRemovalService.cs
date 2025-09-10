@@ -305,16 +305,19 @@ namespace innkt.NeuroSpark.Services
                     using var process = new Process { StartInfo = startInfo };
                     process.Start();
 
-                    var output = await process.StandardOutput.ReadToEndAsync();
-                    var error = await process.StandardError.ReadToEndAsync();
-
-                    var completed = await process.WaitForExitAsync(_timeoutSeconds * 1000);
-
-                    if (!completed)
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeoutSeconds));
+                    try
+                    {
+                        await process.WaitForExitAsync(cts.Token);
+                    }
+                    catch (OperationCanceledException)
                     {
                         process.Kill();
                         throw new Exception($"Background removal timed out after {_timeoutSeconds} seconds");
                     }
+
+                    var output = await process.StandardOutput.ReadToEndAsync();
+                    var error = await process.StandardError.ReadToEndAsync();
 
                     if (process.ExitCode != 0)
                     {
@@ -387,16 +390,19 @@ namespace innkt.NeuroSpark.Services
                     using var process = new Process { StartInfo = startInfo };
                     process.Start();
 
-                    var output = await process.StandardOutput.ReadToEndAsync();
-                    var error = await process.StandardError.ReadToEndAsync();
-
-                    var completed = await process.WaitForExitAsync(_timeoutSeconds * 1000);
-
-                    if (!completed)
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeoutSeconds));
+                    try
+                    {
+                        await process.WaitForExitAsync(cts.Token);
+                    }
+                    catch (OperationCanceledException)
                     {
                         process.Kill();
                         throw new Exception($"Batch background removal timed out after {_timeoutSeconds} seconds");
                     }
+
+                    var output = await process.StandardOutput.ReadToEndAsync();
+                    var error = await process.StandardError.ReadToEndAsync();
 
                     if (process.ExitCode != 0)
                     {
@@ -543,10 +549,7 @@ namespace innkt.NeuroSpark.Services
                         _ => ImageFormat.Png
                     };
 
-                    var encoderParams = new EncoderParameters(1);
-                    encoderParams.Param[0] = new EncoderParameter(Encoder.Quality, options.Quality);
-                    
-                    resizedImage.Save(processedStream, format, encoderParams);
+                    resizedImage.Save(processedStream, format);
                     return processedStream.ToArray();
                 }
 

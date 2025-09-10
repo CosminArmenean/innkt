@@ -1,0 +1,7 @@
+{
+  "innkt.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "innkt.DataService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "innkt.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "innkt.KafkaCommunicationLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "innkt.StringLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~"
+}

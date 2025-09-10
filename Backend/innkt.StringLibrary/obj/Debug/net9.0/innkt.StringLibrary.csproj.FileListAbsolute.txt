@@ -10,3 +10,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\i
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\refint\innkt.StringLibrary.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\ref\innkt.StringLibrary.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.StringLibrary\obj\Debug\net9.0\innkt.StringLibrary.sourcelink.json

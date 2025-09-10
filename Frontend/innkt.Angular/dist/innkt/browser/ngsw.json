@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1756654955843,
+  "timestamp": 1757428218242,
   "index": "/index.html",
   "assetGroups": [
     {
@@ -102,7 +102,7 @@
     "/assets/i18n/en.json": "d28b4ce953029657a06791301416712a2821f815",
     "/assets/i18n/he.json": "49b8b3a36215b165a5da15ce8d84774c48bb1245",
     "/common.401bb79ff9c1ead1.js": "b38a3f5d8870696972c7f66ffbc0270897f500b0",
-    "/index.html": "f54cee56fe38dd808d6465769c53b69234ba81b7",
+    "/index.html": "7d4c03ba683423de1f3475a78ad99ff5c726ecb1",
     "/main.dd171abc807fe2d7.js": "b866560a890a0bf3216c4d8beea40b64ec4d491e",
     "/polyfills.57a04d90e1919fce.js": "73710386dd6c6f6baa75afa725b5f4803d4c4e6e",
     "/runtime.e844e4e243e03b54.js": "c23c309311105ce55b04f848d99df88297116335",

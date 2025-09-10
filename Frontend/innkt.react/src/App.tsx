@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import Header from './components/layout/Header';
@@ -14,17 +15,46 @@ import Profile from './components/profile/Profile';
 import ImageProcessing from './components/image-processing/ImageProcessing';
 import EnhancedMonitoringDashboard from './components/monitoring/EnhancedMonitoringDashboard';
 import SocialDashboard from './components/social/SocialDashboard';
+import SearchPage from './components/search/SearchPage';
+import GroupsPage from './components/groups/GroupsPage';
+import GroupDetailPage from './components/groups/GroupDetailPage';
 import AdvancedFeatures from './components/pages/AdvancedFeatures';
 import MessagingDashboard from './components/messaging/MessagingDashboard';
 import Unauthorized from './components/pages/Unauthorized';
 import Setup2FA from './components/auth/Setup2FA';
+import NotificationToast from './components/notifications/NotificationToast';
+import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
+import PWAStatus from './components/pwa/PWAStatus';
+import { pwaService } from './services/pwa.service';
 import './App.css';
 
 function App() {
+  useEffect(() => {
+    // Initialize PWA features
+    const initializePWA = async () => {
+      try {
+        // Request notification permission
+        await pwaService.requestNotificationPermission();
+        
+        // Sync offline data if online
+        if (pwaService.isOnlineStatus()) {
+          await pwaService.syncOfflineData();
+        }
+        
+        console.log('PWA features initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize PWA features:', error);
+      }
+    };
+
+    initializePWA();
+  }, []);
+
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
+      <NotificationProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
           <MainLayout>
             <Routes>
               {/* Public Routes */}
@@ -42,6 +72,24 @@ function App() {
               <Route path="/social" element={
                 <ProtectedRoute>
                   <SocialDashboard currentUserId="demo-user" />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/search" element={
+                <ProtectedRoute>
+                  <SearchPage currentUserId="demo-user" />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/groups" element={
+                <ProtectedRoute>
+                  <GroupsPage currentUserId="demo-user" />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/groups/:id" element={
+                <ProtectedRoute>
+                  <GroupDetailPage currentUserId="demo-user" />
                 </ProtectedRoute>
               } />
               
@@ -110,8 +158,22 @@ function App() {
               <Route path="/unauthorized" element={<Unauthorized />} />
             </Routes>
           </MainLayout>
+          
+          {/* Notification Toast */}
+          <NotificationToast />
+          
+          {/* PWA Install Prompt */}
+          <PWAInstallPrompt />
+          
+          {/* PWA Status (for debugging) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="fixed top-4 right-4 z-50">
+              <PWAStatus showDetails={false} />
+            </div>
+          )}
         </div>
       </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

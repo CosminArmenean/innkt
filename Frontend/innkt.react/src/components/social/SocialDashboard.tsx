@@ -5,6 +5,7 @@ import PostCreation from './PostCreation';
 import SocialFeed from './SocialFeed';
 import LinkedAccountsPost from './LinkedAccountsPost';
 import GroupChatButton from '../chat/GroupChatButton';
+import GroupsPage from '../groups/GroupsPage';
 
 interface SocialDashboardProps {
   currentUserId?: string;
@@ -98,87 +99,26 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <h1 className="text-2xl font-bold text-innkt-primary">INNKT Social</h1>
-              
-              {/* Navigation Tabs */}
-              <nav className="flex space-x-8">
-                {[
-                  { id: 'feed', label: 'Feed', icon: '📱' },
-                  { id: 'profile', label: 'Profile', icon: '👤' },
-                  { id: 'groups', label: 'Groups', icon: '👥' },
-                  { id: 'discover', label: 'Discover', icon: '🔍' },
-                  { id: 'messages', label: 'Messages', icon: '💬' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id as typeof activeTab)}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-innkt-primary text-white'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span>{tab.icon}</span>
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            {/* User Menu */}
-            {currentUser && (
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">
-                    {currentUser.displayName}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    @{currentUser.username}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                  {currentUser.avatar ? (
-                    <img 
-                      src={currentUser.avatar} 
-                      alt={currentUser.displayName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-gray-600">
-                        {currentUser.displayName.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          {/* Left Sidebar - Hidden on mobile, shown on lg+ */}
+          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6">
             {/* Quick Actions */}
-            <div className="card">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full btn-primary py-2">
-                  ✏️ Create Post
+                <button className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2">
+                  <span>✏️</span>
+                  <span>Create Post</span>
                 </button>
-                <button className="w-full btn-secondary py-2">
-                  👥 Create Group
+                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2">
+                  <span>👥</span>
+                  <span>Create Group</span>
                 </button>
-                <button className="w-full btn-secondary py-2">
-                  🔍 Search Users
+                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2">
+                  <span>🔍</span>
+                  <span>Search Users</span>
                 </button>
                 {linkedAccounts.length > 0 && (
                   <GroupChatButton
@@ -192,16 +132,16 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
             {/* Trending Topics */}
             {trendingTopics.length > 0 && (
-              <div className="card">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 Trending Topics</h3>
                 <div className="space-y-2">
                   {trendingTopics.slice(0, 8).map((topic, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       <span className="text-sm text-gray-700">#{topic}</span>
-                      <span className="text-xs text-gray-500">{index + 1}</span>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{index + 1}</span>
                     </div>
                   ))}
                 </div>
@@ -210,7 +150,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
             {/* Recommended Users */}
             {recommendedUsers.length > 0 && (
-              <div className="card">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Recommended Users</h3>
                 <div className="space-y-3">
                   {recommendedUsers.slice(0, 5).map((user) => (
@@ -238,7 +178,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
                           @{user.username}
                         </div>
                       </div>
-                      <button className="text-xs bg-innkt-primary text-white px-2 py-1 rounded-full hover:bg-innkt-dark transition-colors">
+                      <button className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full hover:bg-purple-700 transition-colors">
                         Follow
                       </button>
                     </div>
@@ -249,62 +189,95 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
           </div>
 
           {/* Main Content Area */}
-          <div className="lg:col-span-2">
-            {activeTab === 'feed' && (
-              <SocialFeed linkedAccounts={linkedAccounts} />
-            )}
-            
-            {activeTab === 'profile' && currentUser && (
-              <UserProfileComponent 
-                userId={currentUser.id} 
-                isOwnProfile={true} 
+          <div className="lg:col-span-6">
+            {/* Navigation Tabs */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6">
+              <nav className="flex space-x-0 overflow-x-auto">
+                {[
+                  { id: 'feed', label: 'Feed', icon: '📱' },
+                  { id: 'profile', label: 'Profile', icon: '👤' },
+                  { id: 'groups', label: 'Groups', icon: '👥' },
+                  { id: 'discover', label: 'Discover', icon: '🔍' },
+                  { id: 'messages', label: 'Messages', icon: '💬' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id as typeof activeTab)}
+                    className={`flex-1 min-w-0 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors border-b-2 ${
+                      activeTab === tab.id
+                        ? 'border-purple-600 text-purple-600 bg-purple-50'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-sm sm:text-base">{tab.icon}</span>
+                    <span className="hidden xs:inline sm:inline truncate">{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Tab Content */}
+            <div className="space-y-4 sm:space-y-6">
+              {activeTab === 'feed' && (
+                <SocialFeed 
+                linkedAccounts={linkedAccounts} 
+                currentUserId={currentUser?.id}
               />
-            )}
-            
-            {activeTab === 'groups' && (
-              <GroupsTab />
-            )}
-            
-            {activeTab === 'discover' && (
-              <DiscoverTab />
-            )}
-            
-            {activeTab === 'messages' && (
-              <MessagesTab />
-            )}
+              )}
+              
+              {activeTab === 'profile' && currentUser && (
+                <UserProfileComponent 
+                  userId={currentUser.id} 
+                  isOwnProfile={true}
+                  currentUserId={currentUser.id}
+                />
+              )}
+              
+              {activeTab === 'groups' && (
+                <GroupsPage currentUserId={currentUser?.id} />
+              )}
+              
+              {activeTab === 'discover' && (
+                <DiscoverTab />
+              )}
+              
+              {activeTab === 'messages' && (
+                <MessagesTab />
+              )}
+            </div>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Right Sidebar - Hidden on mobile, shown on lg+ */}
+          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6">
             {/* Current User Stats */}
             {currentUser && (
-              <div className="card">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Stats</h3>
-                <div className="space-y-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-xl font-bold text-blue-600">
                       {currentUser.postsCount}
                     </div>
-                    <div className="text-sm text-blue-600">Posts</div>
+                    <div className="text-xs text-blue-600">Posts</div>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="text-xl font-bold text-green-600">
                       {currentUser.followersCount}
                     </div>
-                    <div className="text-sm text-green-600">Followers</div>
+                    <div className="text-xs text-green-600">Followers</div>
                   </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <div className="text-xl font-bold text-purple-600">
                       {currentUser.followingCount}
                     </div>
-                    <div className="text-sm text-purple-600">Following</div>
+                    <div className="text-xs text-purple-600">Following</div>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Recent Activity */}
-            <div className="card">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 text-sm">
@@ -323,7 +296,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
             </div>
 
             {/* Quick Post */}
-            <div className="card">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Post</h3>
               <PostCreation onPostCreated={() => {}} />
             </div>

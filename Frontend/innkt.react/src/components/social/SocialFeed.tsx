@@ -8,13 +8,15 @@ interface SocialFeedProps {
   userId?: string;
   showPostCreation?: boolean;
   linkedAccounts?: any[];
+  currentUserId?: string;
 }
 
 const SocialFeed: React.FC<SocialFeedProps> = ({ 
   groupId, 
   userId, 
   showPostCreation = true,
-  linkedAccounts = []
+  linkedAccounts = [],
+  currentUserId
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [linkedPosts, setLinkedPosts] = useState<any[]>([]);
@@ -140,6 +142,21 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     } catch (error) {
       console.error('Failed to share post:', error);
     }
+  };
+
+  const handleEdit = (postId: string) => {
+    // This will be handled by the PostCard component
+    console.log('Edit post:', postId);
+  };
+
+  const handleDelete = (postId: string) => {
+    // Remove post from local state
+    setPosts(prev => prev.filter(post => post.id !== postId));
+  };
+
+  const handleReport = (postId: string) => {
+    // This will be handled by the PostCard component
+    console.log('Report post:', postId);
   };
 
   const filteredPosts = posts.filter(post => {
@@ -317,11 +334,15 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
               <PostCard
                 key={post.id}
                 post={post}
-                onLike={handleLike}
+                onEcho={handleLike}
                 onShare={handleShare}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onReport={handleReport}
                 formatDate={formatDate}
                 getPostVisibilityIcon={getPostVisibilityIcon}
                 getPostTypeIcon={getPostTypeIcon}
+                currentUserId={currentUserId}
               />
             ))}
           </>
@@ -347,39 +368,118 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 // Post Card Component
 interface PostCardProps {
   post: Post;
-  onLike: (postId: string) => void;
+  onEcho: (postId: string) => void;
   onShare: (postId: string) => void;
+  onEdit?: (postId: string) => void;
+  onDelete?: (postId: string) => void;
+  onReport?: (postId: string) => void;
   formatDate: (dateString: string) => string;
   getPostVisibilityIcon: (visibility: string) => string;
   getPostTypeIcon: (type: string) => string;
+  currentUserId?: string;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
   post,
-  onLike,
+  onEcho,
   onShare,
+  onEdit,
+  onDelete,
+  onReport,
   formatDate,
   getPostVisibilityIcon,
-  getPostTypeIcon
+  getPostTypeIcon,
+  currentUserId
 }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isSaving, setIsSaving] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
+
+  const loadComments = async () => {
+    if (isLoadingComments) return;
+    
+    setIsLoadingComments(true);
+    try {
+      const response = await socialService.getComments(post.id);
+      setComments(response.comments);
+    } catch (error) {
+      console.error('Failed to load comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
 
   const handleCommentSubmit = async () => {
     if (!commentText.trim()) return;
 
     setIsSubmittingComment(true);
     try {
-      await socialService.createComment(post.id, commentText);
+      const newComment = await socialService.createComment(post.id, commentText);
+      setComments(prev => [newComment, ...prev]);
       setCommentText('');
-      // TODO: Refresh comments
     } catch (error) {
       console.error('Failed to submit comment:', error);
     } finally {
       setIsSubmittingComment(false);
     }
   };
+
+  const handleToggleComments = () => {
+    if (!showComments) {
+      loadComments();
+    }
+    setShowComments(!showComments);
+  };
+
+  const handleEdit = async () => {
+    if (!editContent.trim()) return;
+    
+    setIsSaving(true);
+    try {
+      await socialService.updatePost(post.id, { content: editContent });
+      setIsEditing(false);
+      // TODO: Update post in parent component
+    } catch (error) {
+      console.error('Failed to update post:', error);
+      alert('Failed to update post. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await socialService.deletePost(post.id);
+      if (onDelete) {
+        onDelete(post.id);
+      }
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
+  const handleReport = () => {
+    if (onReport) {
+      onReport(post.id);
+    } else {
+      // Default report behavior
+      alert('Post reported. Thank you for helping keep our community safe.');
+    }
+  };
+
+  const isOwnPost = currentUserId && post.authorProfile.id === currentUserId;
 
   return (
     <div className="card">
@@ -402,26 +502,111 @@ const PostCard: React.FC<PostCardProps> = ({
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1">
-            <h3 className="font-medium text-gray-900 truncate">
-              {post.authorProfile.displayName}
-            </h3>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center space-x-2">
+              <h3 className="font-medium text-gray-900 truncate">
+                {post.authorProfile.displayName}
+              </h3>
+              
+              {post.authorProfile.isVerified && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  ✓ Verified
+                </span>
+              )}
+              
+              {post.authorProfile.isKidAccount && (
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                  👶 Kid
+                </span>
+              )}
+            </div>
             
-            {post.authorProfile.isVerified && (
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                ✓ Verified
-              </span>
-            )}
-            
-            {post.authorProfile.isKidAccount && (
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                👶 Kid
-              </span>
-            )}
+            {/* Options Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowOptions(!showOptions)}
+                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+              
+              {showOptions && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <div className="py-1">
+                    {isOwnPost ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            setIsEditing(true);
+                            setShowOptions(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        >
+                          <span>✏️</span>
+                          <span>Edit Post</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete();
+                            setShowOptions(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                        >
+                          <span>🗑️</span>
+                          <span>Delete Post</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            // TODO: Implement follow/unfollow functionality
+                            // This would require passing the post author's ID and follow state
+                            setShowOptions(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        >
+                          <span>👤</span>
+                          <span>Follow User</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleReport();
+                            setShowOptions(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                        >
+                          <span>🚨</span>
+                          <span>Report Post</span>
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => {
+                        // TODO: Implement save post
+                        setShowOptions(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <span>💾</span>
+                      <span>Save Post</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <span>{formatDate(post.createdAt)}</span>
+            {post.updatedAt !== post.createdAt && (
+              <>
+                <span>•</span>
+                <span className="text-gray-400">edited</span>
+              </>
+            )}
             <span>•</span>
             <span>{getPostTypeIcon(post.type)} {post.type}</span>
             <span>•</span>
@@ -439,7 +624,36 @@ const PostCard: React.FC<PostCardProps> = ({
 
       {/* Post Content */}
       <div className="mb-4">
-        <p className="text-gray-900 whitespace-pre-wrap">{post.content}</p>
+        {isEditing ? (
+          <div className="space-y-3">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+              rows={3}
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditContent(post.content);
+                }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEdit}
+                disabled={!editContent.trim() || isSaving}
+                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-900 whitespace-pre-wrap">{post.content}</p>
+        )}
         
         {/* Media Display */}
         {post.media && post.media.length > 0 && (
@@ -498,20 +712,45 @@ const PostCard: React.FC<PostCardProps> = ({
       {/* Post Actions */}
       <div className="flex items-center justify-between pt-4 border-t">
         <div className="flex items-center space-x-6">
-          <button
-            onClick={() => onLike(post.id)}
-            className={`flex items-center space-x-2 transition-colors ${
-              post.isLiked 
-                ? 'text-red-500' 
-                : 'text-gray-500 hover:text-red-500'
-            }`}
-          >
-            <span className="text-xl">{post.isLiked ? '❤️' : '🤍'}</span>
-            <span className="text-sm">{post.likesCount}</span>
-          </button>
+          {/* Echo Button with Reactions */}
+          <div className="relative">
+            <button
+              onClick={() => onEcho(post.id)}
+              onMouseEnter={() => setShowReactions(true)}
+              onMouseLeave={() => setShowReactions(false)}
+              className={`flex items-center space-x-2 transition-colors ${
+                post.isLiked 
+                  ? 'text-purple-600' 
+                  : 'text-gray-500 hover:text-purple-600'
+              }`}
+            >
+              <span className="text-xl">{post.isLiked ? '🔊' : '🔇'}</span>
+              <span className="text-sm">{post.likesCount}</span>
+            </button>
+            
+            {/* Echo Reaction Picker */}
+            {showReactions && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg border border-gray-200 p-1 flex items-center space-x-1 z-20">
+                {['🔊', '📢', '🎵', '💫', '⚡', '🌟'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => {
+                      // TODO: Implement different echo reaction types
+                      onEcho(post.id);
+                      setShowReactions(false);
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors text-lg"
+                    title={`Echo with ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           
           <button
-            onClick={() => setShowComments(!showComments)}
+            onClick={handleToggleComments}
             className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors"
           >
             <span className="text-xl">💬</span>
@@ -544,6 +783,7 @@ const PostCard: React.FC<PostCardProps> = ({
       {/* Comments Section */}
       {showComments && (
         <div className="mt-4 pt-4 border-t">
+          {/* Comment Input */}
           <div className="mb-4">
             <div className="flex space-x-3">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
@@ -554,14 +794,14 @@ const PostCard: React.FC<PostCardProps> = ({
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Write a comment..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-innkt-primary"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                   rows={2}
                 />
                 <div className="flex justify-end mt-2">
                   <button
                     onClick={handleCommentSubmit}
                     disabled={!commentText.trim() || isSubmittingComment}
-                    className="btn-primary text-sm px-4 py-1 disabled:opacity-50"
+                    className="bg-purple-600 text-white text-sm px-4 py-1 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isSubmittingComment ? 'Posting...' : 'Post Comment'}
                   </button>
@@ -570,9 +810,58 @@ const PostCard: React.FC<PostCardProps> = ({
             </div>
           </div>
           
-          {/* TODO: Display comments here */}
-          <div className="text-center py-4 text-gray-500">
-            <p>Comments will be loaded here</p>
+          {/* Comments List */}
+          <div className="space-y-3">
+            {isLoadingComments ? (
+              <div className="text-center py-4">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                <p className="text-gray-500 mt-2">Loading comments...</p>
+              </div>
+            ) : comments.length > 0 ? (
+              comments.map((comment) => (
+                <div key={comment.id} className="flex space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                    {comment.authorProfile?.avatar ? (
+                      <img
+                        src={comment.authorProfile.avatar}
+                        alt={comment.authorProfile.displayName}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-gray-600 text-sm">
+                        {comment.authorProfile?.displayName?.charAt(0) || '👤'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-50 rounded-lg px-3 py-2">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-medium text-sm text-gray-900">
+                          {comment.authorProfile?.displayName || 'Unknown User'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatDate(comment.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-800">{comment.content}</p>
+                    </div>
+                    <div className="flex items-center space-x-4 mt-1 ml-3">
+                      <button className="text-xs text-gray-500 hover:text-purple-600 flex items-center space-x-1">
+                        <span>🔊</span>
+                        <span>Echo</span>
+                      </button>
+                      <button className="text-xs text-gray-500 hover:text-gray-700">
+                        Reply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                <p>No comments yet. Be the first to comment!</p>
+              </div>
+            )}
           </div>
         </div>
       )}

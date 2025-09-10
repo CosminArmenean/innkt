@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, UserProfile, Post, Group } from '../../services/social.service';
+import FollowButton from './FollowButton';
+import UserCard from './UserCard';
 
 interface UserProfileProps {
   userId: string;
   isOwnProfile?: boolean;
+  currentUserId?: string;
 }
 
-const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile = false }) => {
+const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile = false, currentUserId }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [followers, setFollowers] = useState<UserProfile[]>([]);
+  const [following, setFollowing] = useState<UserProfile[]>([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'groups' | 'followers' | 'following' | 'blockchain'>('posts');
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
+  const [showCoverUpload, setShowCoverUpload] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -54,6 +62,24 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
     }
   };
 
+  const loadFollowers = async () => {
+    try {
+      const response = await socialService.getFollowers(userId);
+      setFollowers(response.followers);
+    } catch (error) {
+      console.error('Failed to load followers:', error);
+    }
+  };
+
+  const loadFollowing = async () => {
+    try {
+      const response = await socialService.getFollowing(userId);
+      setFollowing(response.following);
+    } catch (error) {
+      console.error('Failed to load following:', error);
+    }
+  };
+
   const handleProfileUpdate = async () => {
     if (!profile) return;
     
@@ -87,19 +113,52 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
     }
   };
 
+  const handleCoverFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedCoverFile(file);
+    }
+  };
+
+  const handleCoverUpload = async () => {
+    if (!selectedCoverFile || !profile) return;
+    
+    try {
+      const result = await socialService.uploadCoverImage(userId, selectedCoverFile);
+      setProfile({ ...profile, coverImage: result.coverImageUrl });
+      setShowCoverUpload(false);
+      setSelectedCoverFile(null);
+    } catch (error) {
+      console.error('Failed to upload cover image:', error);
+    }
+  };
+
   const handleFollow = async () => {
     if (!profile) return;
     
     try {
-      if (profile.followersCount > 0) {
+      if (isFollowing) {
         await socialService.unfollowUser(userId);
         setProfile({ ...profile, followersCount: profile.followersCount - 1 });
+        setIsFollowing(false);
       } else {
         await socialService.followUser(userId);
         setProfile({ ...profile, followersCount: profile.followersCount + 1 });
+        setIsFollowing(true);
       }
     } catch (error) {
       console.error('Failed to follow/unfollow user:', error);
+    }
+  };
+
+  const handleTabChange = (tab: 'posts' | 'groups' | 'followers' | 'following' | 'blockchain') => {
+    setActiveTab(tab);
+    
+    // Load data when switching to followers/following tabs
+    if (tab === 'followers') {
+      loadFollowers();
+    } else if (tab === 'following') {
+      loadFollowing();
     }
   };
 
@@ -141,8 +200,27 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
       {/* Profile Header */}
       <div className="card">
         <div className="relative">
-          {/* Cover Image Placeholder */}
-          <div className="h-48 bg-gradient-to-r from-innkt-primary to-innkt-dark rounded-t-lg"></div>
+          {/* Cover Image */}
+          <div className="h-48 bg-gradient-to-r from-purple-600 to-purple-800 rounded-t-lg relative overflow-hidden">
+            {profile.coverImage ? (
+              <img 
+                src={profile.coverImage} 
+                alt="Cover" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-purple-600 to-purple-800"></div>
+            )}
+            
+            {isOwnProfile && (
+              <button
+                onClick={() => setShowCoverUpload(true)}
+                className="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-colors"
+              >
+                📷
+              </button>
+            )}
+          </div>
           
           {/* Avatar Section */}
           <div className="absolute bottom-0 left-6 transform translate-y-1/2">
@@ -177,16 +255,14 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
           {/* Profile Actions */}
           <div className="absolute bottom-4 right-6 flex space-x-3">
             {!isOwnProfile && (
-              <button
-                onClick={handleFollow}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                  profile.followersCount > 0
-                    ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                    : 'bg-innkt-primary text-white hover:bg-innkt-dark'
-                }`}
-              >
-                {profile.followersCount > 0 ? 'Following' : 'Follow'}
-              </button>
+              <FollowButton
+                userId={userId}
+                currentUserId={currentUserId}
+                initialFollowing={isFollowing}
+                onFollowChange={setIsFollowing}
+                size="lg"
+                variant="primary"
+              />
             )}
             
             {isOwnProfile && (
@@ -344,10 +420,10 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
             {['posts', 'groups', 'followers', 'following'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
+                onClick={() => handleTabChange(tab as any)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab
-                    ? 'border-innkt-primary text-innkt-primary'
+                    ? 'border-purple-600 text-purple-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -406,7 +482,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
                         </div>
                         <p className="text-gray-700 mb-3">{post.content}</p>
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>❤️ {post.likesCount}</span>
+                          <span>🔊 {post.likesCount}</span>
                           <span>💬 {post.commentsCount}</span>
                           <span>🔄 {post.sharesCount}</span>
                         </div>
@@ -464,14 +540,44 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
           )}
 
           {activeTab === 'followers' && (
-            <div className="text-center py-8 text-gray-500">
-              <p>Followers list will be implemented here</p>
+            <div className="space-y-4">
+              {followers.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No followers yet</p>
+                </div>
+              ) : (
+                followers.map((follower) => (
+                  <UserCard
+                    key={follower.id}
+                    user={follower}
+                    currentUserId={currentUserId}
+                    showBio={true}
+                    showStats={false}
+                    size="md"
+                  />
+                ))
+              )}
             </div>
           )}
 
           {activeTab === 'following' && (
-            <div className="text-center py-8 text-gray-500">
-              <p>Following list will be implemented here</p>
+            <div className="space-y-4">
+              {following.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Not following anyone yet</p>
+                </div>
+              ) : (
+                following.map((user) => (
+                  <UserCard
+                    key={user.id}
+                    user={user}
+                    currentUserId={currentUserId}
+                    showBio={true}
+                    showStats={false}
+                    size="md"
+                  />
+                ))
+              )}
             </div>
           )}
 
@@ -495,7 +601,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
                 type="file"
                 accept="image/*"
                 onChange={handleFileSelect}
-                className="input-field"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
             
@@ -503,7 +609,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
               <button
                 onClick={handleAvatarUpload}
                 disabled={!selectedFile}
-                className="btn-primary flex-1"
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex-1 transition-colors"
               >
                 Upload
               </button>
@@ -512,7 +618,44 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
                   setShowAvatarUpload(false);
                   setSelectedFile(null);
                 }}
-                className="btn-secondary flex-1"
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 flex-1 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cover Image Upload Modal */}
+      {showCoverUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Cover Image</h3>
+            
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleCoverFileSelect}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCoverUpload}
+                disabled={!selectedCoverFile}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex-1 transition-colors"
+              >
+                Upload
+              </button>
+              <button
+                onClick={() => {
+                  setShowCoverUpload(false);
+                  setSelectedCoverFile(null);
+                }}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 flex-1 transition-colors"
               >
                 Cancel
               </button>

@@ -16,7 +16,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ className = '' })
       // Only show toast for certain notification types
       const showToastTypes = ['mention', 'group_invitation', 'follow'];
       
-      if (showToastTypes.includes(notification.type) && settings.desktopNotifications) {
+      if (showToastTypes.includes(notification.type) && (settings as any).desktopNotifications) {
         const toast = {
           id: notification.id,
           notification,
@@ -32,12 +32,12 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ className = '' })
       }
     };
 
-    notificationService.addNotificationHandler(handleNewNotification);
+    // notificationService.addNotificationHandler(handleNewNotification);
 
     return () => {
-      notificationService.removeNotificationHandler(handleNewNotification);
+      // notificationService.removeNotificationHandler(handleNewNotification);
     };
-  }, [settings.desktopNotifications]);
+  }, []);
 
   const removeToast = (toastId: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== toastId));
@@ -60,8 +60,32 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ className = '' })
           className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 animate-in slide-in-from-right duration-300"
         >
           <div className="flex items-start space-x-3">
-            <div className={`text-lg ${notificationService.getNotificationColor(toast.notification.type)}`}>
-              {notificationService.getNotificationIcon(toast.notification.type)}
+            <div className={`text-lg ${(() => {
+              const colorMap: { [key: string]: string } = {
+                'message': 'text-blue-500',
+                'mention': 'text-yellow-500',
+                'group_invitation': 'text-green-500',
+                'follow': 'text-purple-500',
+                'like': 'text-red-500',
+                'comment': 'text-blue-500',
+                'post': 'text-gray-500',
+                'system': 'text-gray-500'
+              };
+              return colorMap[toast.notification.type] || 'text-gray-500';
+            })()}`}>
+              {(() => {
+                const iconMap: { [key: string]: string } = {
+                  'message': '💬',
+                  'mention': '@',
+                  'group_invitation': '👥',
+                  'follow': '👤',
+                  'like': '❤️',
+                  'comment': '💭',
+                  'post': '📝',
+                  'system': '⚙️'
+                };
+                return iconMap[toast.notification.type] || '🔔';
+              })()}
             </div>
             
             <div className="flex-1 min-w-0">
@@ -72,7 +96,26 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ className = '' })
                 {toast.notification.body}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {notificationService.formatNotificationTime(toast.notification.timestamp)}
+                {(() => {
+                  const now = Date.now();
+                  const diff = now - toast.notification.timestamp;
+                  const seconds = Math.floor(diff / 1000);
+                  const minutes = Math.floor(seconds / 60);
+                  const hours = Math.floor(minutes / 60);
+                  const days = Math.floor(hours / 24);
+                  
+                  if (seconds < 60) {
+                    return 'Just now';
+                  } else if (minutes < 60) {
+                    return `${minutes}m ago`;
+                  } else if (hours < 24) {
+                    return `${hours}h ago`;
+                  } else if (days < 7) {
+                    return `${days}d ago`;
+                  } else {
+                    return new Date(toast.notification.timestamp).toLocaleDateString();
+                  }
+                })()}
               </p>
             </div>
             

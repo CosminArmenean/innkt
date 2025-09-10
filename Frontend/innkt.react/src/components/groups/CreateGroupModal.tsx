@@ -116,7 +116,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
         category: formData.category.toLowerCase(),
         type: formData.type,
         tags: formData.tags,
-        rules: formData.rules.map(rule => ({
+        rules: formData.rules.map((rule, index) => ({
+          id: `rule-${index}-${Date.now()}`,
           title: rule.title.trim(),
           description: rule.description.trim(),
           isActive: true

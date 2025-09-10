@@ -20,6 +20,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
   const [tagInput, setTagInput] = useState('');
   const [location, setLocation] = useState<PostLocation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{[key: number]: number}>({});
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [availableGroups, setAvailableGroups] = useState<Group[]>([]);
@@ -28,6 +29,12 @@ const PostCreation: React.FC<PostCreationProps> = ({
   const [aiProcessingStatus, setAiProcessingStatus] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
   const [blockchainEnabled, setBlockchainEnabled] = useState(false);
   const [blockchainNetwork, setBlockchainNetwork] = useState<'hashgraph' | 'ethereum' | 'polygon'>('hashgraph');
+  const [imageProcessingOptions, setImageProcessingOptions] = useState({
+    removeBackground: false,
+    enhanceQuality: false,
+    addFilters: false
+  });
+  const [isDragOver, setIsDragOver] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -64,18 +71,70 @@ const PostCreation: React.FC<PostCreationProps> = ({
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
+    
+    // Validate file sizes and types
+    const validFiles = files.filter(file => {
+      const maxSize = file.type.startsWith('video/') ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for video, 10MB for images
+      if (file.size > maxSize) {
+        alert(`File ${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)}MB`);
+        return false;
+      }
+      return true;
+    });
+    
+    setSelectedFiles(prev => [...prev, ...validFiles]);
     
     // Auto-set post type based on file type
-    if (files.some(file => file.type.startsWith('image/'))) {
+    if (validFiles.some(file => file.type.startsWith('image/'))) {
       setPostType('image');
-    } else if (files.some(file => file.type.startsWith('video/'))) {
+    } else if (validFiles.some(file => file.type.startsWith('video/'))) {
       setPostType('video');
+    }
+    
+    // Reset file input
+    if (event.target) {
+      event.target.value = '';
     }
   };
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      // Use the same validation logic as file input
+      const validFiles = files.filter(file => {
+        const maxSize = file.type.startsWith('video/') ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+          alert(`File ${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)}MB`);
+          return false;
+        }
+        return true;
+      });
+      
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+      
+      if (validFiles.some(file => file.type.startsWith('image/'))) {
+        setPostType('image');
+      } else if (validFiles.some(file => file.type.startsWith('video/'))) {
+        setPostType('video');
+      }
+    }
   };
 
   const handleTagInput = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -115,7 +174,28 @@ const PostCreation: React.FC<PostCreationProps> = ({
 
       // Upload media if any
       if (selectedFiles.length > 0) {
-        await socialService.uploadPostMedia(newPost.id, selectedFiles);
+        try {
+          // Show upload progress
+          setUploadProgress({});
+          const uploadPromises = selectedFiles.map(async (file, index) => {
+            // Simulate progress for each file
+            for (let progress = 0; progress <= 100; progress += 10) {
+              setUploadProgress(prev => ({ ...prev, [index]: progress }));
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+          });
+          
+          await Promise.all(uploadPromises);
+          
+          // Actually upload the files
+          await socialService.uploadPostMedia(newPost.id, selectedFiles);
+          
+          // Clear progress
+          setUploadProgress({});
+        } catch (uploadError) {
+          console.error('Failed to upload media:', uploadError);
+          alert('Failed to upload some media files. Post created without media.');
+        }
       }
 
       // AI Processing if enabled
@@ -228,7 +308,12 @@ const PostCreation: React.FC<PostCreationProps> = ({
           </div>
 
           {/* Content Input */}
-          <div>
+          <div 
+            className={`relative ${isDragOver ? 'bg-blue-50 border-2 border-blue-300 border-dashed rounded-lg' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <textarea
               ref={textareaRef}
               value={content}
@@ -245,32 +330,105 @@ const PostCreation: React.FC<PostCreationProps> = ({
               className="w-full border-0 resize-none focus:ring-0 text-lg placeholder-gray-400"
               rows={3}
             />
+            
+            {/* Drag and Drop Overlay */}
+            {isDragOver && (
+              <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center rounded-lg">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📁</div>
+                  <div className="text-blue-600 font-medium">Drop files here to upload</div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Media Preview */}
           {selectedFiles.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {selectedFiles.map((file, index) => (
-                <div key={index} className="relative group">
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-                    {file.type.startsWith('image/') ? (
-                      <img
-                        src={getFilePreview(file)}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl">{getFilePreview(file)}</span>
-                    )}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="relative group">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center relative">
+                      {file.type.startsWith('image/') ? (
+                        <img
+                          src={getFilePreview(file)}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl">{getFilePreview(file)}</span>
+                      )}
+                      
+                      {/* Upload Progress Overlay */}
+                      {uploadProgress[index] !== undefined && uploadProgress[index] < 100 && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                          <div className="text-white text-center">
+                            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <div className="text-sm">{uploadProgress[index]}%</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* File Info */}
+                    <div className="mt-1 text-xs text-gray-500 truncate">
+                      {file.name}
+                    </div>
+                    
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
                   </div>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
+                ))}
+              </div>
+              
+              {/* Image Processing Options */}
+              {selectedFiles.some(file => file.type.startsWith('image/')) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-blue-800 mb-3">🖼️ Image Processing Options</h4>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={imageProcessingOptions.removeBackground}
+                        onChange={(e) => setImageProcessingOptions(prev => ({
+                          ...prev,
+                          removeBackground: e.target.checked
+                        }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-blue-700">Remove background (AI-powered)</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={imageProcessingOptions.enhanceQuality}
+                        onChange={(e) => setImageProcessingOptions(prev => ({
+                          ...prev,
+                          enhanceQuality: e.target.checked
+                        }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-blue-700">Enhance image quality</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={imageProcessingOptions.addFilters}
+                        onChange={(e) => setImageProcessingOptions(prev => ({
+                          ...prev,
+                          addFilters: e.target.checked
+                        }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-blue-700">Apply smart filters</span>
+                    </label>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
 
@@ -497,7 +655,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/*,video/*"
+        accept="image/*,video/*,.pdf,.doc,.docx,.txt"
         onChange={handleFileSelect}
         className="hidden"
       />
