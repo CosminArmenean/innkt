@@ -1,4 +1,5 @@
 import { BaseApiService } from './api.service';
+import { apiConfig } from './api.config';
 
 export interface PWAInstallPrompt {
   prompt: () => Promise<void>;
@@ -27,7 +28,7 @@ class PWAService extends BaseApiService {
   private registration: ServiceWorkerRegistration | null = null;
 
   constructor() {
-    super(apiConfig.officerApi);
+    super(apiConfig.officerApi.baseUrl);
     this.initializePWA();
   }
 
@@ -116,8 +117,9 @@ class PWAService extends BaseApiService {
 
   // Setup periodic sync
   private setupPeriodicSync() {
-    if ('serviceWorker' in navigator && 'periodicSync' in window.ServiceWorkerRegistration.prototype) {
-      this.registration?.periodicSync.register('content-sync', {
+    if ('serviceWorker' in navigator && 'periodicSync' in window.ServiceWorkerRegistration.prototype) { 
+      // @ts-ignore - periodicSync is experimental and not in TypeScript definitions
+      this.registration?.periodicSync?.register('content-sync', {
         minInterval: 24 * 60 * 60 * 1000 // 24 hours
       });
     }

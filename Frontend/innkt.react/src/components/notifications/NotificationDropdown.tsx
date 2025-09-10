@@ -196,7 +196,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
                 className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                  !notification.isRead ? 'bg-blue-50' : ''
+                  !notification.read ? 'bg-blue-50' : ''
                 }`}
               >
                 <div className="flex items-start space-x-3">
@@ -208,20 +208,20 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className={`text-sm font-medium ${
-                          !notification.isRead ? 'text-gray-900' : 'text-gray-700'
+                          !notification.read ? 'text-gray-900' : 'text-gray-700'
                         }`}>
                           {notification.title}
                         </p>
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {notification.message}
+                          {notification.body}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatTime(new Date(notification.createdAt).getTime())}
+                          {formatTime(notification.timestamp)}
                         </p>
                       </div>
                       
                       <div className="flex items-center space-x-1 ml-2">
-                        {!notification.isRead && (
+                        {!notification.read && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
                         <button

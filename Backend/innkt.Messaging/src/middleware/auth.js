@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'innkt.officer.jwt.secret.key.2025.very.long.and.secure.key';
 
 // Socket.IO authentication middleware
 async function authenticateSocket(socket, next) {

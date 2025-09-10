@@ -24,6 +24,15 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Test endpoint to verify service is working
+    /// </summary>
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
+        return Ok(new { message = "Auth service is working", timestamp = DateTime.UtcNow });
+    }
+
+    /// <summary>
     /// Register a new user account
     /// </summary>
     [HttpPost("register")]

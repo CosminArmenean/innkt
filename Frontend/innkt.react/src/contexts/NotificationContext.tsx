@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { notificationService, AppNotification, NotificationSettings } from '../services/notification.service';
+import { notificationService, Notification as AppNotification, NotificationSettings } from '../services/notification.service';
 
 interface NotificationContextType {
   notifications: AppNotification[];
@@ -55,12 +55,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     try {
       setIsLoading(true);
-      const response = await notificationService.getNotifications({ page: 0, limit: 50 });
+      const response = await notificationService.getNotifications(0, 50);
       setNotifications(response.notifications);
       
       // Also load unread count
-      const stats = await notificationService.getNotificationStats();
-      setUnreadCount(stats.unread);
+      const unreadCount = await notificationService.getUnreadCount();
+      setUnreadCount(unreadCount);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {
@@ -140,7 +140,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       
       // Update unread count if notification was unread
       const notification = notifications.find(n => n.id === notificationId);
-      if (notification && !notification.isRead) {
+      if (notification && !notification.read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {

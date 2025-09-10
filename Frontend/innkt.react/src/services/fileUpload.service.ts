@@ -95,24 +95,9 @@ class FileUploadService extends BaseApiService {
     }
 
     try {
-      const response = await this.post<{ messageId: string; file: FileInfo }>(
+      const response = await this.upload<{ messageId: string; file: FileInfo }>(
         `/file-upload/upload/${conversationId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (progressEvent) => {
-            if (onProgress && progressEvent.total) {
-              const progress: UploadProgress = {
-                loaded: progressEvent.loaded,
-                total: progressEvent.total,
-                percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total)
-              };
-              onProgress(progress);
-            }
-          }
-        }
+        formData
       );
 
       return response;
