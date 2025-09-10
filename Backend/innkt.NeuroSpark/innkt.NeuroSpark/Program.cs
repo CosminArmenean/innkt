@@ -6,11 +6,37 @@ using Microsoft.Extensions.Options;
 using innkt.KafkaCommunicationLibrary.Interfaces;
 using innkt.KafkaCommunicationLibrary.Producers;
 using innkt.KafkaCommunicationLibrary.Consumers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
+
+// Add JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // Set to true in production
+        
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "")),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// Add Authorization
+builder.Services.AddAuthorization();
 
 // Add Redis Configuration
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
@@ -148,6 +174,10 @@ if (app.Environment.IsProduction())
 
 app.UseCors("AllowAll");
 
+// Add Authentication and Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Add Security Middleware
 app.UseMiddleware<SecurityMiddleware>();
 
@@ -171,8 +201,6 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(qrCodesPath),
     RequestPath = "/qrcodes"
 });
-
-app.UseAuthorization();
 
 app.MapControllers();
 

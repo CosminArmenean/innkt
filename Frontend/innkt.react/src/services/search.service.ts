@@ -1,4 +1,5 @@
 import { BaseApiService } from './api.service';
+import { apiConfig } from './api.config';
 
 export interface SearchRequest {
   query: string;
@@ -137,7 +138,7 @@ class SearchService extends BaseApiService {
   private recentSearches: string[] = [];
 
   constructor() {
-    super(apiConfig.officerApi);
+    super(apiConfig.officerApi.baseUrl);
     this.loadSearchHistory();
   }
 

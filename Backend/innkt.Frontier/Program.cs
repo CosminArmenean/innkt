@@ -5,6 +5,7 @@ using Ocelot.Middleware;
 using Serilog;
 using Serilog.Events;
 using System.Text;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,16 +28,18 @@ builder.Configuration
     .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-// Add Ocelot
-builder.Services.AddOcelot(builder.Configuration);
+// Add HttpContextAccessor for JWT forwarding
+builder.Services.AddHttpContextAccessor();
+
+// Add Ocelot with JWT forwarding
+builder.Services.AddOcelot(builder.Configuration)
+    .AddDelegatingHandler<JwtTokenForwardingHandler>();
 
 // Add Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = builder.Configuration["IdentityServer:Authority"];
         options.RequireHttpsMetadata = false;
-        options.Audience = "innkt.api";
         
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -44,6 +47,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "")),
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -54,7 +61,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ApiScope", policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", "innkt.api");
     });
 });
 
@@ -100,3 +106,29 @@ app.UseAuthorization();
 await app.UseOcelot();
 
 app.Run();
+
+// JWT Token Forwarding Handler
+public class JwtTokenForwardingHandler : DelegatingHandler
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public JwtTokenForwardingHandler(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var authHeader = httpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                request.Headers.Authorization = AuthenticationHeaderValue.Parse(authHeader);
+            }
+        }
+
+        return await base.SendAsync(request, cancellationToken);
+    }
+}

@@ -103,7 +103,7 @@ class PushNotificationService extends BaseApiService {
 
   async unsubscribeFromPushNotifications(endpoint: string): Promise<void> {
     try {
-      await this.delete('/push-notifications/unsubscribe', { endpoint });
+      await this.delete(`/push-notifications/unsubscribe?endpoint=${encodeURIComponent(endpoint)}`);
     } catch (error) {
       console.error('Failed to unsubscribe from push notifications:', error);
       throw error;

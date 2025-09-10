@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { notificationService, AppNotification, NotificationSettings } from '../../services/notification.service';
+import { notificationService, Notification as AppNotification, NotificationSettings } from '../../services/notification.service';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -18,12 +18,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   const loadNotifications = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await notificationService.getNotifications({
-        limit: 50,
-        unreadOnly: activeTab === 'unread',
-      });
+      const result = await notificationService.getNotifications(0, 50);
       setNotifications(result.notifications);
-      setUnreadCount(result.unreadCount);
+      const unreadCount = await notificationService.getUnreadCount();
+      setUnreadCount(unreadCount);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {
@@ -47,7 +45,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
 
     const handleNotification = (notification: AppNotification) => {
       setNotifications(prev => [notification, ...prev]);
-      if (!notification.isRead) {
+      if (!notification.read) {
         setUnreadCount(prev => prev + 1);
       }
     };
@@ -56,10 +54,12 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
       console.error('Notification stream error:', error);
     };
 
-    notificationService.subscribeToNotifications(handleNotification, handleError);
+    // TODO: Implement WebSocket subscription when backend is ready
+    // notificationService.subscribeToNotifications(handleNotification, handleError);
 
     return () => {
-      notificationService.unsubscribeFromNotifications();
+      // TODO: Implement WebSocket unsubscription when backend is ready
+      // notificationService.unsubscribeFromNotifications();
     };
   }, [isOpen]);
 
@@ -73,12 +73,12 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
 
   // Mark notification as read
   const handleMarkAsRead = async (notification: AppNotification) => {
-    if (notification.isRead) return;
+    if (notification.read) return;
 
     try {
       await notificationService.markAsRead(notification.id);
       setNotifications(prev =>
-        prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -106,7 +106,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       // Update unread count if the deleted notification was unread
       const deletedNotification = notifications.find(n => n.id === notificationId);
-      if (deletedNotification && !deletedNotification.isRead) {
+      if (deletedNotification && !deletedNotification.read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
@@ -248,8 +248,8 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                 <span className="text-sm text-gray-700">In-App Notifications</span>
                 <input
                   type="checkbox"
-                  checked={settings.inAppNotifications}
-                  onChange={(e) => handleUpdateSettings({ inAppNotifications: e.target.checked })}
+                  checked={settings.desktopNotifications}
+                  onChange={(e) => handleUpdateSettings({ desktopNotifications: e.target.checked })}
                   className="rounded border-gray-300 text-innkt-primary focus:ring-innkt-primary"
                 />
               </div>
@@ -275,7 +275,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                 <div
                   key={notification.id}
                   className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notification.isRead ? getPriorityColor(notification.priority) : ''
+                    !notification.read ? 'bg-blue-50' : ''
                   }`}
                   onClick={() => handleMarkAsRead(notification)}
                 >
@@ -290,7 +290,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                         </h4>
                         <div className="flex items-center space-x-2">
                           <span className="text-xs text-gray-500">
-                            {formatRelativeTime(notification.createdAt)}
+                            {formatRelativeTime(new Date(notification.timestamp).toISOString())}
                           </span>
                           <button
                             onClick={(e) => {
@@ -303,29 +303,21 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                      {notification.senderProfile && (
+                      <p className="text-sm text-gray-600 mt-1">{notification.body}</p>
+                      {notification.data?.senderName && (
                         <div className="flex items-center space-x-2 mt-2">
-                          {notification.senderProfile.avatar ? (
-                            <img
-                              src={notification.senderProfile.avatar}
-                              alt={notification.senderProfile.displayName}
-                              className="w-6 h-6 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-xs text-gray-600">
-                                {notification.senderProfile.displayName.charAt(0)}
-                              </span>
-                            </div>
-                          )}
+                          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span className="text-xs text-gray-600">
+                              {notification.data.senderName.charAt(0)}
+                            </span>
+                          </div>
                           <span className="text-xs text-gray-500">
-                            {notification.senderProfile.displayName}
+                            {notification.data.senderName}
                           </span>
                         </div>
                       )}
                     </div>
-                    {!notification.isRead && (
+                    {!notification.read && (
                       <div className="flex-shrink-0">
                         <div className="w-2 h-2 bg-innkt-primary rounded-full"></div>
                       </div>

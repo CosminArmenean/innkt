@@ -167,8 +167,8 @@ using (var serviceScope = app.Services.CreateScope())
         configContext.Database.Migrate();
         persistedGrantContext.Database.Migrate();
         
-        // Seed String Library
-        await StringLibrarySeeder.SeedAsync(services.GetRequiredService<ILocalizationService>());
+        // Seed String Library (temporarily disabled for debugging)
+        // await StringLibrarySeeder.SeedAsync(services.GetRequiredService<ILocalizationService>());
         
         Log.Information("Database seeded successfully");
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { socialService, UserProfile, Post, Group } from '../../services/social.service';
+import { socialService, UserProfile, Post, Group, Follow } from '../../services/social.service';
 import FollowButton from './FollowButton';
 import UserCard from './UserCard';
 
@@ -13,8 +13,8 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [followers, setFollowers] = useState<UserProfile[]>([]);
-  const [following, setFollowing] = useState<UserProfile[]>([]);
+  const [followers, setFollowers] = useState<Follow[]>([]);
+  const [following, setFollowing] = useState<Follow[]>([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'groups' | 'followers' | 'following' | 'blockchain'>('posts');
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -122,10 +122,10 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
 
   const handleCoverUpload = async () => {
     if (!selectedCoverFile || !profile) return;
-    
+
     try {
-      const result = await socialService.uploadCoverImage(userId, selectedCoverFile);
-      setProfile({ ...profile, coverImage: result.coverImageUrl });
+      // TODO: Implement cover image upload when backend supports it
+      console.log('Cover image upload not yet implemented');
       setShowCoverUpload(false);
       setSelectedCoverFile(null);
     } catch (error) {
@@ -202,15 +202,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
         <div className="relative">
           {/* Cover Image */}
           <div className="h-48 bg-gradient-to-r from-purple-600 to-purple-800 rounded-t-lg relative overflow-hidden">
-            {profile.coverImage ? (
-              <img 
-                src={profile.coverImage} 
-                alt="Cover" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-purple-600 to-purple-800"></div>
-            )}
+            <div className="w-full h-full bg-gradient-to-r from-purple-600 to-purple-800"></div>
             
             {isOwnProfile && (
               <button
@@ -547,14 +539,19 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
                 </div>
               ) : (
                 followers.map((follower) => (
-                  <UserCard
-                    key={follower.id}
-                    user={follower}
-                    currentUserId={currentUserId}
-                    showBio={true}
-                    showStats={false}
-                    size="md"
-                  />
+                  <div key={follower.id} className="p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">
+                          {follower.followerProfile?.displayName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{follower.followerProfile?.displayName || 'Unknown User'}</p>
+                        <p className="text-sm text-gray-500">Follower</p>
+                      </div>
+                    </div>
+                  </div>
                 ))
               )}
             </div>
@@ -568,14 +565,19 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
                 </div>
               ) : (
                 following.map((user) => (
-                  <UserCard
-                    key={user.id}
-                    user={user}
-                    currentUserId={currentUserId}
-                    showBio={true}
-                    showStats={false}
-                    size="md"
-                  />
+                  <div key={user.id} className="p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">
+                          {user.followingProfile?.displayName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{user.followingProfile?.displayName || 'Unknown User'}</p>
+                        <p className="text-sm text-gray-500">Following</p>
+                      </div>
+                    </div>
+                  </div>
                 ))
               )}
             </div>

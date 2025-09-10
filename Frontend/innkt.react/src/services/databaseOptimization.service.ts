@@ -1,4 +1,5 @@
 import { BaseApiService } from './api.service';
+import { apiConfig } from './api.config';
 
 export interface QueryPerformanceStats {
   analysisTime: string;
@@ -79,7 +80,7 @@ export interface DatabaseHealthReport {
 
 class DatabaseOptimizationService extends BaseApiService {
   constructor() {
-    super(apiConfig.officerApi);
+    super(apiConfig.officerApi.baseUrl);
   }
 
   // Get query performance statistics

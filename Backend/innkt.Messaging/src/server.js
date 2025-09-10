@@ -34,7 +34,7 @@ const io = socketIo(server, {
 });
 
 // Configuration
-const PORT = process.env.PORT || 5003;
+const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/innkt_messaging';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 

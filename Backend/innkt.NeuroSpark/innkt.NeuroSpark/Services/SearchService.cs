@@ -540,13 +540,33 @@ public class SearchService : ISearchService
     public async Task<SearchResponse> HybridSearchAsync(SearchRequest request)
     {
         // Implementation would combine multiple search methods
-        return await SearchAsync(request);
+        // For now, return a simple response to avoid infinite recursion
+        return new SearchResponse
+        {
+            Query = request.Query,
+            Results = new List<SearchResult>(),
+            TotalCount = 0,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            HasNextPage = false,
+            HasPreviousPage = false
+        };
     }
 
     public async Task<SearchResponse> SearchWithFiltersAsync(SearchRequest request, SearchFilters filters)
     {
         // Implementation would apply additional filters
-        return await SearchAsync(request);
+        // For now, return a simple response to avoid infinite recursion
+        return new SearchResponse
+        {
+            Query = request.Query,
+            Results = new List<SearchResult>(),
+            TotalCount = 0,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            HasNextPage = false,
+            HasPreviousPage = false
+        };
     }
 
     // Helper methods
