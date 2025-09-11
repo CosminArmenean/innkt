@@ -44,8 +44,10 @@ class PWAService extends BaseApiService {
       // Setup online/offline listeners
       this.setupConnectionListeners();
       
-      // Setup periodic sync
-      this.setupPeriodicSync();
+      // Wait a bit for service worker to be fully active, then setup periodic sync
+      setTimeout(() => {
+        this.setupPeriodicSync();
+      }, 1000);
       
       console.log('PWA Service initialized successfully');
     } catch (error) {
@@ -117,11 +119,50 @@ class PWAService extends BaseApiService {
 
   // Setup periodic sync
   private setupPeriodicSync() {
-    if ('serviceWorker' in navigator && 'periodicSync' in window.ServiceWorkerRegistration.prototype) { 
+    // Check if periodic sync is supported and registration is available
+    if (!('serviceWorker' in navigator)) {
+      console.log('Service Worker not supported, skipping periodic sync');
+      return;
+    }
+
+    if (!('periodicSync' in window.ServiceWorkerRegistration.prototype)) {
+      console.log('Periodic sync not supported, skipping');
+      return;
+    }
+
+    if (!this.registration) {
+      console.log('Service Worker not registered yet, skipping periodic sync');
+      return;
+    }
+
+    // Check if service worker is active
+    if (this.registration.active) {
+      this.registerPeriodicSync();
+    } else {
+      // Wait for service worker to become active
+      this.registration.addEventListener('updatefound', () => {
+        const newWorker = this.registration?.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated') {
+              this.registerPeriodicSync();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  // Register periodic sync
+  private registerPeriodicSync() {
+    try {
       // @ts-ignore - periodicSync is experimental and not in TypeScript definitions
       this.registration?.periodicSync?.register('content-sync', {
         minInterval: 24 * 60 * 60 * 1000 // 24 hours
       });
+      console.log('Periodic sync registered successfully');
+    } catch (error) {
+      console.warn('Periodic sync registration failed:', error);
     }
   }
 
@@ -405,20 +446,32 @@ class PWAService extends BaseApiService {
 
   // Request notification permission
   async requestNotificationPermission(): Promise<boolean> {
-    if (!('Notification' in window)) {
+    try {
+      if (!('Notification' in window)) {
+        console.log('Notifications not supported in this browser');
+        return false;
+      }
+
+      if (Notification.permission === 'granted') {
+        return true;
+      }
+
+      if (Notification.permission === 'denied') {
+        console.log('Notification permission denied by user');
+        return false;
+      }
+
+      // Only request permission if it's not already denied
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+      }
+
+      return false;
+    } catch (error) {
+      console.warn('Failed to request notification permission:', error);
       return false;
     }
-
-    if (Notification.permission === 'granted') {
-      return true;
-    }
-
-    if (Notification.permission === 'denied') {
-      return false;
-    }
-
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
   }
 
   // Show notification
