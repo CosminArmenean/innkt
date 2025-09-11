@@ -275,6 +275,33 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Get current user profile
+    /// </summary>
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult<UserProfileDto>> GetCurrentUser()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                var authMessage = await _localization.GetStringAsync(AppStrings.Auth.UserNotAuthenticated);
+                return Unauthorized(authMessage);
+            }
+
+            var userProfile = await _authService.GetUserProfileAsync(userId);
+            return Ok(userProfile);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get current user profile");
+            var errorMessage = await _localization.GetStringAsync(AppStrings.General.ServerError);
+            return StatusCode(500, new { error = errorMessage });
+        }
+    }
+
+    /// <summary>
     /// Logout user
     /// </summary>
     [HttpPost("logout")]
