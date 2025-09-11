@@ -77,6 +77,7 @@ builder.Services.AddAutoMapper(typeof(Program), typeof(innkt.Social.Mapping.Auto
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<TrendingService>();
 
 // Add Logging
 builder.Services.AddLogging(logging =>

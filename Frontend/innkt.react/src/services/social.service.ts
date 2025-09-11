@@ -584,23 +584,23 @@ export class SocialService extends BaseApiService {
 
   async getTrendingTopics(): Promise<string[]> {
     try {
-      // TODO: Implement trending topics endpoint in backend
-      // For now, return empty array
-      return [];
+      const response = await this.get<string[]>('/trending/topics');
+      return response;
     } catch (error) {
       console.error('Failed to get trending topics:', error);
-      throw error;
+      // Return empty array as fallback
+      return [];
     }
   }
 
   async getRecommendedUsers(): Promise<UserProfile[]> {
     try {
-      // TODO: Implement recommendations endpoint in backend
-      // For now, return empty array
-      return [];
+      const response = await this.get<UserProfile[]>('/trending/recommendations/users');
+      return response;
     } catch (error) {
       console.error('Failed to get recommended users:', error);
-      throw error;
+      // Return empty array as fallback
+      return [];
     }
   }
 

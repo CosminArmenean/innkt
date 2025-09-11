@@ -534,6 +534,17 @@ public class AuthService : IAuthService
         return Convert.ToBase64String(randomNumber);
     }
 
+    public async Task<UserProfileDto> GetUserProfileAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+
+        return MapToUserProfileDto(user);
+    }
+
     private UserDto MapToUserDto(ApplicationUser user)
     {
         return new UserDto
@@ -549,6 +560,80 @@ public class AuthService : IAuthService
             IsEmailVerified = user.IsEmailVerified,
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt
+        };
+    }
+
+    private UserProfileDto MapToUserProfileDto(ApplicationUser user)
+    {
+        return new UserProfileDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            FullName = user.FullName,
+            Username = user.UserName ?? user.Email,
+            Bio = user.Bio,
+            Location = user.Location,
+            Website = user.Website,
+            DateOfBirth = user.DateOfBirth,
+            ProfilePictureUrl = user.ProfilePictureUrl,
+            Language = user.Language,
+            Theme = user.Theme,
+            IsEmailVerified = user.IsEmailVerified,
+            IsActive = user.IsActive,
+            IsVerified = user.IsVerified,
+            IsKidAccount = user.IsKidAccount,
+            ParentId = user.ParentId,
+            IndependenceDate = user.IndependenceDate,
+            FollowersCount = user.FollowersCount,
+            FollowingCount = user.FollowingCount,
+            PostsCount = user.PostsCount,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            Preferences = new UserPreferencesDto
+            {
+                PrivacyLevel = user.PrivacyLevel,
+                AllowDirectMessages = user.AllowDirectMessages,
+                AllowMentions = user.AllowMentions,
+                NotificationSettings = new NotificationSettingsDto
+                {
+                    NewFollowers = user.NewFollowersNotification,
+                    NewPosts = user.NewPostsNotification,
+                    Mentions = user.MentionsNotification,
+                    DirectMessages = user.DirectMessagesNotification,
+                    GroupUpdates = user.GroupUpdatesNotification,
+                    EmailNotifications = user.EmailNotifications,
+                    PushNotifications = user.PushNotifications
+                },
+                Theme = user.Theme,
+                Language = user.Language,
+                Timezone = user.Timezone
+            },
+            SocialLinks = new SocialLinksDto
+            {
+                Twitter = user.TwitterLink,
+                Instagram = user.InstagramLink,
+                LinkedIn = user.LinkedInLink,
+                Facebook = user.FacebookLink,
+                YouTube = user.YouTubeLink
+            },
+            ParentalControls = user.IsKidAccount ? new ParentalControlsDto
+            {
+                CanPost = user.CanPost,
+                CanMessage = user.CanMessage,
+                CanJoinGroups = user.CanJoinGroups,
+                CanViewContent = user.CanViewContent,
+                TimeRestrictions = new TimeRestrictionsDto
+                {
+                    Enabled = user.TimeRestrictionsEnabled,
+                    StartTime = user.TimeRestrictionsStart,
+                    EndTime = user.TimeRestrictionsEnd,
+                    Timezone = user.Timezone
+                },
+                ContentFilters = user.ContentFilters?.Split(',').ToList() ?? new List<string>(),
+                AllowedContacts = user.AllowedContacts?.Split(',').ToList() ?? new List<string>()
+            } : null
         };
     }
 }
