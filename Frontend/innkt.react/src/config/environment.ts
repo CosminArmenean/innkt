@@ -5,6 +5,7 @@ export const environment = {
   api: {
     officer: process.env.REACT_APP_OFFICER_API_URL || 'http://localhost:5001',
     social: process.env.REACT_APP_SOCIAL_API_URL || 'http://localhost:8081',
+    groups: process.env.REACT_APP_GROUPS_API_URL || 'http://localhost:5002',
     neurospark: process.env.REACT_APP_NEUROSPARK_API_URL || 'http://localhost:5003',
     messaging: process.env.REACT_APP_MESSAGING_API_URL || 'http://localhost:3000',
     frontier: process.env.REACT_APP_FRONTIER_API_URL || 'http://localhost:51303',
@@ -24,7 +25,7 @@ export const environment = {
   // App Configuration
   app: {
     name: 'INNKT',
-    version: '1.0.0',
+    version: '1.0.3',
     defaultLanguage: 'en',
     supportedLanguages: ['en', 'he', 'ar'],
     theme: {

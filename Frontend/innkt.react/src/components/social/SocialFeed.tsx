@@ -135,7 +135,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const filteredPosts = posts.filter(post => {
     switch (filter) {
       case 'verified':
-        return post.authorProfile.isVerified;
+        return post.authorProfile?.isVerified || false;
       case 'blockchain':
         return post.blockchainHash;
       case 'ai-processed':
@@ -452,23 +452,23 @@ const PostCard: React.FC<PostCardProps> = ({
     }
   };
 
-  const isOwnPost = currentUserId && post.authorProfile.id === currentUserId;
+  const isOwnPost = currentUserId && post.authorProfile?.id === currentUserId;
 
   return (
     <div className="card">
       {/* Post Header */}
       <div className="flex items-start space-x-3 mb-4">
         <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-          {post.authorProfile.avatar ? (
+          {post.authorProfile?.avatar ? (
             <img 
-              src={post.authorProfile.avatar} 
-              alt={post.authorProfile.displayName}
+              src={post.authorProfile?.avatar} 
+              alt={post.authorProfile?.displayName || 'User'}
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="w-full h-full bg-gray-300 flex items-center justify-center">
               <span className="text-gray-600 text-lg">
-                {post.authorProfile.displayName.charAt(0).toUpperCase()}
+                {post.authorProfile?.displayName?.charAt(0).toUpperCase() || '👤'}
               </span>
             </div>
           )}
@@ -478,16 +478,16 @@ const PostCard: React.FC<PostCardProps> = ({
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-gray-900 truncate">
-                {post.authorProfile.displayName}
+                {post.authorProfile?.displayName || 'User'}
               </h3>
               
-              {post.authorProfile.isVerified && (
+              {post.authorProfile?.isVerified && (
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
                   ✓ Verified
                 </span>
               )}
               
-              {post.authorProfile.isKidAccount && (
+              {post.authorProfile?.isKidAccount && (
                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                   👶 Kid
                 </span>

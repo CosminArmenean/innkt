@@ -1,4 +1,4 @@
-import { BaseApiService, socialApi, officerApi, neurosparkApi } from './api.service';
+import { BaseApiService, socialApi, officerApi, groupsApi } from './api.service';
 
 // User Profile Interfaces
 export interface UserProfile {
@@ -71,21 +71,30 @@ export interface ParentalControls {
 // Post Interfaces
 export interface Post {
   id: string;
-  authorId: string;
-  authorProfile: UserProfile;
+  userId: string;
+  authorId?: string;
+  authorProfile?: UserProfile;
+  author?: UserProfile | null;
   content: string;
   media?: PostMedia[];
+  mediaUrls?: string[];
   type: 'text' | 'image' | 'video' | 'link' | 'poll';
   visibility: 'public' | 'friends' | 'group' | 'private';
   groupId?: string;
   location?: PostLocation;
   tags: string[];
+  hashtags?: string[];
+  mentions?: string[];
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
+  viewsCount?: number;
   isLiked: boolean;
+  isLikedByCurrentUser?: boolean;
   isShared: boolean;
-  isBookmarked: boolean;
+  isBookmarked?: boolean;
+  isPublic?: boolean;
+  isPinned?: boolean;
   createdAt: string;
   updatedAt: string;
   blockchainHash?: string; // For verified users
@@ -218,18 +227,18 @@ export class SocialService extends BaseApiService {
   // User Profile Methods
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
-      // Try to get user profile from Officer service first
-      const response = await officerApi.get<UserProfile>(`/users/${userId}`);
+      // Try to get user profile from Social service first
+      const response = await this.get<UserProfile>(`/users/${userId}`);
       return response;
     } catch (error) {
-      console.error('Failed to get user profile from Officer service:', error);
+      console.error('Failed to get user profile from Social service:', error);
       
-      // Fallback: try to get from Social service
+      // Fallback: try to get from Officer service
       try {
-        const response = await this.get<UserProfile>(`/users/${userId}`);
-        return response;
-      } catch (socialError) {
-        console.error('Failed to get user profile from Social service:', socialError);
+        const response = await officerApi.get<UserProfile>(`/users/${userId}`);
+        return response.data;
+      } catch (officerError) {
+        console.error('Failed to get user profile from Officer service:', officerError);
         
         // If both fail, return a minimal profile with the provided userId
         return {
@@ -278,12 +287,20 @@ export class SocialService extends BaseApiService {
   // Get current user profile (logged-in user)
   async getCurrentUserProfile(): Promise<UserProfile> {
     try {
-      // Try to get current user from Officer service
-      const response = await officerApi.get<UserProfile>('/auth/me');
+      // Try to get current user from Social service first
+      const response = await this.get<UserProfile>('/api/users/me');
       return response;
     } catch (error) {
-      console.error('Failed to get current user profile:', error);
-      throw error;
+      console.error('Failed to get current user profile from Social service:', error);
+      
+      // Fallback: try to get from Officer service
+      try {
+        const response = await officerApi.get<UserProfile>('/auth/me');
+        return response.data;
+      } catch (officerError) {
+        console.error('Failed to get current user profile from Officer service:', officerError);
+        throw officerError;
+      }
     }
   }
 
@@ -300,10 +317,33 @@ export class SocialService extends BaseApiService {
   }
 
   // Post Methods
-  async createPost(postData: Partial<Post>): Promise<Post> {
+  async createPost(postData: any): Promise<Post> {
     try {
-      const response = await this.post<Post>('/posts', postData);
-      return response;
+      const response = await this.post<any>('/api/posts', postData);
+      
+      // Convert backend response to frontend Post format
+      return {
+        id: response.Id || response.id,
+        userId: response.UserId || response.userId,
+        content: response.Content || response.content,
+        type: 'text' as const,
+        visibility: (response.IsPublic ? 'public' : 'private') as 'public' | 'private',
+        mediaUrls: response.MediaUrls || response.mediaUrls || [],
+        hashtags: response.Hashtags || response.hashtags || [],
+        mentions: response.Mentions || response.mentions || [],
+        tags: response.Hashtags || response.hashtags || [],
+        location: response.Location || response.location,
+        isPublic: response.IsPublic !== undefined ? response.IsPublic : response.isPublic,
+        isPinned: response.IsPinned || response.isPinned || false,
+        likesCount: response.LikesCount || response.likesCount || 0,
+        commentsCount: response.CommentsCount || response.commentsCount || 0,
+        sharesCount: response.SharesCount || response.sharesCount || 0,
+        viewsCount: response.ViewsCount || response.viewsCount || 0,
+        isLiked: response.IsLikedByCurrentUser || response.isLiked || false,
+        isShared: false,
+        createdAt: response.CreatedAt || response.createdAt,
+        updatedAt: response.UpdatedAt || response.updatedAt
+      };
     } catch (error) {
       console.error('Failed to create post:', error);
       throw error;
@@ -316,12 +356,28 @@ export class SocialService extends BaseApiService {
     visibility?: string;
     page?: number;
     limit?: number;
+    hashtag?: string;
+    location?: string;
   }): Promise<{ posts: Post[]; totalCount: number; hasMore: boolean }> {
     try {
       // If userId is provided, get user posts, otherwise get feed
-      const endpoint = filters?.userId ? `/posts/user/${filters.userId}` : '/posts/feed';
-      const response = await this.get<{ posts: Post[]; totalCount: number; hasMore: boolean }>(endpoint, filters);
-      return response;
+      const endpoint = filters?.userId ? `/api/posts/user/${filters.userId}` : '/api/posts/feed';
+      
+      // Convert frontend parameters to backend format
+      const params: any = {};
+      if (filters?.page) params.Page = filters.page;
+      if (filters?.limit) params.PageSize = filters.limit;
+      if (filters?.hashtag) params.Hashtag = filters.hashtag;
+      if (filters?.location) params.Location = filters.location;
+      
+      const response = await this.get<{ Posts: Post[]; TotalCount: number; HasNextPage: boolean }>(endpoint, params);
+      
+      // Convert backend response format to frontend format
+      return {
+        posts: response.Posts || [],
+        totalCount: response.TotalCount || 0,
+        hasMore: response.HasNextPage || false
+      };
     } catch (error) {
       console.error('Failed to get posts:', error);
       throw error;
@@ -330,7 +386,7 @@ export class SocialService extends BaseApiService {
 
   async getPost(postId: string): Promise<Post> {
     try {
-      const response = await this.get<Post>(`/posts/${postId}`);
+      const response = await this.get<Post>(`/api/posts/${postId}`);
       return response;
     } catch (error) {
       console.error('Failed to get post:', error);
@@ -340,7 +396,7 @@ export class SocialService extends BaseApiService {
 
   async updatePost(postId: string, updates: Partial<Post>): Promise<Post> {
     try {
-      const response = await this.put<Post>(`/posts/${postId}`, updates);
+      const response = await this.put<Post>(`/api/posts/${postId}`, updates);
       return response;
     } catch (error) {
       console.error('Failed to update post:', error);
@@ -350,7 +406,7 @@ export class SocialService extends BaseApiService {
 
   async deletePost(postId: string): Promise<void> {
     try {
-      await this.delete(`/posts/${postId}`);
+      await this.delete(`/api/posts/${postId}`);
     } catch (error) {
       console.error('Failed to delete post:', error);
       throw error;
@@ -363,7 +419,7 @@ export class SocialService extends BaseApiService {
       files.forEach((file, index) => {
         formData.append(`media[${index}]`, file);
       });
-      const response = await this.upload<PostMedia[]>(`/posts/${postId}/media`, formData);
+      const response = await this.upload<PostMedia[]>(`/api/posts/${postId}/media`, formData);
       return response;
     } catch (error) {
       console.error('Failed to upload post media:', error);
@@ -398,7 +454,7 @@ export class SocialService extends BaseApiService {
   // Group Methods
   async createGroup(groupData: Partial<Group>): Promise<Group> {
     try {
-      const response = await this.post<Group>('/groups', groupData);
+      const response = await this.post<Group>('/api/groups', groupData);
       return response;
     } catch (error) {
       console.error('Failed to create group:', error);
@@ -414,18 +470,21 @@ export class SocialService extends BaseApiService {
     limit?: number;
   }): Promise<{ groups: Group[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get<{ groups: Group[]; totalCount: number; hasMore: boolean }>('/groups', filters);
-      return response;
+      // Call the Groups service instead of Social service
+      const response = await groupsApi.get<{ groups: Group[]; totalCount: number; hasMore: boolean }>('/api/groups', { params: filters });
+      return response.data;
     } catch (error) {
       console.error('Failed to get groups:', error);
-      throw error;
+      // Return empty groups as fallback
+      return { groups: [], totalCount: 0, hasMore: false };
     }
   }
 
   async getGroup(groupId: string): Promise<Group> {
     try {
-      const response = await this.get<Group>(`/groups/${groupId}`);
-      return response;
+      // Call the Groups service instead of Social service
+      const response = await groupsApi.get<Group>(`/api/groups/${groupId}`);
+      return response.data;
     } catch (error) {
       console.error('Failed to get group:', error);
       throw error;
@@ -481,7 +540,7 @@ export class SocialService extends BaseApiService {
 
   async followUser(userId: string): Promise<void> {
     try {
-      await this.post(`/users/${userId}/follow`);
+      await this.post(`/follows/follow/${userId}`);
     } catch (error) {
       console.error('Failed to follow user:', error);
       throw error;
@@ -490,7 +549,7 @@ export class SocialService extends BaseApiService {
 
   async unfollowUser(userId: string): Promise<void> {
     try {
-      await this.delete(`/users/${userId}/follow`);
+      await this.post(`/follows/unfollow/${userId}`);
     } catch (error) {
       console.error('Failed to unfollow user:', error);
       throw error;
@@ -499,21 +558,23 @@ export class SocialService extends BaseApiService {
 
   async getFollowers(userId: string, page?: number, limit?: number): Promise<{ followers: Follow[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get<{ followers: Follow[]; totalCount: number; hasMore: boolean }>(`/users/${userId}/followers`, { page, limit });
+      const response = await this.get<{ followers: Follow[]; totalCount: number; hasMore: boolean }>(`/follows/user/${userId}/followers`, { page, limit });
       return response;
     } catch (error) {
       console.error('Failed to get followers:', error);
-      throw error;
+      // Return empty followers as fallback
+      return { followers: [], totalCount: 0, hasMore: false };
     }
   }
 
   async getFollowing(userId: string, page?: number, limit?: number): Promise<{ following: Follow[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get<{ following: Follow[]; totalCount: number; hasMore: boolean }>(`/users/${userId}/following`, { page, limit });
+      const response = await this.get<{ following: Follow[]; totalCount: number; hasMore: boolean }>(`/follows/user/${userId}/following`, { page, limit });
       return response;
     } catch (error) {
       console.error('Failed to get following:', error);
-      throw error;
+      // Return empty following as fallback
+      return { following: [], totalCount: 0, hasMore: false };
     }
   }
 
@@ -542,7 +603,7 @@ export class SocialService extends BaseApiService {
   // Kid Account Methods
   async createUser(userData: any): Promise<UserProfile> {
     try {
-      const response = await this.post<UserProfile>('/users', userData);
+      const response = await this.post<UserProfile>('/api/users', userData);
       return response;
     } catch (error) {
       console.error('Failed to create user:', error);
@@ -574,7 +635,7 @@ export class SocialService extends BaseApiService {
   // Search and Discovery Methods
   async search(filters: SearchFilters): Promise<SearchResult> {
     try {
-      const response = await this.get<SearchResult>('/search', filters);
+      const response = await this.get<SearchResult>('/api/search', filters);
       return response;
     } catch (error) {
       console.error('Failed to search:', error);
@@ -584,7 +645,7 @@ export class SocialService extends BaseApiService {
 
   async getTrendingTopics(): Promise<string[]> {
     try {
-      const response = await this.get<string[]>('/trending/topics');
+      const response = await this.get<string[]>('/api/trending/topics');
       return response;
     } catch (error) {
       console.error('Failed to get trending topics:', error);
@@ -595,7 +656,7 @@ export class SocialService extends BaseApiService {
 
   async getRecommendedUsers(): Promise<UserProfile[]> {
     try {
-      const response = await this.get<UserProfile[]>('/trending/recommendations/users');
+      const response = await this.get<UserProfile[]>('/api/trending/recommendations/users');
       return response;
     } catch (error) {
       console.error('Failed to get recommended users:', error);
@@ -611,7 +672,7 @@ export class SocialService extends BaseApiService {
       return [];
     } catch (error) {
       console.error('Failed to get recommended groups:', error);
-      throw error;
+      return [];
     }
   }
 
@@ -624,7 +685,7 @@ export class SocialService extends BaseApiService {
     independenceDate?: string;
   }): Promise<UserProfile> {
     try {
-      const response = await this.post<UserProfile>('/users/kid-accounts', kidData);
+      const response = await this.post<UserProfile>('/api/users/kid-accounts', kidData);
       return response;
     } catch (error) {
       console.error('Failed to create kid account:', error);
@@ -641,29 +702,29 @@ export class SocialService extends BaseApiService {
     }
   }
 
-  // Blockchain Integration for Verified Users
-  async createBlockchainPost(postId: string, blockchainData: {
-    network: 'hashgraph' | 'ethereum' | 'polygon';
-    metadata: any;
-  }): Promise<{ transactionHash: string; blockchainUrl: string }> {
-    try {
-      const response = await this.post<{ transactionHash: string; blockchainUrl: string }>(`/posts/${postId}/blockchain`, blockchainData);
-      return response;
-    } catch (error) {
-      console.error('Failed to create blockchain post:', error);
-      throw error;
-    }
-  }
+  // Blockchain Integration - Disabled for now
+  // async createBlockchainPost(postId: string, blockchainData: {
+  //   network: 'hashgraph' | 'ethereum' | 'polygon';
+  //   metadata: any;
+  // }): Promise<{ transactionHash: string; blockchainUrl: string }> {
+  //   try {
+  //     const response = await this.post<{ transactionHash: string; blockchainUrl: string }>(`/posts/${postId}/blockchain`, blockchainData);
+  //     return response;
+  //   } catch (error) {
+  //     console.error('Failed to create blockchain post:', error);
+  //     throw error;
+  //   }
+  // }
 
-  async getBlockchainPosts(userId: string): Promise<Post[]> {
-    try {
-      const response = await this.get<Post[]>(`/users/${userId}/blockchain-posts`);
-      return response;
-    } catch (error) {
-      console.error('Failed to get blockchain posts:', error);
-      throw error;
-    }
-  }
+  // async getBlockchainPosts(userId: string): Promise<Post[]> {
+  //   try {
+  //     const response = await this.get<Post[]>(`/users/${userId}/blockchain-posts`);
+  //     return response;
+  //   } catch (error) {
+  //     console.error('Failed to get blockchain posts:', error);
+  //     throw error;
+  //   }
+  // }
 }
 
 export const socialService = new SocialService();

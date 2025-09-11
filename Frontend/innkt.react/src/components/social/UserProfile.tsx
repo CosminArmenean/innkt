@@ -451,22 +451,22 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
                   <div key={post.id} className="border rounded-lg p-4">
                     <div className="flex items-start space-x-3">
                       <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        {post.authorProfile.avatar ? (
+                        {post.authorProfile?.avatar ? (
                           <img 
-                            src={post.authorProfile.avatar} 
-                            alt={post.authorProfile.displayName}
+                            src={post.authorProfile?.avatar} 
+                            alt={post.authorProfile?.displayName || 'User'}
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
                           <span className="text-gray-600">
-                            {post.authorProfile.displayName.charAt(0).toUpperCase()}
+                            {post.authorProfile?.displayName?.charAt(0).toUpperCase() || '👤'}
                           </span>
                         )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
                           <span className="font-medium text-gray-900">
-                            {post.authorProfile.displayName}
+                            {post.authorProfile?.displayName || 'User'}
                           </span>
                           <span className="text-gray-500 text-sm">
                             {formatDate(post.createdAt)}

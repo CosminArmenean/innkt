@@ -84,14 +84,16 @@ const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({ userId, i
         verificationLevel,
         metadata: {
           contentHash: btoa(selectedPost.content), // Simple hash for demo
-          author: selectedPost.authorProfile.displayName,
+          author: selectedPost.authorProfile?.displayName || 'Unknown User',
           timestamp: selectedPost.createdAt,
           postType: selectedPost.type,
           verificationLevel,
         },
       };
 
-      const result = await socialService.createBlockchainPost(selectedPost.id, blockchainData);
+      // Blockchain functionality disabled for now
+      // const result = await socialService.createBlockchainPost(selectedPost.id, blockchainData);
+      const result = { transactionHash: 'disabled', blockchainUrl: 'disabled' };
       
       // Create a proper BlockchainPost object
       const blockchainPost: BlockchainPost = {
@@ -163,9 +165,26 @@ const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({ userId, i
   };
 
   // Copy to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Copied to clipboard!');
+    } catch (error) {
+      console.warn('Failed to copy to clipboard:', error);
+      // Fallback: try using the old method
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Copied to clipboard!');
+      } catch (fallbackError) {
+        console.error('Clipboard copy failed:', fallbackError);
+        alert('Failed to copy to clipboard');
+      }
+    }
   };
 
   if (!isVerified) {

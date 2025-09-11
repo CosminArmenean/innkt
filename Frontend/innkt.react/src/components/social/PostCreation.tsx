@@ -27,8 +27,9 @@ const PostCreation: React.FC<PostCreationProps> = ({
   const [showGroupSelector, setShowGroupSelector] = useState(false);
   const [useAIProcessing, setUseAIProcessing] = useState(false);
   const [aiProcessingStatus, setAiProcessingStatus] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
-  const [blockchainEnabled, setBlockchainEnabled] = useState(false);
-  const [blockchainNetwork, setBlockchainNetwork] = useState<'hashgraph' | 'ethereum' | 'polygon'>('hashgraph');
+  // Blockchain feature disabled for now
+  // const [blockchainEnabled, setBlockchainEnabled] = useState(false);
+  // const [blockchainNetwork, setBlockchainNetwork] = useState<'hashgraph' | 'ethereum' | 'polygon'>('hashgraph');
   const [imageProcessingOptions, setImageProcessingOptions] = useState({
     removeBackground: false,
     enhanceQuality: false,
@@ -161,13 +162,13 @@ const PostCreation: React.FC<PostCreationProps> = ({
     
     try {
       // Create the post
-      const postData: Partial<Post> = {
-        content: content.trim(),
-        type: postType,
-        visibility,
-        tags,
-        groupId: selectedGroup?.id,
-        location: location || undefined,
+      const postData: any = {
+        Content: content.trim(),
+        MediaUrls: [], // Will be populated after upload
+        Hashtags: tags,
+        Mentions: [], // TODO: Extract mentions from content
+        Location: location || null,
+        IsPublic: visibility === 'public'
       };
 
       const newPost = await socialService.createPost(postData);
@@ -203,10 +204,10 @@ const PostCreation: React.FC<PostCreationProps> = ({
         await processPostWithAI(newPost.id);
       }
 
-      // Blockchain integration if enabled
-      if (blockchainEnabled && newPost.authorProfile.isVerified) {
-        await createBlockchainPost(newPost.id);
-      }
+      // Blockchain integration disabled for now
+      // if (blockchainEnabled && newPost.authorProfile?.isVerified) {
+      //   await createBlockchainPost(newPost.id);
+      // }
 
       // Reset form
       setContent('');
@@ -214,7 +215,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
       setTags([]);
       setLocation(null);
       setUseAIProcessing(false);
-      setBlockchainEnabled(false);
+      // setBlockchainEnabled(false); // Blockchain disabled
       
       // Notify parent component
       if (onPostCreated) {
@@ -242,22 +243,23 @@ const PostCreation: React.FC<PostCreationProps> = ({
     }
   };
 
-  const createBlockchainPost = async (postId: string) => {
-    try {
-      const result = await socialService.createBlockchainPost(postId, {
-        network: blockchainNetwork,
-        metadata: {
-          timestamp: new Date().toISOString(),
-          contentHash: btoa(content), // Simple hash for demo
-          author: 'verified-user'
-        }
-      });
-      
-      console.log('Blockchain post created:', result);
-    } catch (error) {
-      console.error('Failed to create blockchain post:', error);
-    }
-  };
+  // Blockchain functionality disabled for now
+  // const createBlockchainPost = async (postId: string) => {
+  //   try {
+  //     const result = await socialService.createBlockchainPost(postId, {
+  //       network: blockchainNetwork,
+  //       metadata: {
+  //         timestamp: new Date().toISOString(),
+  //         contentHash: btoa(content), // Simple hash for demo
+  //         author: 'verified-user'
+  //       }
+  //     });
+  //     
+  //     console.log('Blockchain post created:', result);
+  //   } catch (error) {
+  //     console.error('Failed to create blockchain post:', error);
+  //   }
+  // };
 
   const autoResizeTextarea = () => {
     if (textareaRef.current) {
@@ -486,8 +488,8 @@ const PostCreation: React.FC<PostCreationProps> = ({
                 🤖
               </button>
               
-              {/* Blockchain Toggle */}
-              <button
+              {/* Blockchain Toggle - Disabled for now */}
+              {/* <button
                 onClick={() => setBlockchainEnabled(!blockchainEnabled)}
                 className={`p-2 transition-colors ${
                   blockchainEnabled ? 'text-innkt-primary' : 'text-gray-500 hover:text-innkt-primary'
@@ -495,7 +497,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
                 title="Blockchain Integration"
               >
                 ⛓️
-              </button>
+              </button> */}
             </div>
 
             <button
@@ -606,8 +608,8 @@ const PostCreation: React.FC<PostCreationProps> = ({
                 </div>
               )}
 
-              {/* Blockchain Options */}
-              {blockchainEnabled && (
+              {/* Blockchain Options - Disabled for now */}
+              {/* {blockchainEnabled && (
                 <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-purple-600">⛓️</span>
@@ -633,7 +635,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           )}
 

@@ -138,7 +138,7 @@ class SearchService extends BaseApiService {
   private recentSearches: string[] = [];
 
   constructor() {
-    super(apiConfig.officerApi.baseUrl);
+    super(apiConfig.socialApi.baseUrl);
     this.loadSearchHistory();
   }
 
