@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { socialService, UserProfile, Group, Post } from '../../services/social.service';
+import React, { useState, useEffect, useCallback } from 'react';
+import { socialService, UserProfile } from '../../services/social.service';
 import UserProfileComponent from './UserProfile';
 import PostCreation from './PostCreation';
 import SocialFeed from './SocialFeed';
-import LinkedAccountsPost from './LinkedAccountsPost';
-import GroupChatButton from '../chat/GroupChatButton';
 import GroupsPage from '../groups/GroupsPage';
 
 interface SocialDashboardProps {
@@ -18,16 +16,9 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
   const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
   const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
 
-  useEffect(() => {
-    if (currentUserId) {
-      loadCurrentUser();
-      loadLinkedAccounts();
-    }
-    loadRecommendations();
-  }, [currentUserId]);
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     if (!currentUserId) return;
     
     try {
@@ -45,7 +36,15 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      loadCurrentUser();
+      loadLinkedAccounts();
+    }
+    loadRecommendations();
+  }, [currentUserId, loadCurrentUser]);
 
   const loadLinkedAccounts = async () => {
     try {
@@ -70,10 +69,6 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     }
   };
 
-  const handleStartGroupChat = (accountIds: string[]) => {
-    console.log('Starting group chat with accounts:', accountIds);
-    // Implement group chat logic
-  };
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -93,7 +88,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Left Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-4 self-start">
+          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
 
             {/* Trending Topics */}
             {trendingTopics.length > 0 && (
@@ -151,36 +146,21 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
                 </div>
               </div>
             )}
+
+            {/* Status Information */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">Status</h3>
+              <div className="space-y-1 text-xs text-gray-600">
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="text-green-600 font-medium">Online</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Main Content Area */}
           <div className="lg:col-span-6">
-            {/* Desktop Navigation Tabs - Hidden on mobile */}
-            <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6">
-              <nav className="flex space-x-0 overflow-x-auto">
-                {[
-                  { id: 'feed', label: 'Feed', icon: '📱' },
-                  { id: 'profile', label: 'Profile', icon: '👤' },
-                  { id: 'groups', label: 'Groups', icon: '👥' },
-                  { id: 'discover', label: 'Discover', icon: '🔍' },
-                  { id: 'messages', label: 'Messages', icon: '💬' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id as typeof activeTab)}
-                    className={`flex-1 min-w-0 flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-                      activeTab === tab.id
-                        ? 'border-purple-600 text-purple-600 bg-purple-50'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-base">{tab.icon}</span>
-                    <span className="truncate">{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-
             {/* Tab Content */}
             <div className="space-y-4 sm:space-y-6">
               {activeTab === 'feed' && (
@@ -213,7 +193,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
           </div>
 
           {/* Right Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-4 self-start">
+          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
             {/* Current User Stats */}
             {currentUser && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -269,57 +249,39 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
         </div>
       </div>
 
-      {/* Fixed Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:hidden">
-        <nav className="flex space-x-0">
-          {[
-            { id: 'feed', label: 'Feed', icon: '📱' },
-            { id: 'profile', label: 'Profile', icon: '👤' },
-            { id: 'groups', label: 'Groups', icon: '👥' },
-            { id: 'discover', label: 'Discover', icon: '🔍' },
-            { id: 'messages', label: 'Messages', icon: '💬' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id as typeof activeTab)}
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'text-purple-600 bg-purple-50'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <span className="text-lg mb-1">{tab.icon}</span>
-              <span className="truncate">{tab.label}</span>
-            </button>
-          ))}
-        </nav>
+      {/* Fixed Bottom Navigation Bar - Main Content Area Only */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:left-80">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6">
+          <nav className="flex space-x-0 overflow-x-auto">
+            {[
+              { id: 'feed', label: 'Feed', icon: '📱' },
+              { id: 'profile', label: 'Profile', icon: '👤' },
+              { id: 'groups', label: 'Groups', icon: '👥' },
+              { id: 'discover', label: 'Discover', icon: '🔍' },
+              { id: 'messages', label: 'Messages', icon: '💬' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id as typeof activeTab)}
+                className={`flex-1 min-w-0 flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === tab.id
+                    ? 'border-purple-600 text-purple-600 bg-purple-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-base">{tab.icon}</span>
+                <span className="truncate">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
+
     </div>
   );
 };
 
 // Placeholder Components for Other Tabs
-const GroupsTab: React.FC = () => (
-  <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">Groups</h2>
-        <p className="text-sm text-gray-600">Join communities and connect with like-minded people</p>
-      </div>
-      <button className="btn-primary px-4 py-2">
-        + Create Group
-      </button>
-    </div>
-    
-    <div className="text-center py-12 text-gray-500">
-      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <span className="text-2xl text-gray-400">👥</span>
-      </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">Groups feature coming soon</h3>
-      <p>Create and manage groups, share posts, and collaborate with your community.</p>
-    </div>
-  </div>
-);
 
 const DiscoverTab: React.FC = () => (
   <div className="space-y-6">

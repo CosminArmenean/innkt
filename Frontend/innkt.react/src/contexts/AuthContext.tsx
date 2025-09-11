@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { officerApi } from '../services/api.service';
+import { pwaService } from '../services/pwa.service';
 
 interface User {
   id: string;
@@ -83,8 +84,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      // For now, skip auth verification since /api/auth/me doesn't exist
-      // TODO: Implement proper user profile endpoint
+      // Verify token with backend
+      const response = await officerApi.get('/api/auth/me');
+      setUser(response.data);
       setIsLoading(false);
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -101,6 +103,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       localStorage.setItem('accessToken', accessToken);
       setUser(userData);
+      
+      // Request notification permission after successful login
+      try {
+        await pwaService.requestNotificationPermission();
+      } catch (permissionError) {
+        console.warn('Failed to request notification permission:', permissionError);
+        // Don't fail login if permission request fails
+      }
+      
       return true;
     } catch (error) {
       console.error('Login failed:', error);

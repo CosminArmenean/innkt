@@ -30,13 +30,17 @@ function App() {
   useEffect(() => {
     const initializePWA = async () => {
       try {
-        await pwaService.requestNotificationPermission();
+        // Note: Notification permission will be requested after user login
+        // to avoid permission errors on login page
+
+        // Sync offline data if online
         if (pwaService.isOnlineStatus()) {
           await pwaService.syncOfflineData();
         }
         console.log('PWA features initialized successfully');
       } catch (error) {
-        console.error('Failed to initialize PWA features:', error);
+        console.warn('Failed to initialize PWA features:', error);
+        // Don't throw the error, just log it and continue
       }
     };
     initializePWA();
