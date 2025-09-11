@@ -48,6 +48,7 @@ const createApiInstance = (baseURL: string) => {
 // API instances
 export const officerApi = createApiInstance(environment.api.officer);
 export const socialApi = createApiInstance(environment.api.social);
+export const groupsApi = createApiInstance(environment.api.groups);
 export const neurosparkApi = createApiInstance(environment.api.neurospark);
 export const messagingApi = createApiInstance(environment.api.messaging);
 export const frontierApi = createApiInstance(environment.api.frontier);

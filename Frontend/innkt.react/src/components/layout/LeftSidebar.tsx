@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import Logo from '../common/Logo';
 import { 
   HomeIcon, 
@@ -24,16 +25,17 @@ interface LeftSidebarProps {
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
   const { user } = useAuth();
+  const { counts } = useNotifications();
   const location = useLocation();
   const [showAdvancedMenu, setShowAdvancedMenu] = useState(false);
 
   const basicMenuItems = [
-    { name: 'Social', href: '/social', icon: HomeIcon, badge: 10 },
+    { name: 'Social', href: '/social', icon: HomeIcon, badge: counts.byType.like + counts.byType.comment + counts.byType.post_mention },
     { name: 'Search', href: '/search', icon: MagnifyingGlassIcon },
-    { name: 'Followers', href: '/followers', icon: UsersIcon, badge: 2 },
-    { name: 'Groups', href: '/groups', icon: UserGroupIcon },
+    { name: 'Followers', href: '/followers', icon: UsersIcon, badge: counts.byType.follow },
+    { name: 'Groups', href: '/groups', icon: UserGroupIcon, badge: counts.byType.group_invite },
     { name: 'Settings', href: '/settings', icon: CogIcon },
-    { name: 'Chat-innkt', href: '/messaging', icon: ChatBubbleLeftRightIcon },
+    { name: 'Chat-innkt', href: '/messaging', icon: ChatBubbleLeftRightIcon, badge: counts.byType.message },
     { name: 'Profile', href: `/profile/${user?.id}`, icon: UserIcon },
   ];
 

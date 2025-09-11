@@ -1,29 +1,29 @@
-import { BaseApiService, officerApi } from './api.service';
+import { io, Socket } from 'socket.io-client';
+import { environment } from '../config/environment';
 
-// Notification Interfaces
 export interface Notification {
   id: string;
-  type: 'message' | 'mention' | 'group_invitation' | 'follow' | 'like' | 'comment' | 'post' | 'system';
-  userId: string;
+  type: 'follow' | 'like' | 'comment' | 'message' | 'group_invite' | 'post_mention' | 'system';
   title: string;
   body: string;
-  data?: {
-    conversationId?: string;
-    messageId?: string;
-    senderId?: string;
-    senderName?: string;
-    groupId?: string;
-    groupName?: string;
-    inviterId?: string;
-    inviterName?: string;
-    postId?: string;
-    commentId?: string;
-    [key: string]: any;
-  };
-  timestamp: number;
+  data?: any;
+  timestamp: string;
   read: boolean;
-  actionUrl?: string;
-  icon?: string;
+  userId: string;
+}
+
+export interface NotificationCounts {
+  total: number;
+  unread: number;
+  byType: {
+    follow: number;
+    like: number;
+    comment: number;
+    message: number;
+    group_invite: number;
+    post_mention: number;
+    system: number;
+  };
 }
 
 export interface NotificationSettings {
@@ -32,220 +32,216 @@ export interface NotificationSettings {
   mentions: boolean;
   directMessages: boolean;
   groupUpdates: boolean;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  soundEnabled: boolean;
   desktopNotifications: boolean;
+  soundEnabled: boolean;
+  pushNotifications: boolean;
+  emailNotifications: boolean;
 }
 
-export interface NotificationStats {
-  total: number;
-  unread: number;
-  byType: {
-    message: number;
-    mention: number;
-    group_invitation: number;
-    follow: number;
-    like: number;
-    comment: number;
-    post: number;
-    system: number;
-  };
+export interface NotificationListResponse {
+  notifications: Notification[];
+  totalCount: number;
+  hasMore: boolean;
 }
 
-export type NotificationPermission = 'default' | 'granted' | 'denied';
-
-class NotificationService extends BaseApiService {
-  private socket: WebSocket | null = null;
-  private notificationHandlers: ((notification: Notification) => void)[] = [];
+class NotificationService {
+  private socket: Socket | null = null;
+  private isConnected = false;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  private reconnectDelay = 1000;
+  private listeners: Map<string, Function[]> = new Map();
 
   constructor() {
-    super(officerApi);
+    this.connect();
   }
 
-  // WebSocket Connection
-  connect(userId: string, token: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        const wsUrl = `ws://localhost:3000/notifications?userId=${userId}&token=${token}`;
-        this.socket = new WebSocket(wsUrl);
+  private connect() {
+    try {
+      this.socket = io(environment.api.messaging, {
+        transports: ['websocket'],
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: this.maxReconnectAttempts,
+        reconnectionDelay: this.reconnectDelay,
+      });
 
-        this.socket.onopen = () => {
-          console.log('Notification WebSocket connected');
-          resolve();
-        };
+      this.socket.on('connect', () => {
+        console.log('🔔 Connected to notification service');
+        this.isConnected = true;
+        this.reconnectAttempts = 0;
+        this.emit('connected');
+      });
 
-        this.socket.onmessage = (event) => {
-          try {
-            const notification: Notification = JSON.parse(event.data);
-            this.notificationHandlers.forEach(handler => handler(notification));
-          } catch (error) {
-            console.error('Failed to parse notification:', error);
-          }
-        };
+      this.socket.on('disconnect', (reason) => {
+        console.log('🔔 Disconnected from notification service:', reason);
+        this.isConnected = false;
+        this.emit('disconnected', reason);
+      });
 
-        this.socket.onerror = (error) => {
-          console.error('Notification WebSocket error:', error);
-          reject(error);
-        };
+      this.socket.on('connect_error', (error) => {
+        console.error('🔔 Connection error:', error);
+        this.reconnectAttempts++;
+        this.emit('error', error);
+      });
 
-        this.socket.onclose = () => {
-          console.log('Notification WebSocket disconnected');
-          this.socket = null;
-        };
-      } catch (error) {
-        reject(error);
+      // Listen for notifications
+      this.socket.on('notification', (notification: Notification) => {
+        console.log('🔔 Received notification:', notification);
+        this.emit('notification', notification);
+      });
+
+      // Listen for notification counts
+      this.socket.on('notification_counts', (counts: NotificationCounts) => {
+        console.log('🔔 Received notification counts:', counts);
+        this.emit('counts', counts);
+      });
+
+      // Listen for real-time updates
+      this.socket.on('follow_count', (count: number) => {
+        this.emit('follow_count', count);
+      });
+
+      this.socket.on('message_count', (count: number) => {
+        this.emit('message_count', count);
+      });
+
+      this.socket.on('group_invite_count', (count: number) => {
+        this.emit('group_invite_count', count);
+      });
+
+    } catch (error) {
+      console.error('Failed to connect to notification service:', error);
+    }
+  }
+
+  // Event listener management
+  on(event: string, callback: Function) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event)!.push(callback);
+  }
+
+  off(event: string, callback: Function) {
+    const eventListeners = this.listeners.get(event);
+    if (eventListeners) {
+      const index = eventListeners.indexOf(callback);
+      if (index > -1) {
+        eventListeners.splice(index, 1);
       }
-    });
+    }
   }
 
+  private emit(event: string, data?: any) {
+    const eventListeners = this.listeners.get(event);
+    if (eventListeners) {
+      eventListeners.forEach(callback => callback(data));
+    }
+  }
+
+  // Authentication
+  authenticate(userId: string, token: string) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('authenticate', { userId, token });
+    }
+  }
+
+  // Subscribe to user notifications
+  subscribeToUser(userId: string) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('subscribe_user', userId);
+    }
+  }
+
+  // Unsubscribe from user notifications
+  unsubscribeFromUser(userId: string) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('unsubscribe_user', userId);
+    }
+  }
+
+  // Mark notification as read
+  markAsRead(notificationId: string) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('mark_read', notificationId);
+    }
+  }
+
+  // Mark all notifications as read
+  markAllAsRead() {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('mark_all_read');
+    }
+  }
+
+  // Get connection status
+  getConnectionStatus(): boolean {
+    return this.isConnected;
+  }
+
+  // Disconnect
   disconnect() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.disconnect();
       this.socket = null;
+      this.isConnected = false;
     }
   }
 
-  // Notification Handlers
-  addNotificationHandler(handler: (notification: Notification) => void) {
-    this.notificationHandlers.push(handler);
+  // Get notifications (for compatibility with existing components)
+  async getNotifications(page: number = 0, limit: number = 50): Promise<NotificationListResponse> {
+    // For now, return empty notifications
+    // In a real implementation, this would fetch from the API
+    return {
+      notifications: [],
+      totalCount: 0,
+      hasMore: false
+    };
   }
 
-  removeNotificationHandler(handler: (notification: Notification) => void) {
-    this.notificationHandlers = this.notificationHandlers.filter(h => h !== handler);
-  }
-
-  // API Methods
-  async getNotifications(page = 0, limit = 20): Promise<{ notifications: Notification[]; totalCount: number; hasMore: boolean }> {
-    try {
-      const response = await this.get<{ notifications: Notification[]; totalCount: number; hasMore: boolean }>('/notifications', { 
-        params: { page, limit } 
-      });
-      return response;
-    } catch (error) {
-      console.error('Failed to get notifications:', error);
-      throw error;
-    }
-  }
-
+  // Get unread count (for compatibility with existing components)
   async getUnreadCount(): Promise<number> {
-    try {
-      const response = await this.get<{ count: number }>('/notifications/unread-count');
-      return response.count;
-    } catch (error) {
-      console.error('Failed to get unread count:', error);
-      throw error;
-    }
+    // For now, return 0
+    // In a real implementation, this would fetch from the API
+    return 0;
   }
 
-  async markAsRead(notificationId: string): Promise<void> {
-    try {
-      await this.put(`/notifications/${notificationId}/read`);
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-      throw error;
-    }
-  }
-
-  async markAllAsRead(): Promise<void> {
-    try {
-      await this.put('/notifications/mark-all-read');
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
-      throw error;
-    }
-  }
-
-  async deleteNotification(notificationId: string): Promise<void> {
-    try {
-      await this.delete(`/notifications/${notificationId}`);
-    } catch (error) {
-      console.error('Failed to delete notification:', error);
-      throw error;
-    }
-  }
-
+  // Get notification settings (for compatibility with existing components)
   async getNotificationSettings(): Promise<NotificationSettings> {
-    try {
-      const response = await this.get<NotificationSettings>('/notifications/settings');
-      return response;
-    } catch (error) {
-      console.error('Failed to get notification settings:', error);
-      throw error;
-    }
-  }
-
-  async updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<NotificationSettings> {
-    try {
-      const response = await this.put<NotificationSettings>('/notifications/settings', settings);
-      return response;
-    } catch (error) {
-      console.error('Failed to update notification settings:', error);
-      throw error;
-    }
-  }
-
-  // Browser Notification Methods
-  async requestNotificationPermission(): Promise<NotificationPermission> {
-    if (!('Notification' in window)) {
-      return 'denied';
-    }
-
-    if (Notification.permission === 'granted') {
-      return 'granted';
-    }
-
-    if (Notification.permission === 'denied') {
-      return 'denied';
-    }
-
-    const permission = await Notification.requestPermission();
-    return permission as NotificationPermission;
-  }
-
-  showBrowserNotification(notification: Notification) {
-    if (Notification.permission === 'granted') {
-      new Notification(notification.title, {
-        body: notification.body,
-        icon: notification.icon || '/favicon.ico',
-        tag: notification.id,
-        data: notification.data
-      });
-    }
-  }
-
-  clearStoredNotifications(): void {
-    localStorage.removeItem('notifications');
-  }
-
-  getNotificationIcon(type: string): string {
-    const iconMap: { [key: string]: string } = {
-      'message': '💬',
-      'mention': '@',
-      'group_invitation': '👥',
-      'follow': '👤',
-      'like': '❤️',
-      'comment': '💭',
-      'post': '📝',
-      'system': '⚙️'
+    // Return default settings
+    return {
+      newFollowers: true,
+      newPosts: true,
+      mentions: true,
+      directMessages: true,
+      groupUpdates: true,
+      desktopNotifications: true,
+      soundEnabled: true,
+      pushNotifications: true,
+      emailNotifications: true
     };
-    return iconMap[type] || '🔔';
   }
 
-  getNotificationColor(type: string): string {
-    const colorMap: { [key: string]: string } = {
-      'message': 'text-blue-500',
-      'mention': 'text-yellow-500',
-      'group_invitation': 'text-purple-500',
-      'follow': 'text-green-500',
-      'like': 'text-red-500',
-      'comment': 'text-indigo-500',
-      'post': 'text-orange-500',
-      'system': 'text-gray-500'
-    };
-    return colorMap[type] || 'text-gray-500';
+  // Update notification settings (for compatibility with existing components)
+  async updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<void> {
+    // For now, just log the update
+    console.log('Updating notification settings:', settings);
+  }
+
+  // Delete notification (for compatibility with existing components)
+  async deleteNotification(notificationId: string): Promise<void> {
+    // For now, just log the deletion
+    console.log('Deleting notification:', notificationId);
+  }
+
+  // Cleanup
+  destroy() {
+    this.disconnect();
+    this.listeners.clear();
   }
 }
 
+// Export singleton instance
 export const notificationService = new NotificationService();
-export type { Notification as AppNotification };
+export default notificationService;

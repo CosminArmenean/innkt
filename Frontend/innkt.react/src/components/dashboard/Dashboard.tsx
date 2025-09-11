@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { socialService, UserProfile } from '../../services/social.service';
 
 const Dashboard: React.FC = () => {
-  const [selectedPerson, setSelectedPerson] = useState('1');
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // TODO: Replace with actual data from microservices
-  const mockPersons = [
-    { id: '1', name: 'John Doe', avatar: '👨', isActive: true },
-    { id: '2', name: 'Jane Doe', avatar: '👩', isActive: false }
-  ];
+  useEffect(() => {
+    loadCurrentUser();
+  }, []);
+
+  const loadCurrentUser = async () => {
+    try {
+      setIsLoading(true);
+      const user = await socialService.getCurrentUserProfile();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Failed to load current user:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const quickActions = [
     { name: 'Create Post', icon: '✏️', href: '/create-post', color: 'bg-blue-500' },
@@ -19,12 +31,8 @@ const Dashboard: React.FC = () => {
     { name: 'Settings', icon: '⚙️', href: '/settings', color: 'bg-gray-500' }
   ];
 
-  const recentActivity = [
-    { type: 'post', content: 'Shared a new photo', time: '2 hours ago', icon: '📷' },
-    { type: 'security', content: 'Security scan completed', time: '4 hours ago', icon: '🛡️' },
-    { type: 'group', content: 'Joined "Family Friends" group', time: '1 day ago', icon: '👥' },
-    { type: 'verification', content: 'Account verified successfully', time: '2 days ago', icon: '✅' }
-  ];
+  // Recent activity will be loaded from real data in the future
+  const recentActivity: any[] = [];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -35,26 +43,21 @@ const Dashboard: React.FC = () => {
           <p className="text-gray-600">Welcome back! Here's what's happening with your account.</p>
         </div>
 
-        {/* Person Selector for Joint Accounts */}
-        {mockPersons.length > 1 && (
+        {/* Current User Info */}
+        {currentUser && (
           <div className="mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Who's using the device?</h3>
-              <div className="flex space-x-3">
-                {mockPersons.map((person) => (
-                  <button
-                    key={person.id}
-                    onClick={() => setSelectedPerson(person.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
-                      selectedPerson === person.id
-                        ? 'border-innkt-primary bg-innkt-primary text-white'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="text-xl">{person.avatar}</span>
-                    <span className="font-medium">{person.name}</span>
-                  </button>
-                ))}
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Welcome back!</h3>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-innkt-primary rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">
+                    {currentUser.displayName?.charAt(0) || 'U'}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">{currentUser.displayName}</h4>
+                  <p className="text-sm text-gray-600">@{currentUser.username}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -88,13 +91,13 @@ const Dashboard: React.FC = () => {
               <div className="text-center">
                 <div className="w-20 h-20 bg-innkt-primary rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl text-white">
-                    {mockPersons.find(p => p.id === selectedPerson)?.avatar || '👤'}
+                    {currentUser?.displayName?.charAt(0) || '👤'}
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  {mockPersons.find(p => p.id === selectedPerson)?.name || 'User'}
+                  {currentUser?.displayName || 'User'}
                 </h3>
-                <p className="text-gray-600 mb-4">Verified Account</p>
+                <p className="text-gray-600 mb-4">@{currentUser?.username || 'username'}</p>
                 <Link
                   to="/profile/me"
                   className="btn-primary w-full"

@@ -8,7 +8,7 @@ interface NotificationBellProps {
 }
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) => {
-  const { unreadCount, isConnected } = useNotifications();
+  const { counts, isConnected } = useNotifications();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleBellClick = () => {
@@ -25,9 +25,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) =
         <BellIcon className="w-5 h-5" />
         
         {/* Unread Count Badge */}
-        {unreadCount > 0 && (
+        {counts.unread > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {counts.unread > 99 ? '99+' : counts.unread}
           </span>
         )}
         

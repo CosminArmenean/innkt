@@ -15,7 +15,7 @@ export abstract class BaseApiService {
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('accessToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,7 +32,7 @@ export abstract class BaseApiService {
       (error) => {
         if (error.response?.status === 401) {
           // Handle unauthorized access
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('accessToken');
           window.location.href = '/login';
         }
         return Promise.reject(error);

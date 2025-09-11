@@ -39,7 +39,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </main>
           
           {/* Right Panel - Hidden on mobile */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)]">
             <RightPanel />
           </div>
         </div>

@@ -80,7 +80,7 @@ export interface DatabaseHealthReport {
 
 class DatabaseOptimizationService extends BaseApiService {
   constructor() {
-    super(apiConfig.officerApi.baseUrl);
+    super(apiConfig.socialApi.baseUrl);
   }
 
   // Get query performance statistics

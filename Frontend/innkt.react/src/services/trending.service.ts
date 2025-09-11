@@ -1,5 +1,4 @@
-import { BaseApiService } from './api.service';
-import { apiConfig } from './api.config';
+import { BaseApiService, socialApi } from './api.service';
 
 export interface TrendingPost {
   id: string;
@@ -58,7 +57,7 @@ export interface TrendingFilters {
 
 class TrendingService extends BaseApiService {
   constructor() {
-    super(apiConfig.officerApi);
+    super(socialApi);
   }
 
   // Get trending posts
