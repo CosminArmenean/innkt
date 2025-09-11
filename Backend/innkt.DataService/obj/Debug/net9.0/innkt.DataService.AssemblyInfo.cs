@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("innkt.DataService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5d570bbbb63ce4a883196d65594115158325862c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7e099ec0775581c1e14c7cc1ea44d799da857ea1")]
 [assembly: System.Reflection.AssemblyProductAttribute("innkt.DataService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("innkt.DataService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -31,7 +31,14 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     if (!currentUserId) return;
     
     try {
-      const user = await socialService.getUserProfile(currentUserId);
+      // Try to get current user profile first, fallback to getUserProfile
+      let user;
+      try {
+        user = await socialService.getCurrentUserProfile();
+      } catch (error) {
+        console.log('getCurrentUserProfile failed, trying getUserProfile:', error);
+        user = await socialService.getUserProfile(currentUserId);
+      }
       setCurrentUser(user);
     } catch (error) {
       console.error('Failed to load current user:', error);
@@ -81,37 +88,12 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Left Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6">
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <button className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2">
-                  <span>✏️</span>
-                  <span>Create Post</span>
-                </button>
-                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2">
-                  <span>👥</span>
-                  <span>Create Group</span>
-                </button>
-                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2">
-                  <span>🔍</span>
-                  <span>Search Users</span>
-                </button>
-                {linkedAccounts.length > 0 && (
-                  <GroupChatButton
-                    linkedAccounts={linkedAccounts}
-                    onStartGroupChat={handleStartGroupChat}
-                    className="w-full"
-                  />
-                )}
-              </div>
-            </div>
+          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-4 self-start">
 
             {/* Trending Topics */}
             {trendingTopics.length > 0 && (
@@ -173,8 +155,8 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
           {/* Main Content Area */}
           <div className="lg:col-span-6">
-            {/* Navigation Tabs */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6">
+            {/* Desktop Navigation Tabs - Hidden on mobile */}
+            <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6">
               <nav className="flex space-x-0 overflow-x-auto">
                 {[
                   { id: 'feed', label: 'Feed', icon: '📱' },
@@ -186,14 +168,14 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as typeof activeTab)}
-                    className={`flex-1 min-w-0 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors border-b-2 ${
+                    className={`flex-1 min-w-0 flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
                       activeTab === tab.id
                         ? 'border-purple-600 text-purple-600 bg-purple-50'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    <span className="text-sm sm:text-base">{tab.icon}</span>
-                    <span className="hidden xs:inline sm:inline truncate">{tab.label}</span>
+                    <span className="text-base">{tab.icon}</span>
+                    <span className="truncate">{tab.label}</span>
                   </button>
                 ))}
               </nav>
@@ -231,7 +213,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
           </div>
 
           {/* Right Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6">
+          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-4 self-start">
             {/* Current User Stats */}
             {currentUser && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -285,6 +267,32 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Fixed Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:hidden">
+        <nav className="flex space-x-0">
+          {[
+            { id: 'feed', label: 'Feed', icon: '📱' },
+            { id: 'profile', label: 'Profile', icon: '👤' },
+            { id: 'groups', label: 'Groups', icon: '👥' },
+            { id: 'discover', label: 'Discover', icon: '🔍' },
+            { id: 'messages', label: 'Messages', icon: '💬' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id as typeof activeTab)}
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'text-purple-600 bg-purple-50'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span className="text-lg mb-1">{tab.icon}</span>
+              <span className="truncate">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
     </div>
   );

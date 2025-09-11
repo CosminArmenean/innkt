@@ -218,54 +218,74 @@ export class SocialService extends BaseApiService {
   // User Profile Methods
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
-      // TODO: Implement user profile endpoint in Officer service
-      // For now, return a mock profile
-      return {
-        id: userId,
-        username: 'demo-user',
-        displayName: 'Demo User',
-        email: 'demo@example.com',
-        avatar: undefined,
-        bio: 'Demo user profile',
-        location: undefined,
-        website: undefined,
-        dateOfBirth: undefined,
-        isVerified: false,
-        isKidAccount: false,
-        parentId: undefined,
-        independenceDate: undefined,
-        followersCount: 0,
-        followingCount: 0,
-        postsCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        preferences: {
-          privacyLevel: 'public',
-          allowDirectMessages: true,
-          allowMentions: true,
-          notificationSettings: {
-            newFollowers: true,
-            newPosts: true,
-            mentions: true,
-            directMessages: true,
-            groupUpdates: true,
-            emailNotifications: true,
-            pushNotifications: true,
-          },
-          theme: 'light',
-          language: 'en',
-          timezone: 'UTC',
-        },
-        socialLinks: {},
-        parentalControls: undefined,
-      };
+      // Try to get user profile from Officer service first
+      const response = await officerApi.get<UserProfile>(`/users/${userId}`);
+      return response;
     } catch (error) {
-      console.error('Failed to get user profile:', error);
-      throw error;
+      console.error('Failed to get user profile from Officer service:', error);
+      
+      // Fallback: try to get from Social service
+      try {
+        const response = await this.get<UserProfile>(`/users/${userId}`);
+        return response;
+      } catch (socialError) {
+        console.error('Failed to get user profile from Social service:', socialError);
+        
+        // If both fail, return a minimal profile with the provided userId
+        return {
+          id: userId,
+          username: 'unknown-user',
+          displayName: 'Unknown User',
+          email: 'unknown@example.com',
+          avatar: undefined,
+          bio: 'User profile not available',
+          location: undefined,
+          website: undefined,
+          dateOfBirth: undefined,
+          isVerified: false,
+          isKidAccount: false,
+          parentId: undefined,
+          independenceDate: undefined,
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          preferences: {
+            privacyLevel: 'public',
+            allowDirectMessages: true,
+            allowMentions: true,
+            notificationSettings: {
+              newFollowers: true,
+              newPosts: true,
+              mentions: true,
+              directMessages: true,
+              groupUpdates: true,
+              emailNotifications: true,
+              pushNotifications: true,
+            },
+            theme: 'light',
+            language: 'en',
+            timezone: 'UTC',
+          },
+          socialLinks: {},
+          parentalControls: undefined,
+        };
+      }
     }
   }
 
-
+  // Get current user profile (logged-in user)
+  async getCurrentUserProfile(): Promise<UserProfile> {
+    try {
+      // Try to get current user from Officer service
+      const response = await officerApi.get<UserProfile>('/auth/me');
+      return response;
+    } catch (error) {
+      console.error('Failed to get current user profile:', error);
+      throw error;
+    }
+  }
 
   async uploadAvatar(userId: string, file: File): Promise<{ avatarUrl: string }> {
     try {
