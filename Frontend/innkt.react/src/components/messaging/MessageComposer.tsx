@@ -77,7 +77,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
   const canSend = message.trim() || selectedFile;
 
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
+    <div className="border-t border-gray-200 bg-white p-4 pb-20 lg:pb-4">
       {/* Selected File Preview */}
       {selectedFile && (
         <div className="mb-3 p-3 bg-gray-50 rounded-lg">
