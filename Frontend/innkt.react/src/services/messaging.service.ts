@@ -51,8 +51,8 @@ export interface Conversation {
 
 export interface ConversationParticipant {
   userId: string;
-  username: string;
-  displayName: string;
+  username?: string;
+  displayName?: string;
   avatar?: string;
   role: 'admin' | 'moderator' | 'member';
   joinedAt: string;
@@ -103,7 +103,35 @@ class MessagingService extends BaseApiService {
   async getConversations(): Promise<Conversation[]> {
     try {
       const response = await this.get('/api/conversations');
-      return (response as any).conversations || [];
+      const conversations = (response as any).conversations || [];
+      
+      // Transform the data to match the expected interface
+      return conversations.map((conv: any) => ({
+        id: conv._id || conv.id,
+        type: conv.type,
+        name: conv.name || (conv.type === 'direct' ? 'Direct Message' : conv.name),
+        avatar: conv.avatar,
+        participants: conv.participants?.map((p: any) => ({
+          userId: p.userId,
+          username: p.username || p.userId, // Fallback to userId if no username
+          displayName: p.displayName || p.userId, // Fallback to userId if no displayName
+          avatar: p.avatar,
+          role: p.role || 'member'
+        })) || [],
+        lastMessage: conv.lastMessage,
+        unreadCount: conv.unreadCount || 0,
+        isActive: conv.isActive !== false,
+        createdAt: conv.createdAt,
+        updatedAt: conv.updatedAt,
+        settings: conv.settings || {
+          allowFileSharing: true,
+          allowReactions: true,
+          allowReplies: true,
+          messageRetention: 365,
+          encryptionEnabled: false,
+          notificationsEnabled: true
+        }
+      }));
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
       return [];
@@ -150,7 +178,7 @@ class MessagingService extends BaseApiService {
     settings: Partial<ConversationSettings>
   ): Promise<void> {
     try {
-      await this.put(`/api/messaging/conversations/${conversationId}/settings`, settings);
+      await this.put(`/api/conversations/${conversationId}/settings`, settings);
     } catch (error) {
       console.error('Failed to update conversation settings:', error);
       throw error;
@@ -159,7 +187,7 @@ class MessagingService extends BaseApiService {
 
   async addParticipant(conversationId: string, userId: string): Promise<void> {
     try {
-      await this.post(`/api/messaging/conversations/${conversationId}/participants`, { userId });
+      await this.post(`/api/conversations/${conversationId}/participants`, { userId });
     } catch (error) {
       console.error('Failed to add participant:', error);
       throw error;
@@ -168,7 +196,7 @@ class MessagingService extends BaseApiService {
 
   async removeParticipant(conversationId: string, userId: string): Promise<void> {
     try {
-      await this.delete(`/api/messaging/conversations/${conversationId}/participants/${userId}`);
+      await this.delete(`/api/conversations/${conversationId}/participants/${userId}`);
     } catch (error) {
       console.error('Failed to remove participant:', error);
       throw error;
@@ -178,8 +206,8 @@ class MessagingService extends BaseApiService {
   // Message Management
   async getMessages(filters: MessageFilters): Promise<{ messages: Message[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get('/api/messaging/messages', { params: filters });
-      return (response as any).data;
+      const response = await this.get('/api/messages', filters);
+      return response as { messages: Message[]; totalCount: number; hasMore: boolean };
     } catch (error) {
       console.error('Failed to fetch messages:', error);
       return { messages: [], totalCount: 0, hasMore: false };
@@ -213,10 +241,12 @@ class MessagingService extends BaseApiService {
           replyTo: data.replyTo,
           isEncrypted: data.isEncrypted
         }, (response: any) => {
-          if (response.error) {
+          if (response && response.error) {
             reject(new Error(response.error));
-          } else {
+          } else if (response && response.message) {
             resolve(response.message);
+          } else {
+            reject(new Error('No response received from server'));
           }
         });
       });
@@ -228,7 +258,7 @@ class MessagingService extends BaseApiService {
 
   async deleteMessage(messageId: string): Promise<void> {
     try {
-      await this.delete(`/api/messaging/messages/${messageId}`);
+      await this.delete(`/api/messages/${messageId}`);
     } catch (error) {
       console.error('Failed to delete message:', error);
       throw error;
@@ -237,7 +267,7 @@ class MessagingService extends BaseApiService {
 
   async editMessage(messageId: string, content: string): Promise<Message> {
     try {
-      const response = await this.put(`/api/messaging/messages/${messageId}`, { content });
+      const response = await this.put(`/api/messages/${messageId}`, { content });
       return (response as any).message;
     } catch (error) {
       console.error('Failed to edit message:', error);
@@ -248,8 +278,8 @@ class MessagingService extends BaseApiService {
   async markAsRead(conversationId: string, messageId?: string): Promise<void> {
     try {
       const endpoint = messageId 
-        ? `/api/messaging/conversations/${conversationId}/messages/${messageId}/read`
-        : `/api/messaging/conversations/${conversationId}/read`;
+        ? `/api/conversations/${conversationId}/messages/${messageId}/read`
+        : `/api/conversations/${conversationId}/read`;
       await this.put(endpoint, {});
     } catch (error) {
       console.error('Failed to mark as read:', error);
@@ -259,7 +289,7 @@ class MessagingService extends BaseApiService {
   // Message Reactions
   async addReaction(messageId: string, emoji: string): Promise<void> {
     try {
-      await this.post(`/api/messaging/messages/${messageId}/reactions`, { emoji });
+      await this.post(`/api/messages/${messageId}/reactions`, { emoji });
     } catch (error) {
       console.error('Failed to add reaction:', error);
       throw error;
@@ -268,7 +298,7 @@ class MessagingService extends BaseApiService {
 
   async removeReaction(messageId: string, reactionId: string): Promise<void> {
     try {
-      await this.delete(`/api/messaging/messages/${messageId}/reactions/${reactionId}`);
+      await this.delete(`/api/messages/${messageId}/reactions/${reactionId}`);
     } catch (error) {
       console.error('Failed to remove reaction:', error);
       throw error;
@@ -285,7 +315,7 @@ class MessagingService extends BaseApiService {
       return;
     }
 
-    const messagingUrl = process.env.REACT_APP_MESSAGING_URL || 'http://localhost:5003';
+    const messagingUrl = process.env.REACT_APP_MESSAGING_URL || 'http://localhost:3000';
     
     this.socket = io(messagingUrl, {
       auth: { token },
@@ -365,7 +395,7 @@ class MessagingService extends BaseApiService {
   // Message Search
   async searchMessages(query: string, filters?: MessageFilters): Promise<Message[]> {
     try {
-      const response = await this.get('/api/messaging/messages/search', { 
+      const response = await this.get('/api/messages/search', { 
         params: { ...filters, query } 
       });
       return (response as any).messages || [];
@@ -378,7 +408,7 @@ class MessagingService extends BaseApiService {
   // Message Statistics
   async getMessageStats(): Promise<MessageStats> {
     try {
-      const response = await this.get('/api/messaging/users/stats');
+      const response = await this.get('/api/users/stats');
       return (response as any).stats;
     } catch (error) {
       console.error('Failed to fetch message stats:', error);
@@ -400,7 +430,7 @@ class MessagingService extends BaseApiService {
       formData.append('file', file);
       formData.append('conversationId', conversationId);
 
-      const response = await this.upload('/api/messaging/files/upload', formData);
+      const response = await this.upload('/api/files/upload', formData);
       return (response as any).file;
     } catch (error) {
       console.error('Failed to upload file:', error);
@@ -411,7 +441,7 @@ class MessagingService extends BaseApiService {
   // Encryption
   async encryptMessage(content: string, conversationId: string): Promise<string> {
     try {
-      const response = await this.post('/api/messaging/messages/encrypt', { content, conversationId });
+      const response = await this.post('/api/messages/encrypt', { content, conversationId });
       return (response as any).encryptedContent;
     } catch (error) {
       console.error('Failed to encrypt message:', error);
@@ -421,7 +451,7 @@ class MessagingService extends BaseApiService {
 
   async decryptMessage(encryptedContent: string, conversationId: string): Promise<string> {
     try {
-      const response = await this.post('/api/messaging/messages/decrypt', { encryptedContent, conversationId });
+      const response = await this.post('/api/messages/decrypt', { encryptedContent, conversationId });
       return (response as any).content;
     } catch (error) {
       console.error('Failed to decrypt message:', error);

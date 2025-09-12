@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { socialService, UserProfile } from '../../services/social.service';
 import UserProfileComponent from './UserProfile';
-import PostCreation from './PostCreation';
 import SocialFeed from './SocialFeed';
 import GroupsPage from '../groups/GroupsPage';
+import MessagingDashboard from '../messaging/MessagingDashboard';
 
 interface SocialDashboardProps {
   currentUserId?: string;
@@ -85,10 +85,10 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+      <div className="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Left Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+          <div className="hidden lg:block lg:col-span-2 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto z-10">
 
             {/* Trending Topics */}
             {trendingTopics.length > 0 && (
@@ -147,110 +147,60 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
               </div>
             )}
 
-            {/* Status Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Status</h3>
-              <div className="space-y-1 text-xs text-gray-600">
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="text-green-600 font-medium">Online</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Main Content Area */}
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-8">
             {/* Tab Content */}
-            <div className="space-y-4 sm:space-y-6">
+            <div className="h-full">
               {activeTab === 'feed' && (
-                <SocialFeed 
-                linkedAccounts={linkedAccounts} 
-                currentUserId={currentUser?.id}
-              />
+                <div className="h-full">
+                  <SocialFeed 
+                    linkedAccounts={linkedAccounts} 
+                    currentUserId={currentUser?.id}
+                  />
+                </div>
               )}
               
               {activeTab === 'profile' && currentUser && (
-                <UserProfileComponent 
-                  userId={currentUser.id} 
-                  isOwnProfile={true}
-                  currentUserId={currentUser.id}
-                />
+                <div className="h-full">
+                  <UserProfileComponent 
+                    userId={currentUser.id} 
+                    isOwnProfile={true}
+                    currentUserId={currentUser.id}
+                  />
+                </div>
               )}
               
               {activeTab === 'groups' && (
-                <GroupsPage currentUserId={currentUser?.id} />
+                <div className="h-full">
+                  <GroupsPage currentUserId={currentUser?.id} />
+                </div>
               )}
               
               {activeTab === 'discover' && (
-                <DiscoverTab />
+                <div className="h-full">
+                  <DiscoverTab />
+                </div>
               )}
               
               {activeTab === 'messages' && (
-                <MessagesTab />
+                <div className="h-full">
+                  <MessagingDashboard />
+                </div>
               )}
             </div>
           </div>
 
           {/* Right Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
-            {/* Current User Stats */}
-            {currentUser && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Stats</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-xl font-bold text-blue-600">
-                      {currentUser.postsCount}
-                    </div>
-                    <div className="text-xs text-blue-600">Posts</div>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-xl font-bold text-green-600">
-                      {currentUser.followersCount}
-                    </div>
-                    <div className="text-xs text-green-600">Followers</div>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <div className="text-xl font-bold text-purple-600">
-                      {currentUser.followingCount}
-                    </div>
-                    <div className="text-xs text-purple-600">Following</div>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className="hidden lg:block lg:col-span-2 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto z-10">
 
-            {/* Recent Activity */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 text-sm">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span className="text-gray-600">New follower</span>
-                </div>
-                <div className="flex items-center space-x-3 text-sm">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  <span className="text-gray-600">Post liked</span>
-                </div>
-                <div className="flex items-center space-x-3 text-sm">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                  <span className="text-gray-600">Group joined</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Post */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Post</h3>
-              <PostCreation onPostCreated={() => {}} />
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Fixed Bottom Navigation Bar - Main Content Area Only */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:left-80">
+      {/* Fixed Bottom Navigation Bar - Mobile Only */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6">
           <nav className="flex space-x-0 overflow-x-auto">
             {[
@@ -302,24 +252,6 @@ const DiscoverTab: React.FC = () => (
   </div>
 );
 
-const MessagesTab: React.FC = () => (
-  <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
-        <p className="text-sm text-gray-600">Connect with friends and family through private messages</p>
-      </div>
-    </div>
-    
-    <div className="text-center py-12 text-gray-500">
-      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <span className="text-2xl text-gray-400">💬</span>
-      </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">Messaging coming soon</h3>
-      <p>Send private messages, create group chats, and stay connected with your network.</p>
-    </div>
-  </div>
-);
 
 export default SocialDashboard;
 

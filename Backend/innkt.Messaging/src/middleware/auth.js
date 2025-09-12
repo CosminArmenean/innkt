@@ -81,7 +81,15 @@ function authenticateToken(req, res, next) {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
 
-    req.user = decoded;
+    // Map JWT fields to expected format
+    const userId = decoded.userId || 
+                   decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+                   decoded.sub;
+    
+    req.user = {
+      ...decoded,
+      userId: userId
+    };
     next();
   });
 }

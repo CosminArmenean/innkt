@@ -37,7 +37,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
       return conversation.participants[0]?.displayName || 'Unknown User';
     }
     
-    return conversation.participants.map(p => p.displayName).join(', ');
+    return conversation.participants.map(p => p.displayName || 'Unknown User').join(', ');
   };
 
   const getConversationAvatar = (conversation: Conversation) => {
@@ -58,7 +58,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
     }
     
     const message = conversation.lastMessage;
-    const senderName = message.senderProfile.displayName;
+    const senderName = message.senderProfile?.displayName || 'Unknown User';
     
     switch (message.type) {
       case 'text':

@@ -1,30 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { messagingService, Conversation, Message } from '../../services/messaging.service';
+import { useMessaging } from '../../contexts/MessagingContext';
 import ConversationList from './ConversationList';
 import ChatWindow from './ChatWindow';
 import MessageComposer from './MessageComposer';
+import UserSearch from './UserSearch';
 
 const MessagingDashboard: React.FC = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { conversations, loadConversations, markAsRead, sendMessage, connectionStatus, isLoading } = useMessaging();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('disconnected');
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewConversation, setShowNewConversation] = useState(false);
 
-  // Load conversations
-  const loadConversations = async () => {
-    setIsLoading(true);
-    try {
-      const fetchedConversations = await messagingService.getConversations();
-      setConversations(fetchedConversations);
-    } catch (error) {
-      console.error('Failed to load conversations:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Load conversations is now handled by the context
+  console.log('MessagingDashboard - conversations:', conversations);
+  console.log('MessagingDashboard - isLoading:', isLoading);
+  console.log('MessagingDashboard - connectionStatus:', connectionStatus);
 
   // Load messages for selected conversation
   const loadMessages = async (conversationId: string) => {
@@ -46,22 +38,14 @@ const MessagingDashboard: React.FC = () => {
     
     // Mark as read
     if (conversation.unreadCount > 0) {
-      messagingService.markAsRead(conversation.id);
+      markAsRead(conversation.id);
     }
   };
 
   // Handle new message
   const handleNewMessage = (message: Message) => {
     setMessages(prev => [...prev, message]);
-    
-    // Update conversation list
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.id === message.senderId 
-          ? { ...conv, lastMessage: message, unreadCount: conv.id === selectedConversation?.id ? 0 : conv.unreadCount + 1 }
-          : conv
-      )
-    );
+    // Conversations are now managed by the context
   };
 
   // Handle message send
@@ -69,47 +53,19 @@ const MessagingDashboard: React.FC = () => {
     if (!selectedConversation) return;
 
     try {
-      const message = await messagingService.sendMessage({
-        conversationId: selectedConversation.id,
-        content,
-        type,
-        media
-      });
-      
-      handleNewMessage(message);
+      await sendMessage(selectedConversation.id, content);
+      // Messages will be updated via WebSocket or context
     } catch (error) {
       console.error('Failed to send message:', error);
     }
   };
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    loadConversations();
-    
-    // Connect to messaging service
-    messagingService.connect();
-    
-    // Subscribe to connection status
-    messagingService.subscribeToConnectionStatus(setConnectionStatus);
-    
-    return () => {
-      // Cleanup subscriptions
-      messagingService.disconnect();
-    };
-  }, []);
+  // Real-time updates are now handled by the context
 
-  // Subscribe to messages for selected conversation
+  // Load messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
-      messagingService.subscribeToMessages(
-        selectedConversation.id,
-        handleNewMessage,
-        (error) => console.error('Message stream error:', error)
-      );
-      
-      return () => {
-        messagingService.unsubscribeFromMessages(selectedConversation.id);
-      };
+      loadMessages(selectedConversation.id);
     }
   }, [selectedConversation]);
 
@@ -117,13 +73,13 @@ const MessagingDashboard: React.FC = () => {
   const filteredConversations = conversations.filter(conv => 
     conv.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.participants.some(p => 
-      p.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.username.toLowerCase().includes(searchTerm.toLowerCase())
+      (p.displayName && p.displayName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (p.username && p.username.toLowerCase().includes(searchTerm.toLowerCase()))
     )
   );
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-[calc(100vh-6rem)] lg:h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="w-1/3 border-r border-gray-200 bg-white flex flex-col">
         {/* Header */}
@@ -197,7 +153,7 @@ const MessagingDashboard: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">
                       {selectedConversation.name || 
-                       selectedConversation.participants.map(p => p.displayName).join(', ')}
+                       selectedConversation.participants.map(p => p.displayName || 'Unknown User').join(', ')}
                     </h3>
                     <p className="text-sm text-gray-500">
                       {selectedConversation.participants.length} participant{selectedConversation.participants.length !== 1 ? 's' : ''}
@@ -245,138 +201,23 @@ const MessagingDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* New Conversation Modal */}
+      {/* User Search Modal */}
       {showNewConversation && (
-        <NewConversationModal
+        <UserSearch
           onClose={() => setShowNewConversation(false)}
-          onConversationCreated={(conversation) => {
-            setConversations(prev => [conversation, ...prev]);
-            setSelectedConversation(conversation);
+          onUserSelect={(conversationId, displayName) => {
+            // Find the conversation in the list or create a new one
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (conversation) {
+              setSelectedConversation(conversation);
+            } else {
+              // If conversation doesn't exist in list, reload conversations
+              loadConversations();
+            }
             setShowNewConversation(false);
           }}
         />
       )}
-    </div>
-  );
-};
-
-// New Conversation Modal Component
-const NewConversationModal: React.FC<{
-  onClose: () => void;
-  onConversationCreated: (conversation: Conversation) => void;
-}> = ({ onClose, onConversationCreated }) => {
-  const [conversationType, setConversationType] = useState<'direct' | 'group'>('direct');
-  const [groupName, setGroupName] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleCreateConversation = async () => {
-    if (conversationType === 'direct' && selectedUsers.length !== 1) {
-      alert('Please select exactly one user for direct conversation');
-      return;
-    }
-    
-    if (conversationType === 'group' && (!groupName.trim() || selectedUsers.length < 2)) {
-      alert('Please provide a group name and select at least 2 users');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      let conversation: Conversation;
-      
-      if (conversationType === 'direct') {
-        conversation = await messagingService.createDirectConversation(selectedUsers[0]);
-      } else {
-        conversation = await messagingService.createGroupConversation({
-          name: groupName,
-          participants: selectedUsers
-        });
-      }
-      
-      onConversationCreated(conversation);
-    } catch (error) {
-      console.error('Failed to create conversation:', error);
-      alert('Failed to create conversation. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">New Conversation</h3>
-        
-        {/* Conversation Type */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-          <div className="flex space-x-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="direct"
-                checked={conversationType === 'direct'}
-                onChange={(e) => setConversationType(e.target.value as 'direct' | 'group')}
-                className="mr-2"
-              />
-              Direct Message
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="group"
-                checked={conversationType === 'group'}
-                onChange={(e) => setConversationType(e.target.value as 'direct' | 'group')}
-                className="mr-2"
-              />
-              Group Chat
-            </label>
-          </div>
-        </div>
-
-        {/* Group Name */}
-        {conversationType === 'group' && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
-            <input
-              type="text"
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              placeholder="Enter group name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-innkt-primary focus:border-transparent"
-            />
-          </div>
-        )}
-
-        {/* User Selection */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select {conversationType === 'direct' ? 'User' : 'Users'}
-          </label>
-          <div className="border border-gray-300 rounded-lg p-3 max-h-40 overflow-y-auto">
-            <p className="text-sm text-gray-500">User selection would be implemented here</p>
-            <p className="text-xs text-gray-400 mt-1">This would connect to your user management system</p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCreateConversation}
-            disabled={isLoading}
-            className="px-4 py-2 bg-innkt-primary text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-          >
-            {isLoading ? 'Creating...' : 'Create'}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
