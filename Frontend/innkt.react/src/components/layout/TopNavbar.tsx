@@ -149,7 +149,7 @@ const TopNavbar: React.FC = () => {
                         key={conversation.id || `conversation-${index}`}
                         className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
                         onClick={() => {
-                          navigate('/messaging');
+                          navigate('/messaging', { state: { selectedConversationId: conversation.id } });
                           setShowMessages(false);
                         }}
                       >

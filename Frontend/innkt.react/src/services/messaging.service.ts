@@ -99,6 +99,25 @@ class MessagingService extends BaseApiService {
     super(messagingApi);
   }
 
+  // Method to set the socket from MessagingContext
+  setSocket(socket: Socket | null) {
+    this.socket = socket;
+    this.isConnected = socket?.connected || false;
+  }
+
+  private getCurrentUserId(): string | null {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return null;
+      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+    } catch (error) {
+      console.error('Failed to get current user ID:', error);
+      return null;
+    }
+  }
+
   // Conversation Management
   async getConversations(): Promise<Conversation[]> {
     try {
@@ -106,32 +125,62 @@ class MessagingService extends BaseApiService {
       const conversations = (response as any).conversations || [];
       
       // Transform the data to match the expected interface
-      return conversations.map((conv: any) => ({
-        id: conv._id || conv.id,
-        type: conv.type,
-        name: conv.name || (conv.type === 'direct' ? 'Direct Message' : conv.name),
-        avatar: conv.avatar,
-        participants: conv.participants?.map((p: any) => ({
+      return conversations.map((conv: any) => {
+        const participants = conv.participants?.map((p: any) => ({
           userId: p.userId,
           username: p.username || p.userId, // Fallback to userId if no username
           displayName: p.displayName || p.userId, // Fallback to userId if no displayName
           avatar: p.avatar,
           role: p.role || 'member'
-        })) || [],
-        lastMessage: conv.lastMessage,
-        unreadCount: conv.unreadCount || 0,
-        isActive: conv.isActive !== false,
-        createdAt: conv.createdAt,
-        updatedAt: conv.updatedAt,
-        settings: conv.settings || {
-          allowFileSharing: true,
-          allowReactions: true,
-          allowReplies: true,
-          messageRetention: 365,
-          encryptionEnabled: false,
-          notificationsEnabled: true
+        })) || [];
+
+        // Generate conversation name based on participants
+        let conversationName = conv.name;
+        if (!conversationName && conv.type === 'direct' && participants.length > 0) {
+          // For direct messages, use the other participant's name
+          const currentUserId = this.getCurrentUserId();
+          const otherParticipants = participants.filter((p: any) => {
+            // Handle both string userId and object with userId property
+            const participantId = typeof p === 'string' ? p : (p.userId || p);
+            return participantId !== currentUserId;
+          });
+          
+          if (otherParticipants.length > 0) {
+            const otherParticipant = otherParticipants[0];
+            if (typeof otherParticipant === 'string') {
+              // If it's just a string ID, use it as display name
+              conversationName = `User ${otherParticipant.substring(0, 8)}...`;
+            } else {
+              conversationName = otherParticipant.displayName || otherParticipant.username || `User ${otherParticipant.userId?.substring(0, 8)}...`;
+            }
+          } else {
+            conversationName = 'Direct Message';
+          }
+        } else if (!conversationName) {
+          conversationName = 'Group Chat';
         }
-      }));
+
+        return {
+          id: conv._id || conv.id,
+          type: conv.type,
+          name: conversationName,
+          avatar: conv.avatar,
+          participants,
+          lastMessage: conv.lastMessage,
+          unreadCount: conv.unreadCount || 0,
+          isActive: conv.isActive !== false,
+          createdAt: conv.createdAt,
+          updatedAt: conv.updatedAt,
+          settings: conv.settings || {
+            allowFileSharing: true,
+            allowReactions: true,
+            allowReplies: true,
+            messageRetention: 365,
+            encryptionEnabled: false,
+            notificationsEnabled: true
+          }
+        };
+      });
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
       return [];
@@ -224,7 +273,7 @@ class MessagingService extends BaseApiService {
   }): Promise<Message> {
     try {
       if (!this.socket) {
-        this.connect();
+        throw new Error('Socket not connected. Please ensure you are logged in.');
       }
 
       // For now, send via Socket.IO (in production, you might want to handle file uploads differently)
@@ -234,21 +283,47 @@ class MessagingService extends BaseApiService {
           return;
         }
 
-        this.socket.emit('send_message', {
+        // Set up one-time listener for message_sent event
+        const handleMessageSent = (response: any) => {
+          this.socket!.off('message_sent', handleMessageSent);
+          this.socket!.off('error', handleError);
+          if (response && response.message) {
+            resolve(response.message);
+          } else {
+            reject(new Error('Invalid response from server'));
+          }
+        };
+
+        // Set up one-time listener for error event
+        const handleError = (error: any) => {
+          this.socket!.off('message_sent', handleMessageSent);
+          this.socket!.off('error', handleError);
+          reject(new Error(error.message || 'Failed to send message'));
+        };
+
+        this.socket!.on('message_sent', handleMessageSent);
+        this.socket!.on('error', handleError);
+
+        // Send the message
+        const messageData = {
           conversationId: data.conversationId,
           content: data.content,
           type: data.type,
           replyTo: data.replyTo,
           isEncrypted: data.isEncrypted
-        }, (response: any) => {
-          if (response && response.error) {
-            reject(new Error(response.error));
-          } else if (response && response.message) {
-            resolve(response.message);
-          } else {
-            reject(new Error('No response received from server'));
+        };
+        
+        console.log('📤 Sending message via socket:', messageData);
+        this.socket!.emit('send_message', messageData);
+
+        // Set timeout to clean up listeners
+        setTimeout(() => {
+          if (this.socket) {
+            this.socket.off('message_sent', handleMessageSent);
+            this.socket.off('error', handleError);
           }
-        });
+          reject(new Error('Message send timeout'));
+        }, 10000);
       });
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -305,52 +380,7 @@ class MessagingService extends BaseApiService {
     }
   }
 
-  // Real-time Messaging
-  connect(): void {
-    if (this.socket?.connected) return;
-
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      console.error('No auth token available for messaging');
-      return;
-    }
-
-    const messagingUrl = process.env.REACT_APP_MESSAGING_URL || 'http://localhost:3000';
-    
-    this.socket = io(messagingUrl, {
-      auth: { token },
-      transports: ['websocket', 'polling']
-    });
-
-    this.socket.on('connect', () => {
-      console.log('Connected to messaging service');
-      this.isConnected = true;
-      this.connectionHandlers.forEach(handler => handler('connected'));
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('Disconnected from messaging service');
-      this.isConnected = false;
-      this.connectionHandlers.forEach(handler => handler('disconnected'));
-    });
-
-    this.socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      this.isConnected = false;
-      this.connectionHandlers.forEach(handler => handler('disconnected'));
-    });
-
-    this.socket.on('new_message', (message: Message) => {
-      const handler = this.messageHandlers.get(message.conversationId);
-      if (handler) {
-        handler(message);
-      }
-    });
-
-    this.socket.on('error', (error) => {
-      console.error('Socket error:', error);
-    });
-  }
+  // Real-time Messaging - Socket is now managed by MessagingContext
 
   disconnect(): void {
     if (this.socket) {
@@ -366,7 +396,8 @@ class MessagingService extends BaseApiService {
     onError?: (error: any) => void
   ): void {
     if (!this.socket) {
-      this.connect();
+      console.warn('Socket not connected. Message subscription will not work.');
+      return;
     }
 
     this.messageHandlers.set(conversationId, onMessage);

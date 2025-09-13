@@ -8,7 +8,10 @@ interface MessagingContextType {
   unreadCount: number;
   isLoading: boolean;
   connectionStatus: 'connected' | 'disconnected' | 'connecting';
+  currentMessages: Message[];
+  currentConversationId: string | null;
   loadConversations: () => Promise<void>;
+  loadMessages: (conversationId: string) => Promise<void>;
   markAsRead: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, content: string) => Promise<void>;
   createDirectConversation: (userId: string) => Promise<Conversation>;
@@ -37,6 +40,8 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [lastLoadTime, setLastLoadTime] = useState<number>(0);
+  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
   // Load conversations with debounce
   const loadConversations = useCallback(async () => {
@@ -93,20 +98,33 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     }
   }, [conversations]);
 
+  // Load messages for a conversation
+  const loadMessages = useCallback(async (conversationId: string) => {
+    try {
+      setCurrentConversationId(conversationId);
+      const response = await messagingService.getMessages({ conversationId, limit: 50 });
+      setCurrentMessages(response.messages);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+      setCurrentMessages([]);
+    }
+  }, []);
+
   // Send message
   const sendMessage = useCallback(async (conversationId: string, content: string) => {
     try {
+      console.log('📤 Sending message:', { conversationId, content });
       await messagingService.sendMessage({
         conversationId,
         content,
         type: 'text'
       });
-      // Reload conversations to get updated last message
-      await loadConversations();
+      console.log('✅ Message sent successfully');
+      // Don't reload conversations - real-time updates will handle it
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('❌ Failed to send message:', error);
     }
-  }, [loadConversations]);
+  }, []);
 
   // Create direct conversation
   const createDirectConversation = useCallback(async (userId: string) => {
@@ -159,17 +177,24 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     });
 
     newSocket.on('connect', () => {
-      console.log('Connected to messaging service');
+      console.log('✅ Connected to messaging service');
+      console.log('Socket ID:', newSocket.id);
       setConnectionStatus('connected');
+      // Pass the socket to the messaging service
+      messagingService.setSocket(newSocket);
+      // Load conversations after connecting
+      loadConversations();
     });
 
     newSocket.on('disconnect', () => {
       console.log('Disconnected from messaging service');
       setConnectionStatus('disconnected');
+      // Clear the socket from the messaging service
+      messagingService.setSocket(null);
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.error('❌ WebSocket connection error:', error);
       setConnectionStatus('disconnected');
       
       // If it's an auth error, try to reconnect after a delay
@@ -183,8 +208,15 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       }
     });
 
-    newSocket.on('newMessage', (message: Message) => {
-      console.log('New message received:', message);
+    newSocket.on('error', (error) => {
+      console.error('❌ Socket error:', error);
+    });
+
+    newSocket.on('new_message', (message: Message) => {
+      console.log('📨 New message received:', message);
+      console.log('Current conversation ID:', currentConversationId);
+      console.log('Message conversation ID:', message.conversationId);
+      
       // Update conversations locally instead of reloading
       setConversations(prev => prev.map(conv => 
         conv.id === message.conversationId 
@@ -192,6 +224,14 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
           : conv
       ));
       setUnreadCount(prev => prev + 1);
+      
+      // Update current messages if this is the active conversation
+      if (currentConversationId === message.conversationId) {
+        console.log('✅ Adding message to current conversation');
+        setCurrentMessages(prev => [...prev, message]);
+      } else {
+        console.log('❌ Message not for current conversation');
+      }
     });
 
     newSocket.on('conversationUpdated', (conversation: Conversation) => {
@@ -220,7 +260,10 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     unreadCount,
     isLoading,
     connectionStatus,
+    currentMessages,
+    currentConversationId,
     loadConversations,
+    loadMessages,
     markAsRead,
     sendMessage,
     createDirectConversation,

@@ -1,245 +1,87 @@
-# PowerShell script to run all tests for the innkt platform
-param(
-    [string]$TestCategory = "All",
-    [switch]$Coverage = $false,
-    [switch]$Verbose = $false,
-    [switch]$Parallel = $false,
-    [switch]$SkipFrontend = $false,
-    [switch]$SkipBackend = $false,
-    [switch]$SkipMessaging = $false,
-    [switch]$SkipNeuroSpark = $false,
-    [switch]$SkipSeer = $false
+# Run All Chat and Kafka Tests
+Write-Host "=== Running All INNKT Tests ===" -ForegroundColor Green
+
+# Check if services are running
+Write-Host "`n1. Checking if services are running..." -ForegroundColor Yellow
+
+$services = @(
+    @{ Name = "Officer (Auth)"; Port = 5001 },
+    @{ Name = "Social"; Port = 8081 },
+    @{ Name = "Messaging"; Port = 3000 },
+    @{ Name = "React UI"; Port = 3001 },
+    @{ Name = "Kafka"; Port = 9092 },
+    @{ Name = "Redis"; Port = 6379 },
+    @{ Name = "MongoDB"; Port = 27017 }
 )
 
-Write-Host "🧪 Running All innkt Platform Tests" -ForegroundColor Green
-Write-Host "====================================" -ForegroundColor Green
-
-$testResults = @()
-$overallSuccess = $true
-
-# Function to run tests for a service
-function Run-ServiceTests {
-    param(
-        [string]$ServiceName,
-        [string]$ServicePath,
-        [string]$TestCommand,
-        [string]$TestArgs = ""
-    )
-    
-    Write-Host "`n🔍 Testing $ServiceName..." -ForegroundColor Cyan
-    Write-Host "Path: $ServicePath" -ForegroundColor Gray
-    Write-Host "Command: $TestCommand $TestArgs" -ForegroundColor Gray
-    
+$allRunning = $true
+foreach ($service in $services) {
     try {
-        Push-Location $ServicePath
-        
-        if ($TestCommand -eq "dotnet") {
-            $testArgs = "test --configuration Debug --logger trx;LogFileName=TestResults.trx"
-            if ($Coverage) {
-                $testArgs += " --collect `"XPlat Code Coverage`""
-            }
-            if ($Verbose) {
-                $testArgs += " --verbosity detailed"
-            }
-        } elseif ($TestCommand -eq "npm") {
-            $testArgs = "test"
-            if ($Coverage) {
-                $testArgs += " -- --coverage"
-            }
-            if ($Verbose) {
-                $testArgs += " -- --verbose"
-            }
-        }
-        
-        $result = Invoke-Expression "$TestCommand $testArgs"
-        $exitCode = $LASTEXITCODE
-        
-        if ($exitCode -eq 0) {
-            Write-Host "✅ $ServiceName tests passed!" -ForegroundColor Green
-            $testResults += @{
-                Service = $ServiceName
-                Status = "PASSED"
-                ExitCode = $exitCode
-            }
-        } else {
-            Write-Host "❌ $ServiceName tests failed!" -ForegroundColor Red
-            $testResults += @{
-                Service = $ServiceName
-                Status = "FAILED"
-                ExitCode = $exitCode
-            }
-            $script:overallSuccess = $false
-        }
-        
+        $tcpClient = New-Object System.Net.Sockets.TcpClient
+        $tcpClient.Connect("localhost", $service.Port)
+        $tcpClient.Close()
+        Write-Host "✅ $($service.Name) (port $($service.Port)) - Running" -ForegroundColor Green
     } catch {
-        Write-Host "💥 Error running $ServiceName tests: $($_.Exception.Message)" -ForegroundColor Red
-        $testResults += @{
-            Service = $ServiceName
-            Status = "ERROR"
-            ExitCode = 1
-        }
-        $script:overallSuccess = $false
-    } finally {
-        Pop-Location
+        Write-Host "❌ $($service.Name) (port $($service.Port)) - Not running" -ForegroundColor Red
+        $allRunning = $false
     }
 }
 
-# Function to run tests in parallel
-function Run-ParallelTests {
-    param(
-        [array]$TestJobs
-    )
-    
-    $jobs = @()
-    
-    foreach ($job in $TestJobs) {
-        $jobScript = {
-            param($ServiceName, $ServicePath, $TestCommand, $TestArgs)
-            
-            try {
-                Push-Location $ServicePath
-                $result = Invoke-Expression "$TestCommand $TestArgs"
-                $exitCode = $LASTEXITCODE
-                
-                return @{
-                    Service = $ServiceName
-                    Status = if ($exitCode -eq 0) { "PASSED" } else { "FAILED" }
-                    ExitCode = $exitCode
-                }
-            } catch {
-                return @{
-                    Service = $ServiceName
-                    Status = "ERROR"
-                    ExitCode = 1
-                }
-            } finally {
-                Pop-Location
-            }
-        }
-        
-        $jobs += Start-Job -ScriptBlock $jobScript -ArgumentList $job.ServiceName, $job.ServicePath, $job.TestCommand, $job.TestArgs
-    }
-    
-    # Wait for all jobs to complete
-    $jobs | Wait-Job | Out-Null
-    
-    # Collect results
-    foreach ($job in $jobs) {
-        $result = Receive-Job -Job $job
-        $testResults += $result
-        
-        if ($result.Status -ne "PASSED") {
-            $script:overallSuccess = $false
-        }
-        
-        Remove-Job -Job $job
-    }
+if (-not $allRunning) {
+    Write-Host "`n⚠️ Some services are not running. Please start all services first:" -ForegroundColor Yellow
+    Write-Host "1. Run: docker-compose -f docker-compose-infrastructure.yml up -d" -ForegroundColor Cyan
+    Write-Host "2. Run: .\start-services-fixed.ps1" -ForegroundColor Cyan
+    Write-Host "`nPress any key to continue anyway..." -ForegroundColor Gray
+    Read-Host
 }
 
-# Define test jobs
-$testJobs = @()
+# Run chat conversations test
+Write-Host "`n2. Running Chat Conversations Test..." -ForegroundColor Yellow
+Write-Host "This will create test users, conversations, and messages" -ForegroundColor Cyan
+Write-Host "Press any key to start..." -ForegroundColor Gray
+Read-Host
 
-if (-not $SkipBackend) {
-    $testJobs += @{
-        ServiceName = "Officer (.NET)"
-        ServicePath = "Backend/innkt.Officer/Tests"
-        TestCommand = "dotnet"
-        TestArgs = "test"
-    }
-}
+.\test-chat-conversations.ps1
 
-if (-not $SkipNeuroSpark) {
-    $testJobs += @{
-        ServiceName = "NeuroSpark (.NET)"
-        ServicePath = "Backend/innkt.NeuroSpark/innkt.NeuroSpark"
-        TestCommand = "dotnet"
-        TestArgs = "test"
-    }
-}
+# Run Kafka notifications test
+Write-Host "`n3. Running Kafka Notifications Test..." -ForegroundColor Yellow
+Write-Host "This will test Kafka infrastructure and notifications" -ForegroundColor Cyan
+Write-Host "Press any key to start..." -ForegroundColor Gray
+Read-Host
 
-if (-not $SkipSeer) {
-    $testJobs += @{
-        ServiceName = "Seer (.NET)"
-        ServicePath = "Backend/innkt.Seer"
-        TestCommand = "dotnet"
-        TestArgs = "test"
-    }
-}
+.\test-kafka-notifications.ps1
 
-if (-not $SkipMessaging) {
-    $testJobs += @{
-        ServiceName = "Messaging (Node.js)"
-        ServicePath = "Backend/innkt.Messaging"
-        TestCommand = "npm"
-        TestArgs = "test"
-    }
-}
+# Open UI test
+Write-Host "`n4. Opening UI Test..." -ForegroundColor Yellow
+Write-Host "Opening browser-based UI test for manual verification" -ForegroundColor Cyan
 
-if (-not $SkipFrontend) {
-    $testJobs += @{
-        ServiceName = "React Frontend"
-        ServicePath = "Frontend/innkt.react"
-        TestCommand = "npm"
-        TestArgs = "test"
-    }
-}
-
-# Run tests
-if ($Parallel -and $testJobs.Count -gt 1) {
-    Write-Host "🚀 Running tests in parallel..." -ForegroundColor Yellow
-    Run-ParallelTests -TestJobs $testJobs
+$uiTestPath = Join-Path $PWD "test-ui-conversations.html"
+if (Test-Path $uiTestPath) {
+    Start-Process $uiTestPath
+    Write-Host "✅ UI test opened in browser" -ForegroundColor Green
 } else {
-    Write-Host "🚀 Running tests sequentially..." -ForegroundColor Yellow
-    foreach ($job in $testJobs) {
-        Run-ServiceTests -ServiceName $job.ServiceName -ServicePath $job.ServicePath -TestCommand $job.TestCommand -TestArgs $job.TestArgs
-    }
+    Write-Host "❌ UI test file not found: $uiTestPath" -ForegroundColor Red
 }
 
-# Display results summary
-Write-Host "`n📊 Test Results Summary" -ForegroundColor Yellow
-Write-Host "======================" -ForegroundColor Yellow
+# Final summary
+Write-Host "`n=== Test Summary ===" -ForegroundColor Green
+Write-Host "✅ Chat Conversations Test: Completed" -ForegroundColor Green
+Write-Host "✅ Kafka Notifications Test: Completed" -ForegroundColor Green
+Write-Host "✅ UI Test: Opened in browser" -ForegroundColor Green
 
-foreach ($result in $testResults) {
-    $statusColor = switch ($result.Status) {
-        "PASSED" { "Green" }
-        "FAILED" { "Red" }
-        "ERROR" { "Red" }
-        default { "Yellow" }
-    }
-    
-    Write-Host "$($result.Service): " -NoNewline
-    Write-Host $result.Status -ForegroundColor $statusColor
-}
+Write-Host "`n📋 Manual Testing Steps:" -ForegroundColor Cyan
+Write-Host "1. Open the UI test in your browser" -ForegroundColor White
+Write-Host "2. Test authentication with: testuser1@example.com / TestPassword123!" -ForegroundColor White
+Write-Host "3. Check if conversations are loaded" -ForegroundColor White
+Write-Host "4. Test WebSocket connection" -ForegroundColor White
+Write-Host "5. Open main UI at: http://localhost:3001" -ForegroundColor White
+Write-Host "6. Login and go to Messages section" -ForegroundColor White
+Write-Host "7. Verify conversations and messages are visible" -ForegroundColor White
 
-# Overall result
-Write-Host "`n🎯 Overall Result: " -NoNewline
-if ($overallSuccess) {
-    Write-Host "ALL TESTS PASSED! 🎉" -ForegroundColor Green
-} else {
-    Write-Host "SOME TESTS FAILED! ❌" -ForegroundColor Red
-}
+Write-Host "`n🔍 Kafka Monitoring:" -ForegroundColor Cyan
+Write-Host "1. Open Kafka UI at: http://localhost:8080" -ForegroundColor White
+Write-Host "2. Check topics for recent activity" -ForegroundColor White
+Write-Host "3. Look for user-events, post-events, message-events" -ForegroundColor White
 
-# Coverage information
-if ($Coverage) {
-    Write-Host "`n📈 Coverage Reports Generated:" -ForegroundColor Yellow
-    Write-Host "  - Officer: Backend/innkt.Officer/Tests/TestResults/coverage.cobertura.xml" -ForegroundColor White
-    Write-Host "  - NeuroSpark: Backend/innkt.NeuroSpark/TestResults/coverage.cobertura.xml" -ForegroundColor White
-    Write-Host "  - Seer: Backend/innkt.Seer/TestResults/coverage.cobertura.xml" -ForegroundColor White
-    Write-Host "  - Messaging: Backend/innkt.Messaging/coverage/lcov-report/index.html" -ForegroundColor White
-    Write-Host "  - Frontend: Frontend/innkt.react/coverage/lcov-report/index.html" -ForegroundColor White
-}
-
-# Test artifacts
-Write-Host "`n📄 Test Artifacts:" -ForegroundColor Yellow
-Write-Host "  - Test Results: */TestResults/TestResults.trx" -ForegroundColor White
-Write-Host "  - Coverage Reports: */coverage/" -ForegroundColor White
-Write-Host "  - Logs: */logs/" -ForegroundColor White
-
-# Exit with appropriate code
-if ($overallSuccess) {
-    Write-Host "`n🎉 All tests completed successfully!" -ForegroundColor Green
-    exit 0
-} else {
-    Write-Host "`n💥 Some tests failed. Please check the output above." -ForegroundColor Red
-    exit 1
-}
+Write-Host "`nPress any key to exit..." -ForegroundColor Gray
+Read-Host

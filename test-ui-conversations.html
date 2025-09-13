@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INNKT Chat Conversations Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .conversation-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .message-item {
+            padding: 8px;
+            border-left: 3px solid #007bff;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>INNKT Chat Conversations Test</h1>
+    
+    <div class="container">
+        <h2>Test Configuration</h2>
+        <div class="test-section">
+            <label for="baseUrl">Base URL:</label>
+            <input type="text" id="baseUrl" value="http://localhost:5001" style="width: 300px; margin: 5px;">
+            <br>
+            <label for="messagingUrl">Messaging URL:</label>
+            <input type="text" id="messagingUrl" value="http://localhost:3000" style="width: 300px; margin: 5px;">
+            <br>
+            <label for="frontendUrl">Frontend URL:</label>
+            <input type="text" id="frontendUrl" value="http://localhost:3001" style="width: 300px; margin: 5px;">
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Authentication Test</h2>
+        <div class="test-section">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="testuser1@example.com" style="width: 300px; margin: 5px;">
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" value="TestPassword123!" style="width: 300px; margin: 5px;">
+            <br>
+            <button onclick="testAuthentication()">Test Login</button>
+            <div id="authStatus"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Conversations API Test</h2>
+        <div class="test-section">
+            <button onclick="testConversations()" id="convBtn" disabled>Test Conversations API</button>
+            <button onclick="testMessages()" id="msgBtn" disabled>Test Messages API</button>
+            <div id="conversationsStatus"></div>
+            <div id="conversationsList"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>WebSocket Connection Test</h2>
+        <div class="test-section">
+            <button onclick="testWebSocket()" id="wsBtn" disabled>Test WebSocket Connection</button>
+            <div id="websocketStatus"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>UI Integration Test</h2>
+        <div class="test-section">
+            <button onclick="testUIIntegration()" id="uiBtn" disabled>Test UI Integration</button>
+            <div id="uiStatus"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Test Log</h2>
+        <div class="log" id="testLog"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let authToken = null;
+        let userId = null;
+        let conversations = [];
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `status ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '';
+        }
+
+        function setStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function testAuthentication() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+
+            log('Testing authentication...', 'info');
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.accessToken;
+                    userId = data.user.id;
+                    
+                    setStatus('authStatus', '✅ Authentication successful!', 'success');
+                    log(`Authentication successful! User ID: ${userId}`, 'success');
+                    
+                    // Enable other test buttons
+                    document.getElementById('convBtn').disabled = false;
+                    document.getElementById('wsBtn').disabled = false;
+                    document.getElementById('uiBtn').disabled = false;
+                } else {
+                    const error = await response.text();
+                    setStatus('authStatus', `❌ Authentication failed: ${error}`, 'error');
+                    log(`Authentication failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                setStatus('authStatus', `❌ Authentication error: ${error.message}`, 'error');
+                log(`Authentication error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testConversations() {
+            if (!authToken) {
+                setStatus('conversationsStatus', '❌ Please authenticate first', 'error');
+                return;
+            }
+
+            const messagingUrl = document.getElementById('messagingUrl').value;
+            log('Testing conversations API...', 'info');
+
+            try {
+                const response = await fetch(`${messagingUrl}/api/conversations`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    conversations = await response.json();
+                    setStatus('conversationsStatus', `✅ Found ${conversations.length} conversations`, 'success');
+                    log(`Found ${conversations.length} conversations`, 'success');
+                    
+                    // Display conversations
+                    const conversationsList = document.getElementById('conversationsList');
+                    conversationsList.innerHTML = '<h4>Conversations:</h4>';
+                    
+                    conversations.forEach((conv, index) => {
+                        const convDiv = document.createElement('div');
+                        convDiv.className = 'conversation-item';
+                        convDiv.innerHTML = `
+                            <strong>${conv.name || 'Unnamed Conversation'}</strong><br>
+                            <small>ID: ${conv._id || conv.id}</small><br>
+                            <small>Participants: ${conv.participants ? conv.participants.length : 0}</small>
+                            <button onclick="testMessagesForConversation('${conv._id || conv.id}', ${index})">Load Messages</button>
+                        `;
+                        conversationsList.appendChild(convDiv);
+                    });
+                } else {
+                    const error = await response.text();
+                    setStatus('conversationsStatus', `❌ Conversations API failed: ${error}`, 'error');
+                    log(`Conversations API failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                setStatus('conversationsStatus', `❌ Conversations API error: ${error.message}`, 'error');
+                log(`Conversations API error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMessages() {
+            if (!authToken || conversations.length === 0) {
+                setStatus('conversationsStatus', '❌ Please load conversations first', 'error');
+                return;
+            }
+
+            const messagingUrl = document.getElementById('messagingUrl').value;
+            const firstConv = conversations[0];
+            log(`Testing messages API for conversation: ${firstConv._id || firstConv.id}`, 'info');
+
+            try {
+                const response = await fetch(`${messagingUrl}/api/messages?conversationId=${firstConv._id || firstConv.id}&limit=10`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const messages = await response.json();
+                    setStatus('conversationsStatus', `✅ Found ${messages.length} messages in first conversation`, 'success');
+                    log(`Found ${messages.length} messages in first conversation`, 'success');
+                    
+                    // Display messages
+                    const messagesDiv = document.createElement('div');
+                    messagesDiv.innerHTML = '<h4>Messages:</h4>';
+                    
+                    messages.forEach(msg => {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'message-item';
+                        msgDiv.innerHTML = `
+                            <strong>From: ${msg.senderId || 'Unknown'}</strong><br>
+                            <span>${msg.content || 'No content'}</span><br>
+                            <small>Type: ${msg.type || 'text'} | Time: ${msg.timestamp || 'Unknown'}</small>
+                        `;
+                        messagesDiv.appendChild(msgDiv);
+                    });
+                    
+                    document.getElementById('conversationsList').appendChild(messagesDiv);
+                } else {
+                    const error = await response.text();
+                    setStatus('conversationsStatus', `❌ Messages API failed: ${error}`, 'error');
+                    log(`Messages API failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                setStatus('conversationsStatus', `❌ Messages API error: ${error.message}`, 'error');
+                log(`Messages API error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMessagesForConversation(conversationId, index) {
+            if (!authToken) {
+                log('Please authenticate first', 'error');
+                return;
+            }
+
+            const messagingUrl = document.getElementById('messagingUrl').value;
+            log(`Loading messages for conversation ${index + 1}...`, 'info');
+
+            try {
+                const response = await fetch(`${messagingUrl}/api/messages?conversationId=${conversationId}&limit=10`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const messages = await response.json();
+                    log(`Found ${messages.length} messages in conversation ${index + 1}`, 'success');
+                    
+                    // Display messages in a popup or new section
+                    const messagesDiv = document.createElement('div');
+                    messagesDiv.innerHTML = `<h4>Messages for Conversation ${index + 1}:</h4>`;
+                    
+                    messages.forEach(msg => {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'message-item';
+                        msgDiv.innerHTML = `
+                            <strong>From: ${msg.senderId || 'Unknown'}</strong><br>
+                            <span>${msg.content || 'No content'}</span><br>
+                            <small>Type: ${msg.type || 'text'} | Time: ${msg.timestamp || 'Unknown'}</small>
+                        `;
+                        messagesDiv.appendChild(msgDiv);
+                    });
+                    
+                    // Replace or append to conversations list
+                    const existingMessages = document.querySelector('.conversation-messages');
+                    if (existingMessages) {
+                        existingMessages.remove();
+                    }
+                    messagesDiv.className = 'conversation-messages';
+                    document.getElementById('conversationsList').appendChild(messagesDiv);
+                } else {
+                    const error = await response.text();
+                    log(`Messages API failed for conversation ${index + 1}: ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`Messages API error for conversation ${index + 1}: ${error.message}`, 'error');
+            }
+        }
+
+        function testWebSocket() {
+            if (!authToken) {
+                setStatus('websocketStatus', '❌ Please authenticate first', 'error');
+                return;
+            }
+
+            const messagingUrl = document.getElementById('messagingUrl').value;
+            log('Testing WebSocket connection...', 'info');
+
+            try {
+                // Create Socket.IO connection
+                const socket = io(messagingUrl, {
+                    auth: {
+                        token: authToken
+                    }
+                });
+
+                socket.on('connect', () => {
+                    setStatus('websocketStatus', '✅ WebSocket connected successfully!', 'success');
+                    log('WebSocket connected successfully!', 'success');
+                });
+
+                socket.on('disconnect', () => {
+                    setStatus('websocketStatus', '⚠️ WebSocket disconnected', 'warning');
+                    log('WebSocket disconnected', 'warning');
+                });
+
+                socket.on('error', (error) => {
+                    setStatus('websocketStatus', `❌ WebSocket error: ${error}`, 'error');
+                    log(`WebSocket error: ${error}`, 'error');
+                });
+
+                socket.on('newMessage', (message) => {
+                    log(`New message received: ${JSON.stringify(message)}`, 'info');
+                });
+
+                socket.on('conversationUpdated', (conversation) => {
+                    log(`Conversation updated: ${JSON.stringify(conversation)}`, 'info');
+                });
+
+                // Test sending a message via WebSocket
+                setTimeout(() => {
+                    socket.emit('joinConversation', { conversationId: conversations[0]?._id || conversations[0]?.id });
+                    log('Joined first conversation via WebSocket', 'info');
+                }, 2000);
+
+            } catch (error) {
+                setStatus('websocketStatus', `❌ WebSocket connection failed: ${error.message}`, 'error');
+                log(`WebSocket connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUIIntegration() {
+            const frontendUrl = document.getElementById('frontendUrl').value;
+            log('Testing UI integration...', 'info');
+
+            try {
+                const response = await fetch(frontendUrl, {
+                    method: 'GET',
+                    mode: 'no-cors' // This will work for basic connectivity test
+                });
+
+                setStatus('uiStatus', '✅ Frontend UI is accessible', 'success');
+                log('Frontend UI is accessible', 'success');
+                
+                // Open the UI in a new window for manual testing
+                const newWindow = window.open(frontendUrl, '_blank');
+                if (newWindow) {
+                    log('Opened frontend UI in new window for manual testing', 'info');
+                } else {
+                    log('Could not open frontend UI (popup blocked?)', 'warning');
+                }
+
+            } catch (error) {
+                setStatus('uiStatus', `❌ Frontend UI not accessible: ${error.message}`, 'error');
+                log(`Frontend UI not accessible: ${error.message}`, 'error');
+            }
+        }
+
+        // Load Socket.IO library
+        const script = document.createElement('script');
+        script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+        document.head.appendChild(script);
+
+        // Initialize on page load
+        window.onload = function() {
+            log('INNKT Chat Conversations Test initialized', 'info');
+            log('Please configure the URLs and click "Test Login" to begin', 'info');
+        };
+    </script>
+</body>
+</html>
