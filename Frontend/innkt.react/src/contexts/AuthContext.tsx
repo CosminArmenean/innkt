@@ -147,8 +147,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    console.log('Logging out user...');
     localStorage.removeItem('accessToken');
     setUser(null);
+    console.log('User logged out, user state:', null);
   };
 
   const updateUser = (userData: Partial<User>) => {

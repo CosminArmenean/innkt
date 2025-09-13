@@ -20,6 +20,15 @@ public class TrendingController : ControllerBase
     }
 
     /// <summary>
+    /// Test endpoint to verify service calls
+    /// </summary>
+    [HttpGet("test")]
+    public ActionResult<object> Test()
+    {
+        return Ok(new { message = "Trending service is working!", service = "innkt.Social.Trending", port = 8081, timestamp = DateTime.UtcNow });
+    }
+
+    /// <summary>
     /// Get trending topics/hashtags
     /// </summary>
     [HttpGet("topics")]
@@ -45,8 +54,8 @@ public class TrendingController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 return Unauthorized(new { error = "User not authenticated" });
             }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { socialService, Post } from '../../services/social.service';
+import PWAStatus from '../pwa/PWAStatus';
 
 const RightPanel: React.FC = () => {
   const [activePost, setActivePost] = useState<string | null>(null);
@@ -182,12 +183,20 @@ const RightPanel: React.FC = () => {
         </div>
       </div>
 
+      {/* Online Status - Above version */}
+      <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
+        <div className="text-center">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">System Status</h3>
+          <PWAStatus showDetails={false} />
+        </div>
+      </div>
+
       {/* Version Information - Fixed at bottom */}
       <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
         <div className="text-center text-sm text-gray-500">
           <div className="flex items-center justify-center space-x-2">
             <span>Version:</span>
-            <span className="font-mono font-semibold">1.0.3</span>
+                <span className="font-mono font-semibold">1.0.9</span>
           </div>
           <div className="mt-1 text-xs">
             {new Date().toLocaleDateString()}

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Token Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 React Token Debug Test</h1>
+        <p>This page helps debug JWT token issues in the React UI.</p>
+        
+        <div class="test-section info">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>Login to React UI at <a href="http://localhost:3001" target="_blank">http://localhost:3001</a></li>
+                <li>Open browser console (F12) and run the tests below</li>
+                <li>Check if JWT token is properly stored and sent</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Token Debug Tests</h3>
+            <button class="btn-primary" onclick="checkTokenStorage()">Check Token Storage</button>
+            <button class="btn-primary" onclick="testSocialAPI()">Test Social API</button>
+            <button class="btn-primary" onclick="testOfficerAPI()">Test Officer API</button>
+            <button class="btn-success" onclick="loginAndTest()">Login & Test All</button>
+            <button class="btn-danger" onclick="clearLogs()">Clear Logs</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Debug Results</h3>
+            <div id="log" class="log">Click buttons above to run tests...</div>
+        </div>
+
+        <div class="test-section info">
+            <h3>🔍 What to Check</h3>
+            <ul>
+                <li><strong>Token Storage:</strong> Check if 'accessToken' exists in localStorage</li>
+                <li><strong>API Calls:</strong> Verify Authorization header is sent</li>
+                <li><strong>Network Tab:</strong> Check if requests include Bearer token</li>
+                <li><strong>Console Errors:</strong> Look for 401 Unauthorized errors</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        let logContent = '';
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logContent += `[${timestamp}] ${prefix} ${message}\n`;
+            log.textContent = logContent;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLogs() {
+            logContent = '';
+            log.textContent = 'Logs cleared...';
+        }
+
+        function checkTokenStorage() {
+            addLog('Checking localStorage for JWT token...');
+            
+            const token = localStorage.getItem('accessToken');
+            if (token) {
+                addLog(`Token found: ${token.substring(0, 50)}...`, 'success');
+                addLog(`Token length: ${token.length} characters`, 'info');
+                
+                // Try to decode JWT payload (basic)
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    addLog(`Token payload: ${JSON.stringify(payload, null, 2)}`, 'info');
+                } catch (e) {
+                    addLog(`Could not decode token payload: ${e.message}`, 'error');
+                }
+            } else {
+                addLog('No accessToken found in localStorage', 'error');
+            }
+        }
+
+        async function testSocialAPI() {
+            addLog('Testing Social API calls...');
+            
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                addLog('No token found - cannot test API calls', 'error');
+                return;
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            // Test trending topics
+            try {
+                addLog('Testing /api/trending/topics...');
+                const trending = await fetch('http://localhost:8081/api/trending/topics', {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (trending.ok) {
+                    const data = await trending.json();
+                    addLog(`Trending topics: SUCCESS (${data.length} topics)`, 'success');
+                } else {
+                    addLog(`Trending topics failed: ${trending.status} ${trending.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Trending topics error: ${error.message}`, 'error');
+            }
+
+            // Test users/me
+            try {
+                addLog('Testing /api/users/me...');
+                const usersMe = await fetch('http://localhost:8081/api/users/me', {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (usersMe.ok) {
+                    const data = await usersMe.json();
+                    addLog(`Users me: SUCCESS (${data.displayName})`, 'success');
+                } else {
+                    addLog(`Users me failed: ${usersMe.status} ${usersMe.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Users me error: ${error.message}`, 'error');
+            }
+
+            // Test posts/feed
+            try {
+                addLog('Testing /api/posts/feed...');
+                const posts = await fetch('http://localhost:8081/api/posts/feed', {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (posts.ok) {
+                    const data = await posts.json();
+                    addLog(`Posts feed: SUCCESS (${data.Posts?.length || 0} posts)`, 'success');
+                } else {
+                    addLog(`Posts feed failed: ${posts.status} ${posts.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Posts feed error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testOfficerAPI() {
+            addLog('Testing Officer API calls...');
+            
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                addLog('No token found - cannot test API calls', 'error');
+                return;
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            try {
+                addLog('Testing /api/auth/me...');
+                const authMe = await fetch('http://localhost:5001/api/auth/me', {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (authMe.ok) {
+                    const data = await authMe.json();
+                    addLog(`Auth me: SUCCESS (${data.email})`, 'success');
+                } else {
+                    addLog(`Auth me failed: ${authMe.status} ${authMe.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Auth me error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loginAndTest() {
+            addLog('Performing login and testing all APIs...');
+            
+            try {
+                // Login
+                addLog('Logging in...');
+                const loginResponse = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Email: 'testuser1@example.com',
+                        Password: 'TestPassword123!'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    addLog(`Login failed: ${loginResponse.status} ${loginResponse.statusText}`, 'error');
+                    return;
+                }
+
+                const loginData = await loginResponse.json();
+                addLog(`Login successful: ${loginData.user.email}`, 'success');
+                
+                // Store token
+                localStorage.setItem('accessToken', loginData.accessToken);
+                addLog('Token stored in localStorage', 'success');
+                
+                // Test APIs
+                await testSocialAPI();
+                await testOfficerAPI();
+                
+            } catch (error) {
+                addLog(`Login error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run token check on page load
+        window.onload = function() {
+            addLog('Page loaded. Checking for existing token...');
+            checkTokenStorage();
+        };
+    </script>
+</body>
+</html>

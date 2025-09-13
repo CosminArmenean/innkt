@@ -5,8 +5,10 @@ using innkt.Officer.Models;
 using innkt.Officer.Services;
 using innkt.StringLibrary.Data;
 using innkt.StringLibrary.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using StackExchange.Redis;
 
@@ -22,6 +24,10 @@ builder.Host.UseSerilog();
 
 // Add services to the container
 builder.Services.AddControllers();
+
+// Add Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Configure Entity Framework with PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -81,6 +87,30 @@ builder.Services.AddScoped<IMfaService, MfaService>();
 builder.Services.AddScoped<IKidAccountService, KidAccountService>();
 builder.Services.AddScoped<IUserVerificationService, UserVerificationService>();
 
+// Add JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.Authority = builder.Configuration["Jwt:Issuer"];
+    options.Audience = builder.Configuration["Jwt:Audience"];
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+    };
+});
+
 // Configure IdentityServer
 builder.Services.AddIdentityServer(options =>
 {
@@ -127,6 +157,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+
+// Configure Swagger
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseSerilogRequestLogging();
 

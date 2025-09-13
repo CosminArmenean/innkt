@@ -115,6 +115,9 @@ Wait-ForService 8
 Start-Service -ServiceName "Social Service (Posts & Groups)" -Path "Backend\innkt.Social" -Command "dotnet run" -Port 8081
 Wait-ForService 8
 
+Start-Service -ServiceName "Groups Service (Group Management)" -Path "Backend\innkt.Groups" -Command "dotnet run" -Port 5002
+Wait-ForService 8
+
 Start-Service -ServiceName "NeuroSpark Service (AI & Search)" -Path "Backend\innkt.NeuroSpark\innkt.NeuroSpark" -Command "dotnet run" -Port 5003
 Wait-ForService 8
 
@@ -135,6 +138,7 @@ Write-Host "=================================" -ForegroundColor Green
 Write-Host "Service URLs:" -ForegroundColor Cyan
 Write-Host "• Officer Service (Identity):     http://localhost:5001" -ForegroundColor White
 Write-Host "• Social Service (Posts/Groups):  http://localhost:8081" -ForegroundColor White
+Write-Host "• Groups Service (Group Mgmt):    http://localhost:5002" -ForegroundColor White
 Write-Host "• NeuroSpark Service (AI):        http://localhost:5003" -ForegroundColor White
 Write-Host "• Messaging Service (Chat):       http://localhost:3000" -ForegroundColor White
 Write-Host "• Seer Service (Video Calls):     http://localhost:5267" -ForegroundColor White

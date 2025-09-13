@@ -574,9 +574,9 @@ public class AuthService : IAuthService
             FullName = user.FullName,
             Username = user.UserName ?? user.Email,
             Bio = user.Bio,
-            Location = user.Location,
-            Website = user.Website,
-            DateOfBirth = user.DateOfBirth,
+            Location = user.City, // Using City as location
+            Website = null, // Not available in ApplicationUser
+            DateOfBirth = user.BirthDate,
             ProfilePictureUrl = user.ProfilePictureUrl,
             Language = user.Language,
             Theme = user.Theme,
@@ -584,55 +584,55 @@ public class AuthService : IAuthService
             IsActive = user.IsActive,
             IsVerified = user.IsVerified,
             IsKidAccount = user.IsKidAccount,
-            ParentId = user.ParentId,
-            IndependenceDate = user.IndependenceDate,
-            FollowersCount = user.FollowersCount,
-            FollowingCount = user.FollowingCount,
-            PostsCount = user.PostsCount,
+            ParentId = user.ParentUserId,
+            IndependenceDate = user.KidIndependenceDate,
+            FollowersCount = 0, // Not available in ApplicationUser
+            FollowingCount = 0, // Not available in ApplicationUser
+            PostsCount = 0, // Not available in ApplicationUser
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
             Preferences = new UserPreferencesDto
             {
-                PrivacyLevel = user.PrivacyLevel,
-                AllowDirectMessages = user.AllowDirectMessages,
-                AllowMentions = user.AllowMentions,
+                PrivacyLevel = user.IsPrivate ? "private" : "public",
+                AllowDirectMessages = true, // Default value
+                AllowMentions = true, // Default value
                 NotificationSettings = new NotificationSettingsDto
                 {
-                    NewFollowers = user.NewFollowersNotification,
-                    NewPosts = user.NewPostsNotification,
-                    Mentions = user.MentionsNotification,
-                    DirectMessages = user.DirectMessagesNotification,
-                    GroupUpdates = user.GroupUpdatesNotification,
-                    EmailNotifications = user.EmailNotifications,
-                    PushNotifications = user.PushNotifications
+                    NewFollowers = true, // Default value
+                    NewPosts = true, // Default value
+                    Mentions = true, // Default value
+                    DirectMessages = true, // Default value
+                    GroupUpdates = true, // Default value
+                    EmailNotifications = true, // Default value
+                    PushNotifications = true // Default value
                 },
                 Theme = user.Theme,
                 Language = user.Language,
-                Timezone = user.Timezone
+                Timezone = "UTC" // Default value
             },
             SocialLinks = new SocialLinksDto
             {
-                Twitter = user.TwitterLink,
-                Instagram = user.InstagramLink,
-                LinkedIn = user.LinkedInLink,
-                Facebook = user.FacebookLink,
-                YouTube = user.YouTubeLink
+                Twitter = null, // Not available in ApplicationUser
+                Instagram = null, // Not available in ApplicationUser
+                LinkedIn = null, // Not available in ApplicationUser
+                Facebook = null, // Not available in ApplicationUser
+                YouTube = null // Not available in ApplicationUser
             },
             ParentalControls = user.IsKidAccount ? new ParentalControlsDto
             {
-                CanPost = user.CanPost,
-                CanMessage = user.CanMessage,
-                CanJoinGroups = user.CanJoinGroups,
-                CanViewContent = user.CanViewContent,
+                CanPost = true, // Default value
+                CanMessage = true, // Default value
+                CanJoinGroups = true, // Default value
+                CanViewContent = "all", // Default value
                 TimeRestrictions = new TimeRestrictionsDto
                 {
-                    Enabled = user.TimeRestrictionsEnabled,
-                    StartTime = user.TimeRestrictionsStart,
-                    EndTime = user.TimeRestrictionsEnd,
-                    Timezone = user.Timezone
+                    Enabled = false, // Default value
+                    StartTime = "08:00", // Default value
+                    EndTime = "22:00", // Default value
+                    Timezone = "UTC" // Default value
                 },
-                ContentFilters = user.ContentFilters?.Split(',').ToList() ?? new List<string>(),
-                AllowedContacts = user.AllowedContacts?.Split(',').ToList() ?? new List<string>()
+                ContentFilters = new List<string>(), // Default value
+                AllowedContacts = new List<string>() // Default value
             } : null
         };
     }

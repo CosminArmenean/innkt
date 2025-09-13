@@ -5,20 +5,20 @@ async function connectRedis(url) {
   try {
     const client = new redis.createClient({
       url: url,
-      retry_strategy: (options) => {
-        if (options.error && options.error.code === 'ECONNREFUSED') {
-          logger.error('Redis server connection refused');
-          return new Error('Redis server connection refused');
-        }
-        if (options.total_retry_time > 1000 * 60 * 60) {
-          logger.error('Redis retry time exhausted');
-          return new Error('Retry time exhausted');
-        }
-        if (options.attempt > 10) {
-          logger.error('Redis max retry attempts reached');
-          return undefined;
-        }
-        return Math.min(options.attempt * 100, 3000);
+      socket: {
+        reconnectStrategy: (retries) => {
+          if (retries > 10) {
+            logger.error('Redis max retry attempts reached');
+            return new Error('Max retry attempts reached');
+          }
+          return Math.min(retries * 100, 3000);
+        },
+        connectTimeout: 10000,
+        lazyConnect: true
+      },
+      retry: {
+        retries: 10,
+        delay: (retries) => Math.min(retries * 100, 3000)
       }
     });
 
@@ -38,7 +38,35 @@ async function connectRedis(url) {
       logger.warn('Redis client connection ended');
     });
 
-    await client.connect();
+    client.on('reconnecting', () => {
+      logger.info('Redis client reconnecting...');
+    });
+
+    client.on('close', () => {
+      logger.warn('Redis client connection closed');
+    });
+
+    // Connect with retry logic
+    let connected = false;
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (!connected && attempts < maxAttempts) {
+      try {
+        await client.connect();
+        connected = true;
+        logger.info('✅ Redis client connected successfully');
+      } catch (error) {
+        attempts++;
+        logger.warn(`Redis connection attempt ${attempts} failed:`, error.message);
+        if (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * attempts));
+        } else {
+          throw error;
+        }
+      }
+    }
+
     return client;
 
   } catch (error) {

@@ -25,7 +25,7 @@ export const environment = {
   // App Configuration
   app: {
     name: 'INNKT',
-    version: '1.0.3',
+    version: '1.0.9',
     defaultLanguage: 'en',
     supportedLanguages: ['en', 'he', 'ar'],
     theme: {

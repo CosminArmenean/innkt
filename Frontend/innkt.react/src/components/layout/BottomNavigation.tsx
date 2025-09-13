@@ -24,7 +24,7 @@ const BottomNavigation: React.FC = () => {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-1 z-50">
+    <div className="fixed bottom-0 left-0 right-0 lg:left-80 lg:right-80 bg-white border-t border-gray-200 px-2 py-1 z-50">
       <div className="flex items-center justify-around">
         {menuItems.map((item) => (
           <Link
