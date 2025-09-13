@@ -342,6 +342,33 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({ userId, isOwnProfile
         </div>
       </div>
 
+      {/* Recent Activity Section */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3 text-sm">
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            <span className="text-gray-600">New follower</span>
+          </div>
+          <div className="flex items-center space-x-3 text-sm">
+            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span className="text-gray-600">Post liked</span>
+          </div>
+          <div className="flex items-center space-x-3 text-sm">
+            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+            <span className="text-gray-600">Group joined</span>
+          </div>
+          <div className="flex items-center space-x-3 text-sm">
+            <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+            <span className="text-gray-600">Comment received</span>
+          </div>
+          <div className="flex items-center space-x-3 text-sm">
+            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+            <span className="text-gray-600">Post shared</span>
+          </div>
+        </div>
+      </div>
+
       {/* Edit Profile Form */}
       {isEditing && (
         <div className="card">

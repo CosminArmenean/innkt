@@ -53,7 +53,7 @@ public class GroupsDbContext : DbContext
             
             // Check constraint for valid roles
             entity.HasCheckConstraint("CK_GroupMember_Role", 
-                "Role IN ('owner', 'admin', 'moderator', 'member')");
+                "\"Role\" IN ('owner', 'admin', 'moderator', 'member')");
             
             // Indexes
             entity.HasIndex(e => e.GroupId);
@@ -100,7 +100,7 @@ public class GroupsDbContext : DbContext
             
             // Check constraint for valid status
             entity.HasCheckConstraint("CK_GroupInvitation_Status", 
-                "Status IN ('pending', 'accepted', 'rejected', 'expired')");
+                "\"Status\" IN ('pending', 'accepted', 'rejected', 'expired')");
             
             // Indexes
             entity.HasIndex(e => e.GroupId);

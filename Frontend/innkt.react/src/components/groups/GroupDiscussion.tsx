@@ -62,7 +62,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
   const filteredPosts = posts.filter(post => {
     if (searchQuery.trim()) {
       return post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+             (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     }
     return true;
   });

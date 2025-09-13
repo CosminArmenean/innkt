@@ -10,10 +10,13 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  console.log('MainLayout render - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
+
   if (!isAuthenticated) {
+    console.log('User not authenticated, rendering children only');
     return <>{children}</>;
   }
 

@@ -463,8 +463,17 @@ class PWAService extends BaseApiService {
 
       // Only request permission if it's not already denied
       if (Notification.permission === 'default') {
-        const permission = await Notification.requestPermission();
-        return permission === 'granted';
+        try {
+          const permission = await Notification.requestPermission();
+          return permission === 'granted';
+        } catch (permissionError) {
+          // Handle Edge browser specific permission errors
+          if (permissionError instanceof Error && permissionError.name === 'NotAllowedError') {
+            console.log('Notification permission denied by browser policy (Edge)');
+            return false;
+          }
+          throw permissionError;
+        }
       }
 
       return false;

@@ -70,10 +70,16 @@ export interface ApiError {
 
 // Helper function to handle API responses
 export const handleApiResponse = <T>(response: any): T => {
-  if (response.data.success) {
-    return response.data.data!;
+  // Check if response is wrapped in success/data format
+  if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+    if (response.data.success) {
+      return response.data.data!;
+    }
+    throw new Error(response.data.message || 'API request failed');
   }
-  throw new Error(response.data.message || 'API request failed');
+  
+  // If response is direct data (like Social service), return it directly
+  return response.data;
 };
 
 // Helper function to handle API errors
@@ -86,6 +92,7 @@ export const handleApiError = (error: any): ApiError => {
       errors: data.errors,
     };
   }
+  
   return {
     message: error.message || 'Network error',
     status: 0,

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { MessagingProvider } from './contexts/MessagingContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout'; 
 import Home from './components/pages/Home';
@@ -18,11 +19,11 @@ import GroupsPage from './components/groups/GroupsPage';
 import GroupDetailPage from './components/groups/GroupDetailPage';
 import AdvancedFeatures from './components/pages/AdvancedFeatures';
 import MessagingDashboard from './components/messaging/MessagingDashboard';
+import FollowersPage from './components/social/FollowersPage';
 import Unauthorized from './components/pages/Unauthorized';
 import Setup2FA from './components/auth/Setup2FA';
 import NotificationToast from './components/notifications/NotificationToast';
 import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
-import PWAStatus from './components/pwa/PWAStatus';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
 
@@ -49,7 +50,8 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <Router>
+        <MessagingProvider>
+          <Router>
           <div className="min-h-screen bg-gray-50">
           <MainLayout>
             <Routes>
@@ -81,9 +83,19 @@ function App() {
                   <GroupDetailPage currentUserId="demo-user" />
                 </ProtectedRoute>
               } />
+              <Route path="/followers" element={
+                <ProtectedRoute>
+                  <FollowersPage />
+                </ProtectedRoute>
+              } />
               <Route path="/messaging" element={
                 <ProtectedRoute>
                   <MessagingDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               } />
               <Route path="/profile/:id" element={
@@ -136,13 +148,9 @@ function App() {
           </MainLayout>
           <NotificationToast />
           <PWAInstallPrompt />
-          {process.env.NODE_ENV === 'development' && (
-            <div className="fixed top-4 right-4 z-50">
-              <PWAStatus showDetails={false} />
-            </div>
-          )}
         </div>
       </Router>
+        </MessagingProvider>
       </NotificationProvider>
     </AuthProvider>
   );

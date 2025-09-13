@@ -279,11 +279,11 @@ const PostCreation: React.FC<PostCreationProps> = ({
   };
 
   return (
-    <div className="card">
-      <div className="flex items-start space-x-3">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-600">👤</span>
+        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+          <span className="text-gray-600 text-lg">👤</span>
         </div>
         
         <div className="flex-1 space-y-4">
@@ -329,8 +329,8 @@ const PostCreation: React.FC<PostCreationProps> = ({
                   ? "Write your reply..." 
                   : "What's on your mind?"
               }
-              className="w-full border-0 resize-none focus:ring-0 text-lg placeholder-gray-400"
-              rows={3}
+              className="w-full border-0 resize-none focus:ring-0 text-xl placeholder-gray-400 min-h-[120px]"
+              rows={4}
             />
             
             {/* Drag and Drop Overlay */}

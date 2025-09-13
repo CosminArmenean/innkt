@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INNKT React Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 INNKT React Integration Test</h1>
+        <p>This page tests the React UI authentication flow and API integration.</p>
+        
+        <div class="test-section info">
+            <h3>📋 Test Instructions</h3>
+            <ol>
+                <li>Open React UI at <a href="http://localhost:3001" target="_blank">http://localhost:3001</a></li>
+                <li>Open browser console (F12) to see authentication logs</li>
+                <li>Try to register a new account</li>
+                <li>Try to login with existing credentials</li>
+                <li>Check if posts load after authentication</li>
+                <li>Verify token is stored in localStorage</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 API Endpoint Tests</h3>
+            <button class="btn-primary" onclick="testOfficerHealth()">Test Officer Service</button>
+            <button class="btn-primary" onclick="testSocialHealth()">Test Social Service</button>
+            <button class="btn-primary" onclick="testGroupsHealth()">Test Groups Service</button>
+            <button class="btn-primary" onclick="testNeuroSparkHealth()">Test NeuroSpark Service</button>
+            <button class="btn-success" onclick="testRegistration()">Test Registration</button>
+            <button class="btn-success" onclick="testLogin()">Test Login</button>
+            <button class="btn-danger" onclick="clearLogs()">Clear Logs</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="log" class="log">Click buttons above to run tests...</div>
+        </div>
+
+        <div class="test-section info">
+            <h3>🔍 What to Check in React UI Console</h3>
+            <ul>
+                <li><strong>Authentication Logs:</strong> Look for login/registration success messages</li>
+                <li><strong>Token Storage:</strong> Check localStorage for 'accessToken'</li>
+                <li><strong>API Calls:</strong> Verify calls go to correct service endpoints</li>
+                <li><strong>Error Handling:</strong> Check for 401/403 errors and proper handling</li>
+                <li><strong>Session Management:</strong> Verify user state updates correctly</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        let logContent = '';
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logContent += `[${timestamp}] ${prefix} ${message}\n`;
+            log.textContent = logContent;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLogs() {
+            logContent = '';
+            log.textContent = 'Logs cleared...';
+        }
+
+        async function testOfficerHealth() {
+            addLog('Testing Officer Service health...');
+            try {
+                const response = await fetch('http://localhost:5001/health');
+                if (response.ok) {
+                    addLog('Officer Service is healthy!', 'success');
+                } else {
+                    addLog(`Officer Service returned ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Officer Service error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSocialHealth() {
+            addLog('Testing Social Service health...');
+            try {
+                const response = await fetch('http://localhost:8081/health');
+                if (response.ok) {
+                    addLog('Social Service is healthy!', 'success');
+                } else {
+                    addLog(`Social Service returned ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Social Service error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGroupsHealth() {
+            addLog('Testing Groups Service health...');
+            try {
+                const response = await fetch('http://localhost:5002/health');
+                if (response.ok) {
+                    addLog('Groups Service is healthy!', 'success');
+                } else {
+                    addLog(`Groups Service returned ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Groups Service error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testNeuroSparkHealth() {
+            addLog('Testing NeuroSpark Service health...');
+            try {
+                const response = await fetch('http://localhost:5003/health');
+                if (response.ok) {
+                    addLog('NeuroSpark Service is healthy!', 'success');
+                } else {
+                    addLog(`NeuroSpark Service returned ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addLog(`NeuroSpark Service error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRegistration() {
+            addLog('Testing user registration...');
+            const timestamp = Date.now();
+            const email = `testuser${timestamp}@example.com`;
+            
+            const registrationData = {
+                Email: email,
+                Password: "TestPassword123!",
+                FirstName: "Test",
+                LastName: "User",
+                BirthDate: "1990-01-01T00:00:00Z",
+                Language: "en",
+                Theme: "light",
+                AcceptTerms: true,
+                AcceptPrivacyPolicy: true,
+                AcceptMarketing: false,
+                AcceptCookies: false
+            };
+
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registrationData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addLog(`Registration successful! User ID: ${data.user.id}`, 'success');
+                    addLog(`Token: ${data.accessToken.substring(0, 50)}...`, 'success');
+                } else {
+                    const error = await response.text();
+                    addLog(`Registration failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Registration error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            addLog('Testing user login...');
+            const loginData = {
+                Email: "testuser20250912104530@example.com",
+                Password: "TestPassword123!"
+            };
+
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addLog(`Login successful! User: ${data.user.email}`, 'success');
+                    addLog(`Token: ${data.accessToken.substring(0, 50)}...`, 'success');
+                } else {
+                    const error = await response.text();
+                    addLog(`Login failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Login error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.onload = function() {
+            addLog('Page loaded. Starting basic service tests...');
+            testOfficerHealth();
+            setTimeout(() => testSocialHealth(), 1000);
+            setTimeout(() => testGroupsHealth(), 2000);
+            setTimeout(() => testNeuroSparkHealth(), 3000);
+        };
+    </script>
+</body>
+</html>

@@ -33,12 +33,18 @@ interface LinkedAccountsPostProps {
   post: Post;
   linkedAccounts: LinkedAccount[];
   currentUserId: string;
+  onLike?: (postId: string) => void;
+  onShare?: (postId: string) => void;
+  onDelete?: (postId: string) => void;
 }
 
 const LinkedAccountsPost: React.FC<LinkedAccountsPostProps> = ({ 
   post, 
   linkedAccounts, 
-  currentUserId 
+  currentUserId,
+  onLike,
+  onShare,
+  onDelete
 }) => {
   const [showChatOptions, setShowChatOptions] = useState(false);
 

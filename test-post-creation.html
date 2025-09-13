@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Post Creation</title>
+</head>
+<body>
+    <h1>Test Post Creation</h1>
+    <div id="status"></div>
+    <button onclick="testLogin()">1. Login</button>
+    <button onclick="testCreatePost()">2. Create Post</button>
+    <div id="result"></div>
+
+    <script>
+        let token = '';
+
+        async function testLogin() {
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'testuser1@example.com',
+                        password: 'TestPassword123!'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.accessToken;
+                    document.getElementById('status').innerHTML = '✅ Login successful - Token: ' + token.substring(0, 30) + '...';
+                } else {
+                    document.getElementById('status').innerHTML = '❌ Login failed: ' + response.status;
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Login error: ' + error.message;
+            }
+        }
+
+        async function testCreatePost() {
+            if (!token) {
+                document.getElementById('result').innerHTML = '❌ Please login first';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8081/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: 'Test post from HTML page - JWT working! #test #html',
+                        type: 'text',
+                        visibility: 'public',
+                        tags: ['test', 'html'],
+                        isPublic: true
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('result').innerHTML = '✅ Post created successfully - Status: ' + response.status + '<br>Post ID: ' + data.id;
+                } else {
+                    const errorText = await response.text();
+                    document.getElementById('result').innerHTML = '❌ Post creation failed: ' + response.status + ' - ' + errorText;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Post creation error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

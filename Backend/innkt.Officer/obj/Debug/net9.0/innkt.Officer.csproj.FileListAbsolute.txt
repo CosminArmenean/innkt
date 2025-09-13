@@ -516,3 +516,9 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\innkt.C
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\innkt.KafkaCommunicationLibrary.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\innkt.Domain.pdb
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\innkt.DataService.pdb
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Microsoft.OpenApi.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\obj\Debug\net9.0\innkt.Officer.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
