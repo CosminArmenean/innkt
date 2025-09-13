@@ -1,6 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { Message, Conversation } from '../../services/messaging.service';
 
+// Helper function to get current user ID from token
+const getCurrentUserId = (): string | null => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+  } catch (error) {
+    console.error('Failed to get current user ID:', error);
+    return null;
+  }
+};
+
 interface ChatWindowProps {
   messages: Message[];
   conversation: Conversation;
@@ -139,9 +152,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
 
     return (
       <div className="flex flex-wrap gap-1 mt-2">
-        {Object.entries(reactionGroups).map(([emoji, reactions]) => (
+        {Object.entries(reactionGroups).map(([emoji, reactions], index) => (
           <button
-            key={emoji}
+            key={`${emoji}-${index}`}
             className="flex items-center space-x-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
           >
             <span>{emoji}</span>
@@ -181,8 +194,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
       ref={messagesContainerRef}
       className="flex-1 overflow-y-auto p-4 space-y-4"
     >
-      {Object.entries(groupedMessages).map(([date, dateMessages]) => (
-        <div key={date}>
+      {Object.entries(groupedMessages).map(([date, dateMessages], dateIndex) => (
+        <div key={`date-${date}-${dateIndex}`}>
           {/* Date Separator */}
           <div className="flex items-center justify-center my-4">
             <div className="flex items-center space-x-2">
@@ -196,32 +209,36 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
 
           {/* Messages for this date */}
           {dateMessages.map((message, index) => {
+            const currentUserId = getCurrentUserId();
+            const isCurrentUser = message.senderId === currentUserId;
             const isConsecutive = index > 0 && 
               dateMessages[index - 1].senderId === message.senderId &&
               new Date(message.timestamp).getTime() - new Date(dateMessages[index - 1].timestamp).getTime() < 5 * 60 * 1000; // 5 minutes
 
             return (
               <div
-                key={message.id}
-                className={`flex ${message.type === 'system' ? 'justify-center' : 'items-end space-x-2'} ${
+                key={message.id || `message-${index}-${message.timestamp}`}
+                className={`flex ${message.type === 'system' ? 'justify-center' : (isCurrentUser ? 'justify-end' : 'justify-start')} ${
                   isConsecutive ? 'mt-1' : 'mt-4'
                 }`}
               >
                 {message.type !== 'system' && (
-                  <>
+                  <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isCurrentUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
                     {/* Avatar */}
                     {!isConsecutive && (
                       <div className="flex-shrink-0">
-                        {message.senderProfile.avatar ? (
+                        {message.senderProfile?.avatar ? (
                           <img
                             src={message.senderProfile.avatar}
-                            alt={message.senderProfile.displayName}
+                            alt={message.senderProfile.displayName || 'User'}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-8 h-8 bg-innkt-primary rounded-full flex items-center justify-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            isCurrentUser ? 'bg-innkt-primary' : 'bg-gray-500'
+                          }`}>
                             <span className="text-white text-sm font-semibold">
-                              {message.senderProfile.displayName.charAt(0).toUpperCase()}
+                              {(message.senderProfile?.displayName || 'U').charAt(0).toUpperCase()}
                             </span>
                           </div>
                         )}
@@ -229,11 +246,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
                     )}
 
                     {/* Message Content */}
-                    <div className={`flex-1 max-w-xs lg:max-w-md ${isConsecutive ? 'ml-10' : ''}`}>
-                      {!isConsecutive && (
+                    <div className={`flex flex-col ${isConsecutive ? (isCurrentUser ? 'mr-10' : 'ml-10') : ''}`}>
+                      {!isConsecutive && !isCurrentUser && (
                         <div className="flex items-center space-x-2 mb-1">
                           <span className="text-sm font-medium text-gray-900">
-                            {message.senderProfile.displayName}
+                            {message.senderProfile?.displayName || 'Unknown User'}
                           </span>
                           <span className="text-xs text-gray-500">
                             {formatMessageTime(message.timestamp)}
@@ -244,13 +261,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
                       <div className={`p-3 rounded-lg ${
                         (message.type as string) === 'system' 
                           ? 'bg-gray-100' 
-                          : 'bg-white border border-gray-200 shadow-sm'
+                          : isCurrentUser 
+                            ? 'bg-innkt-primary text-white' 
+                            : 'bg-white border border-gray-200 shadow-sm'
                       }`}>
                         {renderMessageContent(message)}
                         {renderReactions(message)}
                       </div>
                       
                       {isConsecutive && (
+                        <div className={`flex items-center mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                          <span className="text-xs text-gray-500">
+                            {formatMessageTime(message.timestamp)}
+                          </span>
+                          {isCurrentUser && getMessageStatusIcon(message.status)}
+                        </div>
+                      )}
+                      
+                      {!isConsecutive && isCurrentUser && (
                         <div className="flex items-center justify-end mt-1">
                           <span className="text-xs text-gray-500">
                             {formatMessageTime(message.timestamp)}
@@ -259,7 +287,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
                         </div>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {message.type === 'system' && (

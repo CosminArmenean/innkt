@@ -92,7 +92,7 @@ function setupSocketHandlers(io) {
     });
 
     // Handle sending messages
-    socket.on('send_message', rateLimiter('message', 10, 60000), async (data) => {
+    socket.on('send_message', async (data) => {
       try {
         const { conversationId, content, type = 'text', replyTo, isEncrypted = false } = data;
 
@@ -147,6 +147,9 @@ function setupSocketHandlers(io) {
         };
 
         io.to(`conversation:${conversationId}`).emit('new_message', messageData);
+
+        // Send acknowledgment back to sender
+        socket.emit('message_sent', { message: messageData });
 
         // Send notifications to offline participants
         if (global.notificationService) {

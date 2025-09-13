@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { messagingService, Conversation, Message } from '../../services/messaging.service';
 import { useMessaging } from '../../contexts/MessagingContext';
 import ConversationList from './ConversationList';
@@ -7,9 +8,19 @@ import MessageComposer from './MessageComposer';
 import UserSearch from './UserSearch';
 
 const MessagingDashboard: React.FC = () => {
-  const { conversations, loadConversations, markAsRead, sendMessage, connectionStatus, isLoading } = useMessaging();
+  const location = useLocation();
+  const { 
+    conversations, 
+    loadConversations, 
+    loadMessages,
+    markAsRead, 
+    sendMessage, 
+    connectionStatus, 
+    isLoading,
+    currentMessages,
+    currentConversationId
+  } = useMessaging();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewConversation, setShowNewConversation] = useState(false);
 
@@ -18,35 +29,33 @@ const MessagingDashboard: React.FC = () => {
   console.log('MessagingDashboard - isLoading:', isLoading);
   console.log('MessagingDashboard - connectionStatus:', connectionStatus);
 
-  // Load messages for selected conversation
-  const loadMessages = async (conversationId: string) => {
-    try {
-      const response = await messagingService.getMessages({ 
-        conversationId,
-        limit: 50 
-      });
-      setMessages(response.messages);
-    } catch (error) {
-      console.error('Failed to load messages:', error);
+  // Handle selected conversation from navigation
+  useEffect(() => {
+    const selectedConversationId = location.state?.selectedConversationId;
+    if (selectedConversationId && conversations.length > 0) {
+      const conversation = conversations.find(conv => conv.id === selectedConversationId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+        loadMessages(conversation.id);
+        if (conversation.unreadCount > 0) {
+          markAsRead(conversation.id);
+        }
+      }
     }
-  };
+  }, [location.state, conversations, loadMessages, markAsRead]);
 
   // Handle conversation selection
-  const handleConversationSelect = (conversation: Conversation) => {
+  const handleConversationSelect = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    loadMessages(conversation.id);
+    await loadMessages(conversation.id);
     
     // Mark as read
     if (conversation.unreadCount > 0) {
-      markAsRead(conversation.id);
+      await markAsRead(conversation.id);
     }
   };
 
-  // Handle new message
-  const handleNewMessage = (message: Message) => {
-    setMessages(prev => [...prev, message]);
-    // Conversations are now managed by the context
-  };
+  // Messages are now managed by the context
 
   // Handle message send
   const handleSendMessage = async (content: string, type: 'text' | 'image' | 'file', media?: File) => {
@@ -54,7 +63,7 @@ const MessagingDashboard: React.FC = () => {
 
     try {
       await sendMessage(selectedConversation.id, content);
-      // Messages will be updated via WebSocket or context
+      // Real-time updates are handled by the context
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -62,12 +71,7 @@ const MessagingDashboard: React.FC = () => {
 
   // Real-time updates are now handled by the context
 
-  // Load messages when conversation is selected
-  useEffect(() => {
-    if (selectedConversation) {
-      loadMessages(selectedConversation.id);
-    }
-  }, [selectedConversation]);
+  // Load messages when conversation is selected - handled by handleConversationSelect
 
   // Filter conversations based on search
   const filteredConversations = conversations.filter(conv => 
@@ -178,7 +182,7 @@ const MessagingDashboard: React.FC = () => {
 
             {/* Chat Messages */}
             <ChatWindow
-              messages={messages}
+              messages={currentMessages}
               conversation={selectedConversation}
             />
 

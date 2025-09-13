@@ -174,14 +174,14 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-innkt-primary focus:border-transparent resize-none"
             rows={1}
             style={{
-              minHeight: '40px',
-              maxHeight: '120px',
+              minHeight: '32px',
+              maxHeight: '80px',
               height: 'auto'
             }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = 'auto';
-              target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+              target.style.height = Math.min(target.scrollHeight, 80) + 'px';
             }}
           />
         </div>

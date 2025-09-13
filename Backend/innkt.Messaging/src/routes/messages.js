@@ -24,8 +24,19 @@ router.get('/', async (req, res) => {
     const messages = await Message.getConversationMessages(conversationId, page, limit);
     const totalCount = await Message.countDocuments({ conversationId });
 
+    // Add senderProfile information to each message
+    const messagesWithProfiles = messages.map(message => ({
+      ...message,
+      senderProfile: {
+        id: message.senderId,
+        username: message.senderId, // Fallback to senderId
+        displayName: message.senderId, // Fallback to senderId
+        avatar: null
+      }
+    }));
+
     res.json({
-      messages: messages.reverse(), // Return in chronological order
+      messages: messagesWithProfiles.reverse(), // Return in chronological order
       totalCount,
       page: parseInt(page),
       limit: parseInt(limit),
