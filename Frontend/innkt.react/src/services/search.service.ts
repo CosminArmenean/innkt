@@ -1,5 +1,4 @@
-import { BaseApiService } from './api.service';
-import { apiConfig } from './api.config';
+import { BaseApiService, socialApi } from './api.service';
 
 export interface SearchRequest {
   query: string;
@@ -138,7 +137,7 @@ class SearchService extends BaseApiService {
   private recentSearches: string[] = [];
 
   constructor() {
-    super(apiConfig.socialApi.baseUrl);
+    super(socialApi);
     this.loadSearchHistory();
   }
 
