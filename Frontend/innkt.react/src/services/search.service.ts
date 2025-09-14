@@ -1,4 +1,4 @@
-import { BaseApiService, socialApi } from './api.service';
+import { BaseApiService, socialApi, neurosparkApi } from './api.service';
 
 export interface SearchRequest {
   query: string;
@@ -337,10 +337,11 @@ class SearchService extends BaseApiService {
 
       const params = new URLSearchParams();
       params.append('query', query);
-      params.append('limit', limit.toString());
+      params.append('count', limit.toString());
 
-      const response = await this.get<{ data: string[] }>(`/search/suggestions?${params.toString()}`);
-      return response.data;
+      // Use neurosparkApi for search suggestions
+      const response = await neurosparkApi.get<{ data: string[] }>(`/api/search/suggestions?${params.toString()}`);
+      return response.data || [];
     } catch (error) {
       console.error('Failed to get search suggestions:', error);
       return [];

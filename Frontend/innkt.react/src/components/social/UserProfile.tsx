@@ -108,7 +108,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Side - Profile Info */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8 h-full">
               {/* Profile Picture Section */}
               <div className="relative p-8 text-center">
                 <div className="relative inline-block">
@@ -296,7 +296,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
 
           {/* Center - Content */}
           <div className="lg:col-span-6">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full">
               {/* Navigation Tabs */}
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-8 px-6">
@@ -324,7 +324,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
               </div>
 
               {/* Tab Content */}
-              <div className="p-6 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <div className="p-6 h-full overflow-y-auto scrollbar-none">
                 {activeTab === 'posts' && (
                   <div className="space-y-6">
                     {posts.length === 0 ? (
@@ -625,9 +625,9 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
 
           {/* Right Side - Linked User */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8 h-full">
               {/* Linked User Section */}
-              <div className="p-6 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <div className="p-6 h-full overflow-y-auto scrollbar-none">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Family Connection</h3>
                 
                 {/* Linked User Profile */}
