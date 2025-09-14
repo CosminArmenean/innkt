@@ -27,6 +27,15 @@ module.exports = {
           '100%': { transform: 'translateX(0)', opacity: '1' },
         },
       },
+      scrollbar: {
+        hide: {
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+        },
+      },
     },
   },
   plugins: [],
