@@ -6,8 +6,10 @@ When asked to start infrastructure and services, always use these commands in th
 
 ### 1. Start Infrastructure First
 ```bash
-docker-compose -f docker-compose-infrastructure.yml up -d
+docker-compose -f docker-compose-infrastructure-secure.yml up -d
 ```
+
+**⚠️ IMPORTANT**: Always use the `-secure` version to ensure MongoDB starts with authentication and your data persists!
 
 This starts:
 - PostgreSQL Database (port 5432)
