@@ -1,7 +1,7 @@
 # Create Test Accounts Script
 # This script creates 4 test accounts with proper usernames and details
 
-$baseUrl = "https://localhost:7001"  # Officer service URL
+$baseUrl = "http://localhost:5001"  # Officer service URL
 $accounts = @(
     @{
         Email = "bob.smith@example.com"
@@ -60,7 +60,7 @@ foreach ($account in $accounts) {
 
         Write-Host "Creating account for $($account.Email)..." -ForegroundColor Yellow
         
-        $response = Invoke-RestMethod -Uri "$baseUrl/api/auth/register" -Method POST -Body $body -ContentType "application/json" -SkipCertificateCheck
+        $response = Invoke-RestMethod -Uri "$baseUrl/api/auth/register" -Method POST -Body $body -ContentType "application/json"
         
         Write-Host "✅ Successfully created account for $($account.Email)" -ForegroundColor Green
         Write-Host "   User ID: $($response.UserId)" -ForegroundColor Cyan
