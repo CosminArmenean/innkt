@@ -18,6 +18,7 @@ public interface IAuthService
     Task<bool> ResendEmailVerificationAsync(string email);
     Task<bool> LogoutAsync(string userId);
     Task<UserProfileDto> GetUserProfileAsync(string userId);
+    Task<UserProfileDto> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateDto);
 }
 
 

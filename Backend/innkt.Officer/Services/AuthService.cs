@@ -545,6 +545,59 @@ public class AuthService : IAuthService
         return MapToUserProfileDto(user);
     }
 
+    public async Task<UserProfileDto> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateDto)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+
+        // Update user properties
+        if (!string.IsNullOrEmpty(updateDto.FirstName))
+            user.FirstName = updateDto.FirstName;
+        
+        if (!string.IsNullOrEmpty(updateDto.LastName))
+            user.LastName = updateDto.LastName;
+        
+        if (!string.IsNullOrEmpty(updateDto.Bio))
+            user.Bio = updateDto.Bio;
+        
+        if (!string.IsNullOrEmpty(updateDto.Location))
+            user.City = updateDto.Location; // Using City as Location
+        
+        if (!string.IsNullOrEmpty(updateDto.PhoneNumber))
+            user.PhoneNumber = updateDto.PhoneNumber;
+        
+        if (!string.IsNullOrEmpty(updateDto.Address))
+            user.Address = updateDto.Address;
+        
+        if (!string.IsNullOrEmpty(updateDto.City))
+            user.City = updateDto.City;
+        
+        if (!string.IsNullOrEmpty(updateDto.State))
+            user.State = updateDto.State;
+        
+        if (!string.IsNullOrEmpty(updateDto.Country))
+            user.Country = updateDto.Country;
+        
+        if (!string.IsNullOrEmpty(updateDto.PostalCode))
+            user.PostalCode = updateDto.PostalCode;
+        
+        if (updateDto.DateOfBirth.HasValue)
+            user.BirthDate = updateDto.DateOfBirth.Value;
+
+        // Update the user in the database
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to update user profile: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+
+        // Return the updated profile
+        return MapToUserProfileDto(user);
+    }
+
     private UserDto MapToUserDto(ApplicationUser user)
     {
         return new UserDto

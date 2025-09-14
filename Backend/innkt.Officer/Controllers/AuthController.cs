@@ -334,6 +334,34 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { error = errorMessage });
         }
     }
+
+    /// <summary>
+    /// Update user profile
+    /// </summary>
+    [HttpPut("profile/{userId}")]
+    public async Task<ActionResult<UserProfileDto>> UpdateUserProfile(string userId, [FromBody] UpdateUserProfileDto updateDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userProfile = await _authService.UpdateUserProfileAsync(userId, updateDto);
+            return Ok(userProfile);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update user profile for ID: {UserId}", userId);
+            var errorMessage = await _localization.GetStringAsync(AppStrings.General.ServerError);
+            return StatusCode(500, new { error = errorMessage });
+        }
+    }
 }
 
 
