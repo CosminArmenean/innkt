@@ -54,6 +54,11 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   };
 
   const handleTabChange = (tab: 'posts' | 'media' | 'chat' | 'subaccounts' | 'business') => {
+    if (tab === 'chat') {
+      // Navigate to messages screen
+      navigate('/messaging');
+      return;
+    }
     setActiveTab(tab);
   };
 
@@ -98,12 +103,12 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="h-screen bg-gray-50 overflow-hidden">
+      <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Side - Profile Info */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8">
+          <div className="lg:col-span-3 h-full flex flex-col">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full flex flex-col sticky top-8">
               {/* Profile Picture Section */}
               <div className="relative p-8 text-center">
                 <div className="relative inline-block">
@@ -203,8 +208,8 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
           </div>
 
           {/* Center - Content */}
-          <div className="lg:col-span-6">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="lg:col-span-6 h-full flex flex-col">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full flex flex-col">
               {/* Navigation Tabs */}
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-8 px-6">
@@ -232,7 +237,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
               </div>
 
               {/* Tab Content */}
-              <div className="p-6">
+              <div className="p-6 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {activeTab === 'posts' && (
                   <div className="space-y-6">
                     {posts.length === 0 ? (
@@ -246,13 +251,13 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                           // Check if this is a shared post (both users tagged)
                           const isSharedPost = post.tags && post.tags.includes('shared') && post.tags.includes('family');
                           const isMainUserPost = !isSharedPost;
-                          
+
                           return (
-                            <div 
-                              key={post.id} 
+                            <div
+                              key={post.id}
                               className={`${
-                                isSharedPost 
-                                  ? 'bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 shadow-lg' 
+                                isSharedPost
+                                  ? 'bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 shadow-lg'
                                   : 'bg-gray-50 border border-gray-200'
                               } rounded-2xl p-6 hover:shadow-lg transition-all duration-300`}
                             >
@@ -275,11 +280,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                               )}
 
                               <div className="flex items-start space-x-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                  isSharedPost 
-                                    ? 'bg-gradient-to-br from-green-500 to-blue-600' 
-                                    : 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                                }`}>
+                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
                                   <span className="text-white font-bold text-sm">
                                     {profile.displayName.charAt(0).toUpperCase()}
                                   </span>
@@ -287,51 +288,33 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center space-x-2 mb-2">
                                     <h4 className={`font-semibold ${
-                                      isSharedPost ? 'text-green-900' : 'text-gray-900'
+                                      isSharedPost ? 'text-green-800' : 'text-gray-900'
                                     }`}>
                                       {profile.displayName}
                                     </h4>
-                                    <span className={`text-sm ${
-                                      isSharedPost ? 'text-green-600' : 'text-gray-500'
-                                    }`}>
-                                      @{profile.username}
-                                    </span>
+                                    <span className="text-gray-500 text-sm">@{profile.username}</span>
                                     <span className="text-gray-400 text-sm">•</span>
                                     <span className="text-gray-400 text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
-                                    {isSharedPost && (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Shared
-                                      </span>
-                                    )}
                                   </div>
                                   <p className={`mb-4 ${
-                                    isSharedPost ? 'text-green-800 font-medium' : 'text-gray-800'
+                                    isSharedPost ? 'text-green-700 font-medium' : 'text-gray-800'
                                   }`}>
                                     {post.content}
                                   </p>
                                   <div className="flex items-center space-x-6 text-gray-500">
-                                    <button className={`flex items-center space-x-1 transition-colors ${
-                                      isSharedPost ? 'hover:text-green-600' : 'hover:text-purple-600'
-                                    }`}>
+                                    <button className="flex items-center space-x-1 hover:text-purple-600 transition-colors">
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                       </svg>
                                       <span>{post.likesCount}</span>
                                     </button>
-                                    <button className={`flex items-center space-x-1 transition-colors ${
-                                      isSharedPost ? 'hover:text-green-600' : 'hover:text-purple-600'
-                                    }`}>
+                                    <button className="flex items-center space-x-1 hover:text-purple-600 transition-colors">
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                       </svg>
                                       <span>{post.commentsCount}</span>
                                     </button>
-                                    <button className={`flex items-center space-x-1 transition-colors ${
-                                      isSharedPost ? 'hover:text-green-600' : 'hover:text-purple-600'
-                                    }`}>
+                                    <button className="flex items-center space-x-1 hover:text-purple-600 transition-colors">
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                                       </svg>
@@ -553,109 +536,46 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
             </div>
           </div>
 
-          {/* Right Side - Linked User Profile */}
-          <div className="lg:col-span-3">
-            <div className="space-y-6">
-              {/* Linked User Profile Card */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="relative">
-                  {/* Linked User Cover Image */}
-                  <div className="h-32 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-700/90 to-indigo-800/90"></div>
-                    
-                    {/* Linked User Profile Picture */}
-                    <div className="absolute bottom-0 left-4 transform translate-y-1/2">
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full border-3 border-white shadow-lg overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600">
-                          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                            <span className="text-2xl text-white font-bold">L</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Linked User Name */}
-                    <div className="absolute bottom-0 left-28 transform translate-y-1/2">
-                      <h3 className="text-lg font-bold text-white mb-1">Linked User</h3>
-                      <p className="text-blue-100 text-sm">@linkeduser</p>
-                    </div>
-                  </div>
-
-                  {/* Linked User Info */}
-                  <div className="pt-12 pb-4 px-4">
-                    <div className="text-center">
-                      <p className="text-gray-600 text-sm mb-4">Family member account</p>
-                      
-                      {/* Quick Stats */}
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <div className="text-lg font-bold text-gray-900">0</div>
-                          <div className="text-xs text-gray-500">Posts</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold text-gray-900">0</div>
-                          <div className="text-xs text-gray-500">Followers</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold text-gray-900">0</div>
-                          <div className="text-xs text-gray-500">Following</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Family Connection Info */}
-              <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  Family Connection
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Relationship</span>
-                    <span className="font-medium text-gray-900">Parent/Child</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Linked Since</span>
-                    <span className="font-medium text-gray-900">Jan 2024</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Shared Posts</span>
-                    <span className="font-medium text-gray-900">0</span>
-                  </div>
-                </div>
+          {/* Right Side - Linked User */}
+          <div className="lg:col-span-3 h-full flex flex-col">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full flex flex-col sticky top-8">
+              {/* Linked User Section */}
+              <div className="p-6 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Family Connection</h3>
                 
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <button 
-                    onClick={() => navigate(`/profile/linked-user-id`)}
-                    className="w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
-                  >
-                    View Linked Profile
-                  </button>
-                </div>
-              </div>
-
-              {/* Common Posts Highlight */}
-              <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Shared Content
-                </h4>
-                <div className="space-y-3">
-                  <div className="text-center py-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
+                {/* Linked User Profile */}
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-600 mx-auto mb-3">
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                      <span className="text-2xl text-white font-bold">L</span>
                     </div>
-                    <p className="text-gray-600 font-medium mb-1">No shared posts yet</p>
-                    <p className="text-sm text-gray-500">Posts where both users are tagged will appear here</p>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-1">Linked User</h4>
+                  <p className="text-gray-500 text-sm mb-4">@linkeduser</p>
+                  
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 mb-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      <span className="text-sm font-medium text-blue-800">Family Connection Info</span>
+                    </div>
+                    <p className="text-sm text-blue-700">Connected since 2024</p>
+                  </div>
+
+                  {/* Shared Content Stats */}
+                  <div className="space-y-3">
+                    <h5 className="text-sm font-semibold text-gray-700">Shared Content</h5>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-purple-600">12</div>
+                        <div className="text-xs text-gray-500">Shared Posts</div>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-green-600">8</div>
+                        <div className="text-xs text-gray-500">Family Photos</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
