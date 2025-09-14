@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { socialService, Follow } from '../../services/social.service';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { UserIcon, UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
 
 const FollowersPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [followers, setFollowers] = useState<Follow[]>([]);
   const [following, setFollowing] = useState<Follow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +58,10 @@ const FollowersPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to unfollow user:', error);
     }
+  };
+
+  const handleUserClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
   };
 
   const renderUserList = (users: Follow[], isFollowing: boolean = false) => {
@@ -117,10 +123,16 @@ const FollowersPage: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">
+                  <h3 
+                    className="font-medium text-gray-900 cursor-pointer hover:text-purple-600 transition-colors"
+                    onClick={() => handleUserClick(profile?.id || '')}
+                  >
                     {profile?.displayName || 'Unknown User'}
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p 
+                    className="text-sm text-gray-500 cursor-pointer hover:text-purple-600 transition-colors"
+                    onClick={() => handleUserClick(profile?.id || '')}
+                  >
                     @{profile?.username || 'unknown'}
                   </p>
                   <p className="text-xs text-gray-400">

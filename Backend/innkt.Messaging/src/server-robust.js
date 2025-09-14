@@ -52,7 +52,7 @@ class RobustMessagingService {
     }
 
     async connectMongoDB() {
-        const mongoUrl = process.env.MONGODB_URL || 'mongodb://mongodb-service:27017/innkt_messaging';
+        const mongoUrl = process.env.MONGODB_URL || 'mongodb://admin:admin123@localhost:27017/innkt_messaging?authSource=admin';
         
         return new Promise((resolve, reject) => {
             const options = {

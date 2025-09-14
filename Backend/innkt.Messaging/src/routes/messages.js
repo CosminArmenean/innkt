@@ -22,6 +22,8 @@ router.get('/', async (req, res) => {
     }
 
     const messages = await Message.getConversationMessages(conversationId, page, limit);
+    
+    // Mongoose will automatically convert string to ObjectId based on schema
     const totalCount = await Message.countDocuments({ conversationId });
 
     // Add senderProfile information to each message
