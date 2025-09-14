@@ -335,15 +335,31 @@ class SearchService extends BaseApiService {
         return [];
       }
 
+      // Check if user is authenticated
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.warn('No authentication token found for search suggestions');
+        return [];
+      }
+
+      console.log('Making search suggestions request with token:', token.substring(0, 20) + '...');
+
       const params = new URLSearchParams();
       params.append('query', query);
       params.append('count', limit.toString());
 
-      // Use neurosparkApi for search suggestions
+      // Use neurosparkApi for search suggestions with authentication
       const response = await neurosparkApi.get<string[]>(`/api/search/suggestions?${params.toString()}`);
+      console.log('Search suggestions response:', response);
       return response.data || [];
     } catch (error) {
       console.error('Failed to get search suggestions:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      // Return empty array on error to prevent UI issues
       return [];
     }
   }
