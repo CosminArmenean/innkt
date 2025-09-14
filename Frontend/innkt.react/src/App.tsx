@@ -10,8 +10,20 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import SecurityDashboard from './components/security/SecurityDashboard';
-import Profile from './components/profile/Profile';
+import UserProfile from './components/social/UserProfile';
+import { useAuth } from './contexts/AuthContext';
+import { useParams } from 'react-router-dom';
 import ImageProcessing from './components/image-processing/ImageProcessing';
+
+// Wrapper component to handle user ID for profile routes
+const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile }) => {
+  const { user } = useAuth();
+  const { id } = useParams<{ id: string }>();
+  
+  const userId = isOwnProfile ? (user?.id || '') : (id || '');
+  
+  return <UserProfile userId={userId} isOwnProfile={isOwnProfile} />;
+};
 import EnhancedMonitoringDashboard from './components/monitoring/EnhancedMonitoringDashboard';
 import SocialDashboard from './components/social/SocialDashboard';
 import SearchPage from './components/search/SearchPage';
@@ -95,12 +107,12 @@ function App() {
               } />
               <Route path="/profile" element={
                 <ProtectedRoute>
-                  <Profile />
+                  <UserProfileWrapper isOwnProfile={true} />
                 </ProtectedRoute>
               } />
               <Route path="/profile/:id" element={
                 <ProtectedRoute>
-                  <Profile />
+                  <UserProfileWrapper isOwnProfile={false} />
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={
