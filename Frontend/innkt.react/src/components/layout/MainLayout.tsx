@@ -48,8 +48,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </div>
       
-      {/* Bottom Navigation - Mobile only */}
-      <BottomNavigation />
+      {/* Bottom Navigation - Mobile only - HIDDEN FOR NOW */}
+      {/* <BottomNavigation /> */}
     </div>
   );
 };

@@ -120,11 +120,15 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
         type: 'text'
       });
       console.log('✅ Message sent successfully');
-      // Don't reload conversations - real-time updates will handle it
+      
+      // Reload messages to show the new message immediately
+      if (currentConversationId === conversationId) {
+        await loadMessages(conversationId);
+      }
     } catch (error) {
       console.error('❌ Failed to send message:', error);
     }
-  }, []);
+  }, [currentConversationId, loadMessages]);
 
   // Create direct conversation
   const createDirectConversation = useCallback(async (userId: string) => {
