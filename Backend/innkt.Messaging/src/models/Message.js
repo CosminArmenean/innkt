@@ -22,7 +22,8 @@ const messageSchema = new mongoose.Schema({
     index: true
   },
   conversationId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conversation',
     required: true,
     index: true
   },
@@ -103,7 +104,9 @@ messageSchema.methods.removeReaction = function(userId) {
 // Static method to get messages for conversation
 messageSchema.statics.getConversationMessages = function(conversationId, page = 1, limit = 50) {
   const skip = (page - 1) * limit;
+  const mongoose = require('mongoose');
   
+  // Mongoose will automatically convert string to ObjectId based on schema
   return this.find({ conversationId })
     .sort({ timestamp: -1 })
     .skip(skip)

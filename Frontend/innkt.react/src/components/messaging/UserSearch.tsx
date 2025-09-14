@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { socialService } from '../../services/social.service';
 import { useMessaging } from '../../contexts/MessagingContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface UserSearchProps {
   onUserSelect: (userId: string, displayName: string) => void;
@@ -19,6 +20,7 @@ interface SearchUser {
 
 const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
   const { createDirectConversation } = useMessaging();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<SearchUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,8 +37,13 @@ const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
     setError(null);
 
     try {
-      // Get current user ID from localStorage or context
-      const currentUserId = localStorage.getItem('currentUserId') || '4f8c8759-dfdc-423e-878e-c68036140114'; // Fallback to test user
+      // Get current user ID from auth context
+      const currentUserId = user?.id;
+      
+      if (!currentUserId) {
+        setError('Please log in to search for users');
+        return;
+      }
       
       console.log('Searching users for query:', query, 'with userId:', currentUserId);
       
