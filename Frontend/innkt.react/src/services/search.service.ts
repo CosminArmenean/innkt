@@ -340,7 +340,7 @@ class SearchService extends BaseApiService {
       params.append('count', limit.toString());
 
       // Use neurosparkApi for search suggestions
-      const response = await neurosparkApi.get<{ data: string[] }>(`/api/search/suggestions?${params.toString()}`);
+      const response = await neurosparkApi.get<string[]>(`/api/search/suggestions?${params.toString()}`);
       return response.data || [];
     } catch (error) {
       console.error('Failed to get search suggestions:', error);
