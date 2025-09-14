@@ -237,7 +237,7 @@ export class SocialService extends BaseApiService {
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
       // Get user profile from Officer service (primary source)
-      const response = await officerApi.get<UserProfile>(`/users/${userId}`);
+      const response = await officerApi.get<UserProfile>(`/api/users/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Failed to get user profile from Officer service:', error);
@@ -309,7 +309,7 @@ export class SocialService extends BaseApiService {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      const response = await this.upload<{ avatarUrl: string }>(`/users/${userId}/avatar`, formData);
+      const response = await this.upload<{ avatarUrl: string }>(`/api/users/${userId}/avatar`, formData);
       return response;
     } catch (error) {
       console.error('Failed to upload avatar:', error);
@@ -588,7 +588,7 @@ export class SocialService extends BaseApiService {
 
   async getWalletInfo(userId: string): Promise<any> {
     try {
-      const response = await this.get(`/users/${userId}/wallet`);
+      const response = await this.get(`/api/users/${userId}/wallet`);
       return response;
     } catch (error) {
       console.error('Failed to get wallet info:', error);
@@ -598,7 +598,7 @@ export class SocialService extends BaseApiService {
 
   async connectWallet(userId: string, network: string): Promise<any> {
     try {
-      const response = await this.post(`/users/${userId}/wallet/connect`, { network });
+      const response = await this.post(`/api/users/${userId}/wallet/connect`, { network });
       return response;
     } catch (error) {
       console.error('Failed to connect wallet:', error);
@@ -619,7 +619,7 @@ export class SocialService extends BaseApiService {
 
   async updateUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
     try {
-      const response = await this.put<UserProfile>(`/users/${userId}`, profileData);
+      const response = await this.put<UserProfile>(`/api/users/${userId}`, profileData);
       return response;
     } catch (error) {
       console.error('Failed to update user profile:', error);
