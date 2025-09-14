@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("innkt.Officer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2104d4e08107a4eb20f1930c7298aa55dbe85e76")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+43953b93a0d32b40c1d4e64134c010aa6176356c")]
 [assembly: System.Reflection.AssemblyProductAttribute("innkt.Officer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("innkt.Officer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

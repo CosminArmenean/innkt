@@ -145,35 +145,73 @@ class SearchService extends BaseApiService {
   // Perform comprehensive search
   async search(request: SearchRequest): Promise<SearchResult> {
     try {
-      const params = new URLSearchParams();
-      params.append('query', request.query);
+      const startTime = Date.now();
       
-      if (request.page) params.append('page', request.page.toString());
-      if (request.pageSize) params.append('pageSize', request.pageSize.toString());
-      if (request.includePosts !== undefined) params.append('includePosts', request.includePosts.toString());
-      if (request.includeUsers !== undefined) params.append('includeUsers', request.includeUsers.toString());
-      if (request.includeGroups !== undefined) params.append('includeGroups', request.includeGroups.toString());
-      if (request.includeHashtags !== undefined) params.append('includeHashtags', request.includeHashtags.toString());
+      // Perform searches in parallel for different types
+      const searchPromises: Promise<any>[] = [];
       
-      if (request.filters) {
-        if (request.filters.fromDate) params.append('filters.fromDate', request.filters.fromDate);
-        if (request.filters.toDate) params.append('filters.toDate', request.filters.toDate);
-        if (request.filters.categories) params.append('filters.categories', request.filters.categories.join(','));
-        if (request.filters.types) params.append('filters.types', request.filters.types.join(','));
-        if (request.filters.hasMedia !== undefined) params.append('filters.hasMedia', request.filters.hasMedia.toString());
-        if (request.filters.minLikes) params.append('filters.minLikes', request.filters.minLikes.toString());
-        if (request.filters.minComments) params.append('filters.minComments', request.filters.minComments.toString());
-        if (request.filters.isVerified !== undefined) params.append('filters.isVerified', request.filters.isVerified.toString());
-        if (request.filters.isPrivate !== undefined) params.append('filters.isPrivate', request.filters.isPrivate.toString());
+      if (request.includeUsers !== false) {
+        searchPromises.push(
+          this.searchUsers(request.query, request.filters, request.sort)
+            .catch(error => {
+              console.error('User search failed:', error);
+              return [];
+            })
+        );
+      } else {
+        searchPromises.push(Promise.resolve([]));
       }
       
-      if (request.sort) {
-        params.append('sort.field', request.sort.field);
-        params.append('sort.direction', request.sort.direction);
+      if (request.includePosts !== false) {
+        searchPromises.push(
+          this.searchPosts(request.query, request.filters, request.sort)
+            .catch(error => {
+              console.error('Post search failed:', error);
+              return [];
+            })
+        );
+      } else {
+        searchPromises.push(Promise.resolve([]));
+      }
+      
+      if (request.includeGroups !== false) {
+        searchPromises.push(
+          this.searchGroups(request.query, request.filters, request.sort)
+            .catch(error => {
+              console.error('Group search failed:', error);
+              return [];
+            })
+        );
+      } else {
+        searchPromises.push(Promise.resolve([]));
+      }
+      
+      if (request.includeHashtags !== false) {
+        searchPromises.push(
+          this.searchHashtags(request.query, request.sort)
+            .catch(error => {
+              console.error('Hashtag search failed:', error);
+              return [];
+            })
+        );
+      } else {
+        searchPromises.push(Promise.resolve([]));
       }
 
-      const response = await this.get<{ data: SearchResult }>(`/search?${params.toString()}`);
-      return response.data;
+      const [users, posts, groups, hashtags] = await Promise.all(searchPromises);
+      
+      const searchTime = Date.now() - startTime;
+      
+      return {
+        query: request.query,
+        totalResults: users.length + posts.length + groups.length + hashtags.length,
+        posts: posts,
+        users: users,
+        groups: groups,
+        hashtags: hashtags,
+        suggestions: [], // Could be implemented later
+        searchTime: `${searchTime}ms`
+      };
     } catch (error) {
       console.error('Search failed:', error);
       throw error;
@@ -213,6 +251,8 @@ class SearchService extends BaseApiService {
     try {
       const params = new URLSearchParams();
       params.append('query', query);
+      params.append('page', '1');
+      params.append('limit', '20');
       
       if (filters) {
         if (filters.isVerified !== undefined) params.append('filters.isVerified', filters.isVerified.toString());
@@ -223,8 +263,23 @@ class SearchService extends BaseApiService {
         params.append('sort.direction', sort.direction);
       }
 
-      const response = await this.get<{ data: SearchUserResult[] }>(`/search/users?${params.toString()}`);
-      return response.data;
+      // Use the social service follows endpoint for user search
+      const response = await this.get<{ users: any[] }>(`/api/follows/search?${params.toString()}`);
+      
+      // Transform the response to match SearchUserResult interface
+      return response.users.map((user: any) => ({
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        bio: '', // Not provided by the API
+        avatarUrl: user.avatarUrl || '',
+        followersCount: user.followersCount || 0,
+        followingCount: user.followingCount || 0,
+        postsCount: user.postsCount || 0,
+        isVerified: user.isVerified || false,
+        isFollowing: false, // Not provided by the API
+        relevanceScore: 1.0 // Default relevance score
+      }));
     } catch (error) {
       console.error('User search failed:', error);
       throw error;
