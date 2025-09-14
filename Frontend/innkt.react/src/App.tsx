@@ -14,16 +14,6 @@ import UserProfile from './components/social/UserProfile';
 import { useAuth } from './contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 import ImageProcessing from './components/image-processing/ImageProcessing';
-
-// Wrapper component to handle user ID for profile routes
-const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile }) => {
-  const { user } = useAuth();
-  const { id } = useParams<{ id: string }>();
-  
-  const userId = isOwnProfile ? (user?.id || '') : (id || '');
-  
-  return <UserProfile userId={userId} isOwnProfile={isOwnProfile} />;
-};
 import EnhancedMonitoringDashboard from './components/monitoring/EnhancedMonitoringDashboard';
 import SocialDashboard from './components/social/SocialDashboard';
 import SearchPage from './components/search/SearchPage';
@@ -38,6 +28,16 @@ import NotificationToast from './components/notifications/NotificationToast';
 import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
+
+// Wrapper component to handle user ID for profile routes
+const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile }) => {
+  const { user } = useAuth();
+  const { id } = useParams<{ id: string }>();
+  
+  const userId = isOwnProfile ? (user?.id || '') : (id || '');
+  
+  return <UserProfile userId={userId} isOwnProfile={isOwnProfile} />;
+};
 
 function App() {
   useEffect(() => {
