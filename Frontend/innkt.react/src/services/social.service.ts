@@ -236,22 +236,15 @@ export class SocialService extends BaseApiService {
   // User Profile Methods
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
-      // Try to get user profile from Social service first
-      const response = await this.get<UserProfile>(`/users/${userId}`);
-      return response;
+      // Get user profile from Officer service (primary source)
+      const response = await officerApi.get<UserProfile>(`/users/${userId}`);
+      return response.data;
     } catch (error) {
-      console.error('Failed to get user profile from Social service:', error);
+      console.error('Failed to get user profile from Officer service:', error);
       
-      // Fallback: try to get from Officer service
-      try {
-        const response = await officerApi.get<UserProfile>(`/users/${userId}`);
-        return response.data;
-      } catch (officerError) {
-        console.error('Failed to get user profile from Officer service:', officerError);
-        
-        // If both fail, return a minimal profile with the provided userId
-        return {
-          id: userId,
+      // If Officer service fails, return a minimal profile with the provided userId
+      return {
+        id: userId,
           username: 'unknown-user',
           displayName: 'Unknown User',
           email: 'unknown@example.com',
