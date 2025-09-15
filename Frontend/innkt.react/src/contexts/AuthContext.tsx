@@ -57,7 +57,8 @@ interface RegisterData {
   useAiBackgroundRemoval?: boolean;
   createKidsAccount?: boolean;
   kidsAccounts?: Array<{
-    name: string;
+    firstName: string;
+    lastName: string;
     username: string;
     birthDate: string;
     avatar?: string;
@@ -140,8 +141,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         ProfilePictureBase64: userData.avatar || null,
         Subaccounts: userData.createKidsAccount && userData.kidsAccounts ? userData.kidsAccounts.map(kid => ({
           Username: kid.username,
-          FirstName: kid.name.split(' ')[0] || kid.name,
-          LastName: kid.name.split(' ').slice(1).join(' ') || '',
+          FirstName: kid.firstName,
+          LastName: kid.lastName,
           BirthDate: kid.birthDate ? new Date(kid.birthDate).toISOString() : null,
           ProfilePictureBase64: kid.avatar || null
         })) : null,

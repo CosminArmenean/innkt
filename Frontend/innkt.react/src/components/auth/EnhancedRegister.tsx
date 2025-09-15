@@ -28,7 +28,8 @@ interface RegistrationData {
 }
 
 interface KidsAccountData {
-  name: string;
+  firstName: string;
+  lastName: string;
   username: string;
   birthDate: string;
   avatar?: string;
@@ -63,6 +64,15 @@ const EnhancedRegister: React.FC = () => {
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
+    // Helper functions for validation
+    const isValidName = (name: string): boolean => {
+      return /^[a-zA-Z\s]+$/.test(name);
+    };
+
+    const isValidUsername = (username: string): boolean => {
+      return /^[a-zA-Z0-9.]+$/.test(username);
+    };
+
     switch (step) {
       case 1:
         if (!formData.email) newErrors.email = 'Email is required';
@@ -77,9 +87,17 @@ const EnhancedRegister: React.FC = () => {
 
       case 2:
         if (!formData.firstName) newErrors.firstName = 'First name is required';
+        else if (!isValidName(formData.firstName)) newErrors.firstName = 'First name can only contain letters and spaces';
+        
         if (!formData.lastName) newErrors.lastName = 'Last name is required';
+        else if (!isValidName(formData.lastName)) newErrors.lastName = 'Last name can only contain letters and spaces';
+        
         if (!formData.username) newErrors.username = 'Username is required';
         else if (formData.username.length < 3) newErrors.username = 'Username must be at least 3 characters';
+        else if (!isValidUsername(formData.username)) newErrors.username = 'Username can only contain letters, numbers, and dots';
+        else if (formData.username.startsWith('.') || formData.username.endsWith('.')) newErrors.username = 'Username cannot start or end with a dot';
+        else if (formData.username.includes('..')) newErrors.username = 'Username cannot contain consecutive dots';
+        
         if (!formData.birthDate) newErrors.birthDate = 'Birth date is required';
         break;
 
@@ -90,6 +108,25 @@ const EnhancedRegister: React.FC = () => {
       case 4:
         if (!formData.acceptTerms) newErrors.acceptTerms = 'You must accept the terms and conditions';
         if (!formData.acceptPrivacyPolicy) newErrors.acceptPrivacyPolicy = 'You must accept the privacy policy';
+        
+        // Validate kids accounts if they are being created
+        if (formData.createKidsAccount) {
+          formData.kidsAccounts.forEach((kid, index) => {
+            if (!kid.firstName) newErrors[`kid_${index}_firstName`] = `First name is required for child ${index + 1}`;
+            else if (!isValidName(kid.firstName)) newErrors[`kid_${index}_firstName`] = `First name can only contain letters and spaces for child ${index + 1}`;
+            
+            if (!kid.lastName) newErrors[`kid_${index}_lastName`] = `Last name is required for child ${index + 1}`;
+            else if (!isValidName(kid.lastName)) newErrors[`kid_${index}_lastName`] = `Last name can only contain letters and spaces for child ${index + 1}`;
+            
+            if (!kid.username) newErrors[`kid_${index}_username`] = `Username is required for child ${index + 1}`;
+            else if (kid.username.length < 3) newErrors[`kid_${index}_username`] = `Username must be at least 3 characters for child ${index + 1}`;
+            else if (!isValidUsername(kid.username)) newErrors[`kid_${index}_username`] = `Username can only contain letters, numbers, and dots for child ${index + 1}`;
+            else if (kid.username.startsWith('.') || kid.username.endsWith('.')) newErrors[`kid_${index}_username`] = `Username cannot start or end with a dot for child ${index + 1}`;
+            else if (kid.username.includes('..')) newErrors[`kid_${index}_username`] = `Username cannot contain consecutive dots for child ${index + 1}`;
+            
+            if (!kid.birthDate) newErrors[`kid_${index}_birthDate`] = `Birth date is required for child ${index + 1}`;
+          });
+        }
         break;
     }
 
@@ -126,7 +163,7 @@ const EnhancedRegister: React.FC = () => {
   const addKidsAccount = () => {
     setFormData(prev => ({
       ...prev,
-      kidsAccounts: [...prev.kidsAccounts, { name: '', username: '', birthDate: '' }]
+      kidsAccounts: [...prev.kidsAccounts, { firstName: '', lastName: '', username: '', birthDate: '' }]
     }));
   };
 
@@ -222,8 +259,13 @@ const EnhancedRegister: React.FC = () => {
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    setFormData(prev => ({ ...prev, firstName: value }));
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.firstName ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your first name"
                 />
                 {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
@@ -234,8 +276,13 @@ const EnhancedRegister: React.FC = () => {
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    setFormData(prev => ({ ...prev, lastName: value }));
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.lastName ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your last name"
                 />
                 {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
@@ -248,11 +295,14 @@ const EnhancedRegister: React.FC = () => {
                 <input
                   type="text"
                   value={formData.username}
-                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+                    setFormData(prev => ({ ...prev, username: value }));
+                  }}
                   className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                     errors.username ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder="Choose a unique username"
+                  placeholder="Choose a unique username (letters, numbers, dots only)"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   {formData.username && (
@@ -389,26 +439,58 @@ const EnhancedRegister: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                         <input
                           type="text"
-                          value={kid.name}
-                          onChange={(e) => updateKidsAccount(index, 'name', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Child's name"
+                          value={kid.firstName}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                            updateKidsAccount(index, 'firstName', value);
+                          }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                            errors[`kid_${index}_firstName`] ? 'border-red-300' : 'border-gray-300'
+                          }`}
+                          placeholder="Child's first name"
                         />
+                        {errors[`kid_${index}_firstName`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`kid_${index}_firstName`]}</p>
+                        )}
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input
+                          type="text"
+                          value={kid.lastName}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                            updateKidsAccount(index, 'lastName', value);
+                          }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                            errors[`kid_${index}_lastName`] ? 'border-red-300' : 'border-gray-300'
+                          }`}
+                          placeholder="Child's last name"
+                        />
+                        {errors[`kid_${index}_lastName`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`kid_${index}_lastName`]}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
                         <div className="relative">
                           <input
                             type="text"
                             value={kid.username}
-                            onChange={(e) => updateKidsAccount(index, 'username', e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+                              updateKidsAccount(index, 'username', value);
+                            }}
                             className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                              errors[`kid_${index}_username`] ? 'border-red-300' :
                               kid.username && kid.username.length < 3 ? 'border-yellow-300' : 'border-gray-300'
                             }`}
-                            placeholder="Choose a unique username"
+                            placeholder="Choose a unique username (letters, numbers, dots only)"
                           />
                           <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                             {kid.username && (
@@ -429,6 +511,9 @@ const EnhancedRegister: React.FC = () => {
                         {kid.username && kid.username.length < 3 && (
                           <p className="text-yellow-600 text-xs mt-1">Username must be at least 3 characters</p>
                         )}
+                        {errors[`kid_${index}_username`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`kid_${index}_username`]}</p>
+                        )}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -438,8 +523,13 @@ const EnhancedRegister: React.FC = () => {
                           type="date"
                           value={kid.birthDate}
                           onChange={(e) => updateKidsAccount(index, 'birthDate', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                            errors[`kid_${index}_birthDate`] ? 'border-red-300' : 'border-gray-300'
+                          }`}
                         />
+                        {errors[`kid_${index}_birthDate`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`kid_${index}_birthDate`]}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
