@@ -115,6 +115,7 @@ public class UserBasicInfo
     public Guid Id { get; set; }
     public string Username { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
+    public string? Email { get; set; }
     public string? AvatarUrl { get; set; }
     public bool IsVerified { get; set; }
 }
@@ -182,4 +183,14 @@ public class SearchRequest
     public string? Type { get; set; } // "posts", "users", "hashtags"
     public string? Hashtag { get; set; }
     public string? Location { get; set; }
+}
+
+public class ReportUserRequest
+{
+    [Required]
+    [MaxLength(50)]
+    public string Reason { get; set; } = string.Empty;
+    
+    [MaxLength(500)]
+    public string? Description { get; set; }
 }

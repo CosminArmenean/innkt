@@ -230,6 +230,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
                         {message.senderProfile?.avatar ? (
                           <img
                             src={message.senderProfile.avatar}
+                            onError={(e) => {
+                              console.log('Chat avatar image failed to load:', message.senderProfile?.avatar);
+                              e.currentTarget.style.display = 'none';
+                            }}
                             alt={message.senderProfile.displayName || 'User'}
                             className="w-8 h-8 rounded-full object-cover"
                           />

@@ -29,6 +29,7 @@ interface RegistrationData {
 
 interface KidsAccountData {
   name: string;
+  username: string;
   birthDate: string;
   avatar?: string;
 }
@@ -125,7 +126,7 @@ const EnhancedRegister: React.FC = () => {
   const addKidsAccount = () => {
     setFormData(prev => ({
       ...prev,
-      kidsAccounts: [...prev.kidsAccounts, { name: '', birthDate: '' }]
+      kidsAccounts: [...prev.kidsAccounts, { name: '', username: '', birthDate: '' }]
     }));
   };
 
@@ -243,14 +244,36 @@ const EnhancedRegister: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Choose a unique username"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.username ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Choose a unique username"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  {formData.username && (
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      formData.username.length >= 3 ? 'bg-green-100' : 'bg-gray-100'
+                    }`}>
+                      {formData.username.length >= 3 ? (
+                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
               {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
+              {formData.username && formData.username.length >= 3 && !errors.username && (
+                <p className="text-green-600 text-sm mt-1">✓ Username looks good!</p>
+              )}
             </div>
 
             <div>
@@ -376,6 +399,40 @@ const EnhancedRegister: React.FC = () => {
                         />
                       </div>
                       <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={kid.username}
+                            onChange={(e) => updateKidsAccount(index, 'username', e.target.value)}
+                            className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                              kid.username && kid.username.length < 3 ? 'border-yellow-300' : 'border-gray-300'
+                            }`}
+                            placeholder="Choose a unique username"
+                          />
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            {kid.username && (
+                              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                                kid.username.length >= 3 ? 'bg-green-100' : 'bg-yellow-100'
+                              }`}>
+                                {kid.username.length >= 3 ? (
+                                  <svg className="w-2 h-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                ) : (
+                                  <div className="w-1 h-1 bg-yellow-500 rounded-full"></div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {kid.username && kid.username.length < 3 && (
+                          <p className="text-yellow-600 text-xs mt-1">Username must be at least 3 characters</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date</label>
                         <input
                           type="date"
@@ -383,6 +440,40 @@ const EnhancedRegister: React.FC = () => {
                           onChange={(e) => updateKidsAccount(index, 'birthDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                            {kid.avatar ? (
+                              <img src={kid.avatar} alt="Child" className="w-12 h-12 rounded-full object-cover" />
+                            ) : (
+                              <UserIcon className="h-6 w-6 text-gray-400" />
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                  updateKidsAccount(index, 'avatar', e.target?.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                            id={`kid-avatar-${index}`}
+                          />
+                          <label
+                            htmlFor={`kid-avatar-${index}`}
+                            className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 cursor-pointer transition-colors"
+                          >
+                            Upload
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>

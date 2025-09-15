@@ -36,7 +36,10 @@ const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile 
   
   const userId = isOwnProfile ? (user?.id || '') : (id || '');
   
-  return <UserProfile userId={userId} isOwnProfile={isOwnProfile} />;
+  // Determine if this is the user's own profile
+  const isActuallyOwnProfile = isOwnProfile || (!!id && !!user?.id && id === user.id);
+  
+  return <UserProfile userId={userId} isOwnProfile={isActuallyOwnProfile} />;
 };
 
 function App() {

@@ -40,6 +40,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<boolean>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  reloadUser: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
 
@@ -50,10 +51,17 @@ interface RegisterData {
   lastName: string;
   username: string;
   birthDate: string;
+  avatar?: string;
   acceptTerms: boolean;
   acceptPrivacyPolicy: boolean;
   useAiBackgroundRemoval?: boolean;
   createKidsAccount?: boolean;
+  kidsAccounts?: Array<{
+    name: string;
+    username: string;
+    birthDate: string;
+    avatar?: string;
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -124,10 +132,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Convert frontend format to backend format
       const registrationData = {
         Email: userData.email,
+        Username: userData.username,
         Password: userData.password,
         FirstName: userData.firstName,
         LastName: userData.lastName,
         BirthDate: userData.birthDate ? new Date(userData.birthDate).toISOString() : null,
+        ProfilePictureBase64: userData.avatar || null,
+        Subaccounts: userData.createKidsAccount && userData.kidsAccounts ? userData.kidsAccounts.map(kid => ({
+          Username: kid.username,
+          FirstName: kid.name.split(' ')[0] || kid.name,
+          LastName: kid.name.split(' ').slice(1).join(' ') || '',
+          BirthDate: kid.birthDate ? new Date(kid.birthDate).toISOString() : null,
+          ProfilePictureBase64: kid.avatar || null
+        })) : null,
         AcceptTerms: userData.acceptTerms,
         AcceptPrivacyPolicy: userData.acceptPrivacyPolicy,
         Language: "en",
@@ -159,6 +176,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const reloadUser = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await officerApi.get('/api/auth/me');
+      setUser(response.data);
+    } catch (error) {
+      console.error('Failed to reload user data:', error);
+    }
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -171,6 +200,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateUser,
+    reloadUser,
     checkAuth,
   };
 

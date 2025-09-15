@@ -21,28 +21,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Sidebar */}
-      <LeftSidebar 
-        collapsed={sidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-      />
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
+      {/* Left Sidebar - Fixed */}
+      <div className="flex-shrink-0">
+        <LeftSidebar 
+          collapsed={sidebarCollapsed} 
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+        />
+      </div>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Navigation */}
-        <TopNavbar />
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Navigation - Fixed */}
+        <div className="flex-shrink-0">
+          <TopNavbar />
+        </div>
         
-        {/* Main Content */}
-        <div className="flex-1 flex">
-          <main className="flex-1 px-2 sm:px-4 py-4 sm:py-6 overflow-y-auto pb-20 lg:pb-6">
+        {/* Main Content - Scrollable */}
+        <div className="flex-1 flex min-h-0">
+          <main className="flex-1 px-2 sm:px-4 py-4 sm:py-6 overflow-y-auto pb-20 lg:pb-6 scrollbar-none">
             <div className="max-w-4xl mx-auto">
               {children}
             </div>
           </main>
           
           {/* Right Panel - Hidden on mobile */}
-          <div className="hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)]">
+          <div className="hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)] scrollbar-none">
             <RightPanel />
           </div>
         </div>

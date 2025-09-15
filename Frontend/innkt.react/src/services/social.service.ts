@@ -6,7 +6,11 @@ export interface UserProfile {
   username: string;
   displayName: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
   avatar?: string;
+  profilePictureUrl?: string;
   bio?: string;
   location?: string;
   website?: string;
@@ -23,6 +27,7 @@ export interface UserProfile {
   preferences: UserPreferences;
   socialLinks: SocialLinks;
   parentalControls?: ParentalControls;
+  linkedUser?: UserBasicInfo | null;
 }
 
 export interface UserBasicInfo {
@@ -200,8 +205,8 @@ export interface Follow {
   id: string;
   followerId: string;
   followingId: string;
-  followerProfile: UserProfile;
-  followingProfile: UserProfile;
+  follower?: UserBasicInfo;
+  following?: UserBasicInfo;
   isMutual: boolean;
   createdAt: string;
 }
@@ -233,21 +238,112 @@ export class SocialService extends BaseApiService {
     super(socialApi);
   }
 
+  // Helper method to extract username from email
+  private extractUsernameFromEmail(emailOrUsername: string): string {
+    if (!emailOrUsername) return 'unknown';
+    
+    // If it's already a username (doesn't contain @), return as is
+    if (!emailOrUsername.includes('@')) {
+      return emailOrUsername;
+    }
+    
+    // Extract username from email (part before @)
+    const username = emailOrUsername.split('@')[0];
+    
+    // Convert to proper username format (e.g., "charlie.kirk" from "charlie@innkt.com")
+    // For now, just return the part before @, but we could enhance this logic
+    return username;
+  }
+
+  // Helper method to map Officer service response to UserProfile
+  private mapOfficerResponseToUserProfile(officerData: any): UserProfile {
+    // Convert relative URLs to absolute URLs
+    const getAbsoluteUrl = (url: string | undefined): string | undefined => {
+      if (!url) return undefined;
+      if (url.startsWith('http')) return url; // Already absolute
+      if (url.startsWith('/')) return `http://localhost:5001${url}`; // Prepend base URL
+      return url;
+    };
+
+    return {
+      id: officerData.id,
+      username: officerData.username || this.extractUsernameFromEmail(officerData.email), // Use actual username or extract from email
+      displayName: officerData.fullName || `${officerData.firstName || ''} ${officerData.lastName || ''}`.trim() || officerData.email,
+      email: officerData.email,
+      firstName: officerData.firstName,
+      lastName: officerData.lastName,
+      fullName: officerData.fullName,
+      avatar: getAbsoluteUrl(officerData.profilePictureUrl),
+      profilePictureUrl: getAbsoluteUrl(officerData.profilePictureUrl),
+      bio: officerData.bio,
+      location: officerData.location,
+      website: officerData.website,
+      dateOfBirth: officerData.dateOfBirth,
+      isVerified: officerData.isVerified || false,
+      isKidAccount: officerData.isKidAccount || false,
+      parentId: officerData.parentId,
+      independenceDate: officerData.independenceDate,
+      followersCount: officerData.followersCount || 0,
+      followingCount: officerData.followingCount || 0,
+      postsCount: officerData.postsCount || 0,
+      createdAt: officerData.createdAt,
+      updatedAt: officerData.updatedAt,
+      preferences: officerData.preferences || {
+        privacyLevel: 'public',
+        allowDirectMessages: true,
+        allowMentions: true,
+        notificationSettings: {
+          newFollowers: true,
+          newPosts: true,
+          mentions: true,
+          directMessages: true,
+          groupUpdates: true,
+          emailNotifications: true,
+          pushNotifications: true
+        },
+        theme: 'light',
+        language: 'en',
+        timezone: 'UTC'
+      },
+      socialLinks: officerData.socialLinks || {
+        twitter: null,
+        instagram: null,
+        linkedIn: null,
+        facebook: null,
+        youTube: null
+      },
+      parentalControls: officerData.parentalControls,
+      linkedUser: officerData.linkedUser
+    };
+  }
+
   // User Profile Methods
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
       // Get user profile from Officer service (primary source)
-      const response = await officerApi.get<UserProfile>(`/api/users/${userId}`);
-      return response.data;
+      const response = await officerApi.get<any>(`/api/User/${userId}`);
+      return this.mapOfficerResponseToUserProfile(response.data);
     } catch (error) {
       console.error('Failed to get user profile from Officer service:', error);
       
       // If Officer service fails, return a minimal profile with the provided userId
+      // Extract username from userId if it's in the format "username-uuid-..."
+      let username = 'unknown-user';
+      let displayName = 'Unknown User';
+      
+      if (userId.includes('-uuid-')) {
+        // Extract username from format like "alice.johnson-uuid-1234-5678-9abc-def012345681"
+        username = userId.split('-uuid-')[0];
+        displayName = username.split('.').map(part => 
+          part.charAt(0).toUpperCase() + part.slice(1)
+        ).join(' ');
+      }
+      
       return {
         id: userId,
-        username: 'unknown-user',
-        displayName: 'Unknown User',
-        email: 'unknown@example.com',
+        username: username,
+        displayName: displayName,
+        email: `${username}@example.com`,
         avatar: undefined,
         bio: 'User profile not available',
         location: undefined,
@@ -288,20 +384,12 @@ export class SocialService extends BaseApiService {
   // Get current user profile (logged-in user)
   async getCurrentUserProfile(): Promise<UserProfile> {
     try {
-      // Try to get current user from Social service first
-      const response = await this.get<UserProfile>('/api/users/me');
-      return response;
+      // Try to get current user from Officer service
+      const response = await officerApi.get<any>('/api/auth/me');
+      return this.mapOfficerResponseToUserProfile(response.data);
     } catch (error) {
-      console.error('Failed to get current user profile from Social service:', error);
-      
-      // Fallback: try to get from Officer service
-      try {
-        const response = await officerApi.get<UserProfile>('/api/auth/me');
-        return response.data;
-      } catch (officerError) {
-        console.error('Failed to get current user profile from Officer service:', officerError);
-        throw officerError;
-      }
+      console.error('Failed to get current user profile from Officer service:', error);
+      throw error;
     }
   }
 
@@ -309,8 +397,12 @@ export class SocialService extends BaseApiService {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      const response = await this.upload<{ avatarUrl: string }>(`/api/users/${userId}/avatar`, formData);
-      return response;
+      const response = await officerApi.post<{ avatarUrl: string }>(`/api/User/${userId}/avatar`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
     } catch (error) {
       console.error('Failed to upload avatar:', error);
       throw error;
@@ -373,9 +465,35 @@ export class SocialService extends BaseApiService {
       
       const response = await this.get<{ posts: Post[]; totalCount: number; hasNextPage: boolean }>(endpoint, params);
       
+      // Load author profile for each post
+      const postsWithProfiles = await Promise.all(
+        (response.posts || []).map(async (post) => {
+          try {
+            // Get author profile data
+            const authorProfile = await this.getUserProfile(post.userId);
+            return {
+              ...post,
+              authorProfile,
+              author: {
+                id: authorProfile.id,
+                username: authorProfile.username,
+                displayName: authorProfile.displayName,
+                avatar: authorProfile.avatar,
+                isVerified: authorProfile.isVerified,
+                isKidAccount: authorProfile.isKidAccount
+              }
+            };
+          } catch (error) {
+            console.error(`Failed to load profile for user ${post.userId}:`, error);
+            // Return post without profile data if loading fails
+            return post;
+          }
+        })
+      );
+      
       // Convert backend response format to frontend format
       return {
-        posts: response.posts || [],
+        posts: postsWithProfiles,
         totalCount: response.totalCount || 0,
         hasMore: response.hasNextPage || false
       };
@@ -562,6 +680,15 @@ export class SocialService extends BaseApiService {
     }
   }
 
+  async reportUser(userId: string, reportData: { reason: string; description?: string }): Promise<void> {
+    try {
+      await this.post(`/api/follows/report/${userId}`, reportData);
+    } catch (error) {
+      console.error('Failed to report user:', error);
+      throw error;
+    }
+  }
+
   async getFollowers(userId: string, page?: number, limit?: number): Promise<{ followers: Follow[]; totalCount: number; hasMore: boolean }> {
     try {
       const response = await this.get<{ followers: Follow[]; totalCount: number; hasMore: boolean }>(`/api/follows/user/${userId}/followers`, { page, limit });
@@ -619,8 +746,8 @@ export class SocialService extends BaseApiService {
 
   async updateUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
     try {
-      const response = await this.put<UserProfile>(`/api/users/${userId}`, profileData);
-      return response;
+      const response = await officerApi.put<UserProfile>(`/api/User/${userId}`, profileData);
+      return response.data;
     } catch (error) {
       console.error('Failed to update user profile:', error);
       throw error;

@@ -473,22 +473,9 @@ public class SearchService : ISearchService
 
     public async Task<string[]> GetSearchSuggestionsAsync(string partialQuery, int count = 10)
     {
-        var suggestions = new[]
-        {
-            "artificial intelligence",
-            "machine learning",
-            "deep learning",
-            "neural networks",
-            "data science",
-            "programming",
-            "technology",
-            "innovation"
-        };
-
-        return suggestions
-            .Where(s => s.StartsWith(partialQuery, StringComparison.OrdinalIgnoreCase))
-            .Take(count)
-            .ToArray();
+        // For now, return empty array since we should get suggestions from the Social service
+        // In a real implementation, this would query the actual database
+        return new string[0];
     }
 
     // Placeholder implementations for advanced features

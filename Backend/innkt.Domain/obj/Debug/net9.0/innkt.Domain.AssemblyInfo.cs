@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("innkt.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d2450bbf4b44a96fd670738f860ed7aae2b68e42")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7beeb4ed5099d4e7836d80ca3ab07d11f6e03c1b")]
 [assembly: System.Reflection.AssemblyProductAttribute("innkt.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("innkt.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

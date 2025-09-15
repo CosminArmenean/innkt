@@ -64,6 +64,10 @@ const UserCard: React.FC<UserCardProps> = ({
               src={user.avatar} 
               alt={user.displayName}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.log('UserCard avatar image failed to load:', user.avatar);
+                e.currentTarget.style.display = 'none';
+              }}
             />
           ) : (
             <div className="w-full h-full bg-gray-300 flex items-center justify-center">

@@ -44,10 +44,17 @@ public class AuthService : IAuthService
                 throw new InvalidOperationException("User with this email already exists.");
             }
 
+            // Check if username already exists
+            var existingUserByUsername = await _userManager.FindByNameAsync(registrationDto.Username);
+            if (existingUserByUsername != null)
+            {
+                throw new InvalidOperationException("User with this username already exists.");
+            }
+
             // Create new user
             var user = new ApplicationUser
             {
-                UserName = registrationDto.Email,
+                UserName = registrationDto.Username,
                 Email = registrationDto.Email,
                 FirstName = registrationDto.FirstName,
                 LastName = registrationDto.LastName,
@@ -76,6 +83,27 @@ public class AuthService : IAuthService
                 throw new InvalidOperationException($"User creation failed: {errors}");
             }
 
+            // Handle profile picture upload if provided
+            if (!string.IsNullOrEmpty(registrationDto.ProfilePictureBase64))
+            {
+                try
+                {
+                    var profilePictureUrl = await SaveProfilePictureAsync(user.Id, registrationDto.ProfilePictureBase64);
+                    user.ProfilePictureUrl = profilePictureUrl;
+                    await _userManager.UpdateAsync(user);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to save profile picture for user {UserId}", user.Id);
+                }
+            }
+
+            // Create subaccounts if provided
+            if (registrationDto.Subaccounts != null && registrationDto.Subaccounts.Any())
+            {
+                await CreateSubaccountsAsync(user.Id, registrationDto.Subaccounts);
+            }
+
             // Generate email confirmation token
             var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             // TODO: Send confirmation email
@@ -88,7 +116,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during user registration for email: {Email}", registrationDto.Email);
+            Console.WriteLine($"Error during user registration for email: {registrationDto.Email}. Error: {ex.Message}");
             throw;
         }
     }
@@ -183,7 +211,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during joint account registration");
+            Console.WriteLine($"Error during joint account registration: {ex.Message}");
             throw;
         }
     }
@@ -223,7 +251,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during login for email: {Email}", loginDto.Email);
+            Console.WriteLine($"Error during login for email: {loginDto.Email}. Error: {ex.Message}");
             throw;
         }
     }
@@ -268,7 +296,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during joint account login");
+            Console.WriteLine($"Error during joint account login: {ex.Message}");
             throw;
         }
     }
@@ -282,7 +310,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token refresh");
+            Console.WriteLine($"Error during token refresh: {ex.Message}");
             throw;
         }
     }
@@ -302,7 +330,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error changing password for user: {UserId}", userId);
+            Console.WriteLine($"Error changing password for user: {userId}. Error: {ex.Message}");
             return false;
         }
     }
@@ -325,7 +353,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during forgot password for email: {Email}", forgotPasswordDto.Email);
+            Console.WriteLine($"Error during forgot password for email: {forgotPasswordDto.Email}. Error: {ex.Message}");
             return false;
         }
     }
@@ -345,7 +373,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during password reset for email: {Email}", resetPasswordDto.Email);
+            Console.WriteLine($"Error during password reset for email: {resetPasswordDto.Email}. Error: {ex.Message}");
             return false;
         }
     }
@@ -379,7 +407,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error linking accounts: {PrimaryUserId} and {SecondaryUserId}", primaryUserId, secondaryUserId);
+            Console.WriteLine($"Error linking accounts: {primaryUserId} and {secondaryUserId}. Error: {ex.Message}");
             return false;
         }
     }
@@ -410,7 +438,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error unlinking account for user: {UserId}", userId);
+            Console.WriteLine($"Error unlinking account for user: {userId}. Error: {ex.Message}");
             return false;
         }
     }
@@ -437,7 +465,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error verifying email for user: {UserId}", userId);
+            Console.WriteLine($"Error verifying email for user: {userId}. Error: {ex.Message}");
             return false;
         }
     }
@@ -459,7 +487,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error resending email verification for: {Email}", email);
+            Console.WriteLine($"Error resending email verification for: {email}. Error: {ex.Message}");
             return false;
         }
     }
@@ -474,7 +502,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during logout for user: {UserId}", userId);
+            Console.WriteLine($"Error during logout for user: {userId}. Error: {ex.Message}");
             return false;
         }
     }
@@ -500,7 +528,7 @@ public class AuthService : IAuthService
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "default-key-change-in-production"));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256, "innkt-officer-key");
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
@@ -554,6 +582,17 @@ public class AuthService : IAuthService
         }
 
         // Update user properties
+        if (!string.IsNullOrEmpty(updateDto.Username))
+        {
+            // Check if username is already taken by another user
+            var existingUser = await _userManager.FindByNameAsync(updateDto.Username);
+            if (existingUser != null && existingUser.Id != userId)
+            {
+                throw new InvalidOperationException("Username is already taken by another user.");
+            }
+            user.UserName = updateDto.Username;
+        }
+        
         if (!string.IsNullOrEmpty(updateDto.FirstName))
             user.FirstName = updateDto.FirstName;
         
@@ -586,6 +625,9 @@ public class AuthService : IAuthService
         
         if (updateDto.DateOfBirth.HasValue)
             user.BirthDate = updateDto.DateOfBirth.Value;
+        
+        if (!string.IsNullOrEmpty(updateDto.ProfilePictureUrl))
+            user.ProfilePictureUrl = updateDto.ProfilePictureUrl;
 
         // Update the user in the database
         var result = await _userManager.UpdateAsync(user);
@@ -688,5 +730,144 @@ public class AuthService : IAuthService
                 AllowedContacts = new List<string>() // Default value
             } : null
         };
+    }
+
+    // Helper method to create subaccounts during registration
+    private async Task CreateSubaccountsAsync(string parentUserId, List<SubaccountDto> subaccounts)
+    {
+        foreach (var subaccount in subaccounts)
+        {
+            try
+            {
+                // Check if username is already taken
+                var existingUser = await _userManager.FindByNameAsync(subaccount.Username);
+                if (existingUser != null)
+                {
+                    _logger.LogWarning("Subaccount username {Username} already exists, skipping", subaccount.Username);
+                    continue;
+                }
+
+                // Create kid account
+                var kidUser = new ApplicationUser
+                {
+                    UserName = subaccount.Username,
+                    Email = $"{subaccount.Username}@kid.innkt.local", // Temporary email for kid accounts
+                    FirstName = subaccount.FirstName,
+                    LastName = subaccount.LastName,
+                    BirthDate = subaccount.BirthDate,
+                    Gender = subaccount.Gender,
+                    IsKidAccount = true,
+                    ParentUserId = parentUserId,
+                    KidAccountStatus = "active",
+                    KidAccountCreatedAt = DateTime.UtcNow,
+                    Language = "en",
+                    Theme = "light",
+                    IsActive = true,
+                    AcceptTerms = true,
+                    AcceptPrivacyPolicy = true,
+                    AcceptMarketing = false,
+                    AcceptCookies = false,
+                    TermsAcceptedAt = DateTime.UtcNow,
+                    PrivacyPolicyAcceptedAt = DateTime.UtcNow
+                };
+
+                // Generate a temporary password for kid account
+                var tempPassword = GenerateTemporaryPassword();
+                var result = await _userManager.CreateAsync(kidUser, tempPassword);
+                
+                if (result.Succeeded)
+                {
+                    // Handle profile picture if provided
+                    if (!string.IsNullOrEmpty(subaccount.ProfilePictureBase64))
+                    {
+                        try
+                        {
+                            var profilePictureUrl = await SaveProfilePictureAsync(kidUser.Id, subaccount.ProfilePictureBase64);
+                            kidUser.ProfilePictureUrl = profilePictureUrl;
+                            await _userManager.UpdateAsync(kidUser);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to save profile picture for subaccount {SubaccountId}", kidUser.Id);
+                        }
+                    }
+
+                    _logger.LogInformation("Subaccount created successfully: {Username} for parent {ParentId}", subaccount.Username, parentUserId);
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to create subaccount {subaccount.Username}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating subaccount {subaccount.Username} for parent {parentUserId}: {ex.Message}");
+            }
+        }
+    }
+
+    // Helper method to save profile picture from base64
+    private async Task<string> SaveProfilePictureAsync(string userId, string base64Image)
+    {
+        try
+        {
+            // Remove data URL prefix if present
+            var base64Data = base64Image.Contains(",") ? base64Image.Split(',')[1] : base64Image;
+            var imageBytes = Convert.FromBase64String(base64Data);
+            
+            // Create filename
+            var fileName = $"{userId}_{DateTime.UtcNow:yyyyMMddHHmmss}.jpg";
+            var filePath = Path.Combine("wwwroot", "uploads", "profiles", fileName);
+            
+            // Ensure directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+            
+            // Save file
+            await File.WriteAllBytesAsync(filePath, imageBytes);
+            
+            // Return relative URL
+            return $"/uploads/profiles/{fileName}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving profile picture for user {userId}: {ex.Message}");
+            throw;
+        }
+    }
+
+    // Helper method to generate temporary password for kid accounts
+    private string GenerateTemporaryPassword()
+    {
+        // Generate a secure temporary password
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        var random = new Random();
+        return new string(Enumerable.Repeat(chars, 12)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
+    public async Task<List<ApplicationUser>> SearchUsersAsync(string query, int page = 1, int limit = 20)
+    {
+        try
+        {
+            _logger.LogInformation("Searching users with query: {Query}, page: {Page}, limit: {Limit}", query, page, limit);
+
+            var users = await _userManager.Users
+                .Where(u => 
+                    u.UserName!.Contains(query) ||
+                    u.FirstName!.Contains(query) ||
+                    u.LastName!.Contains(query) ||
+                    u.Email!.Contains(query))
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
+
+            _logger.LogInformation("Found {Count} users matching query: {Query}", users.Count, query);
+            return users;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error searching users with query: {query}. Error: {ex.Message}");
+            return new List<ApplicationUser>();
+        }
     }
 }

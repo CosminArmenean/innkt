@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import MFAManagement from './MFAManagement';
 import APIKeyManagement from './APIKeyManagement';
 import EncryptionTools from './EncryptionTools';
+import PageLayout from '../layout/PageLayout';
+import ScrollableContent from '../layout/ScrollableContent';
 
 const SecurityDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'mfa' | 'api-keys' | 'encryption'>('overview');
@@ -164,39 +166,116 @@ const SecurityDashboard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Security Dashboard</h1>
-          <p className="text-gray-600">Manage your account security and privacy settings</p>
+  const leftSidebar = (
+    <div className="space-y-6">
+      {/* Quick Actions */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-3">Quick Actions</h3>
+        <div className="space-y-2">
+          <button
+            onClick={() => setActiveTab('mfa')}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              activeTab === 'mfa'
+                ? 'bg-purple-100 text-purple-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            🔐 Manage MFA
+          </button>
+          <button
+            onClick={() => setActiveTab('api-keys')}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              activeTab === 'api-keys'
+                ? 'bg-purple-100 text-purple-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            🔑 API Keys
+          </button>
+          <button
+            onClick={() => setActiveTab('encryption')}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              activeTab === 'encryption'
+                ? 'bg-purple-100 text-purple-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            🔒 Encryption Tools
+          </button>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="mb-6">
-          <nav className="flex space-x-8 border-b border-gray-200">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? 'border-innkt-primary text-innkt-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
+      {/* Security Status */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-3">Security Status</h3>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+            <span className="text-green-500">🔐</span>
+            <div>
+              <p className="text-sm font-medium text-green-900">MFA Enabled</p>
+              <p className="text-xs text-green-700">Two-factor authentication active</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+            <span className="text-blue-500">🔑</span>
+            <div>
+              <p className="text-sm font-medium text-blue-900">{securityMetrics.activeApiKeys} API Keys</p>
+              <p className="text-xs text-blue-700">Active API keys</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+            <span className="text-yellow-500">🛡️</span>
+            <div>
+              <p className="text-sm font-medium text-yellow-900">Threat Level: {securityMetrics.threatLevel}</p>
+              <p className="text-xs text-yellow-700">Last scan: {securityMetrics.lastSecurityScan}</p>
+            </div>
+          </div>
         </div>
-
-        {/* Tab Content */}
-        {renderTabContent()}
       </div>
     </div>
+  );
+
+  const centerContent = (
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="mb-6 flex-shrink-0">
+        <h1 className="text-2xl font-bold text-gray-900">Security Dashboard</h1>
+        <p className="text-gray-600">Manage your account security and privacy settings</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6 flex-shrink-0">
+        <nav className="flex space-x-8 border-b border-gray-200">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === tab.id
+                  ? 'border-innkt-primary text-innkt-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <ScrollableContent>
+        {renderTabContent()}
+      </ScrollableContent>
+    </div>
+  );
+
+  return (
+    <PageLayout
+      leftSidebar={leftSidebar}
+      centerContent={centerContent}
+      layoutType="wide-right"
+    />
   );
 };
 
