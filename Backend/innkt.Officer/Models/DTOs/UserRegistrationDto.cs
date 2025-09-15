@@ -9,6 +9,11 @@ public class UserRegistrationDto
     public string Email { get; set; } = string.Empty;
     
     [Required]
+    [MinLength(3)]
+    [MaxLength(50)]
+    public string Username { get; set; } = string.Empty;
+    
+    [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
     
@@ -43,6 +48,12 @@ public class UserRegistrationDto
     [MinLength(8)]
     public string? JointAccountPassword { get; set; }
     
+    // Subaccounts (Kid Accounts)
+    public List<SubaccountDto>? Subaccounts { get; set; }
+    
+    // Profile Picture
+    public string? ProfilePictureBase64 { get; set; }
+    
     // GDPR Consent
     public bool AcceptTerms { get; set; }
     
@@ -51,6 +62,29 @@ public class UserRegistrationDto
     public bool AcceptMarketing { get; set; } = false;
     
     public bool AcceptCookies { get; set; } = false;
+}
+
+public class SubaccountDto
+{
+    [Required]
+    [MinLength(3)]
+    [MaxLength(50)]
+    public string Username { get; set; } = string.Empty;
+    
+    [Required]
+    [MaxLength(100)]
+    public string FirstName { get; set; } = string.Empty;
+    
+    [Required]
+    [MaxLength(100)]
+    public string LastName { get; set; } = string.Empty;
+    
+    public DateTime? BirthDate { get; set; }
+    
+    [MaxLength(10)]
+    public string? Gender { get; set; }
+    
+    public string? ProfilePictureBase64 { get; set; }
 }
 
 public class JointAccountRegistrationDto

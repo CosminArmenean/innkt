@@ -80,7 +80,8 @@ public class FollowService : IFollowService
         foreach (var follow in follows)
         {
             var response = _mapper.Map<FollowResponse>(follow);
-            // TODO: Populate Follower info from Officer service
+            // Populate Follower info with mock data for now
+            response.Follower = GetMockUserInfo(follow.FollowerId);
             responses.Add(response);
         }
 
@@ -111,7 +112,8 @@ public class FollowService : IFollowService
         foreach (var follow in follows)
         {
             var response = _mapper.Map<FollowResponse>(follow);
-            // TODO: Populate Following info from Officer service
+            // Populate Following info with mock data for now
+            response.Following = GetMockUserInfo(follow.FollowingId);
             responses.Add(response);
         }
 
@@ -167,7 +169,8 @@ public class FollowService : IFollowService
         foreach (var follow in follows)
         {
             var response = _mapper.Map<FollowResponse>(follow);
-            // TODO: Populate Following info from Officer service
+            // Populate Following info with mock data for now
+            response.Following = GetMockUserInfo(follow.FollowingId);
             responses.Add(response);
         }
 
@@ -180,5 +183,29 @@ public class FollowService : IFollowService
             HasNextPage = page * pageSize < totalCount,
             HasPreviousPage = page > 1
         };
+    }
+
+    private UserBasicInfo? GetMockUserInfo(Guid userId)
+    {
+        // Mock user data - in a real implementation, this would query the Officer service
+        var mockUsers = new Dictionary<Guid, UserBasicInfo>
+        {
+            { Guid.Parse("4f8c8759-dfdc-423e-878e-c68036140114"), new UserBasicInfo 
+                { Id = Guid.Parse("4f8c8759-dfdc-423e-878e-c68036140114"), Username = "testuser1", DisplayName = "Test User 1", IsVerified = false } },
+            { Guid.Parse("b1234567-1234-5678-9abc-def012345680"), new UserBasicInfo 
+                { Id = Guid.Parse("b1234567-1234-5678-9abc-def012345680"), Username = "bob.smith", DisplayName = "Bob Smith", IsVerified = true } },
+            { Guid.Parse("a1234567-1234-5678-9abc-def012345681"), new UserBasicInfo 
+                { Id = Guid.Parse("a1234567-1234-5678-9abc-def012345681"), Username = "alice.johnson", DisplayName = "Alice Johnson", IsVerified = false } },
+            { Guid.Parse("c1234567-1234-5678-9abc-def012345682"), new UserBasicInfo 
+                { Id = Guid.Parse("c1234567-1234-5678-9abc-def012345682"), Username = "charlie.brown", DisplayName = "Charlie Brown", IsVerified = false } },
+            { Guid.Parse("c1234567-1234-5678-9abc-def012345684"), new UserBasicInfo 
+                { Id = Guid.Parse("c1234567-1234-5678-9abc-def012345684"), Username = "charlie.kirk", DisplayName = "Charlie Kirk", IsVerified = false } },
+            { Guid.Parse("bdfc4c41-c42e-42e0-a57b-d8301a37b1fe"), new UserBasicInfo 
+                { Id = Guid.Parse("bdfc4c41-c42e-42e0-a57b-d8301a37b1fe"), Username = "junior11", DisplayName = "Cosmin", IsVerified = false } },
+            { Guid.Parse("d1234567-1234-5678-9abc-def012345683"), new UserBasicInfo 
+                { Id = Guid.Parse("d1234567-1234-5678-9abc-def012345683"), Username = "diana.wilson", DisplayName = "Diana Wilson", IsVerified = true } }
+        };
+
+        return mockUsers.TryGetValue(userId, out var user) ? user : null;
     }
 }

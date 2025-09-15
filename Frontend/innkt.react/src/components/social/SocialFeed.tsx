@@ -32,6 +32,20 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     loadLinkedPosts();
   }, [groupId, userId, filter, sortBy]);
 
+  // Infinite scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
+        if (hasMore && !isLoading) {
+          loadPosts(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, isLoading, page]);
+
   const loadPosts = async (reset = false) => {
     if (reset) {
       setPage(1);
@@ -448,6 +462,10 @@ const PostCard: React.FC<{
                   src={post.authorProfile?.avatar || post.author?.avatarUrl} 
                   alt={post.authorProfile?.displayName || post.author?.displayName || 'User'}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log('Feed avatar image failed to load:', post.authorProfile?.avatar || post.author?.avatarUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">

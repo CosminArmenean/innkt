@@ -4,6 +4,8 @@ import UserProfileComponent from './UserProfile';
 import SocialFeed from './SocialFeed';
 import GroupsPage from '../groups/GroupsPage';
 import MessagingDashboard from '../messaging/MessagingDashboard';
+import PageLayout from '../layout/PageLayout';
+import ScrollableContent from '../layout/ScrollableContent';
 
 interface SocialDashboardProps {
   currentUserId?: string;
@@ -82,122 +84,134 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Main Content */}
-      <div className="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-          {/* Left Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-2 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto z-10">
-
-            {/* Trending Topics */}
-            {trendingTopics.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 Trending Topics</h3>
-                <div className="space-y-2">
-                  {trendingTopics.slice(0, 8).map((topic, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <span className="text-sm text-gray-700">#{topic}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{index + 1}</span>
-                    </div>
-                  ))}
-                </div>
+  const leftSidebar = (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Trending Topics */}
+      {trendingTopics.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 Trending Topics</h3>
+          <div className="space-y-2">
+            {trendingTopics.slice(0, 8).map((topic, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <span className="text-sm text-gray-700">#{topic}</span>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{index + 1}</span>
               </div>
-            )}
-
-            {/* Recommended Users */}
-            {recommendedUsers.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Recommended Users</h3>
-                <div className="space-y-3">
-                  {recommendedUsers.slice(0, 5).map((user) => (
-                    <div key={user.id} className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                        {user.avatar ? (
-                          <img 
-                            src={user.avatar} 
-                            alt={user.displayName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-gray-600 text-sm">
-                              {user.displayName.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">
-                          {user.displayName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          @{user.username}
-                        </div>
-                      </div>
-                      <button className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full hover:bg-purple-700 transition-colors">
-                        Follow
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-          </div>
-
-          {/* Main Content Area */}
-          <div className="lg:col-span-8">
-            {/* Tab Content */}
-            <div className="h-full">
-              {activeTab === 'feed' && (
-                <div className="h-full">
-                  <SocialFeed 
-                    linkedAccounts={linkedAccounts} 
-                    currentUserId={currentUser?.id}
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'profile' && currentUser && (
-                <div className="h-full">
-                  <UserProfileComponent 
-                    userId={currentUser.id} 
-                    isOwnProfile={true}
-                    currentUserId={currentUser.id}
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'groups' && (
-                <div className="h-full">
-                  <GroupsPage currentUserId={currentUser?.id} />
-                </div>
-              )}
-              
-              {activeTab === 'discover' && (
-                <div className="h-full">
-                  <DiscoverTab />
-                </div>
-              )}
-              
-              {activeTab === 'messages' && (
-                <div className="h-full">
-                  <MessagingDashboard />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Sidebar - Hidden on mobile, shown on lg+ */}
-          <div className="hidden lg:block lg:col-span-2 space-y-4 sm:space-y-6 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto z-10">
-
+            ))}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Recommended Users */}
+      {recommendedUsers.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Recommended Users</h3>
+          <div className="space-y-3">
+            {recommendedUsers.slice(0, 5).map((user) => (
+              <div key={user.id} className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                  {user.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.displayName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-gray-600 text-sm">
+                        {user.displayName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {user.displayName}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    @{user.username}
+                  </div>
+                </div>
+                <button className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full hover:bg-purple-700 transition-colors">
+                  Follow
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const centerContent = (
+    <div className="h-full">
+      {activeTab === 'feed' && (
+        <div className="h-full">
+          <SocialFeed 
+            linkedAccounts={linkedAccounts} 
+            currentUserId={currentUser?.id}
+          />
+        </div>
+      )}
+      
+      {activeTab === 'profile' && currentUser && (
+        <div className="h-full">
+          <UserProfileComponent 
+            userId={currentUser.id} 
+            isOwnProfile={true}
+            currentUserId={currentUser.id}
+          />
+        </div>
+      )}
+      
+      {activeTab === 'groups' && (
+        <div className="h-full">
+          <GroupsPage currentUserId={currentUser?.id} />
+        </div>
+      )}
+      
+      {activeTab === 'discover' && (
+        <div className="h-full">
+          <DiscoverTab />
+        </div>
+      )}
+      
+      {activeTab === 'messages' && (
+        <div className="h-full">
+          <MessagingDashboard />
+        </div>
+      )}
+    </div>
+  );
+
+  const rightSidebar = (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Right sidebar content can be added here */}
+    </div>
+  );
+
+  return (
+    <>
+      {/* For feed tab, use full width layout without sidebars */}
+      {activeTab === 'feed' ? (
+        <div className="h-screen bg-gray-50 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full">
+            <div className="h-full">
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full flex flex-col">
+                {centerContent}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <PageLayout
+          leftSidebar={leftSidebar}
+          centerContent={centerContent}
+          rightSidebar={rightSidebar}
+        />
+      )}
 
       {/* Fixed Bottom Navigation Bar - Mobile Only */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
@@ -226,8 +240,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
           </nav>
         </div>
       </div>
-
-    </div>
+    </>
   );
 };
 

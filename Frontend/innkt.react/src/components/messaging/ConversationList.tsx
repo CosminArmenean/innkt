@@ -114,6 +114,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
                   src={getConversationAvatar(conversation) || ''}
                   alt={getConversationDisplayName(conversation)}
                   className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    console.log('Conversation avatar image failed to load:', getConversationAvatar(conversation));
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               ) : (
                 <div className="w-12 h-12 bg-innkt-primary rounded-full flex items-center justify-center">

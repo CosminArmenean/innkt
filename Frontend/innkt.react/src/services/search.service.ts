@@ -161,41 +161,10 @@ class SearchService extends BaseApiService {
         searchPromises.push(Promise.resolve([]));
       }
       
-      if (request.includePosts !== false) {
-        searchPromises.push(
-          this.searchPosts(request.query, request.filters, request.sort)
-            .catch(error => {
-              console.error('Post search failed:', error);
-              return [];
-            })
-        );
-      } else {
-        searchPromises.push(Promise.resolve([]));
-      }
-      
-      if (request.includeGroups !== false) {
-        searchPromises.push(
-          this.searchGroups(request.query, request.filters, request.sort)
-            .catch(error => {
-              console.error('Group search failed:', error);
-              return [];
-            })
-        );
-      } else {
-        searchPromises.push(Promise.resolve([]));
-      }
-      
-      if (request.includeHashtags !== false) {
-        searchPromises.push(
-          this.searchHashtags(request.query, request.sort)
-            .catch(error => {
-              console.error('Hashtag search failed:', error);
-              return [];
-            })
-        );
-      } else {
-        searchPromises.push(Promise.resolve([]));
-      }
+      // Temporarily disable posts, groups, and hashtags search until endpoints are implemented
+      searchPromises.push(Promise.resolve([])); // posts
+      searchPromises.push(Promise.resolve([])); // groups  
+      searchPromises.push(Promise.resolve([])); // hashtags
 
       const [users, posts, groups, hashtags] = await Promise.all(searchPromises);
       
@@ -237,7 +206,7 @@ class SearchService extends BaseApiService {
         params.append('sort.direction', sort.direction);
       }
 
-      const response = await this.get<{ data: SearchPostResult[] }>(`/search/posts?${params.toString()}`);
+      const response = await this.get<{ data: SearchPostResult[] }>(`/api/posts/search?${params.toString()}`);
       return response.data;
     } catch (error) {
       console.error('Post search failed:', error);
@@ -248,6 +217,8 @@ class SearchService extends BaseApiService {
   // Search users only
   async searchUsers(query: string, filters?: SearchFilters, sort?: SearchSort): Promise<SearchUserResult[]> {
     try {
+      console.log('Searching users with query:', query);
+      
       const params = new URLSearchParams();
       params.append('query', query);
       params.append('page', '1');
@@ -265,8 +236,10 @@ class SearchService extends BaseApiService {
       // Use the social service follows endpoint for user search
       const response = await this.get<{ users: any[] }>(`/api/follows/search?${params.toString()}`);
       
+      console.log('User search response:', response);
+      
       // Transform the response to match SearchUserResult interface
-      return response.users.map((user: any) => ({
+      const results = response.users.map((user: any) => ({
         id: user.id,
         username: user.username,
         displayName: user.displayName,
@@ -279,6 +252,9 @@ class SearchService extends BaseApiService {
         isFollowing: false, // Not provided by the API
         relevanceScore: 1.0 // Default relevance score
       }));
+      
+      console.log('Transformed user search results:', results);
+      return results;
     } catch (error) {
       console.error('User search failed:', error);
       throw error;
@@ -348,10 +324,10 @@ class SearchService extends BaseApiService {
       params.append('query', query);
       params.append('count', limit.toString());
 
-      // Use neurosparkApi for search suggestions with authentication
-      const response = await neurosparkApi.get<string[]>(`/api/search/suggestions?${params.toString()}`);
+      // Use socialApi for search suggestions (same service as user search)
+      const response = await this.get<string[]>(`/api/follows/suggestions?${params.toString()}`);
       console.log('Search suggestions response:', response);
-      return response.data || [];
+      return response || [];
     } catch (error: any) {
       console.error('Failed to get search suggestions:', error);
       console.error('Error details:', {

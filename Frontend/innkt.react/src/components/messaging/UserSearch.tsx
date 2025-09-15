@@ -65,18 +65,18 @@ const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
       // Combine followers and following, remove duplicates
       const allUsers = [...followers, ...following].reduce((acc, follow) => {
         // Extract user profile from follow object
-        const userProfile = follow.followerProfile || follow.followingProfile;
+        const userProfile = follow.follower || follow.following;
         if (!userProfile) return acc;
         
         if (!acc.find(u => u.id === userProfile.id)) {
           acc.push({
             id: userProfile.id,
-            username: userProfile.username || userProfile.email || 'Unknown',
+            username: userProfile.username || 'Unknown',
             displayName: userProfile.displayName || 'Unknown User',
-            avatarUrl: userProfile.avatar,
+            avatarUrl: userProfile.avatarUrl,
             isVerified: userProfile.isVerified || false,
-            isFollowing: following.some(f => f.followingProfile?.id === userProfile.id),
-            isFollower: followers.some(f => f.followerProfile?.id === userProfile.id)
+            isFollowing: following.some(f => f.following?.id === userProfile.id),
+            isFollower: followers.some(f => f.follower?.id === userProfile.id)
           });
         }
         return acc;

@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { searchService, SearchRequest, SearchResult, SearchFilters, SearchSort } from '../../services/search.service';
+import { useAuth } from '../../contexts/AuthContext';
+import FollowButton from '../social/FollowButton';
 import { 
   MagnifyingGlassIcon, 
   XMarkIcon,
@@ -12,6 +15,8 @@ import {
   DocumentTextIcon,
   UserIcon
 } from '@heroicons/react/24/outline';
+import PageLayout from '../layout/PageLayout';
+import ScrollableContent from '../layout/ScrollableContent';
 
 interface SearchPageProps {
   className?: string;
@@ -22,6 +27,8 @@ const SearchPage: React.FC<SearchPageProps> = ({
   className = '',
   onResultClick
 }) => {
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [query, setQuery] = useState('');
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -120,6 +127,15 @@ const SearchPage: React.FC<SearchPageProps> = ({
     setFilters({});
     if (query) {
       performSearch(query);
+    }
+  };
+
+  const handleUserClick = (user: any) => {
+    if (onResultClick) {
+      onResultClick(user);
+    } else {
+      // Default behavior: navigate to user profile
+      navigate(`/profile/${user.id}`);
     }
   };
 
@@ -337,28 +353,71 @@ const SearchPage: React.FC<SearchPageProps> = ({
                     <UserIcon className="w-5 h-5 mr-2" />
                     Users ({searchResult.users.length})
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {searchResult.users.slice(0, 4).map((user) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {searchResult.users.map((user) => (
                       <div
                         key={user.id}
-                        className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md cursor-pointer"
-                        onClick={() => onResultClick?.(user)}
+                        className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-purple-200 transition-all duration-200 cursor-pointer group"
+                        onClick={() => handleUserClick(user)}
                       >
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={user.avatarUrl}
-                            alt={user.displayName}
-                            className="w-10 h-10 rounded-full"
-                          />
+                        <div className="flex items-start space-x-4">
+                          {/* Profile Picture */}
+                          <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {user.avatarUrl ? (
+                              <img
+                                src={user.avatarUrl}
+                                alt={user.displayName}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  console.log('Search user avatar failed to load:', user.avatarUrl);
+                                  e.currentTarget.style.display = 'none';
+                                  // Show fallback
+                                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                  if (fallback) fallback.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <span 
+                              className="text-white font-bold text-lg"
+                              style={{ display: user.avatarUrl ? 'none' : 'flex' }}
+                            >
+                              {user.displayName?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          
+                          {/* User Info */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium text-gray-900">{user.displayName}</span>
-                              {user.isVerified && <span className="text-blue-500">✓</span>}
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                                {user.displayName}
+                              </h3>
+                              {user.isVerified && (
+                                <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">✓</span>
+                                </div>
+                              )}
                             </div>
-                            <p className="text-sm text-gray-600">@{user.username}</p>
-                            <p className="text-sm text-gray-500">
-                              {user.followersCount} followers • {user.postsCount} posts
-                            </p>
+                            <p className="text-sm text-gray-600 mb-2">@{user.username}</p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span className="flex items-center space-x-1">
+                                <span className="font-medium text-gray-700">{user.followersCount}</span>
+                                <span>followers</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <span className="font-medium text-gray-700">{user.postsCount}</span>
+                                <span>posts</span>
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Follow Button */}
+                          <div className="flex-shrink-0">
+                            <FollowButton
+                              userId={user.id}
+                              currentUserId={currentUser?.id}
+                              size="sm"
+                              variant="primary"
+                            />
                           </div>
                         </div>
                       </div>
@@ -373,25 +432,53 @@ const SearchPage: React.FC<SearchPageProps> = ({
                     <UserGroupIcon className="w-5 h-5 mr-2" />
                     Groups ({searchResult.groups.length})
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {searchResult.groups.slice(0, 4).map((group) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {searchResult.groups.map((group) => (
                       <div
                         key={group.id}
-                        className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md cursor-pointer"
+                        className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-purple-200 transition-all duration-200 cursor-pointer group"
                         onClick={() => onResultClick?.(group)}
                       >
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={group.avatarUrl}
-                            alt={group.name}
-                            className="w-10 h-10 rounded-full"
-                          />
+                        <div className="flex flex-col items-center text-center space-y-3">
+                          {/* Group Avatar */}
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                            {group.avatarUrl ? (
+                              <img
+                                src={group.avatarUrl}
+                                alt={group.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  console.log('Group avatar failed to load:', group.avatarUrl);
+                                  e.currentTarget.style.display = 'none';
+                                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                  if (fallback) fallback.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <span 
+                              className="text-white font-bold text-xl"
+                              style={{ display: group.avatarUrl ? 'none' : 'flex' }}
+                            >
+                              {group.name?.charAt(0)?.toUpperCase() || 'G'}
+                            </span>
+                          </div>
+                          
+                          {/* Group Info */}
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900">{group.name}</h4>
-                            <p className="text-sm text-gray-600">{group.category}</p>
-                            <p className="text-sm text-gray-500">
-                              {group.membersCount} members • {group.postsCount} posts
-                            </p>
+                            <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-1">
+                              {group.name}
+                            </h4>
+                            <p className="text-sm text-gray-600 mb-2">{group.category}</p>
+                            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+                              <span className="flex items-center space-x-1">
+                                <span className="font-medium text-gray-700">{group.membersCount}</span>
+                                <span>members</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <span className="font-medium text-gray-700">{group.postsCount}</span>
+                                <span>posts</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -433,22 +520,69 @@ const SearchPage: React.FC<SearchPageProps> = ({
     );
   };
 
-  return (
-    <div className={`max-w-4xl mx-auto p-6 ${className}`}>
+  const leftSidebar = (
+    <div className="space-y-6">
+      {/* Recent Searches */}
+      {recentSearches.length > 0 && (
+        <div>
+          <div className="flex items-center space-x-2 mb-3">
+            <ClockIcon className="w-4 h-4 text-gray-500" />
+            <h3 className="font-medium text-gray-900">Recent Searches</h3>
+          </div>
+          <div className="space-y-2">
+            {recentSearches.slice(0, 8).map((recentQuery, index) => (
+              <button
+                key={index}
+                onClick={() => handleRecentSearchClick(recentQuery)}
+                className="w-full text-left px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+              >
+                {recentQuery}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Trending Topics */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-3">🔥 Trending Topics</h3>
+        <div className="space-y-2">
+          {['#technology', '#design', '#startup', '#ai', '#webdev'].map((topic, index) => (
+            <button
+              key={index}
+              className="w-full text-left px-3 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm hover:bg-gray-100 transition-colors"
+            >
+              {topic}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const centerContent = (
+    <div className="h-full flex flex-col">
       {/* Search Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Search</h1>
+      <div className="mb-6 flex-shrink-0">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Search</h1>
         <p className="text-gray-600">Find posts, users, groups, and more</p>
       </div>
 
       {/* Search Form */}
-      <form onSubmit={handleSearch} className="relative mb-6">
+      <form onSubmit={handleSearch} className="relative mb-6 flex-shrink-0">
         <div className="relative">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && showSuggestions) {
+                e.preventDefault();
+                setShowSuggestions(false);
+                performSearch(query);
+              }
+            }}
             placeholder="Search for posts, users, groups, hashtags..."
             className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             autoFocus
@@ -483,61 +617,51 @@ const SearchPage: React.FC<SearchPageProps> = ({
         )}
       </form>
 
-      {/* Recent Searches */}
-      {!searchResult && recentSearches.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center space-x-2 mb-3">
-            <ClockIcon className="w-4 h-4 text-gray-500" />
-            <h3 className="font-medium text-gray-900">Recent Searches</h3>
+      {/* Content Area */}
+      <ScrollableContent>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Searching...</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {recentSearches.slice(0, 8).map((recentQuery, index) => (
-              <button
-                key={index}
-                onClick={() => handleRecentSearchClick(recentQuery)}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
-              >
-                {recentQuery}
-              </button>
-            ))}
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8">
+            <div className="text-red-600 mb-2">⚠️</div>
+            <p className="text-gray-600">{error}</p>
+            <button
+              onClick={() => performSearch(query)}
+              className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Loading State */}
-      {loading && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Searching...</p>
-        </div>
-      )}
+        {/* Search Results */}
+        {searchResult && !loading && renderSearchResults()}
 
-      {/* Error State */}
-      {error && (
-        <div className="text-center py-8">
-          <div className="text-red-600 mb-2">⚠️</div>
-          <p className="text-gray-600">{error}</p>
-          <button
-            onClick={() => performSearch(query)}
-            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {/* Search Results */}
-      {searchResult && !loading && renderSearchResults()}
-
-      {/* Empty State */}
-      {!searchResult && !loading && !error && query && (
-        <div className="text-center py-8">
-          <MagnifyingGlassIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-600">No results found for "{query}"</p>
-          <p className="text-sm text-gray-500 mt-1">Try different keywords or check your spelling</p>
-        </div>
-      )}
+        {/* Empty State */}
+        {!searchResult && !loading && !error && query && (
+          <div className="text-center py-8">
+            <MagnifyingGlassIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600">No results found for "{query}"</p>
+            <p className="text-sm text-gray-500 mt-1">Try different keywords or check your spelling</p>
+          </div>
+        )}
+      </ScrollableContent>
     </div>
+  );
+
+  return (
+    <PageLayout
+      leftSidebar={leftSidebar}
+      centerContent={centerContent}
+      layoutType="wide-right"
+    />
   );
 };
 

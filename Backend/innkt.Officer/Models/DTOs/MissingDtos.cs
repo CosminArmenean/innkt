@@ -130,6 +130,9 @@ public class UpdateProfileDto
 
 public class UpdateUserProfileDto
 {
+    [StringLength(50)]
+    public string? Username { get; set; }
+    
     [StringLength(100)]
     public string? FirstName { get; set; }
     
@@ -146,6 +149,8 @@ public class UpdateUserProfileDto
     public string? Website { get; set; }
     
     public DateTime? DateOfBirth { get; set; }
+    
+    public string? ProfilePictureUrl { get; set; }
     
     [StringLength(20)]
     public string? PhoneNumber { get; set; }

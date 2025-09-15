@@ -16,6 +16,7 @@ public class SocialDbContext : DbContext
     public DbSet<Group> Groups { get; set; }
     public DbSet<GroupMember> GroupMembers { get; set; }
     public DbSet<GroupPost> GroupPosts { get; set; }
+    public DbSet<UserReport> UserReports { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -184,5 +185,23 @@ public class SocialDbContext : DbContext
                 updatedAtProperty.SetDefaultValueSql("CURRENT_TIMESTAMP");
             }
         }
+
+        // UserReport configuration
+        modelBuilder.Entity<UserReport>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Unique constraint - user can only report another user once per reason
+            entity.HasIndex(e => new { e.ReporterId, e.ReportedUserId, e.Reason }).IsUnique();
+            
+            // Check constraint - user cannot report themselves
+            entity.HasCheckConstraint("CK_UserReport_NotSelf", "\"ReporterId\" != \"ReportedUserId\"");
+            
+            // Indexes
+            entity.HasIndex(e => e.ReporterId);
+            entity.HasIndex(e => e.ReportedUserId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+        });
     }
 }

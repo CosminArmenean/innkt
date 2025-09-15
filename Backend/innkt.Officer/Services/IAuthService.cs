@@ -1,4 +1,5 @@
 using innkt.Officer.Models.DTOs;
+using innkt.Officer.Models;
 
 namespace innkt.Officer.Services;
 
@@ -19,6 +20,7 @@ public interface IAuthService
     Task<bool> LogoutAsync(string userId);
     Task<UserProfileDto> GetUserProfileAsync(string userId);
     Task<UserProfileDto> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateDto);
+    Task<List<ApplicationUser>> SearchUsersAsync(string query, int page = 1, int limit = 20);
 }
 
 

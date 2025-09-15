@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socialService, UserProfile, Post, Group, Follow } from '../../services/social.service';
+import { useAuth } from '../../contexts/AuthContext';
 import FollowButton from './FollowButton';
+import UserActionsMenu from './UserActionsMenu';
+import ReportUserModal from './ReportUserModal';
+import PageLayout from '../layout/PageLayout';
+import ScrollableContent from '../layout/ScrollableContent';
 
 interface UserProfileProps {
   userId: string;
@@ -14,6 +19,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   isOwnProfile = false, 
   currentUserId 
 }) => {
+  const { user, updateUser, reloadUser } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -26,11 +32,15 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
     loadPosts();
-  }, [userId]);
+    if (!isOwnProfile && user?.id) {
+      checkFollowStatus();
+    }
+  }, [userId, user?.id, isOwnProfile]);
 
   const loadProfile = async () => {
     try {
@@ -53,6 +63,24 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
     }
   };
 
+  const checkFollowStatus = async () => {
+    console.log('checkFollowStatus called:', { userId, isOwnProfile, currentUserId: user?.id });
+    if (!user?.id || isOwnProfile) {
+      console.log('Skipping follow status check - own profile or no user');
+      return;
+    }
+    
+    try {
+      const following = await socialService.getFollowing(user.id);
+      console.log('Following data:', following);
+      const isCurrentlyFollowing = following.following.some(f => f.following?.id === userId);
+      console.log('Is currently following:', isCurrentlyFollowing);
+      setIsFollowing(isCurrentlyFollowing);
+    } catch (error) {
+      console.error('Failed to check follow status:', error);
+    }
+  };
+
   const handleTabChange = (tab: 'posts' | 'media' | 'chat' | 'subaccounts' | 'business') => {
     if (tab === 'chat') {
       // Navigate to messages screen
@@ -62,8 +90,33 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
     setActiveTab(tab);
   };
 
-  const handleSaveProfile = async () => {
-    // Implementation for saving profile
+  const handleSaveProfile = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!profile) return;
+
+    const formData = new FormData(event.currentTarget);
+    const updateData = {
+      displayName: formData.get('displayName') as string,
+      bio: formData.get('bio') as string,
+      location: formData.get('location') as string,
+      website: formData.get('website') as string,
+    };
+
+    try {
+      // Update profile via backend API
+      await socialService.updateUserProfile(profile.id, updateData);
+      
+      // Reload profile to get updated data
+      await loadProfile();
+      
+      // Exit edit mode
+      setIsEditing(false);
+      
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      // TODO: Show error message to user
+    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,8 +130,24 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
     if (!selectedFile || !profile) return;
     
     try {
+      console.log('Starting avatar upload...');
       const result = await socialService.uploadAvatar(userId, selectedFile);
-      setProfile({ ...profile, avatar: result.avatarUrl });
+      console.log('Avatar upload result:', result);
+      
+      // Reload profile data from backend to ensure we have the latest data
+      console.log('Reloading profile data...');
+      const updatedProfile = await socialService.getUserProfile(userId);
+      console.log('Updated profile data:', updatedProfile);
+      console.log('Avatar URL:', updatedProfile.avatar);
+      console.log('Profile Picture URL:', updatedProfile.profilePictureUrl);
+      
+      setProfile(updatedProfile);
+      
+      // Also reload the AuthContext user data if this is the current user's profile
+      if (isOwnProfile) {
+        await reloadUser();
+      }
+      
       setShowAvatarUpload(false);
       setSelectedFile(null);
     } catch (error) {
@@ -102,229 +171,220 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Side - Profile Info */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8 h-full">
-              {/* Profile Picture Section */}
-              <div className="relative p-8 text-center">
-                <div className="relative inline-block">
-                  <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600 mx-auto">
-                    {profile.avatar ? (
-                      <img 
-                        src={profile.avatar} 
-                        alt={profile.displayName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-                        <span className="text-4xl text-white font-bold">
-                          {profile.displayName.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {isOwnProfile && (
-                    <button
-                      onClick={() => setShowAvatarUpload(true)}
-                      className="absolute -bottom-2 -right-2 bg-white text-purple-600 p-2 rounded-full shadow-lg hover:bg-purple-50 transition-colors"
-                      title="Add/Change Profile Picture"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                {/* Username */}
-                <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-1">{profile.displayName}</h1>
-                <p className="text-gray-500 text-sm mb-4">@{profile.username}</p>
-                
-                {/* Add Profile Picture Button */}
-                {isOwnProfile && (
-                  <button
-                    onClick={() => setShowAvatarUpload(true)}
-                    className="w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-medium hover:bg-purple-200 transition-colors mb-4 flex items-center justify-center space-x-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Add Profile Picture</span>
-                  </button>
-                )}
-                
-                {/* Verification badges */}
-                <div className="flex items-center justify-center space-x-2 mb-4">
-                  {profile.isVerified && (
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      ✓ Verified
-                    </span>
-                  )}
-                  {profile.isKidAccount && (
-                    <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
-                      👶 Kid Account
-                    </span>
-                  )}
-                </div>
-
-                {/* Bio */}
-                {profile.bio && (
-                  <p className="text-gray-700 text-sm leading-relaxed mb-6">{profile.bio}</p>
-                )}
-
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-gray-900">{profile.followersCount}</div>
-                    <div className="text-xs text-gray-500">Followers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-gray-900">{profile.followingCount}</div>
-                    <div className="text-xs text-gray-500">Following</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-gray-900">{profile.postsCount}</div>
-                    <div className="text-xs text-gray-500">Posts</div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  {!isOwnProfile && (
-                    <FollowButton
-                      userId={userId}
-                      currentUserId={currentUserId}
-                      initialFollowing={isFollowing}
-                      onFollowChange={setIsFollowing}
-                      size="lg"
-                      variant="primary"
-                      className="w-full"
-                    />
-                  )}
-                  
-                  {isOwnProfile && (
-                    <button
-                      onClick={() => setIsEditing(!isEditing)}
-                      className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                    >
-                      {isEditing ? 'Cancel' : 'Edit Profile'}
-                    </button>
-                  )}
-                </div>
-
-                {/* Edit Profile Form */}
-                {isEditing && isOwnProfile && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Profile</h3>
-                    <form className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Display Name
-                        </label>
-                        <input
-                          type="text"
-                          defaultValue={profile.displayName}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Enter your display name"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Bio
-                        </label>
-                        <textarea
-                          defaultValue={profile.bio || ''}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Tell us about yourself"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Location
-                        </label>
-                        <input
-                          type="text"
-                          defaultValue={profile.location || ''}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Where are you from?"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Website
-                        </label>
-                        <input
-                          type="url"
-                          defaultValue={profile.website || ''}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="https://yourwebsite.com"
-                        />
-                      </div>
-                      
-                      <div className="flex space-x-3 pt-4">
-                        <button
-                          type="button"
-                          onClick={() => setIsEditing(false)}
-                          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                        >
-                          Save Changes
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
+  const leftSidebar = (
+    <div className="relative p-8 text-center">
+      <div className="relative inline-block">
+        <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600 mx-auto">
+          {(profile.avatar || profile.profilePictureUrl) ? (
+            <img 
+              src={profile.avatar || profile.profilePictureUrl} 
+              alt={profile.displayName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                console.log('Avatar image failed to load:', profile.avatar || profile.profilePictureUrl);
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+              <span className="text-4xl text-white font-bold">
+                {profile.displayName?.charAt(0)?.toUpperCase() || 'U'}
+              </span>
             </div>
+          )}
+        </div>
+        
+        {isOwnProfile && (
+          <button
+            onClick={() => setShowAvatarUpload(true)}
+            className="absolute -bottom-2 -right-2 bg-white text-purple-600 p-2 rounded-full shadow-lg hover:bg-purple-50 transition-colors"
+            title="Add/Change Profile Picture"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Username */}
+      <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-1">{profile.displayName || 'Unknown User'}</h1>
+      <p className="text-gray-500 text-sm mb-4">@{profile.username || 'unknown'}</p>
+      
+      
+      {/* Verification badges */}
+      <div className="flex items-center justify-center space-x-2 mb-4">
+        {profile.isVerified && (
+          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+            ✓ Verified
+          </span>
+        )}
+        {profile.isKidAccount && (
+          <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
+            👶 Kid Account
+          </span>
+        )}
+      </div>
+
+      {/* Bio */}
+      {profile.bio && (
+        <p className="text-gray-700 text-sm leading-relaxed mb-6">{profile.bio}</p>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="text-center">
+          <div className="text-xl font-bold text-gray-900">{profile.followersCount}</div>
+          <div className="text-xs text-gray-500">Followers</div>
+        </div>
+        <div className="text-center">
+          <div className="text-xl font-bold text-gray-900">{profile.followingCount}</div>
+          <div className="text-xs text-gray-500">Following</div>
+        </div>
+        <div className="text-center">
+          <div className="text-xl font-bold text-gray-900">{profile.postsCount}</div>
+          <div className="text-xs text-gray-500">Posts</div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        
+        {!isOwnProfile && (
+          <div className="flex items-center space-x-2">
+            <FollowButton
+              userId={userId}
+              currentUserId={currentUserId}
+              initialFollowing={isFollowing}
+              onFollowChange={setIsFollowing}
+              size="lg"
+              variant="primary"
+              className="flex-1"
+            />
+            <UserActionsMenu
+              userId={userId}
+              isFollowing={isFollowing}
+              onUnfollow={() => setIsFollowing(false)}
+              onReport={() => setShowReportModal(true)}
+            />
           </div>
+        )}
+        
+        {isOwnProfile && (
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+          >
+            {isEditing ? 'Cancel' : 'Edit Profile'}
+          </button>
+        )}
+      </div>
 
-          {/* Center - Content */}
-          <div className="lg:col-span-6">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full">
-              {/* Navigation Tabs */}
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6">
-                  {[
-                    { id: 'posts', label: 'Posts', icon: '📝' },
-                    { id: 'media', label: 'Media', icon: '📷' },
-                    { id: 'chat', label: 'Chat', icon: '💬' },
-                    { id: 'subaccounts', label: 'Subaccounts', icon: '👶' },
-                    { id: 'business', label: 'Business', icon: '💼' }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => handleTabChange(tab.id as any)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                        activeTab === tab.id
-                          ? 'border-purple-500 text-purple-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <span>{tab.icon}</span>
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </nav>
-              </div>
+      {/* Edit Profile Form */}
+      {isEditing && isOwnProfile && (
+        <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Profile</h3>
+          <form onSubmit={handleSaveProfile} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Name
+              </label>
+              <input
+                type="text"
+                defaultValue={profile.displayName || ''}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Enter your display name"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Bio
+              </label>
+              <textarea
+                defaultValue={profile.bio || ''}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Tell us about yourself"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Location
+              </label>
+              <input
+                type="text"
+                defaultValue={profile.location || ''}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Where are you from?"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Website
+              </label>
+              <input
+                type="url"
+                defaultValue={profile.website || ''}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="https://yourwebsite.com"
+              />
+            </div>
+            
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
 
-              {/* Tab Content */}
-              <div className="p-6 h-full overflow-y-auto scrollbar-none">
+  const centerContent = (
+    <>
+      {/* Navigation Tabs */}
+      <div className="border-b border-gray-200 flex-shrink-0">
+        <nav className="flex space-x-8 px-6">
+          {[
+            { id: 'posts', label: 'Posts', icon: '📝' },
+            { id: 'media', label: 'Media', icon: '📷' },
+            { id: 'chat', label: 'Chat', icon: '💬' },
+            { id: 'subaccounts', label: 'Subaccounts', icon: '👶' },
+            { id: 'business', label: 'Business', icon: '💼' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id as any)}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <ScrollableContent>
                 {activeTab === 'posts' && (
                   <div className="space-y-6">
                     {posts.length === 0 ? (
@@ -357,7 +417,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                                   <span className="text-sm font-medium text-green-800">Shared Family Post</span>
                                   <div className="flex items-center space-x-1">
                                     <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                                      <span className="text-xs text-white font-bold">{profile.displayName.charAt(0)}</span>
+                                      <span className="text-xs text-white font-bold">{profile.displayName?.charAt(0) || 'U'}</span>
                                     </div>
                                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                                       <span className="text-xs text-white font-bold">L</span>
@@ -367,19 +427,31 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                               )}
 
                               <div className="flex items-start space-x-4">
-                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white font-bold text-sm">
-                                    {profile.displayName.charAt(0).toUpperCase()}
-                                  </span>
+                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                  {(profile.avatar || profile.profilePictureUrl) ? (
+                                    <img 
+                                      src={profile.avatar || profile.profilePictureUrl} 
+                                      alt={profile.displayName}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        console.log('Profile post avatar image failed to load:', profile.avatar || profile.profilePictureUrl);
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  ) : (
+                                    <span className="text-white font-bold text-sm">
+                                      {profile.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center space-x-2 mb-2">
                                     <h4 className={`font-semibold ${
                                       isSharedPost ? 'text-green-800' : 'text-gray-900'
                                     }`}>
-                                      {profile.displayName}
+                                      {profile.displayName || 'Unknown User'}
                                     </h4>
-                                    <span className="text-gray-500 text-sm">@{profile.username}</span>
+                                    <span className="text-gray-500 text-sm">@{profile.username || 'unknown'}</span>
                                     <span className="text-gray-400 text-sm">•</span>
                                     <span className="text-gray-400 text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
                                   </div>
@@ -493,12 +565,12 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                         </svg>
                       </div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        {isOwnProfile ? 'Your Messages' : `Chat with ${profile.displayName}`}
+                        {isOwnProfile ? 'Your Messages' : `Chat with ${profile.displayName || 'User'}`}
                       </h3>
                       <p className="text-gray-500 mb-6">
                         {isOwnProfile 
                           ? 'View and manage your conversations' 
-                          : `Start a conversation with ${profile.displayName}`
+                          : `Start a conversation with ${profile.displayName || 'User'}`
                         }
                       </p>
                       
@@ -619,62 +691,111 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                     </div>
                   </div>
                 )}
+      </ScrollableContent>
+    </>
+  );
+
+  const rightSidebar = (
+    <>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Family Connection</h3>
+      
+      {profile?.linkedUser ? (
+        /* Linked User Profile */
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-600 mx-auto mb-3">
+            {profile.linkedUser.avatarUrl ? (
+              <img 
+                src={profile.linkedUser.avatarUrl} 
+                alt={profile.linkedUser.displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                <span className="text-2xl text-white font-bold">
+                  {profile.linkedUser.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
               </div>
+            )}
+          </div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-1">{profile.linkedUser.displayName || 'Unknown User'}</h4>
+          <p className="text-gray-500 text-sm mb-4">@{profile.linkedUser.username || 'unknown'}</p>
+          
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 mb-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span className="text-sm font-medium text-blue-800">Family Connection Info</span>
             </div>
+            <p className="text-sm text-blue-700">Connected since 2024</p>
           </div>
 
-          {/* Right Side - Linked User */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-8 h-full">
-              {/* Linked User Section */}
-              <div className="p-6 h-full overflow-y-auto scrollbar-none">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Family Connection</h3>
-                
-                {/* Linked User Profile */}
-                <div className="text-center">
-                  <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-600 mx-auto mb-3">
-                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-                      <span className="text-2xl text-white font-bold">L</span>
-                    </div>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-1">Linked User</h4>
-                  <p className="text-gray-500 text-sm mb-4">@linkeduser</p>
-                  
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 mb-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                      <span className="text-sm font-medium text-blue-800">Family Connection Info</span>
-                    </div>
-                    <p className="text-sm text-blue-700">Connected since 2024</p>
-                  </div>
-
-                  {/* Shared Content Stats */}
-                  <div className="space-y-3">
-                    <h5 className="text-sm font-semibold text-gray-700">Shared Content</h5>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-lg font-bold text-purple-600">12</div>
-                        <div className="text-xs text-gray-500">Shared Posts</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-lg font-bold text-green-600">8</div>
-                        <div className="text-xs text-gray-500">Family Photos</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {/* Shared Content Stats */}
+          <div className="space-y-3">
+            <h5 className="text-sm font-semibold text-gray-700">Shared Content</h5>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-purple-600">12</div>
+                <div className="text-xs text-gray-500">Shared Posts</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-green-600">8</div>
+                <div className="text-xs text-gray-500">Family Photos</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* User Selection Button */
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full border-4 border-dashed border-gray-300 mx-auto mb-4 flex items-center justify-center">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-2">No Linked Account</h4>
+          <p className="text-gray-500 text-sm mb-4">Compare your account with another user</p>
+          
+          <button 
+            onClick={() => {
+              // TODO: Implement user selection modal
+              console.log('Open user selection modal');
+            }}
+            className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors mb-4"
+          >
+            Select User to Compare
+          </button>
+          
+          <div className="bg-gray-50 rounded-xl p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">Compare Features</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• View intercalated posts by date</li>
+              <li>• Compare activity patterns</li>
+              <li>• Temporary comparison only</li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      <PageLayout
+        leftSidebar={leftSidebar}
+        centerContent={centerContent}
+        rightSidebar={rightSidebar}
+      />
 
       {/* Avatar Upload Modal with Cropping */}
       {showAvatarUpload && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Update Profile Picture</h3>
               <button
@@ -690,17 +811,17 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
               </button>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors cursor-pointer">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-purple-400 transition-colors cursor-pointer">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">Upload New Photo</h4>
-                <p className="text-gray-600 mb-4">Choose a photo to update your profile picture</p>
-                <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB • Recommended: 400x400px</p>
+                <h4 className="text-base font-semibold text-gray-900 mb-1">Upload New Photo</h4>
+                <p className="text-sm text-gray-600 mb-2">Choose a photo to update your profile picture</p>
+                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
                 <input
                   type="file"
                   accept="image/*"
@@ -717,12 +838,12 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
               </div>
 
               {/* Cropping Preview */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Preview & Crop</h4>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <h4 className="text-base font-semibold text-gray-900 mb-3">Preview & Crop</h4>
                 <div className="flex items-center justify-center">
                   <div className="relative">
                     {/* Circular cropping mask */}
-                    <div className="w-48 h-48 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
                       {selectedFile ? (
                         <img 
                           src={URL.createObjectURL(selectedFile)} 
@@ -731,7 +852,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                         />
                       ) : (
                         <span className="text-6xl text-white font-bold">
-                          {profile.displayName.charAt(0).toUpperCase()}
+                          {profile.displayName?.charAt(0)?.toUpperCase() || 'U'}
                         </span>
                       )}
                     </div>
@@ -745,28 +866,28 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
               </div>
 
               {/* Background Blending Options */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-900">Background Style</h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <button className="p-4 border-2 border-purple-500 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
-                    <div className="w-12 h-12 rounded-full bg-white/20 mx-auto mb-2"></div>
-                    <p className="text-sm font-medium">Purple</p>
+              <div className="space-y-3">
+                <h4 className="text-base font-semibold text-gray-900">Background Style</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <button className="p-3 border-2 border-purple-500 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
+                    <div className="w-8 h-8 rounded-full bg-white/20 mx-auto mb-1"></div>
+                    <p className="text-xs font-medium">Purple</p>
                   </button>
-                  <button className="p-4 border-2 border-gray-300 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
-                    <div className="w-12 h-12 rounded-full bg-white/20 mx-auto mb-2"></div>
-                    <p className="text-sm font-medium">Blue</p>
+                  <button className="p-3 border-2 border-gray-300 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
+                    <div className="w-8 h-8 rounded-full bg-white/20 mx-auto mb-1"></div>
+                    <p className="text-xs font-medium">Blue</p>
                   </button>
-                  <button className="p-4 border-2 border-gray-300 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                    <div className="w-12 h-12 rounded-full bg-white/20 mx-auto mb-2"></div>
-                    <p className="text-sm font-medium">Green</p>
+                  <button className="p-3 border-2 border-gray-300 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                    <div className="w-8 h-8 rounded-full bg-white/20 mx-auto mb-1"></div>
+                    <p className="text-xs font-medium">Green</p>
                   </button>
                 </div>
               </div>
 
               {/* Background Removal Option */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-900">AI Background Removal</h4>
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border border-purple-200">
+              <div className="space-y-3">
+                <h4 className="text-base font-semibold text-gray-900">AI Background Removal</h4>
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-3 border border-purple-200">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -809,7 +930,15 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
           </div>
         </div>
       )}
-    </div>
+
+      {/* Report User Modal */}
+      <ReportUserModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        userId={userId}
+        userName={profile?.username || 'Unknown User'}
+      />
+    </>
   );
 };
 

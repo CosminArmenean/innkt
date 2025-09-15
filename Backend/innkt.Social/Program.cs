@@ -53,7 +53,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "")),
+            // Don't require key ID validation
+            RequireExpirationTime = true,
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -78,6 +81,9 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<TrendingService>();
+
+// Add HTTP Client for Officer service
+builder.Services.AddHttpClient<IOfficerService, OfficerService>();
 
 // Add Logging
 builder.Services.AddLogging(logging =>

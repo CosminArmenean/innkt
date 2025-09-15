@@ -24,6 +24,7 @@ const TopNavbar: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const navbarRef = useRef<HTMLDivElement>(null);
 
   const handleCreatePost = () => {
@@ -52,12 +53,21 @@ const TopNavbar: React.FC = () => {
     setShowSettings(!showSettings);
     setShowNotifications(false);
     setShowMessages(false);
+    setShowAccount(false);
+  };
+
+  const handleAccount = () => {
+    setShowAccount(!showAccount);
+    setShowNotifications(false);
+    setShowMessages(false);
+    setShowSettings(false);
   };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
     setShowSettings(false);
+    setShowAccount(false);
   };
 
   // Close dropdowns when clicking outside
@@ -67,6 +77,7 @@ const TopNavbar: React.FC = () => {
         setShowNotifications(false);
         setShowMessages(false);
         setShowSettings(false);
+        setShowAccount(false);
       }
     };
 
@@ -77,7 +88,7 @@ const TopNavbar: React.FC = () => {
   }, []);
 
   return (
-    <div ref={navbarRef} className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+    <div ref={navbarRef} className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40">
       <div className="flex items-center justify-between">
         {/* Search Bar - Hidden on mobile */}
         <div className="hidden md:flex flex-1 max-w-2xl">
@@ -243,29 +254,82 @@ const TopNavbar: React.FC = () => {
             )}
           </div>
 
-          {/* User Profile */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          {/* User Account */}
+          <div className="relative">
             <button 
-              onClick={handleLogout}
+              onClick={handleAccount}
               className="p-1 group relative"
-              title="Logout"
+              title="Account"
             >
               {user?.avatar ? (
                 <img
                   src={user.avatar}
                   alt="Profile"
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-purple-200 group-hover:border-red-300 transition-colors"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-purple-200 group-hover:border-purple-400 transition-colors"
+                  onError={(e) => {
+                    console.log('Navbar avatar image failed to load:', user.avatar);
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               ) : (
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-600 rounded-full flex items-center justify-center group-hover:bg-red-600 transition-colors">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-600 rounded-full flex items-center justify-center group-hover:bg-purple-700 transition-colors">
                   <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
               )}
-              {/* Logout tooltip */}
+              {/* Account tooltip */}
               <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                Logout
+                Account
               </div>
             </button>
+            
+            {/* Account Settings Dropdown */}
+            {showAccount && (
+              <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="Profile"
+                        className="w-12 h-12 rounded-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                        <UserIcon className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{user?.firstName} {user?.lastName}</h3>
+                      <p className="text-sm text-gray-500">@{user?.username || user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="py-2">
+                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    Account Settings
+                  </button>
+                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    Privacy & Security
+                  </button>
+                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    Notifications
+                  </button>
+                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    Appearance
+                  </button>
+                  <hr className="my-2" />
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

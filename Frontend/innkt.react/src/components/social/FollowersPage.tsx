@@ -104,17 +104,17 @@ const FollowersPage: React.FC = () => {
 
     return (
       <div className="space-y-4">
-        {users.map((follow) => {
+        {users.map((follow, index) => {
           // Get the appropriate profile based on whether we're showing followers or following
-          const profile = isFollowing ? follow.followingProfile : follow.followerProfile;
+          const profile = isFollowing ? follow.following : follow.follower;
           
           return (
-            <div key={follow.id} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+            <div key={`${follow.id}-${index}`} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  {profile?.avatar ? (
+                  {profile?.avatarUrl ? (
                     <img
-                      src={profile.avatar}
+                      src={profile.avatarUrl}
                       alt={profile.displayName}
                       className="w-12 h-12 rounded-full object-cover"
                     />

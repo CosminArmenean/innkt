@@ -3,6 +3,8 @@ import { socialService, Group } from '../../services/social.service';
 import GroupCard from './GroupCard';
 import CreateGroupModal from './CreateGroupModal';
 import { PlusIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import PageLayout from '../layout/PageLayout';
+import ScrollableContent from '../layout/ScrollableContent';
 
 interface GroupsPageProps {
   currentUserId?: string;
@@ -131,26 +133,54 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Groups</h1>
-          <p className="text-gray-600">Discover and join communities that interest you</p>
-        </div>
-        
+  const leftSidebar = (
+    <div className="space-y-6">
+      {/* Quick Actions */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-3">Quick Actions</h3>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          className="w-full flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Create Group</span>
         </button>
       </div>
 
+      {/* Categories */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
+        <div className="space-y-2">
+          {['Technology', 'Business', 'Education', 'Entertainment', 'Lifestyle', 'Sports', 'Health', 'Travel'].map((category) => (
+            <button
+              key={category}
+              onClick={() => setFilters(prev => ({ ...prev, category: category.toLowerCase() }))}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                filters.category === category.toLowerCase()
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const centerContent = (
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Groups</h1>
+          <p className="text-gray-600">Discover and join communities that interest you</p>
+        </div>
+      </div>
+
       {/* Search and Filters */}
-      <div className="mb-6">
+      <div className="mb-6 flex-shrink-0">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search Bar */}
           <div className="flex-1">
@@ -242,7 +272,7 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-200 mb-6 flex-shrink-0">
         <nav className="-mb-px flex space-x-8">
           {[
             { id: 'all', label: 'All Groups', count: groups.length },
@@ -265,7 +295,7 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
       </div>
 
       {/* Groups Grid */}
-      <div>
+      <ScrollableContent>
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -304,7 +334,17 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
             )}
           </div>
         )}
-      </div>
+      </ScrollableContent>
+    </div>
+  );
+
+  return (
+    <>
+      <PageLayout
+        leftSidebar={leftSidebar}
+        centerContent={centerContent}
+        layoutType="wide-right"
+      />
 
       {/* Create Group Modal */}
       {showCreateModal && (
@@ -313,7 +353,7 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
           onGroupCreated={handleGroupCreated}
         />
       )}
-    </div>
+    </>
   );
 };
 
