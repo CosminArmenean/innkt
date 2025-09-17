@@ -24,9 +24,16 @@ public class Post
     [MaxLength(255)]
     public string? Location { get; set; }
     
+    public string PostType { get; set; } = "text"; // text, image, video, link, poll
+    
     public bool IsPublic { get; set; } = true;
     
     public bool IsPinned { get; set; } = false;
+    
+    // Poll fields
+    public string[]? PollOptions { get; set; }
+    public int? PollDuration { get; set; } // in hours
+    public DateTime? PollExpiresAt { get; set; }
     
     public int LikesCount { get; set; } = 0;
     
