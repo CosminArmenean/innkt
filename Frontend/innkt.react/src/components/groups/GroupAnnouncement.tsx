@@ -35,7 +35,7 @@ const GroupAnnouncement: React.FC<GroupAnnouncementProps> = ({
     try {
       const postData = {
         content: content.trim(),
-        type: 'text' as const,
+        postType: 'text' as const,
         visibility: 'group' as const,
         groupId: groupId,
         tags: ['announcement', 'important']

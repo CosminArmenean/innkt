@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { socialService, UserProfile, Post, Group, Follow } from '../../services/social.service';
+import { socialService, UserProfile, Post, Group, Follow, KidAccount } from '../../services/social.service';
 import { useAuth } from '../../contexts/AuthContext';
 import FollowButton from './FollowButton';
 import UserActionsMenu from './UserActionsMenu';
@@ -26,6 +26,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   const [groups, setGroups] = useState<Group[]>([]);
   const [followers, setFollowers] = useState<Follow[]>([]);
   const [following, setFollowing] = useState<Follow[]>([]);
+  const [kidAccounts, setKidAccounts] = useState<KidAccount[]>([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'chat' | 'subaccounts' | 'business'>('posts');
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -37,10 +38,13 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   useEffect(() => {
     loadProfile();
     loadPosts();
-    if (!isOwnProfile && user?.id) {
+    if (isOwnProfile) {
+      loadKidAccounts();
+    }
+    if (!isOwnProfile && currentUserId) {
       checkFollowStatus();
     }
-  }, [userId, user?.id, isOwnProfile]);
+  }, [userId, currentUserId, isOwnProfile]);
 
   const loadProfile = async () => {
     try {
@@ -63,15 +67,25 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
     }
   };
 
+  const loadKidAccounts = async () => {
+    try {
+      const accounts = await socialService.getKidAccounts();
+      setKidAccounts(accounts);
+      console.log('Loaded kid accounts:', accounts);
+    } catch (error) {
+      console.error('Failed to load kid accounts:', error);
+    }
+  };
+
   const checkFollowStatus = async () => {
     console.log('checkFollowStatus called:', { userId, isOwnProfile, currentUserId: user?.id });
-    if (!user?.id || isOwnProfile) {
-      console.log('Skipping follow status check - own profile or no user');
+    if (!currentUserId || isOwnProfile) {
+      console.log('Skipping follow status check - own profile or no currentUserId');
       return;
     }
     
     try {
-      const following = await socialService.getFollowing(user.id);
+      const following = await socialService.getFollowing(currentUserId);
       console.log('Following data:', following);
       const isCurrentlyFollowing = following.following.some(f => f.following?.id === userId);
       console.log('Is currently following:', isCurrentlyFollowing);
@@ -80,6 +94,10 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
       console.error('Failed to check follow status:', error);
     }
   };
+
+  // Debug logging for action buttons rendering
+  console.log('Rendering action buttons:', { isOwnProfile, userId, currentUserId: user?.id, isFollowing });
+  // Force recompilation
 
   const handleTabChange = (tab: 'posts' | 'media' | 'chat' | 'subaccounts' | 'business') => {
     if (tab === 'chat') {
@@ -250,7 +268,6 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
 
       {/* Action Buttons */}
       <div className="space-y-3">
-        
         {!isOwnProfile && (
           <div className="flex items-center space-x-2">
             <FollowButton
@@ -265,6 +282,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
             <UserActionsMenu
               userId={userId}
               isFollowing={isFollowing}
+              onFollow={() => setIsFollowing(true)}
               onUnfollow={() => setIsFollowing(false)}
               onReport={() => setShowReportModal(true)}
             />
@@ -494,7 +512,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                   <div className="space-y-6">
                     {(() => {
                       const mediaPosts = posts.filter(post => 
-                        post.type === 'image' || post.type === 'video' || 
+                        post.postType === 'image' || post.postType === 'video' || 
                         (post.media && post.media.length > 0) || 
                         (post.mediaUrls && post.mediaUrls.length > 0)
                       );
@@ -627,17 +645,87 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                         </div>
                       )}
                       
-                      <div className="bg-gray-50 rounded-xl p-8">
-                        <div className="text-center">
-                          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                          <p className="text-gray-600 font-medium mb-2">No linked accounts yet</p>
-                          <p className="text-sm text-gray-500">Family member accounts will appear here when linked</p>
+                      {kidAccounts.length > 0 ? (
+                        <div className="space-y-4">
+                          {kidAccounts.map((kid) => (
+                            <div key={kid.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                              <div className="flex items-center space-x-4">
+                                {/* Kid Profile Picture */}
+                                <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                  {kid.profilePictureUrl ? (
+                                    <img
+                                      src={kid.profilePictureUrl}
+                                      alt={kid.fullName}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-white font-bold text-xl">
+                                      {kid.firstName.charAt(0).toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Kid Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <h4 className="font-semibold text-gray-900 text-lg">
+                                      {kid.fullName}
+                                    </h4>
+                                    <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
+                                      👶 Kid Account
+                                    </span>
+                                    {kid.isActive ? (
+                                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                        Active
+                                      </span>
+                                    ) : (
+                                      <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                                        Inactive
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  <p className="text-sm text-gray-600 mb-2">
+                                    Status: {kid.status}
+                                  </p>
+                                  
+                                  {kid.independenceDate && (
+                                    <p className="text-sm text-gray-500">
+                                      Independence Date: {new Date(kid.independenceDate).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                  
+                                  <p className="text-xs text-gray-400 mt-2">
+                                    Created: {new Date(kid.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                
+                                {/* Actions */}
+                                <div className="flex-shrink-0">
+                                  <button
+                                    onClick={() => navigate(`/profile/${kid.id}`)}
+                                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                                  >
+                                    View Profile
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-xl p-8">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <p className="text-gray-600 font-medium mb-2">No kid accounts yet</p>
+                            <p className="text-sm text-gray-500">Create kid accounts to manage family members</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -19,6 +19,9 @@ const PostCreation: React.FC<PostCreationProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [location, setLocation] = useState<PostLocation | null>(null);
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [suggestedLocations, setSuggestedLocations] = useState<PostLocation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{[key: number]: number}>({});
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -27,6 +30,9 @@ const PostCreation: React.FC<PostCreationProps> = ({
   const [showGroupSelector, setShowGroupSelector] = useState(false);
   const [useAIProcessing, setUseAIProcessing] = useState(false);
   const [aiProcessingStatus, setAiProcessingStatus] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
+  const [showPollCreation, setShowPollCreation] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
+  const [pollDuration, setPollDuration] = useState<number>(24); // hours
   // Blockchain feature disabled for now
   // const [blockchainEnabled, setBlockchainEnabled] = useState(false);
   // const [blockchainNetwork, setBlockchainNetwork] = useState<'hashgraph' | 'ethereum' | 'polygon'>('hashgraph');
@@ -152,6 +158,76 @@ const PostCreation: React.FC<PostCreationProps> = ({
     setTags(prev => prev.filter(tag => tag !== tagToRemove));
   };
 
+  // Location handling
+  const handleLocationSearch = async (query: string) => {
+    setLocationSearch(query);
+    if (query.length < 2) {
+      setSuggestedLocations([]);
+      return;
+    }
+
+    // Mock location suggestions - in real app, this would call a location API
+    const mockLocations: PostLocation[] = [
+      { 
+        name: `${query}, New York, NY`, 
+        coordinates: { latitude: 40.7128, longitude: -74.0060 }
+      },
+      { 
+        name: `${query}, Los Angeles, CA`, 
+        coordinates: { latitude: 34.0522, longitude: -118.2437 }
+      },
+      { 
+        name: `${query}, Chicago, IL`, 
+        coordinates: { latitude: 41.8781, longitude: -87.6298 }
+      },
+      { 
+        name: `${query}, Houston, TX`, 
+        coordinates: { latitude: 29.7604, longitude: -95.3698 }
+      },
+      { 
+        name: `${query}, Phoenix, AZ`, 
+        coordinates: { latitude: 33.4484, longitude: -112.0740 }
+      }
+    ];
+    
+    setSuggestedLocations(mockLocations);
+  };
+
+  const selectLocation = (selectedLocation: PostLocation) => {
+    setLocation(selectedLocation);
+    setShowLocationSelector(false);
+    setLocationSearch('');
+    setSuggestedLocations([]);
+  };
+
+  const removeLocation = () => {
+    setLocation(null);
+  };
+
+  // Poll handling
+  const addPollOption = () => {
+    if (pollOptions.length < 6) {
+      setPollOptions([...pollOptions, '']);
+    }
+  };
+
+  const updatePollOption = (index: number, value: string) => {
+    const newOptions = [...pollOptions];
+    newOptions[index] = value;
+    setPollOptions(newOptions);
+  };
+
+  const removePollOption = (index: number) => {
+    if (pollOptions.length > 2) {
+      setPollOptions(pollOptions.filter((_, i) => i !== index));
+    }
+  };
+
+  const handlePollTypeSelect = () => {
+    setPostType('poll');
+    setShowPollCreation(true);
+  };
+
   const handleSubmit = async () => {
     if (!content.trim() && selectedFiles.length === 0) {
       alert('Please add some content or media to your post');
@@ -168,7 +244,13 @@ const PostCreation: React.FC<PostCreationProps> = ({
         Hashtags: tags,
         Mentions: [], // TODO: Extract mentions from content
         Location: location || null,
-        IsPublic: visibility === 'public'
+        IsPublic: visibility === 'public',
+        PostType: postType,
+        // Poll data
+        ...(postType === 'poll' && {
+          PollOptions: pollOptions.filter(opt => opt.trim()),
+          PollDuration: pollDuration
+        })
       };
 
       const newPost = await socialService.createPost(postData);
@@ -215,6 +297,11 @@ const PostCreation: React.FC<PostCreationProps> = ({
       setTags([]);
       setLocation(null);
       setUseAIProcessing(false);
+      setShowLocationSelector(false);
+      setShowPollCreation(false);
+      setPollOptions(['', '']);
+      setPollDuration(24);
+      setPostType('text');
       // setBlockchainEnabled(false); // Blockchain disabled
       
       // Notify parent component
@@ -292,7 +379,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
             {['text', 'image', 'video', 'link', 'poll'].map((type) => (
               <button
                 key={type}
-                onClick={() => setPostType(type as any)}
+                onClick={() => type === 'poll' ? handlePollTypeSelect() : setPostType(type as any)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   postType === type
                     ? 'bg-innkt-primary text-white'
@@ -434,6 +521,141 @@ const PostCreation: React.FC<PostCreationProps> = ({
             </div>
           )}
 
+          {/* Location Selector */}
+          {showLocationSelector && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-green-800">📍 Add Location</h4>
+                <button
+                  onClick={() => setShowLocationSelector(false)}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Search for a location..."
+                  value={locationSearch}
+                  onChange={(e) => handleLocationSearch(e.target.value)}
+                  className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                
+                {suggestedLocations.length > 0 && (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {suggestedLocations.map((loc, index) => (
+                      <button
+                        key={index}
+                        onClick={() => selectLocation(loc)}
+                        className="w-full text-left px-3 py-2 hover:bg-green-100 rounded text-sm"
+                      >
+                        {loc.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {location && (
+                  <div className="flex items-center justify-between bg-green-100 px-3 py-2 rounded">
+                    <span className="text-sm text-green-800">📍 {location.name}</span>
+                    <button
+                      onClick={removeLocation}
+                      className="text-green-600 hover:text-green-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Poll Creation */}
+          {showPollCreation && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-purple-800">📊 Create Poll</h4>
+                <button
+                  onClick={() => setShowPollCreation(false)}
+                  className="text-purple-600 hover:text-purple-800"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-purple-700 mb-2">
+                    Poll Question
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="What's your question?"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-purple-700 mb-2">
+                    Poll Options
+                  </label>
+                  <div className="space-y-2">
+                    {pollOptions.map((option, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder={`Option ${index + 1}`}
+                          value={option}
+                          onChange={(e) => updatePollOption(index, e.target.value)}
+                          className="flex-1 px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                        {pollOptions.length > 2 && (
+                          <button
+                            onClick={() => removePollOption(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {pollOptions.length < 6 && (
+                      <button
+                        onClick={addPollOption}
+                        className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                      >
+                        + Add Option
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-purple-700 mb-2">
+                    Poll Duration (hours)
+                  </label>
+                  <select
+                    value={pollDuration}
+                    onChange={(e) => setPollDuration(Number(e.target.value))}
+                    className="px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value={1}>1 hour</option>
+                    <option value={6}>6 hours</option>
+                    <option value={12}>12 hours</option>
+                    <option value={24}>1 day</option>
+                    <option value={72}>3 days</option>
+                    <option value={168}>1 week</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Tags */}
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -468,7 +690,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
               
               {/* Location */}
               <button
-                onClick={() => setLocation(location ? null : { name: 'Current Location' })}
+                onClick={() => setShowLocationSelector(!showLocationSelector)}
                 className={`p-2 transition-colors ${
                   location ? 'text-innkt-primary' : 'text-gray-500 hover:text-innkt-primary'
                 }`}

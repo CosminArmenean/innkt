@@ -68,7 +68,7 @@ const GroupPoll: React.FC<GroupPollProps> = ({
 
       const postData = {
         content: pollContent,
-        type: 'poll' as const,
+        postType: 'poll' as const,
         visibility: 'group' as const,
         groupId: groupId,
         tags: ['poll', 'survey']

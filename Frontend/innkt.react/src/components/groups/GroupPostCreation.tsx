@@ -97,7 +97,7 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
       // Create the post
       const postData: Partial<Post> = {
         content: content.trim(),
-        type: postType,
+        postType: postType,
         visibility: 'group',
         tags,
         groupId: groupId,

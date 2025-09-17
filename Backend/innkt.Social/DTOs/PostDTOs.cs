@@ -17,7 +17,13 @@ public class CreatePostRequest
     [MaxLength(255)]
     public string? Location { get; set; }
     
+    public string PostType { get; set; } = "text";
+    
     public bool IsPublic { get; set; } = true;
+    
+    // Poll fields
+    public string[]? PollOptions { get; set; }
+    public int? PollDuration { get; set; }
 }
 
 public class UpdatePostRequest
@@ -35,7 +41,13 @@ public class UpdatePostRequest
     [MaxLength(255)]
     public string? Location { get; set; }
     
+    public string PostType { get; set; } = "text";
+    
     public bool IsPublic { get; set; } = true;
+    
+    // Poll fields
+    public string[]? PollOptions { get; set; }
+    public int? PollDuration { get; set; }
 }
 
 public class PostResponse
@@ -47,6 +59,7 @@ public class PostResponse
     public string[] Hashtags { get; set; } = Array.Empty<string>();
     public string[] Mentions { get; set; } = Array.Empty<string>();
     public string? Location { get; set; }
+    public string PostType { get; set; } = "text";
     public bool IsPublic { get; set; }
     public bool IsPinned { get; set; }
     public int LikesCount { get; set; }
@@ -57,6 +70,11 @@ public class PostResponse
     public DateTime UpdatedAt { get; set; }
     public bool IsLikedByCurrentUser { get; set; }
     public UserBasicInfo? Author { get; set; }
+    
+    // Poll fields
+    public string[]? PollOptions { get; set; }
+    public int? PollDuration { get; set; }
+    public DateTime? PollExpiresAt { get; set; }
 }
 
 public class PostListResponse
@@ -108,6 +126,31 @@ public class CommentListResponse
     public int PageSize { get; set; }
     public bool HasNextPage { get; set; }
     public bool HasPreviousPage { get; set; }
+}
+
+public class VotePollRequest
+{
+    [Required]
+    public string SelectedOption { get; set; } = string.Empty;
+    
+    [Required]
+    public int OptionIndex { get; set; }
+}
+
+public class PollOptionResult
+{
+    public string Option { get; set; } = string.Empty;
+    public int VoteCount { get; set; }
+    public double Percentage { get; set; }
+}
+
+public class PollResultsResponse
+{
+    public int TotalVotes { get; set; }
+    public List<PollOptionResult> Results { get; set; } = new();
+    public bool IsExpired { get; set; }
+    public int? UserVotedOptionIndex { get; set; }
+    public DateTime? ExpiresAt { get; set; }
 }
 
 public class UserBasicInfo

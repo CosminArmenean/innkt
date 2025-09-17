@@ -1,6 +1,21 @@
 import { BaseApiService, socialApi, officerApi, groupsApi } from './api.service';
 
 // User Profile Interfaces
+export interface KidAccount {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  isActive: boolean;
+  status: string;
+  independenceDate?: string;
+  isIndependent: boolean;
+  profilePictureUrl?: string;
+  createdAt: string;
+  parentUserId: string;
+  parentFullName: string;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -92,7 +107,7 @@ export interface Post {
   content: string;
   media?: PostMedia[];
   mediaUrls?: string[];
-  type: 'text' | 'image' | 'video' | 'link' | 'poll';
+  postType: 'text' | 'image' | 'video' | 'link' | 'poll';
   visibility: 'public' | 'friends' | 'group' | 'private';
   groupId?: string;
   location?: PostLocation;
@@ -112,6 +127,25 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   blockchainHash?: string; // For verified users
+  
+  // Poll fields
+  pollOptions?: string[];
+  pollDuration?: number;
+  pollExpiresAt?: string;
+}
+
+export interface PollOptionResult {
+  option: string;
+  voteCount: number;
+  percentage: number;
+}
+
+export interface PollResults {
+  totalVotes: number;
+  results: PollOptionResult[];
+  isExpired: boolean;
+  userVotedOptionIndex?: number;
+  expiresAt?: string;
 }
 
 export interface PostMedia {
@@ -419,7 +453,7 @@ export class SocialService extends BaseApiService {
         id: response.Id || response.id,
         userId: response.UserId || response.userId,
         content: response.Content || response.content,
-        type: 'text' as const,
+        postType: (response.PostType || response.postType || 'text') as 'text' | 'image' | 'video' | 'link' | 'poll',
         visibility: (response.IsPublic ? 'public' : 'private') as 'public' | 'private',
         mediaUrls: response.MediaUrls || response.mediaUrls || [],
         hashtags: response.Hashtags || response.hashtags || [],
@@ -435,7 +469,12 @@ export class SocialService extends BaseApiService {
         isLiked: response.IsLikedByCurrentUser || response.isLiked || false,
         isShared: false,
         createdAt: response.CreatedAt || response.createdAt,
-        updatedAt: response.UpdatedAt || response.updatedAt
+        updatedAt: response.UpdatedAt || response.updatedAt,
+        
+        // Poll fields
+        pollOptions: response.PollOptions || response.pollOptions,
+        pollDuration: response.PollDuration || response.pollDuration,
+        pollExpiresAt: response.PollExpiresAt || response.pollExpiresAt
       };
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -556,6 +595,29 @@ export class SocialService extends BaseApiService {
       return response;
     } catch (error) {
       console.error('Failed to create comment:', error);
+      throw error;
+    }
+  }
+
+  // Poll Methods
+  async voteOnPoll(postId: string, selectedOption: string, optionIndex: number): Promise<void> {
+    try {
+      await this.post(`/api/posts/${postId}/vote`, {
+        selectedOption,
+        optionIndex
+      });
+    } catch (error) {
+      console.error('Failed to vote on poll:', error);
+      throw error;
+    }
+  }
+
+  async getPollResults(postId: string): Promise<PollResults> {
+    try {
+      const response = await this.get<PollResults>(`/api/posts/${postId}/poll-results`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get poll results:', error);
       throw error;
     }
   }
@@ -750,6 +812,17 @@ export class SocialService extends BaseApiService {
       return response.data;
     } catch (error) {
       console.error('Failed to update user profile:', error);
+      throw error;
+    }
+  }
+
+  // Kid Accounts
+  async getKidAccounts(): Promise<KidAccount[]> {
+    try {
+      const response = await officerApi.get<KidAccount[]>('/api/KidAccount/parent-accounts');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get kid accounts:', error);
       throw error;
     }
   }

@@ -291,7 +291,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                   <div className="space-y-6">
                     {(() => {
                       const mediaPosts = posts.filter(post => 
-                        post.type === 'image' || post.type === 'video' || 
+                        post.postType === 'image' || post.postType === 'video' || 
                         (post.media && post.media.length > 0) || 
                         (post.mediaUrls && post.mediaUrls.length > 0)
                       );
