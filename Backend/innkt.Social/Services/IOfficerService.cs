@@ -7,6 +7,10 @@ public interface IOfficerService
     Task<UserSearchResult?> SearchUsersAsync(string query, int page = 1, int limit = 20);
     Task<UserBasicInfo?> GetUserByIdAsync(Guid userId);
     Task<UserBasicInfo?> GetUserByUsernameAsync(string username);
+    
+    // Batch operations for feed optimization
+    Task<Dictionary<Guid, UserBasicInfo>> GetUsersByIdsAsync(IEnumerable<Guid> userIds);
+    Task<List<UserBasicInfo>> GetUsersAsync(IEnumerable<Guid> userIds);
 }
 
 public class UserSearchResult

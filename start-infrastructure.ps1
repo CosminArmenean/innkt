@@ -32,10 +32,33 @@ docker-compose down
 
 # Start infrastructure
 Write-Host "`n🗄️  Starting Infrastructure Components..." -ForegroundColor Cyan
-Write-Host "Starting PostgreSQL, Redis, MongoDB, Kafka, and Zookeeper..." -ForegroundColor Yellow
+Write-Host "Starting PostgreSQL, Redis, MongoDB (with replica set), Kafka, and Zookeeper..." -ForegroundColor Yellow
 
 # Start all infrastructure services
-docker-compose up -d
+docker-compose -f docker-compose-infrastructure.yml up -d
+
+# Initialize MongoDB replica set for Change Streams
+Write-Host "`n🔧 Configuring MongoDB replica set for Change Streams..." -ForegroundColor Cyan
+Start-Sleep -Seconds 10
+
+try {
+    docker exec innkt-mongodb mongosh --eval "
+    try {
+      rs.status();
+      print('✅ Replica set already initialized');
+    } catch (e) {
+      print('🚀 Initializing replica set for Change Streams...');
+      rs.initiate({
+        _id: 'rs0',
+        members: [{ _id: 0, host: 'localhost:27017' }]
+      });
+      print('✅ Replica set initialized - Real-time features ready!');
+    }
+    "
+    Write-Host "✅ MongoDB Change Streams configured successfully!" -ForegroundColor Green
+} catch {
+    Write-Host "⚠️ MongoDB replica set setup will be attempted during service startup" -ForegroundColor Yellow
+}
 
 # Wait for services to be ready
 Write-Host "`n⏳ Waiting for services to be ready..." -ForegroundColor Yellow

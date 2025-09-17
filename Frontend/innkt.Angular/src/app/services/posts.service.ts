@@ -37,7 +37,7 @@ export class PostsService {
       if (filters.sortOrder) params = params.set('sortOrder', filters.sortOrder);
     }
 
-    return this.http.get<PostListResponse>(`${this.API_BASE_URL}/posts`, { params })
+    return this.http.get<PostListResponse>(`${this.API_BASE_URL}/v2/mongoposts/feed`, { params })
       .pipe(
         tap(response => {
           this.postsSubject.next(response.posts);
@@ -47,7 +47,7 @@ export class PostsService {
 
   // Get a single post by ID
   getPost(id: string): Observable<Post> {
-    return this.http.get<Post>(`${this.API_BASE_URL}/posts/${id}`)
+    return this.http.get<Post>(`${this.API_BASE_URL}/v2/mongoposts/${id}`)
       .pipe(
         tap(post => {
           this.currentPostSubject.next(post);
@@ -57,7 +57,7 @@ export class PostsService {
 
   // Create a new post
   createPost(postData: CreatePostRequest): Observable<Post> {
-    return this.http.post<Post>(`${this.API_BASE_URL}/posts`, postData)
+    return this.http.post<Post>(`${this.API_BASE_URL}/v2/mongoposts`, postData)
       .pipe(
         tap(newPost => {
           const currentPosts = this.postsSubject.value;
@@ -68,7 +68,7 @@ export class PostsService {
 
   // Update an existing post
   updatePost(id: string, updates: UpdatePostRequest): Observable<Post> {
-    return this.http.put<Post>(`${this.API_BASE_URL}/posts/${id}`, updates)
+    return this.http.put<Post>(`${this.API_BASE_URL}/v2/mongoposts/${id}`, updates)
       .pipe(
         tap(updatedPost => {
           const currentPosts = this.postsSubject.value;
@@ -86,7 +86,7 @@ export class PostsService {
 
   // Delete a post
   deletePost(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_BASE_URL}/posts/${id}`)
+    return this.http.delete<void>(`${this.API_BASE_URL}/v2/mongoposts/${id}`)
       .pipe(
         tap(() => {
           const currentPosts = this.postsSubject.value;
@@ -102,7 +102,7 @@ export class PostsService {
 
   // Like/unlike a post
   toggleLike(postId: string): Observable<Post> {
-    return this.http.post<Post>(`${this.API_BASE_URL}/posts/${postId}/like`, {})
+    return this.http.post<Post>(`${this.API_BASE_URL}/v2/mongoposts/${postId}/like`, {})
       .pipe(
         tap(updatedPost => {
           const currentPosts = this.postsSubject.value;
@@ -124,12 +124,12 @@ export class PostsService {
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
-    return this.http.get<PostListResponse>(`${this.API_BASE_URL}/users/${userId}/posts`, { params });
+    return this.http.get<PostListResponse>(`${this.API_BASE_URL}/v2/mongoposts/user/${userId}`, { params });
   }
 
   // Get trending posts
   getTrendingPosts(limit: number = 10): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.API_BASE_URL}/posts/trending`, {
+    return this.http.get<Post[]>(`${this.API_BASE_URL}/v2/mongoposts/public`, {
       params: new HttpParams().set('limit', limit.toString())
     });
   }
@@ -141,7 +141,7 @@ export class PostsService {
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
-    return this.http.get<PostListResponse>(`${this.API_BASE_URL}/posts/search`, { params });
+    return this.http.get<PostListResponse>(`${this.API_BASE_URL}/v2/mongoposts/search`, { params });
   }
 
   // Clear current post

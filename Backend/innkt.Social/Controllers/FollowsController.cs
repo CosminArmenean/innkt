@@ -208,6 +208,25 @@ public class FollowsController : ControllerBase
     }
 
     /// <summary>
+    /// Test database connection
+    /// </summary>
+    [HttpGet("test-db")]
+    [AllowAnonymous]
+    public async Task<ActionResult<object>> TestDatabase()
+    {
+        try
+        {
+            var followCount = await _context.Follows.CountAsync();
+            return Ok(new { message = "Database connected", followCount = followCount });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Database test failed");
+            return StatusCode(500, new { message = "Database test failed", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Search users by username or name
     /// </summary>
     [HttpGet("search")]

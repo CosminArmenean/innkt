@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "n0PDwV2Z/TyRhlI6m7xaYYkNVM89b5uXeXB/LrZ9AZs=",
+  "Hash": "Orx+vY6dH2X3joe2JgXBraYkO+9ZQes5A6M1QMcyQPU=",
   "Source": "innkt.Officer",
   "BasePath": "_content/innkt.Officer",
   "Mode": "Default",
@@ -16,6 +16,69 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg",
+      "SourceId": "innkt.Officer",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\",
+      "BasePath": "_content/innkt.Officer",
+      "RelativePath": "uploads/profiles/0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "295bij94ii",
+      "Integrity": "qgL2vhvt8heqXwCW1pCEBmsqV4BLzI0UShD6F2jKzCw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png",
+      "SourceId": "innkt.Officer",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\",
+      "BasePath": "_content/innkt.Officer",
+      "RelativePath": "uploads/profiles/2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "mf3xttigng",
+      "Integrity": "ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png"
+    },
+    {
+      "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.jpg",
+      "SourceId": "innkt.Officer",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\",
+      "BasePath": "_content/innkt.Officer",
+      "RelativePath": "uploads/profiles/5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "mf3xttigng",
+      "Integrity": "ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.jpg"
+    },
     {
       "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\bdfc4c41-c42e-42e0-a57b-d8301a37b1fe_20250915104040.jpg",
       "SourceId": "innkt.Officer",
@@ -330,9 +393,276 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\profiles\\bdfc4c41-c42e-42e0-a57b-d8301a37b1fe_20250915122748.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.jpg",
+      "SourceId": "innkt.Officer",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\",
+      "BasePath": "_content/innkt.Officer",
+      "RelativePath": "uploads/profiles/e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "aihoyndil2",
+      "Integrity": "XiNhJeO/ljbAxDtPf4crfHQbwLyQ5Ls+GJTfe72qAOw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.jpg"
     }
   ],
   "Endpoints": [
+    {
+      "Route": "uploads/profiles/0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.295bij94ii.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "13701"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"qgL2vhvt8heqXwCW1pCEBmsqV4BLzI0UShD6F2jKzCw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 16 Sep 2025 07:54:08 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "295bij94ii"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-qgL2vhvt8heqXwCW1pCEBmsqV4BLzI0UShD6F2jKzCw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "13701"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"qgL2vhvt8heqXwCW1pCEBmsqV4BLzI0UShD6F2jKzCw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 16 Sep 2025 07:54:08 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-qgL2vhvt8heqXwCW1pCEBmsqV4BLzI0UShD6F2jKzCw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.mf3xttigng.png",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "313769"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 15 Sep 2025 18:41:33 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "mf3xttigng"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "313769"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 15 Sep 2025 18:41:33 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "313769"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 16 Sep 2025 07:54:08 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.mf3xttigng.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "313769"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 16 Sep 2025 07:54:08 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "mf3xttigng"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/5e578ba9-edd9-487a-b222-8aad79db6e81_20250916075408.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-ooC9rPKhOjVOuwHMOaDKnFBGPC3fQlaBiDMcnhMnCig="
+        }
+      ]
+    },
     {
       "Route": "uploads/profiles/bdfc4c41-c42e-42e0-a57b-d8301a37b1fe_20250915104040.8zef4jo6l7.jpg",
       "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\bdfc4c41-c42e-42e0-a57b-d8301a37b1fe_20250915104040.jpg",
@@ -1560,6 +1890,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-bFZUcK/5S3vHBqucbsUnBD5dvUxKaTXh6yicMAtGdU8="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.aihoyndil2.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "460018"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"XiNhJeO/ljbAxDtPf4crfHQbwLyQ5Ls+GJTfe72qAOw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 15 Sep 2025 19:34:59 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "aihoyndil2"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-XiNhJeO/ljbAxDtPf4crfHQbwLyQ5Ls+GJTfe72qAOw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\e9f37dc7-85a4-48e7-b18a-efc1a6bed653_20250915193459.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "460018"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"XiNhJeO/ljbAxDtPf4crfHQbwLyQ5Ls+GJTfe72qAOw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 15 Sep 2025 19:34:59 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-XiNhJeO/ljbAxDtPf4crfHQbwLyQ5Ls+GJTfe72qAOw="
         }
       ]
     }

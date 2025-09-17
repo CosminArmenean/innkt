@@ -24,8 +24,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Entity Framework
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($"Using connection string: {connectionString}");
 builder.Services.AddDbContext<SocialDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString)
+           .EnableSensitiveDataLogging()
+           .LogTo(Console.WriteLine, LogLevel.Information));
 
 // Add Redis
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
@@ -76,8 +80,15 @@ builder.Services.AddCors(options =>
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program), typeof(innkt.Social.Mapping.AutoMapperProfile));
 
+// Add MongoDB
+builder.Services.AddSingleton<MongoDbContext>();
+
 // Add Application Services
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IMongoPostService, MongoPostService>();
+builder.Services.AddScoped<IMigrationService, MigrationService>();
+builder.Services.AddSingleton<IRealtimeService, RealtimeService>();
+builder.Services.AddHostedService<RealtimeHostedService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<TrendingService>();
@@ -113,14 +124,14 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Ensure database is created
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<SocialDbContext>();
+//     context.Database.EnsureCreated();
+// }
+
 // Health check endpoint
 app.MapGet("/health", () => new { Status = "Healthy", Service = "innkt.Social", Timestamp = DateTime.UtcNow });
-
-// Ensure database is created
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<SocialDbContext>();
-    context.Database.EnsureCreated();
-}
 
 app.Run();

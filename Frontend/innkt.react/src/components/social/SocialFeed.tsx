@@ -1,7 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, Post, UserProfile } from '../../services/social.service';
+import { realtimeService, PostEvent, PollEvent } from '../../services/realtime.service';
+import { useRealtimeNotifications } from '../../hooks/useRealtimeNotifications';
 import PostCreation from './PostCreation';
 import LinkedAccountsPost from './LinkedAccountsPost';
+
+// Add CSS for notification animations
+const notificationStyles = `
+  @keyframes slide-down {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-slide-down {
+    animation: slide-down 0.4s ease-out;
+  }
+  
+  /* Overlapping profile pictures effect */
+  .profile-stack {
+    position: relative;
+  }
+  
+  .profile-stack > div:not(:first-child) {
+    margin-left: -8px;
+  }
+  
+  .profile-stack > div {
+    transition: transform 0.2s ease;
+  }
+  
+  .profile-stack:hover > div {
+    transform: translateX(4px);
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = notificationStyles;
+  document.head.appendChild(styleSheet);
+}
 
 interface SocialFeedProps {
   groupId?: string;
@@ -26,11 +71,141 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const [filter, setFilter] = useState<'all' | 'verified' | 'blockchain' | 'ai-processed'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'trending'>('latest');
   const [showFilters, setShowFilters] = useState(false);
+  const { notifications, addNotification, removeNotification } = useRealtimeNotifications();
+  const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
   useEffect(() => {
     loadPosts(true);
     loadLinkedPosts();
   }, [groupId, userId, filter, sortBy]);
+
+  // Real-time SSE integration
+  useEffect(() => {
+    console.log('🚀 Setting up SSE connection for real-time updates...');
+    setSseStatus('connecting');
+    
+    // Connect to SSE
+    realtimeService.connect()
+      .then(() => {
+        console.log('✅ SSE connected - real-time updates active!');
+        setSseStatus('connected');
+      })
+      .catch(error => {
+        console.error('❌ Failed to connect to SSE:', error);
+        setSseStatus('error');
+      });
+
+    // Handle new posts from Change Streams
+    const handleNewPost = (eventData: any) => {
+      console.log('📬 Received new post via SSE:', eventData);
+      
+      // The eventData IS the data object (not nested under event.data)
+      // Validate event data
+      if (!eventData || !eventData.postId) {
+        console.warn('Invalid new post event data:', eventData);
+        return;
+      }
+      
+      // Add new post to the top of the feed
+      setPosts(prevPosts => {
+        // Check if post already exists to avoid duplicates
+        const postExists = prevPosts.some(p => p.id === eventData.postId);
+        if (postExists) {
+          return prevPosts;
+        }
+
+        // Create a temporary post object (will be replaced when feed refreshes)
+        const newPost: Post = {
+          id: eventData.postId,
+          userId: eventData.authorId,
+          content: eventData.content || 'New post...',
+          postType: eventData.postType as any || 'text',
+          visibility: 'public',
+          mediaUrls: [],
+          hashtags: [],
+          mentions: [],
+          tags: [],
+          isPublic: true,
+          isPinned: false,
+          likesCount: 0,
+          commentsCount: 0,
+          sharesCount: 0,
+          viewsCount: 0,
+          isLiked: false,
+          isShared: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          authorProfile: undefined // Will be populated by next feed refresh
+        };
+
+        return [newPost, ...prevPosts];
+      });
+
+      // Show notification
+      console.log('🎉 New post added to feed in real-time!');
+      addNotification({
+        type: 'new_post',
+        title: '📬 New Post',
+        message: `New post from ${eventData.authorId}`,
+        data: eventData
+      });
+    };
+
+    // Handle post updates (likes, comments)
+    const handlePostUpdated = (eventData: any) => {
+      console.log('🔄 Post updated via SSE:', eventData);
+      
+      // Validate event data
+      if (!eventData || !eventData.postId) {
+        console.warn('Invalid post update event data:', eventData);
+        return;
+      }
+      
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === eventData.postId 
+            ? {
+                ...post,
+                likesCount: eventData.likesCount ?? post.likesCount,
+                commentsCount: eventData.commentsCount ?? post.commentsCount
+              }
+            : post
+        )
+      );
+    };
+
+    // Handle poll votes
+    const handlePollVoted = (eventData: any) => {
+      console.log('🗳️ Poll voted via SSE:', eventData);
+      
+      // Validate event data
+      if (!eventData || !eventData.postId) {
+        console.warn('Invalid poll vote event data:', eventData);
+        return;
+      }
+      
+      // Refresh poll results for the specific post
+      // This will trigger a re-render of the poll component
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === eventData.postId 
+            ? { ...post, updatedAt: new Date().toISOString() }
+            : post
+        )
+      );
+    };
+
+    // Subscribe to events
+    realtimeService.onNewPost(handleNewPost);
+    realtimeService.onPostUpdated(handlePostUpdated);
+    realtimeService.onPollVoted(handlePollVoted);
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🔌 Cleaning up SSE connection...');
+      realtimeService.disconnect();
+    };
+  }, []);
 
   // Infinite scroll effect
   useEffect(() => {
@@ -102,6 +277,16 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const handlePostCreated = (newPost: Post) => {
     console.log('New post created, adding to feed:', newPost);
     setPosts(prev => [newPost, ...prev]);
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    console.log('🔔 Notification clicked, refreshing feed...', notification);
+    
+    // Remove the notification
+    removeNotification(notification.id);
+    
+    // Refresh the feed to show new posts
+    loadPosts(true);
   };
 
   const handleLike = async (postId: string) => {
@@ -217,6 +402,82 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Real-time Notifications - Top-Middle under navbar */}
+      {notifications.length > 0 && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 space-y-2">
+          {notifications.map((notification) => (
+            <div
+              key={notification.id}
+              className="bg-green-500 text-white px-3 py-2 rounded-full shadow-lg animate-slide-down cursor-pointer hover:bg-green-600 transition-colors"
+              onClick={() => handleNotificationClick(notification)}
+            >
+              <div className="flex items-center space-x-3">
+                {/* Overlapping Profile Pictures (X/Twitter style) */}
+                <div className="flex items-center">
+                  {notification.authors && notification.authors.length > 0 ? (
+                    <div className="flex -space-x-2 profile-stack">
+                      {notification.authors.slice(0, 3).map((author, index) => (
+                        <div
+                          key={author.userId}
+                          className="w-7 h-7 rounded-full border-2 border-white bg-white flex items-center justify-center"
+                          style={{ zIndex: 10 - index }}
+                        >
+                          {author.avatarUrl ? (
+                            <img 
+                              src={author.avatarUrl} 
+                              alt={author.displayName}
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
+                              <span className="text-xs text-white font-medium">
+                                {author.displayName?.[0] || author.username?.[0] || '👤'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {notification.authors.length > 3 && (
+                        <div className="w-7 h-7 rounded-full border-2 border-white bg-gray-600 flex items-center justify-center">
+                          <span className="text-xs text-white font-medium">
+                            +{notification.authors.length - 3}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                      <span className="text-sm">
+                        {notification.type === 'new_post' && '📬'}
+                        {notification.type === 'post_liked' && '❤️'}
+                        {notification.type === 'poll_voted' && '🗳️'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Notification Text */}
+                <div className="flex items-center space-x-1">
+                  <span className="text-xs opacity-80">
+                    {notification.type === 'new_post' && '📬'}
+                    {notification.type === 'post_liked' && '❤️'}
+                    {notification.type === 'poll_voted' && '🗳️'}
+                  </span>
+                  <span className="text-sm font-medium">
+                    {notification.message}
+                  </span>
+                  {notification.count && notification.count > 1 && (
+                    <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
+                      {notification.count}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Professional Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="px-6 py-4">
@@ -225,9 +486,23 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
               <h1 className="text-2xl font-bold text-gray-900">
                 {groupId ? 'Group Posts' : userId ? 'User Posts' : 'Social Feed'}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Stay connected with your community
-              </p>
+              <div className="flex items-center space-x-4 mt-1">
+                <p className="text-sm text-gray-600">
+                  Stay connected with your community
+                </p>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    sseStatus === 'connected' ? 'bg-green-500' : 
+                    sseStatus === 'connecting' ? 'bg-yellow-500' : 
+                    sseStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
+                  }`}></div>
+                  <span className="text-xs text-gray-500">
+                    {sseStatus === 'connected' ? '🚀 Real-time active' : 
+                     sseStatus === 'connecting' ? '⏳ Connecting...' : 
+                     sseStatus === 'error' ? '❌ Connection failed' : '⭕ Disconnected'}
+                  </span>
+                </div>
+              </div>
             </div>
             
             <div className="flex items-center space-x-3">

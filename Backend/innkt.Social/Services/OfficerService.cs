@@ -63,10 +63,21 @@ public class OfficerService : IOfficerService
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var user = JsonSerializer.Deserialize<UserBasicInfo>(content, new JsonSerializerOptions
+                var userResponse = JsonSerializer.Deserialize<JsonElement>(content, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                // Map the Officer service response to UserBasicInfo
+                var user = new UserBasicInfo
+                {
+                    Id = Guid.Parse(userResponse.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
+                    Username = userResponse.GetProperty("username").GetString() ?? "",
+                    DisplayName = userResponse.GetProperty("fullName").GetString() ?? "",
+                    Email = userResponse.GetProperty("email").GetString(),
+                    AvatarUrl = userResponse.GetProperty("profilePictureUrl").GetString(),
+                    IsVerified = userResponse.GetProperty("isVerified").GetBoolean()
+                };
                 
                 return user;
             }
@@ -112,5 +123,116 @@ public class OfficerService : IOfficerService
             _logger.LogError(ex, "Error getting user by username from Officer service: {Username}", username);
             return null;
         }
+    }
+
+    public async Task<Dictionary<Guid, UserBasicInfo>> GetUsersByIdsAsync(IEnumerable<Guid> userIds)
+    {
+        var result = new Dictionary<Guid, UserBasicInfo>();
+        
+        if (!userIds.Any())
+            return result;
+
+        try
+        {
+            var userIdList = userIds.ToList();
+            _logger.LogInformation("Batch loading {Count} users from Officer service", userIdList.Count);
+            
+            // Create batch request payload
+            var requestPayload = new
+            {
+                UserIds = userIdList
+            };
+            
+            var json = JsonSerializer.Serialize(requestPayload);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            
+            var response = await _httpClient.PostAsync("/api/User/batch", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var usersArray = JsonSerializer.Deserialize<JsonElement[]>(responseContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (usersArray != null)
+                {
+                    foreach (var userElement in usersArray)
+                    {
+                        try
+                        {
+                            var user = new UserBasicInfo
+                            {
+                                Id = Guid.Parse(userElement.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
+                                Username = userElement.GetProperty("username").GetString() ?? "",
+                                DisplayName = userElement.GetProperty("fullName").GetString() ?? "",
+                                Email = userElement.GetProperty("email").GetString(),
+                                AvatarUrl = userElement.GetProperty("profilePictureUrl").GetString(),
+                                IsVerified = userElement.GetProperty("isVerified").GetBoolean()
+                            };
+                            
+                            result[user.Id] = user;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse user data from batch response");
+                        }
+                    }
+                }
+                
+                _logger.LogInformation("Successfully loaded {Count} users from Officer service", result.Count);
+            }
+            else
+            {
+                _logger.LogWarning("Officer service batch request returned {StatusCode}", response.StatusCode);
+                
+                // Fallback: Load users individually
+                _logger.LogInformation("Falling back to individual user requests");
+                await LoadUsersIndividuallyAsync(userIdList, result);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in batch user loading from Officer service");
+            
+            // Fallback: Load users individually
+            var userIdList = userIds.ToList();
+            _logger.LogInformation("Falling back to individual user requests");
+            await LoadUsersIndividuallyAsync(userIdList, result);
+        }
+        
+        return result;
+    }
+
+    public async Task<List<UserBasicInfo>> GetUsersAsync(IEnumerable<Guid> userIds)
+    {
+        var usersDict = await GetUsersByIdsAsync(userIds);
+        return usersDict.Values.ToList();
+    }
+
+    private async Task LoadUsersIndividuallyAsync(List<Guid> userIds, Dictionary<Guid, UserBasicInfo> result)
+    {
+        var tasks = userIds.Select(async userId =>
+        {
+            try
+            {
+                var user = await GetUserByIdAsync(userId);
+                if (user != null)
+                {
+                    lock (result)
+                    {
+                        result[userId] = user;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load individual user {UserId}", userId);
+            }
+        });
+
+        await Task.WhenAll(tasks);
+        _logger.LogInformation("Loaded {Count} users individually", result.Count);
     }
 }

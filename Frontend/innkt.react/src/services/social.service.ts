@@ -148,6 +148,39 @@ export interface PollResults {
   expiresAt?: string;
 }
 
+// MongoDB API Response Interfaces
+export interface MongoPostResponse {
+  id: string;
+  userId: string;
+  content: string;
+  postType: string;
+  mediaUrls: string[];
+  hashtags: string[];
+  mentions: string[];
+  location?: string;
+  isPublic: boolean;
+  isPinned: boolean;
+  pollOptions?: string[];
+  pollDuration?: number;
+  pollExpiresAt?: string;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  viewsCount: number;
+  feedScore: number;
+  createdAt: string;
+  updatedAt: string;
+  userProfile?: {
+    userId: string;
+    displayName: string;
+    username: string;
+    avatarUrl?: string;
+    isVerified: boolean;
+    isActive: boolean;
+    lastUpdated: string;
+  };
+}
+
 export interface PostMedia {
   id: string;
   type: 'image' | 'video' | 'file';
@@ -446,35 +479,38 @@ export class SocialService extends BaseApiService {
   // Post Methods
   async createPost(postData: any): Promise<Post> {
     try {
-      const response = await this.post<any>('/api/posts', postData);
+      const response = await this.post<MongoPostResponse>('/api/v2/mongoposts', postData);
       
       // Convert backend response to frontend Post format
       return {
-        id: response.Id || response.id,
-        userId: response.UserId || response.userId,
-        content: response.Content || response.content,
-        postType: (response.PostType || response.postType || 'text') as 'text' | 'image' | 'video' | 'link' | 'poll',
-        visibility: (response.IsPublic ? 'public' : 'private') as 'public' | 'private',
-        mediaUrls: response.MediaUrls || response.mediaUrls || [],
-        hashtags: response.Hashtags || response.hashtags || [],
-        mentions: response.Mentions || response.mentions || [],
-        tags: response.Hashtags || response.hashtags || [],
-        location: response.Location || response.location,
-        isPublic: response.IsPublic !== undefined ? response.IsPublic : response.isPublic,
-        isPinned: response.IsPinned || response.isPinned || false,
-        likesCount: response.LikesCount || response.likesCount || 0,
-        commentsCount: response.CommentsCount || response.commentsCount || 0,
-        sharesCount: response.SharesCount || response.sharesCount || 0,
-        viewsCount: response.ViewsCount || response.viewsCount || 0,
-        isLiked: response.IsLikedByCurrentUser || response.isLiked || false,
+        id: response.id,
+        userId: response.userId,
+        content: response.content,
+        postType: response.postType as 'text' | 'image' | 'video' | 'link' | 'poll',
+        visibility: (response.isPublic ? 'public' : 'private') as 'public' | 'private',
+        mediaUrls: response.mediaUrls || [],
+        hashtags: response.hashtags || [],
+        mentions: response.mentions || [],
+        tags: response.hashtags || [],
+        location: response.location ? { name: response.location, coordinates: undefined } : undefined,
+        isPublic: response.isPublic,
+        isPinned: response.isPinned,
+        likesCount: response.likesCount,
+        commentsCount: response.commentsCount,
+        sharesCount: response.sharesCount,
+        viewsCount: response.viewsCount,
+        isLiked: false, // TODO: Implement like status from MongoDB
         isShared: false,
-        createdAt: response.CreatedAt || response.createdAt,
-        updatedAt: response.UpdatedAt || response.updatedAt,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
         
         // Poll fields
-        pollOptions: response.PollOptions || response.pollOptions,
-        pollDuration: response.PollDuration || response.pollDuration,
-        pollExpiresAt: response.PollExpiresAt || response.pollExpiresAt
+        pollOptions: response.pollOptions,
+        pollDuration: response.pollDuration,
+        pollExpiresAt: response.pollExpiresAt,
+        
+        // Use cached user profile from MongoDB - simplified for now
+        authorProfile: undefined // TODO: Fix UserProfile interface mismatch
       };
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -492,8 +528,8 @@ export class SocialService extends BaseApiService {
     location?: string;
   }): Promise<{ posts: Post[]; totalCount: number; hasMore: boolean }> {
     try {
-      // If userId is provided, get user posts, otherwise get feed
-      const endpoint = filters?.userId ? `/api/posts/user/${filters.userId}` : '/api/posts/feed';
+      // Use MongoDB API for better performance with cached user profiles
+      const endpoint = filters?.userId ? `/api/v2/mongoposts/user/${filters.userId}` : '/api/v2/mongoposts/feed';
       
       // Convert frontend parameters to backend format
       const params: any = {};
@@ -502,39 +538,62 @@ export class SocialService extends BaseApiService {
       if (filters?.hashtag) params.Hashtag = filters.hashtag;
       if (filters?.location) params.Location = filters.location;
       
-      const response = await this.get<{ posts: Post[]; totalCount: number; hasNextPage: boolean }>(endpoint, params);
+      const response = await this.get<{ posts: MongoPostResponse[]; page: number; pageSize: number; hasMore: boolean; totalCachedProfiles: number }>(endpoint, params);
       
-      // Load author profile for each post
-      const postsWithProfiles = await Promise.all(
-        (response.posts || []).map(async (post) => {
-          try {
-            // Get author profile data
-            const authorProfile = await this.getUserProfile(post.userId);
-            return {
-              ...post,
-              authorProfile,
-              author: {
-                id: authorProfile.id,
-                username: authorProfile.username,
-                displayName: authorProfile.displayName,
-                avatar: authorProfile.avatar,
-                isVerified: authorProfile.isVerified,
-                isKidAccount: authorProfile.isKidAccount
-              }
-            };
-          } catch (error) {
-            console.error(`Failed to load profile for user ${post.userId}:`, error);
-            // Return post without profile data if loading fails
-            return post;
+      // MongoDB API returns posts with cached user profiles - NO N+1 queries needed!
+      const postsWithProfiles = (response.posts || []).map((post) => {
+        return {
+          // Convert MongoDB response to frontend format
+          id: post.id,
+          userId: post.userId,
+          content: post.content,
+          postType: post.postType as 'text' | 'image' | 'video' | 'link' | 'poll',
+          visibility: (post.isPublic ? 'public' : 'private') as 'public' | 'private',
+          mediaUrls: post.mediaUrls || [],
+          hashtags: post.hashtags || [],
+          mentions: post.mentions || [],
+          tags: post.hashtags || [],
+          location: post.location ? { name: post.location, coordinates: undefined } : undefined,
+          isPublic: post.isPublic,
+          isPinned: post.isPinned,
+          likesCount: post.likesCount,
+          commentsCount: post.commentsCount,
+          sharesCount: post.sharesCount,
+          viewsCount: post.viewsCount,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+          isLiked: false, // TODO: Implement like status from MongoDB
+          isShared: false, // Default value
+          // Poll fields
+          pollOptions: post.pollOptions,
+          pollDuration: post.pollDuration,
+          pollExpiresAt: post.pollExpiresAt,
+          // Use cached user profile from MongoDB - simplified for now
+          authorProfile: undefined, // TODO: Fix UserProfile interface mismatch
+          author: post.userProfile ? {
+            id: post.userProfile.userId,
+            username: post.userProfile.username,
+            displayName: post.userProfile.displayName,
+            avatar: post.userProfile.avatarUrl,
+            isVerified: post.userProfile.isVerified,
+            isKidAccount: false // MongoDB doesn't track this, default to false
+          } : {
+            id: post.userId,
+            username: 'Unknown',
+            displayName: 'Unknown User',
+            avatarUrl: undefined,
+            isVerified: false,
+            isKidAccount: false
           }
-        })
-      );
-      
-      // Convert backend response format to frontend format
+        };
+      });
+
+      console.log(`🚀 MongoDB Feed Performance: ${response.totalCachedProfiles} cached profiles, ${response.posts?.length} posts loaded with ZERO N+1 queries!`);
+
       return {
         posts: postsWithProfiles,
-        totalCount: response.totalCount || 0,
-        hasMore: response.hasNextPage || false
+        totalCount: response.posts?.length || 0,
+        hasMore: response.hasMore || false
       };
     } catch (error) {
       console.error('Failed to get posts:', error);
@@ -544,8 +603,49 @@ export class SocialService extends BaseApiService {
 
   async getPost(postId: string): Promise<Post> {
     try {
-      const response = await this.get<Post>(`/api/posts/${postId}`);
-      return response;
+      const response = await this.get<MongoPostResponse>(`/api/v2/mongoposts/${postId}`);
+      // Convert MongoDB response to frontend Post format
+      return {
+        id: response.id,
+        userId: response.userId,
+        content: response.content,
+        postType: response.postType as 'text' | 'image' | 'video' | 'link' | 'poll',
+        visibility: (response.isPublic ? 'public' : 'private') as 'public' | 'private',
+        mediaUrls: response.mediaUrls || [],
+        hashtags: response.hashtags || [],
+        mentions: response.mentions || [],
+        tags: response.hashtags || [],
+        location: response.location ? { name: response.location, coordinates: undefined } : undefined,
+        isPublic: response.isPublic,
+        isPinned: response.isPinned,
+        likesCount: response.likesCount,
+        commentsCount: response.commentsCount,
+        sharesCount: response.sharesCount,
+        viewsCount: response.viewsCount,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
+        isLiked: false, // TODO: Implement like status from MongoDB
+        isShared: false,
+        pollOptions: response.pollOptions,
+        pollDuration: response.pollDuration,
+        pollExpiresAt: response.pollExpiresAt,
+        authorProfile: undefined, // TODO: Fix UserProfile interface mismatch
+        author: response.userProfile ? {
+          id: response.userProfile.userId,
+          username: response.userProfile.username,
+          displayName: response.userProfile.displayName,
+          avatarUrl: response.userProfile.avatarUrl,
+          isVerified: response.userProfile.isVerified,
+          isKidAccount: false
+        } : {
+          id: response.userId,
+          username: 'Unknown',
+          displayName: 'Unknown User',
+          avatarUrl: undefined,
+          isVerified: false,
+          isKidAccount: false
+        }
+      };
     } catch (error) {
       console.error('Failed to get post:', error);
       throw error;
@@ -554,8 +654,49 @@ export class SocialService extends BaseApiService {
 
   async updatePost(postId: string, updates: Partial<Post>): Promise<Post> {
     try {
-      const response = await this.put<Post>(`/api/posts/${postId}`, updates);
-      return response;
+      const response = await this.put<MongoPostResponse>(`/api/v2/mongoposts/${postId}`, updates);
+      // Convert MongoDB response to frontend Post format (same as getPost)
+      return {
+        id: response.id,
+        userId: response.userId,
+        content: response.content,
+        postType: response.postType as 'text' | 'image' | 'video' | 'link' | 'poll',
+        visibility: (response.isPublic ? 'public' : 'private') as 'public' | 'private',
+        mediaUrls: response.mediaUrls || [],
+        hashtags: response.hashtags || [],
+        mentions: response.mentions || [],
+        tags: response.hashtags || [],
+        location: response.location ? { name: response.location, coordinates: undefined } : undefined,
+        isPublic: response.isPublic,
+        isPinned: response.isPinned,
+        likesCount: response.likesCount,
+        commentsCount: response.commentsCount,
+        sharesCount: response.sharesCount,
+        viewsCount: response.viewsCount,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
+        isLiked: false,
+        isShared: false,
+        pollOptions: response.pollOptions,
+        pollDuration: response.pollDuration,
+        pollExpiresAt: response.pollExpiresAt,
+        authorProfile: undefined,
+        author: response.userProfile ? {
+          id: response.userProfile.userId,
+          username: response.userProfile.username,
+          displayName: response.userProfile.displayName,
+          avatarUrl: response.userProfile.avatarUrl,
+          isVerified: response.userProfile.isVerified,
+          isKidAccount: false
+        } : {
+          id: response.userId,
+          username: 'Unknown',
+          displayName: 'Unknown User',
+          avatarUrl: undefined,
+          isVerified: false,
+          isKidAccount: false
+        }
+      };
     } catch (error) {
       console.error('Failed to update post:', error);
       throw error;
@@ -564,7 +705,7 @@ export class SocialService extends BaseApiService {
 
   async deletePost(postId: string): Promise<void> {
     try {
-      await this.delete(`/api/posts/${postId}`);
+      await this.delete(`/api/v2/mongoposts/${postId}`);
     } catch (error) {
       console.error('Failed to delete post:', error);
       throw error;
@@ -577,7 +718,7 @@ export class SocialService extends BaseApiService {
       files.forEach((file, index) => {
         formData.append(`media[${index}]`, file);
       });
-      const response = await this.upload<PostMedia[]>(`/api/posts/${postId}/media`, formData);
+      const response = await this.upload<PostMedia[]>(`/api/v2/mongoposts/${postId}/media`, formData);
       return response;
     } catch (error) {
       console.error('Failed to upload post media:', error);
@@ -588,7 +729,7 @@ export class SocialService extends BaseApiService {
   // Comment Methods
   async createComment(postId: string, content: string, parentCommentId?: string): Promise<Comment> {
     try {
-      const response = await this.post<Comment>(`/api/posts/${postId}/comments`, {
+      const response = await this.post<Comment>(`/api/v2/mongoposts/${postId}/comment`, {
         content,
         parentCommentId
       });
@@ -602,7 +743,7 @@ export class SocialService extends BaseApiService {
   // Poll Methods
   async voteOnPoll(postId: string, selectedOption: string, optionIndex: number): Promise<void> {
     try {
-      await this.post(`/api/posts/${postId}/vote`, {
+      await this.post(`/api/v2/mongoposts/${postId}/vote`, {
         selectedOption,
         optionIndex
       });
@@ -614,7 +755,7 @@ export class SocialService extends BaseApiService {
 
   async getPollResults(postId: string): Promise<PollResults> {
     try {
-      const response = await this.get<PollResults>(`/api/posts/${postId}/poll-results`);
+      const response = await this.get<PollResults>(`/api/v2/mongoposts/${postId}/poll-results`);
       return response;
     } catch (error) {
       console.error('Failed to get poll results:', error);
@@ -624,7 +765,7 @@ export class SocialService extends BaseApiService {
 
   async getComments(postId: string, page?: number, limit?: number): Promise<{ comments: Comment[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/posts/${postId}/comments`, { page, limit });
+      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/v2/mongoposts/${postId}/comments`, { page, limit });
       return response;
     } catch (error) {
       console.error('Failed to get comments:', error);
@@ -698,7 +839,7 @@ export class SocialService extends BaseApiService {
   // Social Interaction Methods
   async likePost(postId: string): Promise<void> {
     try {
-      await this.post(`/api/posts/${postId}/like`);
+      await this.post(`/api/v2/mongoposts/${postId}/like`);
     } catch (error) {
       console.error('Failed to like post:', error);
       throw error;
@@ -707,7 +848,7 @@ export class SocialService extends BaseApiService {
 
   async unlikePost(postId: string): Promise<void> {
     try {
-      await this.delete(`/api/posts/${postId}/like`);
+      await this.delete(`/api/v2/mongoposts/${postId}/unlike`);
     } catch (error) {
       console.error('Failed to unlike post:', error);
       throw error;
@@ -716,7 +857,7 @@ export class SocialService extends BaseApiService {
 
   async sharePost(postId: string, shareData: Partial<Share>): Promise<Share> {
     try {
-      const response = await this.post<Share>(`/api/posts/${postId}/share`, shareData);
+      const response = await this.post<Share>(`/api/v2/mongoposts/${postId}/share`, shareData);
       return response;
     } catch (error) {
       console.error('Failed to share post:', error);

@@ -237,3 +237,86 @@ public class ReportUserRequest
     [MaxLength(500)]
     public string? Description { get; set; }
 }
+
+// Analytics DTOs
+public class PostAnalytics
+{
+    public Guid PostId { get; set; }
+    public int TotalViews { get; set; }
+    public int TotalLikes { get; set; }
+    public int TotalComments { get; set; }
+    public int TotalShares { get; set; }
+    public double EngagementRate { get; set; }
+    public Dictionary<string, int> ViewsByCountry { get; set; } = new();
+    public Dictionary<string, int> ViewsByHour { get; set; } = new();
+    public DateTime AnalyticsDate { get; set; } = DateTime.UtcNow;
+}
+
+public class UserAnalytics
+{
+    public Guid UserId { get; set; }
+    public int TotalPosts { get; set; }
+    public int TotalViews { get; set; }
+    public int TotalLikes { get; set; }
+    public int TotalComments { get; set; }
+    public int TotalFollowers { get; set; }
+    public int TotalFollowing { get; set; }
+    public double AverageEngagementRate { get; set; }
+    public List<string> TopHashtags { get; set; } = new();
+    public DateTime AnalyticsDate { get; set; } = DateTime.UtcNow;
+}
+
+// MongoDB-specific DTOs
+public class MongoPostResponse
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string PostType { get; set; } = "text";
+    public List<string> MediaUrls { get; set; } = new();
+    public List<string> Hashtags { get; set; } = new();
+    public List<string> Mentions { get; set; } = new();
+    public string? Location { get; set; }
+    public bool IsPublic { get; set; } = true;
+    public bool IsPinned { get; set; } = false;
+    
+    // Poll fields
+    public List<string>? PollOptions { get; set; }
+    public int? PollDuration { get; set; }
+    public DateTime? PollExpiresAt { get; set; }
+    
+    // Engagement metrics
+    public int LikesCount { get; set; } = 0;
+    public int CommentsCount { get; set; } = 0;
+    public int SharesCount { get; set; } = 0;
+    public int ViewsCount { get; set; } = 0;
+    public double FeedScore { get; set; } = 0;
+    
+    // Timestamps
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    
+    // Cached user profile - KEY OPTIMIZATION!
+    public CachedUserProfile? UserProfile { get; set; }
+}
+
+public class CachedUserProfile
+{
+    public Guid UserId { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public bool IsVerified { get; set; } = false;
+    public bool IsActive { get; set; } = true;
+    public DateTime LastUpdated { get; set; }
+}
+
+public class MongoFeedResponse
+{
+    public List<MongoPostResponse> Posts { get; set; } = new();
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public bool HasMore { get; set; }
+    public int TotalCachedProfiles { get; set; } // For monitoring cache effectiveness
+    public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+}

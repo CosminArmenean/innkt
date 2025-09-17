@@ -11,12 +11,14 @@ public class FollowService : IFollowService
     private readonly SocialDbContext _context;
     private readonly ILogger<FollowService> _logger;
     private readonly IMapper _mapper;
+    private readonly IOfficerService _officerService;
 
-    public FollowService(SocialDbContext context, ILogger<FollowService> logger, IMapper mapper)
+    public FollowService(SocialDbContext context, ILogger<FollowService> logger, IMapper mapper, IOfficerService officerService)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
+        _officerService = officerService;
     }
 
     public async Task<bool> FollowUserAsync(Guid followerId, Guid followingId)
@@ -80,8 +82,8 @@ public class FollowService : IFollowService
         foreach (var follow in follows)
         {
             var response = _mapper.Map<FollowResponse>(follow);
-            // Populate Follower info with mock data for now
-            response.Follower = GetMockUserInfo(follow.FollowerId);
+            // Populate Follower info with real user data
+            response.Follower = await GetUserInfoAsync(follow.FollowerId);
             responses.Add(response);
         }
 
@@ -113,7 +115,7 @@ public class FollowService : IFollowService
         {
             var response = _mapper.Map<FollowResponse>(follow);
             // Populate Following info with mock data for now
-            response.Following = GetMockUserInfo(follow.FollowingId);
+            response.Following = await GetUserInfoAsync(follow.FollowingId);
             responses.Add(response);
         }
 
@@ -170,7 +172,7 @@ public class FollowService : IFollowService
         {
             var response = _mapper.Map<FollowResponse>(follow);
             // Populate Following info with mock data for now
-            response.Following = GetMockUserInfo(follow.FollowingId);
+            response.Following = await GetUserInfoAsync(follow.FollowingId);
             responses.Add(response);
         }
 
@@ -185,9 +187,31 @@ public class FollowService : IFollowService
         };
     }
 
-    private UserBasicInfo? GetMockUserInfo(Guid userId)
+    private async Task<UserBasicInfo?> GetUserInfoAsync(Guid userId)
     {
-        // Mock user data - in a real implementation, this would query the Officer service
+        try
+        {
+            // Call Officer service to get real user data
+            var user = await _officerService.GetUserByIdAsync(userId);
+            if (user != null)
+            {
+                return new UserBasicInfo
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    DisplayName = user.DisplayName,
+                    Email = user.Email,
+                    AvatarUrl = user.AvatarUrl,
+                    IsVerified = user.IsVerified
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to get user info for {UserId}: {Error}", userId, ex.Message);
+        }
+
+        // Fallback to mock data for known users
         var mockUsers = new Dictionary<Guid, UserBasicInfo>
         {
             { Guid.Parse("4f8c8759-dfdc-423e-878e-c68036140114"), new UserBasicInfo 
@@ -206,6 +230,6 @@ public class FollowService : IFollowService
                 { Id = Guid.Parse("d1234567-1234-5678-9abc-def012345683"), Username = "diana.wilson", DisplayName = "Diana Wilson", IsVerified = true } }
         };
 
-        return mockUsers.TryGetValue(userId, out var user) ? user : null;
+        return mockUsers.TryGetValue(userId, out var mockUser) ? mockUser : null;
     }
 }
