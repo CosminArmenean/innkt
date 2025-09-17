@@ -353,16 +353,16 @@ const SearchPage: React.FC<SearchPageProps> = ({
                     <UserIcon className="w-5 h-5 mr-2" />
                     Users ({searchResult.users.length})
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {searchResult.users.map((user) => (
                       <div
                         key={user.id}
-                        className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-purple-200 transition-all duration-200 cursor-pointer group"
+                        className="p-6 bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-purple-200 transition-all duration-200 cursor-pointer group"
                         onClick={() => handleUserClick(user)}
                       >
-                        <div className="flex items-start space-x-4">
+                        <div className="flex flex-col items-center text-center space-y-4">
                           {/* Profile Picture */}
-                          <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {user.avatarUrl ? (
                               <img
                                 src={user.avatarUrl}
@@ -378,7 +378,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
                               />
                             ) : null}
                             <span 
-                              className="text-white font-bold text-lg"
+                              className="text-white font-bold text-2xl"
                               style={{ display: user.avatarUrl ? 'none' : 'flex' }}
                             >
                               {user.displayName?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() || 'U'}
@@ -386,10 +386,10 @@ const SearchPage: React.FC<SearchPageProps> = ({
                           </div>
                           
                           {/* User Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-                                {user.displayName}
+                          <div className="w-full">
+                            <div className="flex items-center justify-center space-x-2 mb-2">
+                              <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-lg">
+                                {user.displayName || user.username}
                               </h3>
                               {user.isVerified && (
                                 <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -397,27 +397,28 @@ const SearchPage: React.FC<SearchPageProps> = ({
                                 </div>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 mb-2">@{user.username}</p>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <p className="text-sm text-gray-600 mb-3">@{user.username}</p>
+                            <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 mb-4">
                               <span className="flex items-center space-x-1">
-                                <span className="font-medium text-gray-700">{user.followersCount}</span>
+                                <span className="font-medium text-gray-700">{user.followersCount || 0}</span>
                                 <span>followers</span>
                               </span>
                               <span className="flex items-center space-x-1">
-                                <span className="font-medium text-gray-700">{user.postsCount}</span>
+                                <span className="font-medium text-gray-700">{user.postsCount || 0}</span>
                                 <span>posts</span>
                               </span>
                             </div>
-                          </div>
-                          
-                          {/* Follow Button */}
-                          <div className="flex-shrink-0">
-                            <FollowButton
-                              userId={user.id}
-                              currentUserId={currentUser?.id}
-                              size="sm"
-                              variant="primary"
-                            />
+                            
+                            {/* Follow Button */}
+                            <div className="w-full">
+                              <FollowButton
+                                userId={user.id}
+                                currentUserId={currentUser?.id}
+                                size="md"
+                                variant="primary"
+                                className="w-full"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>

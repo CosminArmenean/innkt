@@ -14,7 +14,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./Backend/innkt.Officer/init_identity_only.sql:/docker-entrypoint-initdb.d/01-init-identity.sql
+      - ./Backend/innkt.Officer/init_complete.sql:/docker-entrypoint-initdb.d/01-init-complete.sql
     networks:
       - innkt-network
     healthcheck:

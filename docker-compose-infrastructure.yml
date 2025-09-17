@@ -37,18 +37,20 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB Database
+  # MongoDB Database with Replica Set (required for Change Streams)
   mongodb:
     image: mongo:7
     container_name: innkt-mongodb
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: innkt_messaging
+      MONGO_INITDB_DATABASE: innkt_social
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - ./init-mongodb-replica.js:/docker-entrypoint-initdb.d/init-replica.js:ro
     networks:
       - innkt-network
     healthcheck:
@@ -56,6 +58,32 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # MongoDB Replica Set Initialization
+  mongodb-setup:
+    image: mongo:7
+    container_name: innkt-mongodb-setup
+    depends_on:
+      - mongodb
+    command: >
+      mongosh --host mongodb:27017 --eval "
+      try {
+        rs.status();
+        print('Replica set already initialized');
+      } catch (e) {
+        print('Initializing replica set...');
+        rs.initiate({
+          _id: 'rs0',
+          members: [
+            { _id: 0, host: 'mongodb:27017' }
+          ]
+        });
+        print('Replica set initialized successfully');
+      }
+      "
+    networks:
+      - innkt-network
+    restart: "no"
 
   # Kafka Message Broker
   zookeeper:

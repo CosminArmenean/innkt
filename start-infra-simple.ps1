@@ -24,9 +24,36 @@ docker-compose up -d
 Write-Host "`n⏳ Waiting for services to start..." -ForegroundColor Yellow
 Start-Sleep -Seconds 10
 
+# Initialize MongoDB replica set for Change Streams
+Write-Host "`n🔧 Setting up MongoDB replica set..." -ForegroundColor Cyan
+Write-Host "This is required for real-time Change Streams..." -ForegroundColor Yellow
+
+try {
+    # Wait for MongoDB to be ready first
+    Start-Sleep -Seconds 5
+    
+    # Initialize replica set
+    docker exec innkt-mongodb mongosh --eval "
+    try {
+      rs.status();
+      print('✅ Replica set already initialized');
+    } catch (e) {
+      print('🚀 Initializing replica set...');
+      rs.initiate({
+        _id: 'rs0',
+        members: [{ _id: 0, host: 'localhost:27017' }]
+      });
+      print('✅ Replica set initialized - Change Streams ready!');
+    }
+    "
+    Write-Host "✅ MongoDB replica set configured" -ForegroundColor Green
+} catch {
+    Write-Host "⚠️ MongoDB replica set setup failed (will try manual setup)" -ForegroundColor Yellow
+}
+
 # Check what's running
 Write-Host "`n📊 Checking services..." -ForegroundColor Cyan
-$ports = @(5432, 6379, 27017, 9092, 2181)
+$ports = @(5433, 6379, 27017, 9092, 2181)
 $services = @("PostgreSQL", "Redis", "MongoDB", "Kafka", "Zookeeper")
 
 for ($i = 0; $i -lt $ports.Count; $i++) {

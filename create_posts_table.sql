@@ -1,0 +1,22 @@
+CREATE TABLE "Posts" (
+    "Id" uuid NOT NULL,
+    "UserId" uuid NOT NULL,
+    "Content" character varying(5000) NOT NULL,
+    "MediaUrls" text[] NOT NULL,
+    "Hashtags" text[] NOT NULL,
+    "Mentions" text[] NOT NULL,
+    "Location" character varying(255),
+    "PostType" character varying(50) NOT NULL DEFAULT 'text',
+    "IsPublic" boolean NOT NULL,
+    "IsPinned" boolean NOT NULL,
+    "PollOptions" text[],
+    "PollDuration" integer,
+    "PollExpiresAt" timestamp with time zone,
+    "LikesCount" integer NOT NULL,
+    "CommentsCount" integer NOT NULL,
+    "SharesCount" integer NOT NULL,
+    "ViewsCount" integer NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "UpdatedAt" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PK_Posts" PRIMARY KEY ("Id")
+);

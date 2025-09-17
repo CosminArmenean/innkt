@@ -103,6 +103,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // IMPORTANT: Skip Server-Sent Events (SSE) endpoints
+  if (url.pathname.includes('/api/realtime/events') || 
+      url.pathname.includes('/events') ||
+      request.headers.get('accept') === 'text/event-stream') {
+    console.log('Service Worker: Skipping SSE request:', url.pathname);
+    return; // Let the browser handle SSE directly
+  }
+  
   // Determine cache strategy based on request type
   const strategy = getCacheStrategy(request);
   
