@@ -25,26 +25,35 @@ public class SocialDbContext : DbContext
         // Post configuration
         modelBuilder.Entity<Post>(entity =>
         {
+            entity.ToTable("Posts", "public");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Content).IsRequired().HasMaxLength(5000);
             entity.Property(e => e.Location).HasMaxLength(255);
+            entity.Property(e => e.PostType).HasMaxLength(50).HasDefaultValue("text");
             entity.Property(e => e.MediaUrls).HasColumnType("text[]");
             entity.Property(e => e.Hashtags).HasColumnType("text[]");
             entity.Property(e => e.Mentions).HasColumnType("text[]");
+            entity.Property(e => e.PollOptions).HasColumnType("text[]");
+            entity.Property(e => e.PollDuration).HasColumnName("PollDuration");
+            entity.Property(e => e.PollExpiresAt).HasColumnName("PollExpiresAt");
             
             // Indexes for performance
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.IsPublic);
             entity.HasIndex(e => e.IsPinned);
+            entity.HasIndex(e => e.PostType);
+            entity.HasIndex(e => e.PollExpiresAt);
             
             // GIN index for array fields
             entity.HasIndex(e => e.Hashtags).HasMethod("gin");
+            entity.HasIndex(e => e.PollOptions).HasMethod("gin");
         });
 
         // Comment configuration
         modelBuilder.Entity<Comment>(entity =>
         {
+            entity.ToTable("Comments", "public");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
             
@@ -69,6 +78,7 @@ public class SocialDbContext : DbContext
         // Like configuration
         modelBuilder.Entity<Like>(entity =>
         {
+            entity.ToTable("Likes", "public");
             entity.HasKey(e => e.Id);
             
             // Foreign key relationships
@@ -94,6 +104,7 @@ public class SocialDbContext : DbContext
         // Follow configuration
         modelBuilder.Entity<Follow>(entity =>
         {
+            entity.ToTable("Follows", "public");
             entity.HasKey(e => e.Id);
             
             // Unique constraint - user can only follow another user once
