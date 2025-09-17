@@ -17,6 +17,7 @@ public class SocialDbContext : DbContext
     public DbSet<GroupMember> GroupMembers { get; set; }
     public DbSet<GroupPost> GroupPosts { get; set; }
     public DbSet<UserReport> UserReports { get; set; }
+    public DbSet<PollVote> PollVotes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -212,6 +213,28 @@ public class SocialDbContext : DbContext
             entity.HasIndex(e => e.ReporterId);
             entity.HasIndex(e => e.ReportedUserId);
             entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // PollVote configuration
+        modelBuilder.Entity<PollVote>(entity =>
+        {
+            entity.ToTable("PollVotes", "public");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SelectedOption).IsRequired().HasMaxLength(500);
+            
+            // Foreign key relationship
+            entity.HasOne(e => e.Post)
+                  .WithMany(e => e.PollVotes)
+                  .HasForeignKey(e => e.PostId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Unique constraint - one vote per user per poll
+            entity.HasIndex(e => new { e.PostId, e.UserId }).IsUnique();
+            
+            // Indexes
+            entity.HasIndex(e => e.PostId);
+            entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.CreatedAt);
         });
     }

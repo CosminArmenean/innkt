@@ -36,6 +36,64 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
           </div>
           <p className="text-gray-800 mt-2">{post.content}</p>
           
+          {/* Poll Display */}
+          {post.postType === 'poll' && (
+            <div className="mt-4 p-4 bg-yellow-100 rounded-lg border border-yellow-300">
+              <div className="text-sm text-gray-700 mb-2">
+                🐛 Debug: PostType = "{post.postType}", PollOptions = {JSON.stringify(post.pollOptions)}
+              </div>
+              
+              {post.pollOptions && post.pollOptions.length > 0 ? (
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-900 flex items-center">
+                      📊 Poll
+                    </h4>
+                    {post.pollExpiresAt && (
+                      <span className="text-sm text-gray-500 flex items-center">
+                        ⏰ {new Date(post.pollExpiresAt) > new Date() 
+                          ? `Expires ${new Date(post.pollExpiresAt).toLocaleDateString()}`
+                          : 'Expired'
+                        }
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {post.pollOptions.map((option, index) => (
+                      <div 
+                        key={index}
+                        className="p-3 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          // TODO: Implement voting logic
+                          console.log(`Voted for option: ${option}`);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-800">{option}</span>
+                          <span className="text-sm text-gray-500">0%</span>
+                        </div>
+                        <div className="mt-1 bg-gray-200 rounded-full h-2">
+                          <div className="bg-blue-500 h-2 rounded-full" style={{width: '0%'}}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {post.pollDuration && (
+                    <div className="mt-3 text-sm text-gray-500">
+                      Duration: {post.pollDuration} hours
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3 bg-red-100 text-red-700 rounded">
+                  ❌ Poll data missing or empty
+                </div>
+              )}
+            </div>
+          )}
+          
           {post.media && post.media.length > 0 && (
             <div className="mt-3">
               {post.media.map((media, index) => (

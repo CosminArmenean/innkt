@@ -61,6 +61,23 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
         limit: 20
       });
 
+      // Debug: Check for poll posts in response
+      console.log('SocialFeed - Full API response:', response);
+      if (response.posts) {
+        const pollPosts = response.posts.filter(p => p.postType === 'poll');
+        console.log('SocialFeed - Poll posts found:', pollPosts);
+        pollPosts.forEach(post => {
+          console.log('SocialFeed - Poll post details:', {
+            id: post.id,
+            content: post.content,
+            postType: post.postType,
+            pollOptions: post.pollOptions,
+            pollDuration: post.pollDuration,
+            pollExpiresAt: post.pollExpiresAt
+          });
+        });
+      }
+
       if (reset) {
         setPosts(response.posts || []);
       } else {
@@ -387,6 +404,11 @@ const PostCard: React.FC<{
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Poll state
+  const [pollResults, setPollResults] = useState<any>(null);
+  const [isVoting, setIsVoting] = useState(false);
+  const [userVote, setUserVote] = useState<number | null>(null);
 
   const loadComments = async () => {
     if (isLoadingComments) return;
@@ -446,6 +468,43 @@ const PostCard: React.FC<{
       alert('Failed to delete post. Please try again.');
     }
   };
+
+  // Poll functions
+  const loadPollResults = async () => {
+    if (post.postType !== 'poll') return;
+    
+    try {
+      const results = await socialService.getPollResults(post.id);
+      setPollResults(results);
+      setUserVote(results.userVotedOptionIndex ?? null);
+    } catch (error) {
+      console.error('Failed to load poll results:', error);
+    }
+  };
+
+  const handleVote = async (option: string, optionIndex: number) => {
+    if (!currentUserId || isVoting) return;
+    
+    setIsVoting(true);
+    try {
+      await socialService.voteOnPoll(post.id, option, optionIndex);
+      setUserVote(optionIndex);
+      // Reload poll results to get updated percentages
+      await loadPollResults();
+    } catch (error) {
+      console.error('Failed to vote:', error);
+      alert('Failed to record your vote. Please try again.');
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  // Load poll results when component mounts if it's a poll
+  useEffect(() => {
+    if (post.postType === 'poll') {
+      loadPollResults();
+    }
+  }, [post.id, post.postType]);
 
   const isOwnPost = currentUserId && post.authorProfile?.id === currentUserId;
 
@@ -508,7 +567,7 @@ const PostCard: React.FC<{
                 </span>
                 <span className="text-gray-300">•</span>
                 <span className="text-sm text-gray-500 flex items-center">
-                  {getPostTypeIcon(post.type)} {post.type}
+                  {getPostTypeIcon(post.postType)} {post.postType}
                 </span>
               </div>
             </div>
@@ -577,6 +636,102 @@ const PostCard: React.FC<{
         ) : (
           <div className="prose prose-sm max-w-none">
             <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+          </div>
+        )}
+
+        {/* Poll Display */}
+        {post.postType === 'poll' && (
+          <div className="mt-4">
+            <div className="text-sm text-gray-600 mb-2">
+              🐛 Debug: PostType = "{post.postType}", PollOptions = {JSON.stringify(post.pollOptions)}
+            </div>
+            
+            {post.pollOptions && post.pollOptions.length > 0 ? (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-900 flex items-center">
+                    📊 Poll
+                  </h4>
+                  {post.pollExpiresAt && (
+                    <span className="text-sm text-gray-500 flex items-center">
+                      ⏰ {new Date(post.pollExpiresAt) > new Date() 
+                        ? `Expires ${new Date(post.pollExpiresAt).toLocaleDateString()}`
+                        : 'Expired'
+                      }
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  {post.pollOptions.map((option, index) => {
+                    const result = pollResults?.results?.find((r: any) => r.option === option);
+                    const percentage = result?.percentage || 0;
+                    const voteCount = result?.voteCount || 0;
+                    const isUserVote = userVote === index;
+                    const isExpired = pollResults?.isExpired || false;
+                    
+                    return (
+                      <div 
+                        key={index}
+                        className={`p-3 border rounded-lg transition-colors ${
+                          isUserVote 
+                            ? 'bg-blue-100 border-blue-300' 
+                            : isExpired 
+                              ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
+                              : 'bg-white border-gray-200 hover:bg-blue-50 cursor-pointer'
+                        }`}
+                        onClick={() => {
+                          if (!isExpired && !isVoting) {
+                            handleVote(option, index);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-800">{option}</span>
+                            {isUserVote && <span className="text-blue-600 text-sm">✓ Your vote</span>}
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-semibold text-gray-700">{percentage.toFixed(1)}%</span>
+                            <div className="text-xs text-gray-500">{voteCount} votes</div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              isUserVote ? 'bg-blue-500' : 'bg-gray-400'
+                            }`}
+                            style={{width: `${percentage}%`}}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+                  <div>
+                    {pollResults && (
+                      <span>Total votes: {pollResults.totalVotes}</span>
+                    )}
+                    {post.pollDuration && (
+                      <span className="ml-4">Duration: {post.pollDuration} hours</span>
+                    )}
+                  </div>
+                  <div>
+                    {pollResults?.isExpired ? (
+                      <span className="text-red-600 font-medium">🔒 Poll Expired</span>
+                    ) : (
+                      <span className="text-green-600 font-medium">🗳️ Active</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-red-100 text-red-700 rounded border border-red-300">
+                ❌ Poll data missing or empty (postType: {post.postType})
+              </div>
+            )}
           </div>
         )}
 

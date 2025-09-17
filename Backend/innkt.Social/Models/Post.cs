@@ -51,6 +51,32 @@ public class Post
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
     public virtual ICollection<GroupPost> GroupPosts { get; set; } = new List<GroupPost>();
+    public virtual ICollection<PollVote> PollVotes { get; set; } = new List<PollVote>();
+}
+
+public class PollVote
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    
+    [Required]
+    public Guid PostId { get; set; }
+    
+    [Required]
+    public Guid UserId { get; set; }
+    
+    [Required]
+    [MaxLength(500)]
+    public string SelectedOption { get; set; } = string.Empty;
+    
+    [Required]
+    public int OptionIndex { get; set; }
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    // Navigation properties
+    [ForeignKey("PostId")]
+    public virtual Post Post { get; set; } = null!;
 }
 
 public class Comment

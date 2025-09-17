@@ -86,7 +86,7 @@ const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({ userId, i
           contentHash: btoa(selectedPost.content), // Simple hash for demo
           author: selectedPost.authorProfile?.displayName || 'Unknown User',
           timestamp: selectedPost.createdAt,
-          postType: selectedPost.type,
+          postType: selectedPost.postType,
           verificationLevel,
         },
       };

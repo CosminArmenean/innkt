@@ -29,13 +29,17 @@ public class PostService : IPostService
             Hashtags = request.Hashtags,
             Mentions = request.Mentions,
             Location = request.Location,
-            IsPublic = request.IsPublic
+            PostType = request.PostType,
+            IsPublic = request.IsPublic,
+            PollOptions = request.PollOptions,
+            PollDuration = request.PollDuration,
+            PollExpiresAt = request.PollDuration.HasValue ? DateTime.UtcNow.AddHours(request.PollDuration.Value) : null
         };
 
         _context.Posts.Add(post);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Created post {PostId} for user {UserId}", post.Id, userId);
+        _logger.LogInformation("Created post {PostId} for user {UserId} with type {PostType}", post.Id, userId, request.PostType);
         return await GetPostByIdAsync(post.Id, userId);
     }
 
