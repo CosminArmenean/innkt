@@ -69,13 +69,21 @@ public class OfficerService : IOfficerService
                 });
                 
                 // Map the Officer service response to UserBasicInfo
+                var avatarUrl = userResponse.GetProperty("profilePictureUrl").GetString();
+                
+                // Add fallback avatars for test users if Officer service doesn't have them
+                if (string.IsNullOrEmpty(avatarUrl))
+                {
+                    avatarUrl = GetTestAvatarUrl(userId);
+                }
+                
                 var user = new UserBasicInfo
                 {
                     Id = Guid.Parse(userResponse.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
                     Username = userResponse.GetProperty("username").GetString() ?? "",
                     DisplayName = userResponse.GetProperty("fullName").GetString() ?? "",
                     Email = userResponse.GetProperty("email").GetString(),
-                    AvatarUrl = userResponse.GetProperty("profilePictureUrl").GetString(),
+                    AvatarUrl = avatarUrl,
                     IsVerified = userResponse.GetProperty("isVerified").GetBoolean()
                 };
                 
@@ -234,5 +242,21 @@ public class OfficerService : IOfficerService
 
         await Task.WhenAll(tasks);
         _logger.LogInformation("Loaded {Count} users individually", result.Count);
+    }
+
+    /// <summary>
+    /// Provides fallback avatar URLs for test users when Officer service doesn't have profile pictures
+    /// </summary>
+    private string? GetTestAvatarUrl(Guid userId)
+    {
+        var testAvatars = new Dictionary<Guid, string>
+        {
+            { Guid.Parse("bdfc4c41-c42e-42e0-a57b-d8301a37b1fe"), "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" }, // Cosmin/junior11
+            { Guid.Parse("5e578ba9-edd9-487a-b222-8aad79db6e81"), "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" }, // Patrick Jane
+            { Guid.Parse("e9f37dc7-85a4-48e7-b18a-efc1a6bed653"), "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" }, // John Doe
+            { Guid.Parse("2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9"), "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" }  // Jane Smith
+        };
+
+        return testAvatars.TryGetValue(userId, out var avatarUrl) ? avatarUrl : null;
     }
 }
