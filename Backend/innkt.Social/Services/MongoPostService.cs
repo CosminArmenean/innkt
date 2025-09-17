@@ -475,9 +475,12 @@ public class MongoPostService : IMongoPostService
     // Helper methods
     private async Task<UserSnapshot> GetOrCreateUserSnapshotAsync(Guid userId)
     {
+        _logger.LogInformation("🔍 DEBUG: Fetching user profile for {UserId} from Officer service", userId);
+        
         var userInfo = await _officerService.GetUserByIdAsync(userId);
         if (userInfo == null)
         {
+            _logger.LogWarning("❌ DEBUG: Officer service returned null for user {UserId}", userId);
             return new UserSnapshot
             {
                 UserId = userId.ToString(),
@@ -486,6 +489,9 @@ public class MongoPostService : IMongoPostService
                 IsActive = false
             };
         }
+
+        _logger.LogInformation("✅ DEBUG: Officer service returned user data - DisplayName: {DisplayName}, AvatarUrl: {AvatarUrl}", 
+            userInfo.DisplayName, userInfo.AvatarUrl ?? "NULL");
 
         var snapshot = new UserSnapshot
         {
@@ -498,6 +504,10 @@ public class MongoPostService : IMongoPostService
         };
         
         snapshot.RefreshExpiry();
+        
+        _logger.LogInformation("📊 DEBUG: Created UserSnapshot - DisplayName: {DisplayName}, AvatarUrl: {AvatarUrl}", 
+            snapshot.DisplayName, snapshot.AvatarUrl ?? "NULL");
+            
         return snapshot;
     }
 
