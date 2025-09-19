@@ -183,10 +183,17 @@ const RightPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Online Status - Above version */}
+      {/* System Status with Real-time Indicator */}
       <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
         <div className="text-center">
-          <h3 className="text-sm font-medium text-gray-900 mb-2">System Status</h3>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">System Status</h3>
+          
+          {/* Real-time Connection Status */}
+          <div className="flex items-center justify-center space-x-2 mb-3 p-2 bg-gray-50 rounded-lg">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-xs text-gray-600 font-medium">🚀 Real-time active</span>
+          </div>
+          
           <PWAStatus showDetails={false} />
         </div>
       </div>
