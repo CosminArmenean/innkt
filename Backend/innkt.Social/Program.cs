@@ -7,6 +7,7 @@ using innkt.Social.Data;
 using innkt.Social.Services;
 using StackExchange.Redis;
 using AutoMapper;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,7 +99,27 @@ builder.Services.AddSingleton<IRealtimeService, RealtimeService>();
 builder.Services.AddHostedService<RealtimeHostedService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IRepostService, RepostService>(); // NEW: Repost service
+builder.Services.AddScoped<INotificationService, NotificationService>(); // NEW: Notification service
+builder.Services.AddScoped<IKidSafetyService, KidSafetyService>(); // NEW: Kid safety service
+builder.Services.AddScoped<IContentFilteringService, ContentFilteringService>(); // NEW: Content filtering service
+builder.Services.AddScoped<IKidSafeFeedService, KidSafeFeedService>(); // NEW: Kid-safe feed service
+builder.Services.AddScoped<ISafeSuggestionService, SafeSuggestionService>(); // NEW: Safe suggestion service
 builder.Services.AddScoped<TrendingService>();
+
+// Add Kafka Producer for notifications
+builder.Services.AddSingleton<IProducer<string, string>>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var kafkaBootstrapServers = configuration.GetValue<string>("Kafka:BootstrapServers") ?? "localhost:9092";
+    
+    var config = innkt.Social.Configuration.KafkaConfig.GetProducerConfig(kafkaBootstrapServers);
+    return new ProducerBuilder<string, string>(config).Build();
+});
+
+// Add Notification Configuration
+builder.Services.Configure<innkt.Social.Services.NotificationConfig>(
+    builder.Configuration.GetSection("Notifications"));
 
 // Add HTTP Client for Officer service
 builder.Services.AddHttpClient<IOfficerService, OfficerService>();

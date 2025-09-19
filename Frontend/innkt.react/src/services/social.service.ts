@@ -117,6 +117,7 @@ export interface Post {
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
+  repostsCount?: number;
   viewsCount?: number;
   isLiked: boolean;
   isLikedByCurrentUser?: boolean;
@@ -166,6 +167,7 @@ export interface MongoPostResponse {
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
+  repostsCount?: number; // NEW
   viewsCount: number;
   feedScore: number;
   createdAt: string;
@@ -559,6 +561,7 @@ export class SocialService extends BaseApiService {
           likesCount: post.likesCount,
           commentsCount: post.commentsCount,
           sharesCount: post.sharesCount,
+          repostsCount: post.repostsCount || 0,
           viewsCount: post.viewsCount,
           createdAt: post.createdAt,
           updatedAt: post.updatedAt,

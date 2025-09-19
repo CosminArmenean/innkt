@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using innkt.Social.Models;
+using innkt.Social.Models.KidAccounts;
 
 namespace innkt.Social.Data;
 
@@ -18,6 +19,16 @@ public class SocialDbContext : DbContext
     public DbSet<GroupPost> GroupPosts { get; set; }
     public DbSet<UserReport> UserReports { get; set; }
     public DbSet<PollVote> PollVotes { get; set; }
+    
+    // Kid account safety tables
+    public DbSet<KidAccount> KidAccounts { get; set; }
+    public DbSet<ParentApproval> ParentApprovals { get; set; }
+    public DbSet<SafetyEvent> SafetyEvents { get; set; }
+    public DbSet<BehaviorAssessment> BehaviorAssessments { get; set; }
+    public DbSet<EducationalProfile> EducationalProfiles { get; set; }
+    public DbSet<TeacherProfile> TeacherProfiles { get; set; }
+    public DbSet<IndependenceTransition> IndependenceTransitions { get; set; }
+    public DbSet<ContentSafetyRule> ContentSafetyRules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

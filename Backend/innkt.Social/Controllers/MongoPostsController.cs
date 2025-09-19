@@ -18,15 +18,18 @@ public class MongoPostsController : ControllerBase
 {
     private readonly IMongoPostService _mongoPostService;
     private readonly IRealtimeService _realtimeService;
+    private readonly IRepostService _repostService;
     private readonly ILogger<MongoPostsController> _logger;
 
     public MongoPostsController(
         IMongoPostService mongoPostService, 
         IRealtimeService realtimeService,
+        IRepostService repostService,
         ILogger<MongoPostsController> logger)
     {
         _mongoPostService = mongoPostService;
         _realtimeService = realtimeService;
+        _repostService = repostService;
         _logger = logger;
     }
 
@@ -534,5 +537,119 @@ public class MongoPostsController : ControllerBase
                 LastUpdated = post.UserSnapshot.LastUpdated
             } : null
         };
+    }
+
+    /// <summary>
+    /// Create a repost of an existing post
+    /// </summary>
+    [HttpPost("{postId}/repost")]
+    public async Task<ActionResult<CreateRepostResponse>> CreateRepost(Guid postId, [FromBody] CreateRepostRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized("User ID not found in token");
+            }
+
+            // Override the original post ID with the route parameter
+            request.OriginalPostId = postId;
+
+            _logger.LogInformation("Creating repost for user {UserId} on post {PostId}", userId, postId);
+
+            var repost = await _repostService.CreateRepostAsync(request, userId);
+
+            var response = new CreateRepostResponse
+            {
+                Repost = repost,
+                Message = repost.RepostType == "quote" 
+                    ? "Quote repost created successfully" 
+                    : "Repost created successfully"
+            };
+
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid repost operation for post {PostId}", postId);
+            return BadRequest(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid repost request for post {PostId}", postId);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating repost for post {PostId}", postId);
+            return StatusCode(500, "An error occurred while creating the repost");
+        }
+    }
+
+    /// <summary>
+    /// Check if current user can repost a specific post
+    /// </summary>
+    [HttpGet("{postId}/can-repost")]
+    public async Task<ActionResult<object>> CanRepost(Guid postId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized("User ID not found in token");
+            }
+
+            var canRepost = await _repostService.CanUserRepostAsync(userId, postId);
+            var hasReposted = await _repostService.HasUserRepostedAsync(userId, postId);
+            var repostCount = await _repostService.GetUserRepostCountInLastHourAsync(userId);
+
+            return Ok(new
+            {
+                CanRepost = canRepost,
+                HasAlreadyReposted = hasReposted,
+                RepostCountLastHour = repostCount,
+                MaxRepostsPerHour = 50,
+                Reason = canRepost ? "Allowed" : hasReposted ? "Already reposted" : "Rate limit exceeded"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking repost eligibility for post {PostId}", postId);
+            return StatusCode(500, "An error occurred while checking repost eligibility");
+        }
+    }
+
+    /// <summary>
+    /// Get all reposts of a specific post
+    /// </summary>
+    [HttpGet("{postId}/reposts")]
+    public async Task<ActionResult<RepostListResponse>> GetPostReposts(
+        Guid postId, 
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var reposts = await _repostService.GetPostRepostsAsync(postId, page, pageSize);
+            var totalCount = await _repostService.GetPostRepostCountAsync(postId);
+
+            var response = new RepostListResponse
+            {
+                Reposts = reposts,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                HasMore = reposts.Count == pageSize
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting reposts for post {PostId}", postId);
+            return StatusCode(500, "An error occurred while retrieving post reposts");
+        }
     }
 }
