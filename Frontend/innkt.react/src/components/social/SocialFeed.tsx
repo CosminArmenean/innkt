@@ -6,6 +6,7 @@ import { useRealtimeNotifications } from '../../hooks/useRealtimeNotifications';
 import PostCreation from './PostCreation';
 import LinkedAccountsPost from './LinkedAccountsPost';
 import PostSkeleton from './PostSkeleton';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Add CSS for notification animations
 const notificationStyles = `
@@ -83,6 +84,35 @@ const notificationStyles = `
   .post-creation-button:hover {
     box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.2);
   }
+
+  /* Floating card popover animations */
+  @keyframes popover-appear {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes backdrop-appear {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .popover-card {
+    animation: popover-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .backdrop-overlay {
+    animation: backdrop-appear 0.2s ease-out;
+  }
 `;
 
 // Inject styles
@@ -127,6 +157,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   currentUserId,
   initialPostCreationExpanded = false
 }) => {
+  const { user } = useAuth(); // Get current user information
   const [posts, setPosts] = useState<Post[]>([]);
   const [linkedPosts, setLinkedPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -139,6 +170,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [isPostCreationExpanded, setIsPostCreationExpanded] = useState(initialPostCreationExpanded);
   const [error, setError] = useState<string | null>(null);
+  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+  const [expandedRecentPost, setExpandedRecentPost] = useState<string | null>(null);
+  const [showFullRecentPost, setShowFullRecentPost] = useState<string | null>(null);
   const { notifications, addNotification, removeNotification } = useRealtimeNotifications();
   const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
@@ -154,6 +188,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
       setHasInitialized(true);
       loadPosts(true);
       loadLinkedPosts();
+      loadRecentPosts();
     } else {
       // Only reload if filters actually changed after initialization
       loadPosts(true);
@@ -402,6 +437,51 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     setLinkedPosts([]);
   };
 
+  const loadRecentPosts = async () => {
+    try {
+      const response = await socialService.getPosts({ limit: 6 });
+      setRecentPosts(response.posts || []);
+    } catch (error) {
+      console.error('Failed to load recent posts:', error);
+      setRecentPosts([]);
+    }
+  };
+
+  const handleRecentPostClick = (postId: string) => {
+    if (expandedRecentPost === postId) {
+      // Close the card
+      setExpandedRecentPost(null);
+      setShowFullRecentPost(null);
+    } else {
+      // Open the card and increment view count
+      setExpandedRecentPost(postId);
+      setShowFullRecentPost(null);
+      
+      // Increment view count (simulate API call)
+      setRecentPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, viewsCount: (post.viewsCount || 0) + 1 }
+          : post
+      ));
+      
+      console.log(`👁️ Post view incremented for post ${postId}`);
+    }
+  };
+
+  const handleReadMore = (postId: string) => {
+    setShowFullRecentPost(postId);
+  };
+
+  const handleProfileClick = (userId: string) => {
+    // Navigate to user profile (re-enabled for floating card username)
+    window.location.href = `/profile/${userId}`;
+  };
+
+  const truncateText = (text: string, maxLength: number = 120) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   const handlePostCreated = (newPost: Post) => {
     console.log('New post created, adding to feed:', newPost);
     setPosts(prev => [newPost, ...prev]);
@@ -642,43 +722,23 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
       )}
 
       {/* Professional Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="px-6 py-4">
+      {/* Thin Header Row */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {groupId ? 'Group Posts' : userId ? 'User Posts' : 'Social Feed'}
-              </h1>
-              <div className="flex items-center space-x-4 mt-1">
-                <p className="text-sm text-gray-600">
-                  Stay connected with your community
-                </p>
-                <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    sseStatus === 'connected' ? 'bg-green-500' : 
-                    sseStatus === 'connecting' ? 'bg-yellow-500' : 
-                    sseStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
-                  }`}></div>
-                  <span className="text-xs text-gray-500">
-                    {sseStatus === 'connected' ? '🚀 Real-time active' : 
-                     sseStatus === 'connecting' ? '⏳ Connecting...' : 
-                     sseStatus === 'error' ? '❌ Connection failed' : '⭕ Disconnected'}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <h1 className="text-lg font-semibold text-gray-900">
+              🎯 {groupId ? 'Group Square' : userId ? 'User Square' : 'Social Square'}
+            </h1>
             
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
-                </svg>
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </button>
-            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+              </svg>
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
           </div>
         </div>
 
@@ -731,6 +791,151 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Recent Posts Row - Styled like Add New Post */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-3">
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-dashed border-purple-200 rounded-xl p-4">
+            <div className="flex items-center space-x-4 overflow-x-auto pb-2">
+              {recentPosts.length > 0 ? (
+                recentPosts.map((post) => (
+                  <div key={post.id} className="flex-shrink-0 relative">
+                    <button
+                      onClick={() => handleRecentPostClick(post.id)}
+                      className="w-14 h-14 rounded-full overflow-hidden border-3 border-white shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                      title={post.authorProfile?.username || 'User'}
+                    >
+                      <img
+                        src={post.authorProfile?.avatar || '/api/placeholder/56/56'}
+                        alt={post.authorProfile?.username || 'User'}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                    
+                    {/* Floating Card Popover - Fixed positioning to appear over container */}
+                    {expandedRecentPost === post.id && (
+                      <>
+                        {/* Backdrop overlay */}
+                        <div 
+                          className="fixed inset-0 z-40 bg-black bg-opacity-20 backdrop-overlay"
+                          onClick={() => setExpandedRecentPost(null)}
+                        />
+                        
+                        {/* Floating card positioned over everything */}
+                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 p-5 popover-card">
+                          {/* Profile Header with clickable username */}
+                          <div className="flex items-center space-x-3 mb-4 pb-3 border-b border-gray-100">
+                            <img
+                              src={post.authorProfile?.avatar || '/api/placeholder/48/48'}
+                              alt={post.authorProfile?.username || 'User'}
+                              className="w-12 h-12 rounded-full border-2 border-gray-200"
+                            />
+                            <div className="flex-1">
+                              <button
+                                onClick={() => handleProfileClick(post.userId)}
+                                className="text-left hover:bg-gray-50 rounded-lg p-1 transition-colors"
+                              >
+                                <h4 className="text-base font-semibold text-gray-900 hover:text-purple-600">{post.authorProfile?.displayName || 'Unknown User'}</h4>
+                                <p className="text-sm text-gray-500">@{post.authorProfile?.username || 'unknown'}</p>
+                              </button>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs text-gray-400">{formatDate(post.createdAt)}</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedRecentPost(null);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Post Content */}
+                          <div className="text-sm text-gray-700 mb-4">
+                            {showFullRecentPost === post.id ? (
+                              <p className="leading-relaxed">{post.content}</p>
+                            ) : (
+                              <p className="leading-relaxed">{truncateText(post.content)}</p>
+                            )}
+                            
+                            {post.content.length > 120 && showFullRecentPost !== post.id && (
+                              <button
+                                onClick={() => handleReadMore(post.id)}
+                                className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-2"
+                              >
+                                Read more
+                              </button>
+                            )}
+                          </div>
+                          
+                          {/* Post Media */}
+                          {post.media && post.media.length > 0 && (
+                            <img
+                              src={post.media[0].url}
+                              alt={post.media[0].altText || 'Post media'}
+                              className="w-full h-48 object-cover rounded-lg mb-4"
+                            />
+                          )}
+                          
+                          {/* Engagement Stats */}
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div className="flex items-center space-x-6 text-sm text-gray-600">
+                              <button 
+                                onClick={() => handleLike(post.id)}
+                                className="flex items-center space-x-2 hover:text-red-500 cursor-pointer transition-colors"
+                              >
+                                <span>{post.isLiked ? '❤️' : '🤍'}</span>
+                                <span>{post.likesCount}</span>
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setExpandedRecentPost(null);
+                                  // Scroll to the post in the main feed to open comments
+                                  const postElement = document.querySelector(`[data-post-id="${post.id}"]`);
+                                  if (postElement) {
+                                    postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    // Trigger comment section open
+                                    setTimeout(() => {
+                                      const commentButton = postElement.querySelector('[data-comment-button]') as HTMLElement;
+                                      if (commentButton) {
+                                        commentButton.click();
+                                      }
+                                    }, 500);
+                                  }
+                                }}
+                                className="flex items-center space-x-2 hover:text-blue-500 cursor-pointer transition-colors"
+                              >
+                                <span>💬</span>
+                                <span>{post.commentsCount}</span>
+                              </button>
+                              <button 
+                                onClick={() => handleShare(post.id)}
+                                className="flex items-center space-x-2 hover:text-green-500 cursor-pointer transition-colors"
+                              >
+                                <span>🔄</span>
+                                <span>{post.sharesCount}</span>
+                              </button>
+                              <span className="flex items-center space-x-2 text-gray-400">
+                                <span>👁️</span>
+                                <span>{post.viewsCount || 0}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 italic">Loading recent posts...</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Enhanced Post Creation with Toggle */}
@@ -863,6 +1068,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                   formatDate={formatDate}
                   getPostVisibilityIcon={getPostVisibilityIcon}
                   getPostTypeIcon={getPostTypeIcon}
+                  currentUser={user}
                 />
               ))}
 
@@ -951,7 +1157,8 @@ const PostCard: React.FC<{
   formatDate: (date: string) => string;
   getPostVisibilityIcon: (visibility: string) => string;
   getPostTypeIcon: (type: string) => string;
-}> = ({ post, onLike, onShare, onDelete, currentUserId, formatDate, getPostVisibilityIcon, getPostTypeIcon }) => {
+  currentUser?: any; // Add current user information
+}> = ({ post, onLike, onShare, onDelete, currentUserId, formatDate, getPostVisibilityIcon, getPostTypeIcon, currentUser }) => {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
@@ -986,8 +1193,41 @@ const PostCard: React.FC<{
     setIsSubmittingComment(true);
     try {
       const newComment = await socialService.createComment(post.id, commentText);
-      setComments(prev => [newComment, ...prev]);
+      
+      // Enhance comment with current user profile information
+      const enhancedComment = {
+        ...newComment,
+        authorProfile: currentUser ? {
+          id: currentUser.id,
+          userId: currentUser.id,
+          displayName: currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.username,
+          username: currentUser.username,
+          email: currentUser.email,
+          avatar: currentUser.avatar,
+          avatarUrl: currentUser.avatar,
+          isVerified: false, // Default value
+          isKidAccount: false, // Default value
+          bio: '',
+          location: '',
+          website: '',
+          dateOfBirth: currentUser.birthDate || '',
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          preferences: {},
+          socialLinks: {},
+          linkedUser: null
+        } : null,
+        authorName: currentUser ? (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.username) : 'Unknown User',
+        createdAt: newComment.createdAt || new Date().toISOString()
+      };
+      
+      setComments(prev => [enhancedComment, ...prev]);
       setCommentText('');
+      
+      console.log('✅ Comment created with user profile:', enhancedComment);
     } catch (error) {
       console.error('Failed to submit comment:', error);
     } finally {
@@ -1065,7 +1305,10 @@ const PostCard: React.FC<{
   const isOwnPost = currentUserId && post.authorProfile?.id === currentUserId;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div 
+      className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+      data-post-id={post.id}
+    >
       {/* Professional Post Header */}
       <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex items-start justify-between">
@@ -1357,6 +1600,7 @@ const PostCard: React.FC<{
             <button
               onClick={() => setShowComments(!showComments)}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              data-comment-button
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -1414,14 +1658,32 @@ const PostCard: React.FC<{
 
             {/* Comments List */}
             <div className="space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0"></div>
+              {comments.map((comment, index) => (
+                <div key={comment.id || `comment-${index}-${Date.now()}`} className="flex space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0">
+                    {comment.authorProfile?.avatar ? (
+                      <img
+                        src={comment.authorProfile.avatar}
+                        alt={comment.authorProfile.displayName || comment.authorName || 'User'}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-purple-100 flex items-center justify-center">
+                        <span className="text-xs text-purple-600 font-semibold">
+                          {(comment.authorProfile?.displayName || comment.authorName || 'U').charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <div className="bg-gray-50 rounded-lg px-3 py-2">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm font-medium text-gray-900">{comment.authorName}</span>
-                        <span className="text-xs text-gray-500">{formatDate(comment.createdAt)}</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {comment.authorProfile?.displayName || comment.authorName || 'Unknown User'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {comment.createdAt ? formatDate(comment.createdAt) : 'Just now'}
+                        </span>
                       </div>
                       <p className="text-sm text-gray-700">{comment.content}</p>
                     </div>
