@@ -19,6 +19,7 @@ public class RealtimeService : IRealtimeService, IDisposable
     private readonly MongoDbContext _mongoContext;
     private readonly SocialDbContext _sqlContext;
     private readonly IOfficerService _officerService;
+    private readonly IUserProfileCacheService _userProfileCache;
     private readonly IMapper _mapper;
     private readonly ILogger<RealtimeService> _logger;
 
@@ -39,12 +40,14 @@ public class RealtimeService : IRealtimeService, IDisposable
         MongoDbContext mongoContext,
         SocialDbContext sqlContext,
         IOfficerService officerService,
+        IUserProfileCacheService userProfileCache,
         IMapper mapper,
         ILogger<RealtimeService> logger)
     {
         _mongoContext = mongoContext;
         _sqlContext = sqlContext;
         _officerService = officerService;
+        _userProfileCache = userProfileCache;
         _mapper = mapper;
         _logger = logger;
     }
@@ -832,29 +835,48 @@ public class RealtimeService : IRealtimeService, IDisposable
     {
         try
         {
-            // Try to get from Officer service
-            var user = await _officerService.GetUserByIdAsync(userId);
-            if (user == null)
+            // Use the new multi-layer caching service for better performance
+            var cachedProfile = await _userProfileCache.GetUserProfileAsync(userId);
+            if (cachedProfile != null)
             {
-                _logger.LogWarning("User {UserId} not found in Officer service", userId);
-                return null;
+                _logger.LogDebug("Retrieved cached profile for user {UserId} with avatar: {AvatarUrl}", 
+                    userId, cachedProfile.AvatarUrl ?? "none");
+                return cachedProfile;
             }
 
-            return new CachedUserProfile
-            {
-                UserId = user.Id,
-                DisplayName = user.DisplayName,
-                Username = user.Username,
-                AvatarUrl = user.AvatarUrl,
-                IsVerified = user.IsVerified,
-                IsActive = true,
-                LastUpdated = DateTime.UtcNow
-            };
+            _logger.LogWarning("User {UserId} not found in any cache layer", userId);
+            return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting cached user profile for user {UserId}", userId);
-            return null;
+            _logger.LogError(ex, "Error getting cached profile for user {UserId}", userId);
+            
+            // Fallback to direct Officer service call
+            try
+            {
+                var user = await _officerService.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("User {UserId} not found in Officer service fallback", userId);
+                    return null;
+                }
+
+                return new CachedUserProfile
+                {
+                    UserId = user.Id,
+                    DisplayName = user.DisplayName,
+                    Username = user.Username,
+                    AvatarUrl = user.AvatarUrl,
+                    IsVerified = user.IsVerified,
+                    IsActive = true,
+                    LastUpdated = DateTime.UtcNow
+                };
+            }
+            catch (Exception fallbackEx)
+            {
+                _logger.LogError(fallbackEx, "Fallback Officer service call also failed for user {UserId}", userId);
+                return null;
+            }
         }
     }
 
