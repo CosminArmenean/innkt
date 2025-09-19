@@ -18,8 +18,42 @@ const notificationStyles = `
     }
   }
   
+  @keyframes expand-post-creation {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+      max-height: 1000px;
+    }
+  }
+  
+  @keyframes collapse-post-creation {
+    from {
+      opacity: 1;
+      transform: scale(1);
+      max-height: 1000px;
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+      max-height: 0;
+    }
+  }
+  
   .animate-slide-down {
     animation: slide-down 0.4s ease-out;
+  }
+  
+  .animate-expand {
+    animation: expand-post-creation 0.5s ease-out;
+  }
+  
+  .animate-collapse {
+    animation: collapse-post-creation 0.3s ease-in;
   }
   
   /* Overlapping profile pictures effect */
@@ -38,6 +72,15 @@ const notificationStyles = `
   .profile-stack:hover > div {
     transform: translateX(4px);
   }
+  
+  /* Post creation button hover effects */
+  .post-creation-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .post-creation-button:hover {
+    box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.2);
+  }
 `;
 
 // Inject styles
@@ -54,6 +97,7 @@ interface SocialFeedProps {
   showPostCreation?: boolean;
   linkedAccounts?: any[];
   currentUserId?: string;
+  initialPostCreationExpanded?: boolean; // Allow parent to control initial state
 }
 
 // Helper function to convert relative avatar URLs to full URLs
@@ -78,7 +122,8 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   userId, 
   showPostCreation = true,
   linkedAccounts = [],
-  currentUserId
+  currentUserId,
+  initialPostCreationExpanded = false
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [linkedPosts, setLinkedPosts] = useState<any[]>([]);
@@ -88,6 +133,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const [filter, setFilter] = useState<'all' | 'verified' | 'blockchain' | 'ai-processed'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'trending'>('latest');
   const [showFilters, setShowFilters] = useState(false);
+  const [isPostCreationExpanded, setIsPostCreationExpanded] = useState(initialPostCreationExpanded);
   const { notifications, addNotification, removeNotification } = useRealtimeNotifications();
   const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
@@ -301,7 +347,33 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const handlePostCreated = (newPost: Post) => {
     console.log('New post created, adding to feed:', newPost);
     setPosts(prev => [newPost, ...prev]);
+    // Auto-collapse post creation after successful post
+    setIsPostCreationExpanded(false);
   };
+
+  const togglePostCreation = () => {
+    setIsPostCreationExpanded(!isPostCreationExpanded);
+  };
+
+  // Keyboard support for post creation toggle
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Shift + N to toggle post creation
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'N') {
+        event.preventDefault();
+        if (showPostCreation) {
+          setIsPostCreationExpanded(!isPostCreationExpanded);
+        }
+      }
+      // Escape to collapse post creation
+      if (event.key === 'Escape' && isPostCreationExpanded) {
+        setIsPostCreationExpanded(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [showPostCreation, isPostCreationExpanded]);
 
   const handleNotificationClick = (notification: any) => {
     console.log('🔔 Notification clicked, refreshing feed...', notification);
@@ -603,14 +675,82 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
         )}
       </div>
 
-      {/* Professional Post Creation */}
+      {/* Enhanced Post Creation with Toggle */}
       {showPostCreation && (
         <div className="bg-white border-b border-gray-200">
-          <div className="p-8">
-            <PostCreation
-              onPostCreated={handlePostCreated}
-              groupId={groupId}
-            />
+          <div className="p-6">
+            {!isPostCreationExpanded ? (
+              /* Cool "Add New Post" Button - Collapsed State */
+              <div 
+                onClick={togglePostCreation}
+                className="group cursor-pointer bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 border-2 border-dashed border-purple-200 hover:border-purple-300 rounded-xl p-6 post-creation-button relative"
+                title="Click to create a new post (Ctrl+Shift+N)"
+              >
+                <div className="flex items-center space-x-4">
+                  {/* User Avatar */}
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  
+                  {/* Call to Action */}
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-purple-700 transition-colors">
+                      ✨ Add New Post
+                    </h3>
+                    <p className="text-gray-500 group-hover:text-gray-600 transition-colors">
+                      Share what's on your mind with your community...
+                    </p>
+                  </div>
+                  
+                  {/* Quick Action Buttons */}
+                  <div className="flex items-center space-x-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center space-x-1 bg-white rounded-full px-3 py-1 shadow-sm">
+                      <span className="text-purple-600 text-sm">📝</span>
+                      <span className="text-xs text-gray-600">Text</span>
+                    </div>
+                    <div className="flex items-center space-x-1 bg-white rounded-full px-3 py-1 shadow-sm">
+                      <span className="text-green-600 text-sm">📷</span>
+                      <span className="text-xs text-gray-600">Image</span>
+                    </div>
+                    <div className="flex items-center space-x-1 bg-white rounded-full px-3 py-1 shadow-sm">
+                      <span className="text-blue-600 text-sm">📊</span>
+                      <span className="text-xs text-gray-600">Poll</span>
+                    </div>
+                  </div>
+                  
+                  {/* Expand Arrow */}
+                  <div className="text-purple-400 group-hover:text-purple-600 transition-colors">
+                    <svg className="w-5 h-5 transform group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Full Post Creation - Expanded State */
+              <div className="relative">
+                {/* Close Button */}
+                <button
+                  onClick={togglePostCreation}
+                  className="absolute top-0 right-0 z-10 bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded-full p-2 shadow-lg transition-all duration-200 transform hover:scale-110"
+                  title="Collapse post creation"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                
+                {/* Expanded Post Creation */}
+                <div className="bg-gradient-to-br from-white to-purple-50 rounded-xl border border-purple-100 p-6 shadow-sm animate-expand">
+                  <PostCreation
+                    onPostCreated={handlePostCreated}
+                    groupId={groupId}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
