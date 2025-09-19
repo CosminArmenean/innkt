@@ -568,13 +568,37 @@ export class SocialService extends BaseApiService {
           pollOptions: post.pollOptions,
           pollDuration: post.pollDuration,
           pollExpiresAt: post.pollExpiresAt,
-          // Use cached user profile from MongoDB - simplified for now
-          authorProfile: undefined, // TODO: Fix UserProfile interface mismatch
+          // Use cached user profile from MongoDB for both author and authorProfile
+          authorProfile: post.userProfile ? {
+            id: post.userProfile.userId,
+            username: post.userProfile.username,
+            displayName: post.userProfile.displayName,
+            email: '', // Not available in cached profile
+            firstName: post.userProfile.displayName.split(' ')[0] || '',
+            lastName: post.userProfile.displayName.split(' ').slice(1).join(' ') || '',
+            fullName: post.userProfile.displayName,
+            avatar: this.convertToFullAvatarUrl(post.userProfile.avatarUrl),
+            profilePictureUrl: this.convertToFullAvatarUrl(post.userProfile.avatarUrl),
+            bio: '',
+            location: '',
+            website: '',
+            dateOfBirth: '',
+            isVerified: post.userProfile.isVerified,
+            isKidAccount: false,
+            followersCount: 0,
+            followingCount: 0,
+            postsCount: 0,
+            createdAt: '',
+            updatedAt: post.userProfile.lastUpdated || '',
+            preferences: {} as any,
+            socialLinks: {} as any,
+            linkedUser: null
+          } : undefined,
           author: post.userProfile ? {
             id: post.userProfile.userId,
             username: post.userProfile.username,
             displayName: post.userProfile.displayName,
-            avatar: post.userProfile.avatarUrl,
+            avatarUrl: this.convertToFullAvatarUrl(post.userProfile.avatarUrl),
             isVerified: post.userProfile.isVerified,
             isKidAccount: false // MongoDB doesn't track this, default to false
           } : {
@@ -1072,6 +1096,32 @@ export class SocialService extends BaseApiService {
   //     throw error;
   //   }
   // }
+
+  /**
+   * Convert relative avatar URLs to full URLs pointing to Officer service
+   */
+  private convertToFullAvatarUrl(avatarUrl?: string): string | undefined {
+    if (!avatarUrl) {
+      return undefined;
+    }
+
+    // If it's already a full URL, return as-is
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
+    }
+
+    // If it's a relative path, convert to full Officer service URL
+    if (avatarUrl.startsWith('/')) {
+      const officerBaseUrl = 'http://localhost:5001'; // TODO: Get from config
+      const fullUrl = `${officerBaseUrl}${avatarUrl}`;
+      
+      console.log(`🔗 Converting avatar URL: ${avatarUrl} → ${fullUrl}`);
+      return fullUrl;
+    }
+
+    // Return as-is if it doesn't match expected patterns
+    return avatarUrl;
+  }
 }
 
 export const socialService = new SocialService();

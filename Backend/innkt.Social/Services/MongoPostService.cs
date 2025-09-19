@@ -567,6 +567,24 @@ public class MongoPostService : IMongoPostService
     public Task<bool> IncrementViewsAsync(Guid postId) => throw new NotImplementedException();
     public Task<bool> UpdateEngagementMetricsAsync(Guid postId) => throw new NotImplementedException();
     public Task<List<MongoPost>> SearchPostsAsync(string query, int page = 1, int pageSize = 20) => throw new NotImplementedException();
+    public async Task<List<Guid>> GetAllUniqueUserIdsAsync()
+    {
+        try
+        {
+            var userIds = await _mongoContext.Posts
+                .Distinct<Guid>("userId", Builders<MongoPost>.Filter.Empty)
+                .ToListAsync();
+                
+            _logger.LogInformation("Found {Count} unique user IDs in MongoDB posts", userIds.Count);
+            return userIds;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting unique user IDs from posts");
+            return new List<Guid>();
+        }
+    }
+
     public Task<List<MongoPost>> GetPostsByHashtagAsync(string hashtag, int page = 1, int pageSize = 20) => throw new NotImplementedException();
     public Task<List<MongoPost>> GetTrendingPostsAsync(int page = 1, int pageSize = 20) => throw new NotImplementedException();
     public Task<PostAnalytics> GetPostAnalyticsAsync(Guid postId) => throw new NotImplementedException();

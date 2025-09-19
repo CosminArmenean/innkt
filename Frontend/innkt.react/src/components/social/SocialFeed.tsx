@@ -56,6 +56,23 @@ interface SocialFeedProps {
   currentUserId?: string;
 }
 
+// Helper function to convert relative avatar URLs to full URLs
+const convertToFullAvatarUrl = (avatarUrl?: string): string | undefined => {
+  if (!avatarUrl) return undefined;
+  
+  if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+    return avatarUrl;
+  }
+  
+  if (avatarUrl.startsWith('/')) {
+    const fullUrl = `http://localhost:5001${avatarUrl}`;
+    console.log(`🔗 Converting avatar URL: ${avatarUrl} → ${fullUrl}`);
+    return fullUrl;
+  }
+  
+  return avatarUrl;
+};
+
 const SocialFeed: React.FC<SocialFeedProps> = ({ 
   groupId, 
   userId, 
@@ -431,7 +448,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                         >
                           {author.avatarUrl ? (
                             <img 
-                              src={author.avatarUrl} 
+                              src={convertToFullAvatarUrl(author.avatarUrl)} 
                               alt={author.displayName}
                               className="w-6 h-6 rounded-full object-cover"
                               onError={(e) => {
@@ -809,11 +826,13 @@ const PostCard: React.FC<{
             <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
               {post.authorProfile?.avatar || post.author?.avatarUrl ? (
                 <img 
-                  src={post.authorProfile?.avatar || post.author?.avatarUrl} 
+                  src={convertToFullAvatarUrl(post.authorProfile?.avatar || post.author?.avatarUrl)} 
                   alt={post.authorProfile?.displayName || post.author?.displayName || 'User'}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.log('Feed avatar image failed to load:', post.authorProfile?.avatar || post.author?.avatarUrl);
+                    const originalUrl = post.authorProfile?.avatar || post.author?.avatarUrl;
+                    const convertedUrl = convertToFullAvatarUrl(originalUrl);
+                    console.log('Feed avatar image failed to load:', originalUrl, '→', convertedUrl);
                     e.currentTarget.style.display = 'none';
                   }}
                 />

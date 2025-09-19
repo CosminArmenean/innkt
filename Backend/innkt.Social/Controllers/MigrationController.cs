@@ -14,11 +14,16 @@ namespace innkt.Social.Controllers;
 public class MigrationController : ControllerBase
 {
     private readonly IMigrationService _migrationService;
+    private readonly IMongoPostService _mongoPostService;
     private readonly ILogger<MigrationController> _logger;
 
-    public MigrationController(IMigrationService migrationService, ILogger<MigrationController> logger)
+    public MigrationController(
+        IMigrationService migrationService, 
+        IMongoPostService mongoPostService,
+        ILogger<MigrationController> logger)
     {
         _migrationService = migrationService;
+        _mongoPostService = mongoPostService;
         _logger = logger;
     }
 
@@ -178,6 +183,75 @@ public class MigrationController : ControllerBase
         {
             _logger.LogError(ex, "Error during migration validation");
             return StatusCode(500, "An error occurred during migration validation");
+        }
+    }
+
+    /// <summary>
+    /// Refresh user snapshots in all MongoDB posts with latest profile data
+    /// </summary>
+    [HttpPost("refresh-user-snapshots")]
+    [AllowAnonymous] // Temporary for testing
+    public async Task<ActionResult> RefreshUserSnapshots()
+    {
+        try
+        {
+            _logger.LogInformation("Starting user snapshot refresh for all posts");
+
+            // Get all unique user IDs from posts
+            var userIds = await _mongoPostService.GetAllUniqueUserIdsAsync();
+            
+            _logger.LogInformation("Found {Count} unique users in posts", userIds.Count);
+
+            var refreshed = 0;
+            var errors = 0;
+
+            // Refresh in batches to avoid overwhelming the Officer service
+            var batches = userIds.Chunk(10);
+            foreach (var batch in batches)
+            {
+                foreach (var userId in batch)
+                {
+                    try
+                    {
+                        var success = await _mongoPostService.RefreshUserCacheAsync(userId);
+                        if (success)
+                        {
+                            refreshed++;
+                        }
+                        else
+                        {
+                            errors++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error refreshing user cache for {UserId}", userId);
+                        errors++;
+                    }
+                }
+
+                // Small delay between batches
+                await Task.Delay(500);
+            }
+
+            var result = new
+            {
+                Message = "User snapshot refresh completed",
+                TotalUsers = userIds.Count,
+                Refreshed = refreshed,
+                Errors = errors,
+                SuccessRate = userIds.Count > 0 ? (double)refreshed / userIds.Count * 100 : 0
+            };
+
+            _logger.LogInformation("User snapshot refresh completed: {Refreshed}/{Total} users updated", 
+                refreshed, userIds.Count);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during user snapshot refresh");
+            return StatusCode(500, "An error occurred while refreshing user snapshots");
         }
     }
 
