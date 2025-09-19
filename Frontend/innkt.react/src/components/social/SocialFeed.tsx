@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useInView } from 'react-intersection-observer';
 import { socialService, Post, UserProfile } from '../../services/social.service';
 import { realtimeService, PostEvent, PollEvent } from '../../services/realtime.service';
 import { useRealtimeNotifications } from '../../hooks/useRealtimeNotifications';
 import PostCreation from './PostCreation';
 import LinkedAccountsPost from './LinkedAccountsPost';
+import PostSkeleton from './PostSkeleton';
 
 // Add CSS for notification animations
 const notificationStyles = `
@@ -128,19 +130,44 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const [posts, setPosts] = useState<Post[]>([]);
   const [linkedPosts, setLinkedPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const [filter, setFilter] = useState<'all' | 'verified' | 'blockchain' | 'ai-processed'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'trending'>('latest');
   const [showFilters, setShowFilters] = useState(false);
   const [isPostCreationExpanded, setIsPostCreationExpanded] = useState(initialPostCreationExpanded);
+  const [error, setError] = useState<string | null>(null);
   const { notifications, addNotification, removeNotification } = useRealtimeNotifications();
   const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
+  // Infinite scroll detection
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '300px', // Start loading 300px before reaching bottom (X-style)
+  });
+
   useEffect(() => {
-    loadPosts(true);
-    loadLinkedPosts();
+    // Prevent duplicate initial loads
+    if (!hasInitialized) {
+      setHasInitialized(true);
+      loadPosts(true);
+      loadLinkedPosts();
+    } else {
+      // Only reload if filters actually changed after initialization
+      loadPosts(true);
+      loadLinkedPosts();
+    }
   }, [groupId, userId, filter, sortBy]);
+
+  // Infinite scroll trigger - X-style automatic loading
+  useEffect(() => {
+    if (inView && hasMore && !isLoading && !isLoadingMore) {
+      console.log('🚀 Infinite scroll triggered - loading more posts...');
+      loadMorePosts();
+    }
+  }, [inView, hasMore, isLoading, isLoadingMore]);
 
   // Real-time SSE integration
   useEffect(() => {
@@ -292,51 +319,82 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   }, [hasMore, isLoading, page]);
 
   const loadPosts = async (reset = false) => {
-    if (reset) {
-      setPage(1);
-      setPosts([]);
-    }
+    if ((isLoading || isLoadingMore) && !reset) return;
 
     try {
-      setIsLoading(true);
+      if (reset) {
+        setIsLoading(true);
+        setError(null);
+        setPage(1);
+        setPosts([]);
+        console.log(`🔄 Initial load - Filter: ${filter}, SortBy: ${sortBy}`);
+      } else {
+        setIsLoadingMore(true);
+        console.log(`📚 Infinite scroll loading - Page: ${page}`);
+      }
+
+      // X-style batch sizes: 15 initial, 10 for subsequent loads
+      const batchSize = reset ? 15 : 10;
+      
       const response = await socialService.getPosts({
         groupId,
         userId,
-        page: reset ? 1 : page + 1,
-        limit: 20
+        page: reset ? 1 : page,
+        limit: batchSize
       });
 
-      // Debug: Check for poll posts in response
-      console.log('SocialFeed - Full API response:', response);
-      if (response.posts) {
-        const pollPosts = response.posts.filter(p => p.postType === 'poll');
-        console.log('SocialFeed - Poll posts found:', pollPosts);
-        pollPosts.forEach(post => {
-          console.log('SocialFeed - Poll post details:', {
-            id: post.id,
-            content: post.content,
-            postType: post.postType,
-            pollOptions: post.pollOptions,
-            pollDuration: post.pollDuration,
-            pollExpiresAt: post.pollExpiresAt
-          });
-        });
-      }
+      console.log(`🚀 Infinite Scroll: Loaded ${response.posts?.length || 0} posts (Page ${reset ? 1 : page})`);
 
       if (reset) {
         setPosts(response.posts || []);
+        setPage(2); // Next page will be 2
       } else {
-        setPosts(prev => [...prev, ...(response.posts || [])]);
+        // Prevent duplicate posts by checking IDs
+        setPosts(prev => {
+          const newPosts = response.posts || [];
+          const existingIds = new Set(prev.map(p => p.id));
+          const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+          
+          if (uniqueNewPosts.length < newPosts.length) {
+            console.log(`🔍 Filtered out ${newPosts.length - uniqueNewPosts.length} duplicate posts`);
+          }
+          
+          return [...prev, ...uniqueNewPosts];
+        });
+        setPage(prev => prev + 1);
       }
       
       setHasMore(response.hasMore || false);
-      setPage(reset ? 1 : page + 1);
+      
+      if (!response.hasMore) {
+        console.log('📄 End of feed reached - no more posts to load');
+      }
     } catch (error) {
-      console.error('Failed to load posts:', error);
+      console.error('❌ Failed to load posts:', error);
+      setError(reset ? 'Failed to load posts' : 'Failed to load more posts');
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
+
+  // Separate function for infinite scroll loading
+  const loadMorePosts = useCallback(async () => {
+    if (!hasMore || isLoading || isLoadingMore) return;
+    
+    console.log('🔄 Infinite scroll: Loading next batch...');
+    await loadPosts(false);
+  }, [hasMore, isLoading, isLoadingMore, page]);
+
+  // Memory management - X-style DOM optimization
+  useEffect(() => {
+    const MAX_POSTS_IN_DOM = 500; // X-style limit to prevent DOM bloat
+    
+    if (posts.length > MAX_POSTS_IN_DOM) {
+      console.log(`🧹 Memory management: Removing old posts (${posts.length} -> ${MAX_POSTS_IN_DOM})`);
+      setPosts(prev => prev.slice(0, MAX_POSTS_IN_DOM));
+    }
+  }, [posts.length]);
 
   const loadLinkedPosts = () => {
     // TODO: Implement linked posts API endpoint
@@ -756,9 +814,14 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
       )}
 
       {/* Professional Posts Feed */}
-      <div className="bg-gray-50 min-h-screen">
-        <div className="max-w-5xl mx-auto py-8 space-y-8">
-          {sortedPosts.length === 0 && !isLoading ? (
+      <div className="bg-transparent">
+        <div className="py-8 space-y-8">
+          {/* Initial Loading State */}
+          {isLoading && posts.length === 0 ? (
+            <div className="space-y-8">
+              <PostSkeleton count={5} />
+            </div>
+          ) : sortedPosts.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -803,25 +866,70 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                 />
               ))}
 
-              {/* Load More Button */}
-              {hasMore && (
-                <div className="text-center py-8">
+              {/* Infinite Scroll Loading States */}
+              {isLoadingMore && (
+                <div className="py-8">
+                  <PostSkeleton count={3} />
+                </div>
+              )}
+              
+              {/* Infinite Scroll Trigger (Invisible) */}
+              {hasMore && !isLoadingMore && (
+                <div 
+                  ref={loadMoreRef}
+                  className="h-20 flex items-center justify-center"
+                >
+                  <div className="text-gray-400 text-sm animate-pulse">
+                    📚 Loading more posts...
+                  </div>
+                </div>
+              )}
+              
+              {/* End of Feed Message */}
+              {!hasMore && posts.length > 0 && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">🎉 You're all caught up!</h3>
+                  <p className="text-gray-500 max-w-md mx-auto">
+                    You've seen all the latest posts. Check back later for new content, or create your own post to share with the community!
+                  </p>
                   <button
-                    onClick={() => loadPosts(false)}
-                    disabled={isLoading}
-                    className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    onClick={togglePostCreation}
+                    className="mt-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    {isLoading ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Posts'
-                    )}
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Create New Post
+                  </button>
+                </div>
+              )}
+              
+              {/* Error State */}
+              {error && (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">❌ Something went wrong</h3>
+                  <p className="text-gray-500 mb-4">{error}</p>
+                  <button
+                    onClick={() => {
+                      setError(null);
+                      loadPosts(true);
+                    }}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Try Again
                   </button>
                 </div>
               )}
