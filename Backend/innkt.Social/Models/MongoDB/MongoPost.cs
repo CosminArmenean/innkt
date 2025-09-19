@@ -67,6 +67,9 @@ public class MongoPost
     [BsonElement("sharesCount")]
     public int SharesCount { get; set; } = 0;
 
+    [BsonElement("repostsCount")]
+    public int RepostsCount { get; set; } = 0;
+
     [BsonElement("viewsCount")]
     public int ViewsCount { get; set; } = 0;
 
@@ -118,11 +121,12 @@ public class MongoPost
     /// <summary>
     /// Update engagement metrics
     /// </summary>
-    public void UpdateEngagement(int likes, int comments, int shares, int views)
+    public void UpdateEngagement(int likes, int comments, int shares, int reposts, int views)
     {
         LikesCount = likes;
         CommentsCount = comments;
         SharesCount = shares;
+        RepostsCount = reposts;
         ViewsCount = views;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -133,7 +137,7 @@ public class MongoPost
     public void CalculateFeedScore()
     {
         var hoursSinceCreation = (DateTime.UtcNow - CreatedAt).TotalHours;
-        var engagementScore = (LikesCount * 1.0) + (CommentsCount * 2.0) + (SharesCount * 1.5);
+        var engagementScore = (LikesCount * 1.0) + (CommentsCount * 2.0) + (SharesCount * 1.5) + (RepostsCount * 3.0); // Reposts are highly valuable
         var recencyScore = Math.Max(0, 100 - hoursSinceCreation); // Decay over time
         
         FeedScore = engagementScore + recencyScore;

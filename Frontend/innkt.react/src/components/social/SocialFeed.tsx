@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { socialService, Post, UserProfile } from '../../services/social.service';
+import { feedService, FeedItem } from '../../services/feed.service';
 import { realtimeService, PostEvent, PollEvent } from '../../services/realtime.service';
 import { useRealtimeNotifications } from '../../hooks/useRealtimeNotifications';
 import PostCreation from './PostCreation';
 import LinkedAccountsPost from './LinkedAccountsPost';
 import PostSkeleton from './PostSkeleton';
+import RepostButton from './RepostButton';
+import RepostCard from './RepostCard';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Add CSS for notification animations
@@ -159,6 +162,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 }) => {
   const { user } = useAuth(); // Get current user information
   const [posts, setPosts] = useState<Post[]>([]);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [linkedPosts, setLinkedPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -186,8 +190,8 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     // Prevent duplicate initial loads
     if (!hasInitialized) {
       setHasInitialized(true);
-      loadPosts(true);
-      loadLinkedPosts();
+    loadPosts(true);
+    loadLinkedPosts();
       loadRecentPosts();
     } else {
       // Only reload if filters actually changed after initialization
@@ -357,45 +361,59 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     if ((isLoading || isLoadingMore) && !reset) return;
 
     try {
-      if (reset) {
+    if (reset) {
         setIsLoading(true);
         setError(null);
-        setPage(1);
-        setPosts([]);
+      setPage(1);
+      setPosts([]);
         console.log(`🔄 Initial load - Filter: ${filter}, SortBy: ${sortBy}`);
       } else {
         setIsLoadingMore(true);
         console.log(`📚 Infinite scroll loading - Page: ${page}`);
-      }
+    }
 
       // X-style batch sizes: 15 initial, 10 for subsequent loads
       const batchSize = reset ? 15 : 10;
       
-      const response = await socialService.getPosts({
+      // Load unified feed with posts and reposts
+      const response = await feedService.getUnifiedFeed({
         groupId,
         userId,
         page: reset ? 1 : page,
-        limit: batchSize
+        limit: batchSize,
+        includeReposts: true // Enable reposts in feed
       });
 
-      console.log(`🚀 Infinite Scroll: Loaded ${response.posts?.length || 0} posts (Page ${reset ? 1 : page})`);
+      console.log(`🚀 Unified Feed: Loaded ${response.items?.length || 0} items (Page ${reset ? 1 : page})`);
 
       if (reset) {
-        setPosts(response.posts || []);
+        // Separate posts and feed items
+        const posts = response.items.filter(item => item.type === 'post').map(item => item.post!);
+        setPosts(posts);
+        setFeedItems(response.items);
         setPage(2); // Next page will be 2
       } else {
-        // Prevent duplicate posts by checking IDs
-        setPosts(prev => {
-          const newPosts = response.posts || [];
-          const existingIds = new Set(prev.map(p => p.id));
-          const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+        // Prevent duplicate items by checking IDs
+        setFeedItems(prev => {
+          const newItems = response.items || [];
+          const existingIds = new Set(prev.map(item => item.id));
+          const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
           
-          if (uniqueNewPosts.length < newPosts.length) {
-            console.log(`🔍 Filtered out ${newPosts.length - uniqueNewPosts.length} duplicate posts`);
+          if (uniqueNewItems.length < newItems.length) {
+            console.log(`🔍 Filtered out ${newItems.length - uniqueNewItems.length} duplicate feed items`);
           }
           
+          return [...prev, ...uniqueNewItems];
+        });
+        
+        // Also update posts array for backward compatibility
+        const newPosts = response.items.filter(item => item.type === 'post').map(item => item.post!);
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
           return [...prev, ...uniqueNewPosts];
         });
+        
         setPage(prev => prev + 1);
       }
       
@@ -728,17 +746,17 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold text-gray-900">
               🎯 {groupId ? 'Group Square' : userId ? 'User Square' : 'Social Square'}
-            </h1>
+              </h1>
             
-            <button
-              onClick={() => setShowFilters(!showFilters)}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
               className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
-              </svg>
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+                </svg>
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </button>
           </div>
         </div>
 
@@ -916,8 +934,22 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                                 onClick={() => handleShare(post.id)}
                                 className="flex items-center space-x-2 hover:text-green-500 cursor-pointer transition-colors"
                               >
-                                <span>🔄</span>
+                                <span>📤</span>
                                 <span>{post.sharesCount}</span>
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setExpandedRecentPost(null);
+                                  // Open repost modal for this post
+                                  const repostButton = document.querySelector(`[data-post-id="${post.id}"] [data-repost-button]`) as HTMLElement;
+                                  if (repostButton) {
+                                    repostButton.click();
+                                  }
+                                }}
+                                className="flex items-center space-x-2 hover:text-purple-500 cursor-pointer transition-colors"
+                              >
+                                <span>🔄</span>
+                                <span>Repost</span>
                               </button>
                               <span className="flex items-center space-x-2 text-gray-400">
                                 <span>👁️</span>
@@ -1007,10 +1039,10 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                 
                 {/* Expanded Post Creation */}
                 <div className="bg-gradient-to-br from-white to-purple-50 rounded-xl border border-purple-100 p-6 shadow-sm animate-expand">
-                  <PostCreation
-                    onPostCreated={handlePostCreated}
-                    groupId={groupId}
-                  />
+            <PostCreation
+              onPostCreated={handlePostCreated}
+              groupId={groupId}
+            />
                 </div>
               </div>
             )}
@@ -1056,8 +1088,62 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                 />
               ))}
 
-              {/* Regular Posts */}
-              {sortedPosts.map((post) => (
+              {/* Unified Feed - Posts and Reposts */}
+              {feedItems.map((item) => (
+                item.type === 'post' ? (
+                  <PostCard
+                    key={item.id}
+                    post={item.post!}
+                    onLike={handleLike}
+                    onShare={handleShare}
+                    onDelete={handleDelete}
+                    currentUserId={currentUserId || undefined}
+                    formatDate={formatDate}
+                    getPostVisibilityIcon={getPostVisibilityIcon}
+                    getPostTypeIcon={getPostTypeIcon}
+                    currentUser={user}
+                  />
+                ) : (
+                  <RepostCard
+                    key={item.id}
+                    repost={item.repost!}
+                    onLike={(repostId) => {
+                      console.log('❤️ Liked repost:', repostId);
+                      // Update local state
+                      setFeedItems(prev => prev.map(feedItem => 
+                        feedItem.id === item.id && feedItem.repost
+                          ? { ...feedItem, repost: { ...feedItem.repost, likesCount: feedItem.repost.likesCount + 1 } }
+                          : feedItem
+                      ));
+                    }}
+                    onComment={(repostId) => {
+                      console.log('💬 Comment on repost:', repostId);
+                      // TODO: Implement repost commenting
+                    }}
+                    onShare={(repostId) => {
+                      console.log('🔄 Share repost:', repostId);
+                      // TODO: Implement repost sharing
+                    }}
+                    onDelete={async (repostId) => {
+                      console.log('🗑️ Delete repost:', repostId);
+                      try {
+                        const success = await feedService.deleteRepost(repostId);
+                        if (success) {
+                          // Remove from feed
+                          setFeedItems(prev => prev.filter(feedItem => feedItem.id !== item.id));
+                        }
+                      } catch (error) {
+                        console.error('Failed to delete repost:', error);
+                      }
+                    }}
+                    currentUserId={currentUserId}
+                    formatDate={formatDate}
+                  />
+                )
+              ))}
+
+              {/* Fallback: Regular Posts (if feedItems is empty) */}
+              {feedItems.length === 0 && sortedPosts.map((post) => (
                 <PostCard
                   key={post.id}
                   post={post}
@@ -1109,7 +1195,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                        </svg>
                     Create New Post
                   </button>
                 </div>
@@ -1621,6 +1707,20 @@ const PostCard: React.FC<{
               </svg>
               <span className="text-sm font-medium">{post.sharesCount}</span>
             </button>
+
+            {/* Repost Button */}
+            <div data-repost-button>
+              <RepostButton
+                post={post}
+                onRepostCreated={(repost) => {
+                  console.log('🔄 Repost created in feed:', repost);
+                  // Refresh the feed to show the new repost
+                  window.location.reload(); // Simple reload for now
+                }}
+                size="md"
+                showCount={true}
+              />
+            </div>
           </div>
 
           <div className="text-sm text-gray-500">

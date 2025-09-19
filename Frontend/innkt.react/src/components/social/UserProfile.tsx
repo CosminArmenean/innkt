@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socialService, UserProfile, Post, Group, Follow, KidAccount } from '../../services/social.service';
+import { feedService } from '../../services/feed.service';
+import { Repost } from '../../services/repost.service';
 import { useAuth } from '../../contexts/AuthContext';
 import FollowButton from './FollowButton';
 import UserActionsMenu from './UserActionsMenu';
@@ -23,11 +25,12 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [reposts, setReposts] = useState<Repost[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [followers, setFollowers] = useState<Follow[]>([]);
   const [following, setFollowing] = useState<Follow[]>([]);
   const [kidAccounts, setKidAccounts] = useState<KidAccount[]>([]);
-  const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'chat' | 'subaccounts' | 'business'>('posts');
+  const [activeTab, setActiveTab] = useState<'posts' | 'reposts' | 'media' | 'chat' | 'subaccounts' | 'business'>('posts');
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +48,21 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
       checkFollowStatus();
     }
   }, [userId, currentUserId, isOwnProfile]);
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    // Handle special navigation cases
+    if (tab === 'chat') {
+      navigate('/messaging');
+      return;
+    }
+    
+    setActiveTab(tab);
+    
+    // Load data when switching to reposts tab
+    if (tab === 'reposts' && reposts.length === 0) {
+      loadReposts();
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -64,6 +82,16 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
       setPosts(response.posts);
     } catch (error) {
       console.error('Failed to load posts:', error);
+    }
+  };
+
+  const loadReposts = async () => {
+    try {
+      const response = await feedService.getRepostsOnly(userId, 1, 20);
+      setReposts(response.reposts);
+    } catch (error) {
+      console.error('Failed to load reposts:', error);
+      setReposts([]);
     }
   };
 
@@ -97,16 +125,6 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
 
   // Debug logging for action buttons rendering
   console.log('Rendering action buttons:', { isOwnProfile, userId, currentUserId: user?.id, isFollowing });
-  // Force recompilation
-
-  const handleTabChange = (tab: 'posts' | 'media' | 'chat' | 'subaccounts' | 'business') => {
-    if (tab === 'chat') {
-      // Navigate to messages screen
-      navigate('/messaging');
-      return;
-    }
-    setActiveTab(tab);
-  };
 
   const handleSaveProfile = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -380,6 +398,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
         <nav className="flex space-x-8 px-6">
           {[
             { id: 'posts', label: 'Posts', icon: '📝' },
+            { id: 'reposts', label: 'Reposts', icon: '🔄' },
             { id: 'media', label: 'Media', icon: '📷' },
             { id: 'chat', label: 'Chat', icon: '💬' },
             { id: 'subaccounts', label: 'Subaccounts', icon: '👶' },
@@ -503,6 +522,150 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'reposts' && (
+                  <div className="space-y-6">
+                    {reposts.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500">
+                        <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No reposts yet</h3>
+                        <p className="text-gray-500">
+                          {isOwnProfile 
+                            ? "Reposts you create will appear here" 
+                            : "This user hasn't reposted anything yet"
+                          }
+                        </p>
+                        {isOwnProfile && (
+                          <button 
+                            onClick={() => setActiveTab('posts')}
+                            className="mt-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Find Posts to Repost
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {reposts.map((repost) => (
+                          <div key={repost.repostId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            {/* Repost Header */}
+                            <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
+                              <div className="flex items-center space-x-3">
+                                <span className="text-green-600">
+                                  {repost.repostType === 'quote' ? '💬' : '🔄'}
+                                </span>
+                                <span className="text-sm font-medium text-gray-700">
+                                  {repost.repostType === 'quote' ? 'Quote reposted' : 'Reposted'}
+                                </span>
+                                <span className="text-xs text-gray-400">•</span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(repost.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+
+                              {/* Quote text for quote reposts */}
+                              {repost.repostType === 'quote' && repost.quoteText && (
+                                <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
+                                  <p className="text-gray-800 leading-relaxed">{repost.quoteText}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Original Post Content */}
+                            {repost.originalPostSnapshot && (
+                              <div className="px-6 py-4">
+                                <div className="flex items-start space-x-3 mb-4">
+                                  <img
+                                    src={repost.originalPostSnapshot.authorSnapshot?.avatarUrl || '/api/placeholder/48/48'}
+                                    alt={repost.originalPostSnapshot.authorSnapshot?.username || 'User'}
+                                    className="w-12 h-12 rounded-full border-2 border-purple-200"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2">
+                                      <h3 className="font-semibold text-gray-900">
+                                        {repost.originalPostSnapshot.authorSnapshot?.displayName || 'Unknown User'}
+                                      </h3>
+                                      {repost.originalPostSnapshot.authorSnapshot?.isVerified && (
+                                        <span className="text-blue-500">✓</span>
+                                      )}
+                                      <span className="text-gray-500 text-sm">
+                                        @{repost.originalPostSnapshot.authorSnapshot?.username || 'unknown'}
+                                      </span>
+                                      <span className="text-gray-400">•</span>
+                                      <span className="text-gray-500 text-sm">
+                                        {new Date(repost.originalPostSnapshot.createdAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                                      Original Post
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="mb-4">
+                                  <p className="text-gray-800 leading-relaxed">{repost.originalPostSnapshot.content}</p>
+                                </div>
+
+                                {/* Original post media */}
+                                {repost.originalPostSnapshot.mediaUrls && repost.originalPostSnapshot.mediaUrls.length > 0 && (
+                                  <div className="mb-4">
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {repost.originalPostSnapshot.mediaUrls.map((url, index) => (
+                                        <div key={index} className="relative">
+                                          <img
+                                            src={url}
+                                            alt={`Original post media ${index + 1}`}
+                                            className="w-full h-auto rounded-lg object-cover max-h-96"
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Engagement stats */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-6 text-sm text-gray-500">
+                                    <span className="flex items-center space-x-1">
+                                      <span>❤️</span>
+                                      <span>{repost.originalPostSnapshot.likesCount}</span>
+                                    </span>
+                                    <span className="flex items-center space-x-1">
+                                      <span>💬</span>
+                                      <span>{repost.originalPostSnapshot.commentsCount}</span>
+                                    </span>
+                                    <span className="flex items-center space-x-1">
+                                      <span>🔄</span>
+                                      <span>{repost.originalPostSnapshot.repostsCount}</span>
+                                    </span>
+                                    <span className="flex items-center space-x-1">
+                                      <span>👁️</span>
+                                      <span>{repost.originalPostSnapshot.viewsCount}</span>
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Repost engagement */}
+                                  <div className="flex items-center space-x-4 text-sm text-gray-400">
+                                    <span className="text-xs">Repost:</span>
+                                    <span>❤️ {repost.likesCount}</span>
+                                    <span>👁️ {repost.viewsCount}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

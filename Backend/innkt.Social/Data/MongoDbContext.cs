@@ -82,6 +82,7 @@ public class MongoDbContext
     // Collections
     public IMongoCollection<MongoPost> Posts => GetCollection<MongoPost>();
     public IMongoCollection<MongoPollVote> PollVotes => GetCollection<MongoPollVote>();
+    public IMongoCollection<MongoRepost> Reposts => GetCollection<MongoRepost>();
 
     /// <summary>
     /// Get a MongoDB collection with proper naming convention
@@ -203,6 +204,77 @@ public class MongoDbContext
             };
 
             await PollVotes.Indexes.CreateManyAsync(votesIndexes);
+
+            // Reposts Collection Indexes
+            var repostsIndexes = new List<CreateIndexModel<MongoRepost>>
+            {
+                // RepostId for lookups
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys.Ascending(r => r.RepostId),
+                    new CreateIndexOptions { Name = "repostId_unique", Unique = true, Background = true }
+                ),
+                
+                // User reposts for profile page
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys
+                        .Ascending(r => r.UserId)
+                        .Descending(r => r.CreatedAt),
+                    new CreateIndexOptions { Name = "userId_createdAt", Background = true }
+                ),
+                
+                // Original post reposts for analytics
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys
+                        .Ascending(r => r.OriginalPostId)
+                        .Descending(r => r.CreatedAt),
+                    new CreateIndexOptions { Name = "originalPostId_createdAt", Background = true }
+                ),
+                
+                // Feed queries - active reposts by feed score
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys
+                        .Ascending(r => r.IsActive)
+                        .Descending(r => r.FeedScore)
+                        .Descending(r => r.CreatedAt),
+                    new CreateIndexOptions { Name = "active_feedScore_createdAt", Background = true }
+                ),
+                
+                // Original author for controls and analytics
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys
+                        .Ascending(r => r.OriginalAuthorId)
+                        .Descending(r => r.CreatedAt),
+                    new CreateIndexOptions { Name = "originalAuthorId_createdAt", Background = true }
+                ),
+                
+                // Repost type for filtering
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys.Ascending(r => r.RepostType),
+                    new CreateIndexOptions { Name = "repostType", Background = true }
+                ),
+                
+                // User cache expiry for batch updates
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys.Ascending("userSnapshot.cacheExpiry"),
+                    new CreateIndexOptions { Name = "userCache_expiry", Background = true }
+                ),
+                
+                // Original post cache expiry for batch updates
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys.Ascending("originalPostSnapshot.cacheExpiry"),
+                    new CreateIndexOptions { Name = "originalPostCache_expiry", Background = true }
+                ),
+                
+                // Moderation queries
+                new CreateIndexModel<MongoRepost>(
+                    Builders<MongoRepost>.IndexKeys
+                        .Ascending(r => r.IsApproved)
+                        .Ascending(r => r.ModerationFlags),
+                    new CreateIndexOptions { Name = "moderation", Background = true }
+                )
+            };
+
+            await Reposts.Indexes.CreateManyAsync(repostsIndexes);
 
             _logger.LogInformation("MongoDB indexes created successfully");
         }
