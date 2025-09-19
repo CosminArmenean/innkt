@@ -28,6 +28,9 @@ const TopNavbar: React.FC = () => {
   const navbarRef = useRef<HTMLDivElement>(null);
 
   const handleCreatePost = () => {
+    // Navigate to social feed and trigger post creation expansion
+    // For now, keep the existing modal behavior
+    // TODO: Integrate with SocialFeed toggle when on social page
     setShowCreatePost(true);
   };
 
