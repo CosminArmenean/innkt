@@ -44,6 +44,12 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "Social";
 });
 
+// Add Memory Cache for UserProfileCacheService
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1000; // Limit to 1000 cached profiles
+});
+
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -87,6 +93,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IMongoPostService, MongoPostService>();
 builder.Services.AddScoped<IMigrationService, MigrationService>();
+builder.Services.AddSingleton<IUserProfileCacheService, UserProfileCacheService>();
 builder.Services.AddSingleton<IRealtimeService, RealtimeService>();
 builder.Services.AddHostedService<RealtimeHostedService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
