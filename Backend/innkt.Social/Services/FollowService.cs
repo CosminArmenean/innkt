@@ -225,9 +225,11 @@ public class FollowService : IFollowService
             { Guid.Parse("c1234567-1234-5678-9abc-def012345684"), new UserBasicInfo 
                 { Id = Guid.Parse("c1234567-1234-5678-9abc-def012345684"), Username = "charlie.kirk", DisplayName = "Charlie Kirk", IsVerified = false } },
             { Guid.Parse("bdfc4c41-c42e-42e0-a57b-d8301a37b1fe"), new UserBasicInfo 
-                { Id = Guid.Parse("bdfc4c41-c42e-42e0-a57b-d8301a37b1fe"), Username = "junior11", DisplayName = "Cosmin", IsVerified = false } },
+                { Id = Guid.Parse("bdfc4c41-c42e-42e0-a57b-d8301a37b1fe"), Username = "junior11", DisplayName = "Cosmin", IsVerified = false, AvatarUrl = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" } },
+            { Guid.Parse("5e578ba9-edd9-487a-b222-8aad79db6e81"), new UserBasicInfo 
+                { Id = Guid.Parse("5e578ba9-edd9-487a-b222-8aad79db6e81"), Username = "patrick.jane", DisplayName = "Patrick Jane", IsVerified = true, AvatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" } },
             { Guid.Parse("d1234567-1234-5678-9abc-def012345683"), new UserBasicInfo 
-                { Id = Guid.Parse("d1234567-1234-5678-9abc-def012345683"), Username = "diana.wilson", DisplayName = "Diana Wilson", IsVerified = true } }
+                { Id = Guid.Parse("d1234567-1234-5678-9abc-def012345683"), Username = "diana.wilson", DisplayName = "Diana Wilson", IsVerified = true, AvatarUrl = "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" } }
         };
 
         return mockUsers.TryGetValue(userId, out var mockUser) ? mockUser : null;

@@ -98,6 +98,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     // Handle new posts from Change Streams
     const handleNewPost = (eventData: any) => {
       console.log('📬 Received new post via SSE:', eventData);
+      console.log('🔍 DEBUG - Full event data structure:', JSON.stringify(eventData, null, 2));
+      console.log('🔍 DEBUG - Author profile data:', eventData.authorProfile);
+      console.log('🔍 DEBUG - Avatar URL:', eventData.authorProfile?.avatarUrl);
       
       // The eventData IS the data object (not nested under event.data)
       // Validate event data
@@ -143,10 +146,14 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 
       // Show notification
       console.log('🎉 New post added to feed in real-time!');
+      console.log('🔍 DEBUG - Creating notification with data:', eventData);
+      
       addNotification({
         type: 'new_post',
         title: '📬 New Post',
-        message: `New post from ${eventData.authorId}`,
+        message: eventData.authorProfile?.displayName 
+          ? `New post from ${eventData.authorProfile.displayName}`
+          : `New post from ${eventData.authorId}`,
         data: eventData
       });
     };
@@ -427,14 +434,23 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                               src={author.avatarUrl} 
                               alt={author.displayName}
                               className="w-6 h-6 rounded-full object-cover"
+                              onError={(e) => {
+                                // Fallback if image fails to load
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.nextElementSibling?.classList.remove('hidden');
+                              }}
                             />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
-                              <span className="text-xs text-white font-medium">
-                                {author.displayName?.[0] || author.username?.[0] || '👤'}
-                              </span>
-                            </div>
-                          )}
+                          ) : null}
+                          
+                          {/* Fallback avatar (always present, hidden if image loads) */}
+                          <div className={`w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center ${author.avatarUrl ? 'hidden' : ''}`}>
+                            <span className="text-xs text-white font-bold">
+                              {author.displayName?.[0]?.toUpperCase() || 
+                               author.username?.[0]?.toUpperCase() || 
+                               '👤'}
+                            </span>
+                          </div>
                         </div>
                       ))}
                       {notification.authors.length > 3 && (
