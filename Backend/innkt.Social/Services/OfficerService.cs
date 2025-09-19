@@ -77,6 +77,9 @@ public class OfficerService : IOfficerService
                     avatarUrl = GetTestAvatarUrl(userId);
                 }
                 
+                // Convert relative avatar URLs to full URLs
+                avatarUrl = ConvertToFullAvatarUrl(avatarUrl);
+                
                 var user = new UserBasicInfo
                 {
                     Id = Guid.Parse(userResponse.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
@@ -170,13 +173,16 @@ public class OfficerService : IOfficerService
                     {
                         try
                         {
+                            var rawAvatarUrl = userElement.GetProperty("profilePictureUrl").GetString();
+                            var fullAvatarUrl = ConvertToFullAvatarUrl(rawAvatarUrl);
+                            
                             var user = new UserBasicInfo
                             {
                                 Id = Guid.Parse(userElement.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
                                 Username = userElement.GetProperty("username").GetString() ?? "",
                                 DisplayName = userElement.GetProperty("fullName").GetString() ?? "",
                                 Email = userElement.GetProperty("email").GetString(),
-                                AvatarUrl = userElement.GetProperty("profilePictureUrl").GetString(),
+                                AvatarUrl = fullAvatarUrl,
                                 IsVerified = userElement.GetProperty("isVerified").GetBoolean()
                             };
                             
@@ -258,5 +264,37 @@ public class OfficerService : IOfficerService
         };
 
         return testAvatars.TryGetValue(userId, out var avatarUrl) ? avatarUrl : null;
+    }
+
+    /// <summary>
+    /// Convert relative avatar URLs to full URLs pointing to Officer service
+    /// </summary>
+    private string? ConvertToFullAvatarUrl(string? avatarUrl)
+    {
+        if (string.IsNullOrEmpty(avatarUrl))
+        {
+            return avatarUrl;
+        }
+
+        // If it's already a full URL (starts with http), return as-is
+        if (avatarUrl.StartsWith("http://") || avatarUrl.StartsWith("https://"))
+        {
+            return avatarUrl;
+        }
+
+        // If it's a relative path, convert to full Officer service URL
+        if (avatarUrl.StartsWith("/"))
+        {
+            var officerBaseUrl = _configuration.GetValue<string>("OfficerService:BaseUrl") ?? "http://localhost:5001";
+            var fullUrl = $"{officerBaseUrl}{avatarUrl}";
+            
+            _logger.LogDebug("Converted relative avatar URL '{RelativeUrl}' to full URL '{FullUrl}'", 
+                avatarUrl, fullUrl);
+                
+            return fullUrl;
+        }
+
+        // Return as-is if it doesn't match expected patterns
+        return avatarUrl;
     }
 }

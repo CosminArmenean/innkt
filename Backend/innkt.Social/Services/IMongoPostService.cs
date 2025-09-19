@@ -33,6 +33,7 @@ public interface IMongoPostService
     Task<bool> RefreshUserCacheAsync(Guid userId);
     Task<bool> RefreshUserCachesAsync(IEnumerable<Guid> userIds);
     Task<int> RefreshStaleUserCachesAsync();
+    Task<List<Guid>> GetAllUniqueUserIdsAsync();
 
     // Search and filtering
     Task<List<MongoPost>> SearchPostsAsync(string query, int page = 1, int pageSize = 20);
