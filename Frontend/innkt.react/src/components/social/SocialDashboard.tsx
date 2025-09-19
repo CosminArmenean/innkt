@@ -194,17 +194,10 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
   return (
     <>
-      {/* For feed tab, use full width layout without sidebars */}
+      {/* For feed tab, use MainLayout's natural scrolling - don't override */}
       {activeTab === 'feed' ? (
-        <div className="h-screen bg-gray-50 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full">
-            <div className="h-full">
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full flex flex-col">
-                {centerContent}
-              </div>
-            </div>
-          </div>
-        </div>
+        // Let MainLayout handle the scrolling naturally
+        centerContent
       ) : (
         <PageLayout
           leftSidebar={leftSidebar}
