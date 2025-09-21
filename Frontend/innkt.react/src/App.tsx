@@ -10,7 +10,9 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import SecurityDashboard from './components/security/SecurityDashboard';
-import UserProfile from './components/social/UserProfile';
+import UserProfileProfessional from './components/social/UserProfileProfessional';
+import { ParentDashboard } from './components/kidSafety/ParentDashboard';
+import { KidSafetyDashboard } from './components/kidSafety/KidSafetyDashboard';
 import { useAuth } from './contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 import ImageProcessing from './components/image-processing/ImageProcessing';
@@ -39,7 +41,7 @@ const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile 
   // Determine if this is the user's own profile
   const isActuallyOwnProfile = isOwnProfile || (!!id && !!user?.id && id === user.id);
   
-  return <UserProfile userId={userId} isOwnProfile={isActuallyOwnProfile} currentUserId={user?.id} />;
+  return <UserProfileProfessional userId={userId} isOwnProfile={isActuallyOwnProfile} currentUserId={user?.id} />;
 };
 
 function App() {
@@ -156,6 +158,16 @@ function App() {
               <Route path="/setup-2fa" element={
                 <ProtectedRoute>
                   <Setup2FA />
+                </ProtectedRoute>
+              } />
+              <Route path="/parent-dashboard" element={
+                <ProtectedRoute>
+                  <ParentDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/kid-safety" element={
+                <ProtectedRoute>
+                  <KidSafetyDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/unauthorized" element={<Unauthorized />} />
