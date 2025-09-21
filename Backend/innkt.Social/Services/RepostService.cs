@@ -15,8 +15,8 @@ public class RepostService : IRepostService
     private readonly MongoDbContext _mongoContext;
     private readonly IOfficerService _officerService;
     private readonly IUserProfileCacheService _userProfileCache;
-    private readonly INotificationService _notificationService;
     private readonly ILogger<RepostService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory; // For notification service communication
 
     // Rate limiting constants
     private const int MAX_REPOSTS_PER_HOUR = 50;
@@ -27,13 +27,13 @@ public class RepostService : IRepostService
         MongoDbContext mongoContext,
         IOfficerService officerService,
         IUserProfileCacheService userProfileCache,
-        INotificationService notificationService,
+        IHttpClientFactory httpClientFactory,
         ILogger<RepostService> logger)
     {
         _mongoContext = mongoContext;
         _officerService = officerService;
         _userProfileCache = userProfileCache;
-        _notificationService = notificationService;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -96,14 +96,8 @@ public class RepostService : IRepostService
             // Update original post repost count
             await IncrementOriginalPostRepostCountAsync(request.OriginalPostId);
 
-            // Send notification to original author
-            await _notificationService.SendRepostNotificationAsync(
-                originalPost.UserId, 
-                userId, 
-                request.OriginalPostId, 
-                repost.RepostId, 
-                request.RepostType, 
-                request.QuoteText);
+            // TODO: Send notification via Notifications service (Port 5006)
+            // await SendNotificationToService(originalPost.UserId, userId, request.OriginalPostId, repost.RepostId, request.RepostType, request.QuoteText);
 
             _logger.LogInformation("Created repost {RepostId} for user {UserId} and sent notification", repost.RepostId, userId);
             return repost;

@@ -237,7 +237,7 @@ export interface EmergencyResponse {
  */
 class KidSafetyService extends BaseApiService {
   constructor() {
-    super('/api/v1/kid-safety');
+    super('/api/kinder'); // Updated to use Kinder service endpoint
   }
 
   /**

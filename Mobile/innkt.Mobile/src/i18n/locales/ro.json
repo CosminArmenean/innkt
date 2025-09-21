@@ -1,0 +1,339 @@
+{
+  "common": {
+    "yes": "Da",
+    "no": "Nu",
+    "ok": "OK",
+    "cancel": "Anulează",
+    "save": "Salvează",
+    "delete": "Șterge",
+    "edit": "Editează",
+    "loading": "Se încarcă...",
+    "error": "Eroare",
+    "success": "Succes",
+    "retry": "Încearcă din nou",
+    "close": "Închide",
+    "back": "Înapoi",
+    "next": "Următorul",
+    "previous": "Anterior",
+    "confirm": "Confirmă",
+    "warning": "Avertisment"
+  },
+  "auth": {
+    "login": "Conectare",
+    "logout": "Deconectare",
+    "register": "Înregistrare",
+    "email": "Email",
+    "password": "Parolă",
+    "confirmPassword": "Confirmă parola",
+    "forgotPassword": "Ai uitat parola?",
+    "loginButton": "Conectează-te",
+    "registerButton": "Creează cont",
+    "orLoginWith": "sau conectează-te cu",
+    "alreadyHaveAccount": "Ai deja un cont?",
+    "dontHaveAccount": "Nu ai un cont?",
+    "loginError": "Eroare la conectare. Verifică datele introduse.",
+    "registerError": "Eroare la înregistrare. Încearcă din nou.",
+    "passwordMismatch": "Parolele nu se potrivesc",
+    "invalidEmail": "Email invalid",
+    "weakPassword": "Parola este prea slabă"
+  },
+  "kidSafety": {
+    "title": "Siguranța Copiilor",
+    "dashboard": "Tablou de bord siguranță",
+    "safetyLevel": "Nivel de siguranță",
+    "safetyLevels": {
+      "strict": "Strict",
+      "moderate": "Moderat", 
+      "relaxed": "Relaxat",
+      "adaptive": "Adaptiv"
+    },
+    "parentApproval": "Aprobare părintească",
+    "emergencyContacts": "Contacte de urgență",
+    "screenTime": "Timp de ecran",
+    "allowedHours": "Ore permise",
+    "educationalContent": "Conținut educațional",
+    "independenceDay": "Ziua Independenței",
+    "safetyEvents": "Evenimente de siguranță",
+    "behaviorAssessment": "Evaluare comportament"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "AJUTOR!",
+      "pressForHelp": "Apasă pentru ajutor",
+      "active": "ACTIV",
+      "helpComing": "Ajutorul vine!",
+      "confirmTitle": "Confirmare urgență",
+      "confirmMessage": "Ești în pericol și ai nevoie de ajutor imediat?",
+      "cancel": "Anulează",
+      "confirm": "Da, am nevoie de ajutor!",
+      "activatedTitle": "Ajutor în drum!",
+      "activatedMessage": "Părinții tăi și serviciile de urgență au fost notificate. Rămâi calm și în siguranță!",
+      "errorTitle": "Eroare urgență",
+      "errorMessage": "Nu am putut trimite alerta. Încearcă din nou sau sună direct la 112.",
+      "tryAgain": "Încearcă din nou",
+      "ok": "Înțeleg",
+      "safetyReminder": "Folosește doar în caz de urgență reală",
+      "emergencyContacts": "Contacte urgență",
+      "contactsAvailable": "Disponibile offline"
+    },
+    "contacts": {
+      "title": "Contacte de Urgență",
+      "addContact": "Adaugă contact",
+      "editContact": "Editează contact",
+      "name": "Nume",
+      "phone": "Telefon",
+      "relationship": "Relația",
+      "isPrimary": "Contact principal",
+      "relationships": {
+        "parent": "Părinte",
+        "guardian": "Tutore",
+        "family": "Familie",
+        "teacher": "Profesor",
+        "neighbor": "Vecin",
+        "emergency": "Servicii urgență"
+      }
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Asistentul tău inteligent",
+    "welcome": {
+      "kid": "Salut! Sunt Grok, asistentul tău AI! Pot să te ajut să înveți lucruri noi, să-ți răspund la întrebări și să ne distrăm împreună. Ce vrei să știi azi?",
+      "adult": "Bună ziua! Sunt Grok AI. Vă pot ajuta cu întrebări, explicații și informații utile. Cu ce vă pot fi de folos?"
+    },
+    "you": "Tu",
+    "system": "Sistem",
+    "kidMode": "Mod Copii",
+    "kidModeDescription": "Răspunsuri sigure și educaționale pentru copii",
+    "educational": "📚 Educațional",
+    "safetyScore": "Scor siguranță",
+    "sources": "Surse",
+    "followUp": "Întrebări similare",
+    "thinking": "Gândesc...",
+    "placeholder": {
+      "kid": "Întreabă-mă orice! De exemplu: 'Cum funcționează luna?' sau 'Ajută-mă cu tema la matematică'",
+      "adult": "Scrieți întrebarea dvs. aici..."
+    },
+    "safetyNotice": "🛡️ Toate conversațiile sunt monitorizate pentru siguranța ta. Părinții tăi pot vedea acest chat.",
+    "safety": {
+      "inappropriateQuestion": "Îmi pare rău, dar nu pot răspunde la această întrebare. Să vorbim despre ceva educațional și distractiv în schimb!",
+      "parentNotified": "Părintele tău a fost notificat despre această conversație."
+    },
+    "error": {
+      "general": "Îmi pare rău, am o problemă tehnică. Încearcă din nou în câteva momente.",
+      "network": "Nu am conexiune la internet. Încearcă mai târziu.",
+      "safety": "Pentru siguranța ta, nu pot procesa această cerere."
+    },
+    "suggestions": {
+      "homework": "Ajută-mă cu tema",
+      "science": "Explică-mi ceva din științe",
+      "creative": "Hai să creăm o poveste",
+      "general1": "Cum funcționează...?",
+      "general2": "Explică-mi despre...",
+      "general3": "Ce este...?"
+    }
+  },
+  "parentDashboard": {
+    "title": "Tabloul de Bord pentru Părinți",
+    "overview": "Prezentare generală",
+    "kidAccounts": "Conturi copii",
+    "pendingApprovals": "Aprobări în așteptare",
+    "safetyAlerts": "Alerte de siguranță",
+    "screenTime": "Timp de ecran",
+    "activitySummary": "Rezumat activitate",
+    "educationalProgress": "Progres educațional",
+    "independencePlanning": "Planificare independență",
+    "communityConnection": "Conexiune comunitate",
+    "settings": "Setări",
+    "approvals": {
+      "title": "Cereri de Aprobare",
+      "followRequest": "Cerere de urmărire",
+      "messageRequest": "Cerere de mesaj",
+      "contentShare": "Partajare conținut",
+      "approve": "Aprobă",
+      "deny": "Respinge",
+      "viewProfile": "Vezi profilul",
+      "safetyScore": "Scor siguranță: {{score}}%",
+      "recommendation": "Recomandare: {{recommendation}}"
+    }
+  },
+  "compliance": {
+    "gdpr": {
+      "title": "Protecția Datelor (GDPR)",
+      "consentTitle": "Consimțământ Procesare Date",
+      "consentMessage": "Pentru a vă oferi serviciile noastre sigure pentru copii, avem nevoie de consimțământul dvs. pentru procesarea datelor personale în conformitate cu GDPR.",
+      "dataTypes": {
+        "profile": "Date de profil (nume, vârstă, email)",
+        "activity": "Activitate pe platformă (postări, mesaje)",
+        "safety": "Date de siguranță (contacte urgență, setări)",
+        "analytics": "Analize de utilizare (pentru îmbunătățiri)"
+      },
+      "purposes": {
+        "safety": "Siguranța și protecția copilului",
+        "education": "Funcții educaționale și de învățare",
+        "communication": "Comunicare între părinți și copii",
+        "improvement": "Îmbunătățirea serviciilor"
+      },
+      "rights": {
+        "title": "Drepturile dvs. GDPR",
+        "access": "Dreptul de acces la datele personale",
+        "rectification": "Dreptul de rectificare a datelor",
+        "erasure": "Dreptul la ștergerea datelor",
+        "portability": "Dreptul la portabilitatea datelor",
+        "objection": "Dreptul de a vă opune procesării"
+      },
+      "dataExport": {
+        "title": "Export Date",
+        "description": "Descărcați toate datele personale asociate contului dvs.",
+        "button": "Cerere Export Date",
+        "processing": "Procesăm cererea dvs...",
+        "ready": "Exportul este gata pentru descărcare",
+        "download": "Descarcă"
+      },
+      "dataErasure": {
+        "title": "Ștergere Date",
+        "description": "Solicitați ștergerea completă a datelor personale.",
+        "warning": "⚠️ Această acțiune este ireversibilă și va șterge permanent toate datele.",
+        "button": "Cerere Ștergere Date",
+        "confirm": "Confirm că vreau să șterg toate datele"
+      }
+    },
+    "privacy": {
+      "title": "Confidențialitate",
+      "settings": "Setări Confidențialitate",
+      "dataUsage": "Utilizarea Datelor",
+      "thirdParty": "Partajare cu Terți",
+      "retention": "Păstrarea Datelor",
+      "contact": "Contact Protecția Datelor"
+    }
+  },
+  "premium": {
+    "title": "Premium Familie",
+    "upgrade": "Actualizează la Premium",
+    "features": {
+      "unlimited": "Conturi copii nelimitate",
+      "advanced": "Siguranță AI avansată",
+      "priority": "Suport prioritar",
+      "analytics": "Analize detaliate",
+      "customization": "Personalizare avansată"
+    },
+    "pricing": {
+      "basic": "Gratuit",
+      "plus": "Familie Plus - €9.99/lună",
+      "premium": "Familie Premium - €19.99/lună",
+      "enterprise": "Școală - €99.99/lună"
+    },
+    "trial": "Încercare gratuită 14 zile"
+  },
+  "ads": {
+    "sponsored": "Sponsorizat",
+    "adChoices": "Opțiuni Reclame",
+    "reportAd": "Raportează Reclamă",
+    "whyThisAd": "De ce această reclamă?",
+    "notForKids": "Această reclamă nu este pentru copii",
+    "familyFriendly": "Conținut potrivit pentru familie"
+  },
+  "education": {
+    "title": "Educație",
+    "progress": "Progres",
+    "achievements": "Realizări",
+    "learningPath": "Cale de învățare",
+    "subjects": {
+      "math": "Matematică",
+      "science": "Științe",
+      "history": "Istorie",
+      "literature": "Literatură",
+      "geography": "Geografie",
+      "art": "Artă",
+      "music": "Muzică",
+      "sports": "Sport"
+    },
+    "levels": {
+      "beginner": "Începător",
+      "intermediate": "Intermediar", 
+      "advanced": "Avansat"
+    }
+  },
+  "social": {
+    "feed": "Feed",
+    "posts": "Postări",
+    "comments": "Comentarii",
+    "likes": "Aprecieri",
+    "shares": "Partajări",
+    "follow": "Urmărește",
+    "unfollow": "Nu mai urmări",
+    "message": "Mesaj",
+    "profile": "Profil",
+    "friends": "Prieteni",
+    "family": "Familie",
+    "blocked": "Blocat",
+    "report": "Raportează",
+    "inappropriate": "Conținut nepotrivit"
+  },
+  "notifications": {
+    "title": "Notificări",
+    "markAllRead": "Marchează toate ca citite",
+    "settings": "Setări notificări",
+    "types": {
+      "safety": "Siguranță",
+      "approval": "Aprobare",
+      "educational": "Educațional",
+      "social": "Social",
+      "emergency": "Urgență"
+    },
+    "channels": {
+      "inApp": "În aplicație",
+      "email": "Email",
+      "push": "Push",
+      "sms": "SMS"
+    }
+  },
+  "settings": {
+    "title": "Setări",
+    "account": "Cont",
+    "privacy": "Confidențialitate",
+    "notifications": "Notificări",
+    "language": "Limbă",
+    "theme": "Temă",
+    "help": "Ajutor",
+    "about": "Despre",
+    "logout": "Deconectare",
+    "deleteAccount": "Șterge contul"
+  },
+  "errors": {
+    "network": "Eroare de rețea. Verifică conexiunea la internet.",
+    "server": "Eroare de server. Încearcă mai târziu.",
+    "unauthorized": "Nu ești autorizat să accesezi această resursă.",
+    "forbidden": "Acces interzis.",
+    "notFound": "Resursa nu a fost găsită.",
+    "validation": "Date invalide. Verifică informațiile introduse.",
+    "unknown": "A apărut o eroare neașteptată."
+  },
+  "offline": {
+    "title": "Offline",
+    "message": "Nu ai conexiune la internet. Unele funcții pot fi limitate.",
+    "retry": "Încearcă să te reconectezi",
+    "cached": "Conținut salvat local",
+    "syncWhenOnline": "Se va sincroniza când revii online"
+  },
+  "romania": {
+    "culturalGreeting": "Bună ziua și bine ați venit!",
+    "familyValues": "Familia este cea mai importantă",
+    "educationFocus": "Educația este cheia succesului",
+    "safetyFirst": "Siguranța copilului este prioritatea noastră",
+    "communitySupport": "Împreună construim o comunitate sigură",
+    "holidays": {
+      "newYear": "La mulți ani!",
+      "easter": "Paște fericit!",
+      "nationalDay": "La mulți ani, România!",
+      "christmas": "Crăciun fericit!"
+    },
+    "emergencyNumbers": {
+      "general": "112 - Urgențe generale",
+      "police": "Poliția",
+      "medical": "Ambulanța",
+      "fire": "Pompierii",
+      "childProtection": "Protecția Copilului"
+    }
+  }
+}
+

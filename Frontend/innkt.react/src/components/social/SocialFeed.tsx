@@ -9,7 +9,9 @@ import LinkedAccountsPost from './LinkedAccountsPost';
 import PostSkeleton from './PostSkeleton';
 import RepostButton from './RepostButton';
 import RepostCard from './RepostCard';
+import GrokIntegration from './GrokIntegration';
 import { useAuth } from '../../contexts/AuthContext';
+import { grokService } from '../../services/grok.service';
 
 // Add CSS for notification animations
 const notificationStyles = `
