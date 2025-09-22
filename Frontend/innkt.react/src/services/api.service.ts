@@ -2,7 +2,7 @@ import axios from 'axios';
 import { environment } from '../config/environment';
 
 // Create axios instances for different services
-const createApiInstance = (baseURL: string) => {
+export const createApiInstance = (baseURL: string) => {
   const instance = axios.create({
     baseURL,
     timeout: 10000,

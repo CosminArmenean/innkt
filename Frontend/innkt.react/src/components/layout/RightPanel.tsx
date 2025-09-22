@@ -38,7 +38,13 @@ const RightPanel: React.FC = () => {
       <div className="flex-1 space-y-6 overflow-y-auto">
         {/* Recent Posts Carousel */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Posts</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Recent Posts</h3>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+            <span className="text-sm text-gray-600 font-medium">Recent Post</span>
+          </div>
+        </div>
         
         {/* Circular Profile Pictures */}
         <div className="flex space-x-3 overflow-x-auto pb-2">

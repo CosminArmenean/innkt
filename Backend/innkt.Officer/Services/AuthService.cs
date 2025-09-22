@@ -573,6 +573,17 @@ public class AuthService : IAuthService
         return MapToUserProfileDto(user);
     }
 
+    public async Task<UserProfileDto> GetUserByUsernameAsync(string username)
+    {
+        var user = await _userManager.FindByNameAsync(username);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+
+        return MapToUserProfileDto(user);
+    }
+
     public async Task<UserProfileDto> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateDto)
     {
         var user = await _userManager.FindByIdAsync(userId);

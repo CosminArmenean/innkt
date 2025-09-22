@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Repost } from '../../services/repost.service';
+import { Post } from '../../services/social.service';
 import { repostService } from '../../services/repost.service';
 import RepostModal from './RepostModal';
+import CommentFloatingCard from './CommentFloatingCard';
 
 interface RepostCardProps {
   repost: Repost;
@@ -24,6 +26,8 @@ const RepostCard: React.FC<RepostCardProps> = ({
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikesCount, setLocalLikesCount] = useState(repost.likesCount);
+  const [showCommentCard, setShowCommentCard] = useState(false);
+  const [commentCardPosition, setCommentCardPosition] = useState({ top: 0, left: 0 });
 
   const handleLike = async () => {
     try {
@@ -40,6 +44,18 @@ const RepostCard: React.FC<RepostCardProps> = ({
     } catch (error) {
       console.error('Failed to toggle like on repost:', error);
     }
+  };
+
+  const handleCommentClick = (event: React.MouseEvent) => {
+    // Get the position of the comment button
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const position = {
+      top: buttonRect.bottom + 10, // Position below the button
+      left: Math.min(buttonRect.left, window.innerWidth - 600) // Ensure it fits on screen
+    };
+    
+    setCommentCardPosition(position);
+    setShowCommentCard(true);
   };
 
   const isOwnRepost = currentUserId === repost.userId;
@@ -188,7 +204,7 @@ const RepostCard: React.FC<RepostCardProps> = ({
 
             {/* Comment on Repost */}
             <button
-              onClick={() => onComment?.(repost.repostId)}
+              onClick={handleCommentClick}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,6 +280,69 @@ const RepostCard: React.FC<RepostCardProps> = ({
         onClose={() => {}}
         onRepostCreated={() => {}}
       />
+
+      {/* Floating Comment Card */}
+      {showCommentCard && repost.originalPostSnapshot && (
+        <CommentFloatingCard
+          post={{
+            id: repost.originalPostSnapshot.postId,
+            userId: repost.originalPostSnapshot.authorId,
+            authorProfile: repost.originalPostSnapshot.authorSnapshot ? {
+              id: repost.originalPostSnapshot.authorSnapshot.userId,
+              displayName: repost.originalPostSnapshot.authorSnapshot.displayName,
+              username: repost.originalPostSnapshot.authorSnapshot.username,
+              email: '',
+              avatar: repost.originalPostSnapshot.authorSnapshot.avatarUrl,
+              isVerified: repost.originalPostSnapshot.authorSnapshot.isVerified,
+              isKidAccount: false,
+              bio: '',
+              location: '',
+              website: '',
+              dateOfBirth: '',
+              followersCount: 0,
+              followingCount: 0,
+              postsCount: 0,
+              createdAt: '',
+              updatedAt: '',
+              preferences: {
+                privacyLevel: 'public',
+                allowDirectMessages: true,
+                allowMentions: true,
+                notificationSettings: {
+                  newFollowers: true,
+                  newPosts: true,
+                  mentions: true,
+                  directMessages: true,
+                  groupUpdates: true,
+                  emailNotifications: true,
+                  pushNotifications: true
+                },
+                theme: 'light',
+                language: 'en',
+                timezone: 'UTC'
+              },
+              socialLinks: {},
+              linkedUser: null
+            } : undefined,
+            content: repost.originalPostSnapshot.content,
+            mediaUrls: repost.originalPostSnapshot.mediaUrls || [],
+            postType: (repost.originalPostSnapshot.postType as 'text' | 'image' | 'video' | 'link' | 'poll') || 'text',
+            visibility: 'public',
+            likesCount: repost.originalPostSnapshot.likesCount,
+            commentsCount: repost.originalPostSnapshot.commentsCount,
+            sharesCount: repost.originalPostSnapshot.sharesCount,
+            repostsCount: repost.originalPostSnapshot.repostsCount,
+            viewsCount: repost.originalPostSnapshot.viewsCount,
+            isLiked: false,
+            isShared: false,
+            createdAt: repost.originalPostSnapshot.createdAt,
+            updatedAt: repost.originalPostSnapshot.createdAt
+          }}
+          isOpen={showCommentCard}
+          onClose={() => setShowCommentCard(false)}
+          position={commentCardPosition}
+        />
+      )}
     </div>
   );
 };

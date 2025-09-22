@@ -9,9 +9,8 @@ import LinkedAccountsPost from './LinkedAccountsPost';
 import PostSkeleton from './PostSkeleton';
 import RepostButton from './RepostButton';
 import RepostCard from './RepostCard';
-import GrokIntegration from './GrokIntegration';
 import { useAuth } from '../../contexts/AuthContext';
-import { grokService } from '../../services/grok.service';
+import CommentFloatingCard from './CommentFloatingCard';
 
 // Add CSS for notification animations
 const notificationStyles = `
@@ -181,6 +180,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   const [showFullRecentPost, setShowFullRecentPost] = useState<string | null>(null);
   const { notifications, addNotification, removeNotification } = useRealtimeNotifications();
   const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [showCommentCard, setShowCommentCard] = useState(false);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<Post | null>(null);
+  const [commentCardPosition, setCommentCardPosition] = useState({ top: 0, left: 0 });
 
   // Infinite scroll detection
   const { ref: loadMoreRef, inView } = useInView({
@@ -578,6 +580,25 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
     } catch (error) {
       console.error('Failed to share post:', error);
     }
+  };
+
+  const handleCommentClick = (post: Post, event: React.MouseEvent) => {
+    // Close any existing comment card first
+    if (showCommentCard) {
+      setShowCommentCard(false);
+      setSelectedPostForComments(null);
+    }
+    
+    // Get the position of the comment button
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const position = {
+      top: buttonRect.bottom + 10, // Position below the button
+      left: Math.min(buttonRect.left, window.innerWidth - 600) // Ensure it fits on screen
+    };
+    
+    setCommentCardPosition(position);
+    setSelectedPostForComments(post);
+    setShowCommentCard(true);
   };
 
   const handleDelete = async (postId: string) => {
@@ -1099,6 +1120,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                     onLike={handleLike}
                     onShare={handleShare}
                     onDelete={handleDelete}
+                    onComment={handleCommentClick}
                     currentUserId={currentUserId || undefined}
                     formatDate={formatDate}
                     getPostVisibilityIcon={getPostVisibilityIcon}
@@ -1152,6 +1174,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                   onLike={handleLike}
                   onShare={handleShare}
                   onDelete={handleDelete}
+                  onComment={handleCommentClick}
                   currentUserId={currentUserId || undefined}
                   formatDate={formatDate}
                   getPostVisibilityIcon={getPostVisibilityIcon}
@@ -1231,6 +1254,19 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
           )}
         </div>
       </div>
+
+      {/* Floating Comment Card */}
+      {selectedPostForComments && (
+        <CommentFloatingCard
+          post={selectedPostForComments}
+          isOpen={showCommentCard}
+          onClose={() => {
+            setShowCommentCard(false);
+            setSelectedPostForComments(null);
+          }}
+          position={commentCardPosition}
+        />
+      )}
     </div>
   );
 };
@@ -1241,17 +1277,13 @@ const PostCard: React.FC<{
   onLike: (postId: string) => void;
   onShare: (postId: string) => void;
   onDelete: (postId: string) => void;
+  onComment: (post: Post, event: React.MouseEvent) => void;
   currentUserId?: string;
   formatDate: (date: string) => string;
   getPostVisibilityIcon: (visibility: string) => string;
   getPostTypeIcon: (type: string) => string;
   currentUser?: any; // Add current user information
-}> = ({ post, onLike, onShare, onDelete, currentUserId, formatDate, getPostVisibilityIcon, getPostTypeIcon, currentUser }) => {
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState<any[]>([]);
-  const [commentText, setCommentText] = useState('');
-  const [isLoadingComments, setIsLoadingComments] = useState(false);
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+}> = ({ post, onLike, onShare, onDelete, onComment, currentUserId, formatDate, getPostVisibilityIcon, getPostTypeIcon, currentUser }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -1261,67 +1293,6 @@ const PostCard: React.FC<{
   const [isVoting, setIsVoting] = useState(false);
   const [userVote, setUserVote] = useState<number | null>(null);
 
-  const loadComments = async () => {
-    if (isLoadingComments) return;
-    
-    setIsLoadingComments(true);
-    try {
-      const response = await socialService.getComments(post.id);
-      setComments(response.comments);
-    } catch (error) {
-      console.error('Failed to load comments:', error);
-    } finally {
-      setIsLoadingComments(false);
-    }
-  };
-
-  const handleCommentSubmit = async () => {
-    if (!commentText.trim()) return;
-
-    setIsSubmittingComment(true);
-    try {
-      const newComment = await socialService.createComment(post.id, commentText);
-      
-      // Enhance comment with current user profile information
-      const enhancedComment = {
-        ...newComment,
-        authorProfile: currentUser ? {
-          id: currentUser.id,
-          userId: currentUser.id,
-          displayName: currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.username,
-          username: currentUser.username,
-          email: currentUser.email,
-          avatar: currentUser.avatar,
-          avatarUrl: currentUser.avatar,
-          isVerified: false, // Default value
-          isKidAccount: false, // Default value
-          bio: '',
-          location: '',
-          website: '',
-          dateOfBirth: currentUser.birthDate || '',
-          followersCount: 0,
-          followingCount: 0,
-          postsCount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          preferences: {},
-          socialLinks: {},
-          linkedUser: null
-        } : null,
-        authorName: currentUser ? (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.username) : 'Unknown User',
-        createdAt: newComment.createdAt || new Date().toISOString()
-      };
-      
-      setComments(prev => [enhancedComment, ...prev]);
-      setCommentText('');
-      
-      console.log('✅ Comment created with user profile:', enhancedComment);
-    } catch (error) {
-      console.error('Failed to submit comment:', error);
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
 
   const handleEdit = async () => {
     if (!editContent.trim()) return;
@@ -1686,7 +1657,7 @@ const PostCard: React.FC<{
             </button>
 
             <button
-              onClick={() => setShowComments(!showComments)}
+              onClick={(e) => onComment(post, e)}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
               data-comment-button
             >
@@ -1731,71 +1702,6 @@ const PostCard: React.FC<{
         </div>
       </div>
 
-      {/* Professional Comments Section */}
-      {showComments && (
-        <div className="border-t border-gray-100">
-          <div className="px-6 py-4">
-            {/* Comment Input */}
-            <div className="flex space-x-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0"></div>
-              <div className="flex-1">
-                <textarea
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  rows={2}
-                />
-                <div className="flex justify-end mt-2">
-                  <button
-                    onClick={handleCommentSubmit}
-                    disabled={isSubmittingComment || !commentText.trim()}
-                    className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {isSubmittingComment ? 'Posting...' : 'Post Comment'}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Comments List */}
-            <div className="space-y-4">
-              {comments.map((comment, index) => (
-                <div key={comment.id || `comment-${index}-${Date.now()}`} className="flex space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0">
-                    {comment.authorProfile?.avatar ? (
-                      <img
-                        src={comment.authorProfile.avatar}
-                        alt={comment.authorProfile.displayName || comment.authorName || 'User'}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-purple-100 flex items-center justify-center">
-                        <span className="text-xs text-purple-600 font-semibold">
-                          {(comment.authorProfile?.displayName || comment.authorName || 'U').charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-gray-50 rounded-lg px-3 py-2">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm font-medium text-gray-900">
-                          {comment.authorProfile?.displayName || comment.authorName || 'Unknown User'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {comment.createdAt ? formatDate(comment.createdAt) : 'Just now'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

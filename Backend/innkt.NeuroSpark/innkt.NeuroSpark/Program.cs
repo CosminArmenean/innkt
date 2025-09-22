@@ -15,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
 
+// Add Memory Cache
+builder.Services.AddMemoryCache();
+
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -33,6 +36,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "")),
             ClockSkew = TimeSpan.Zero
         };
+    });
+
+// Add Service Authentication
+builder.Services.AddAuthentication("ServiceAuth")
+    .AddScheme<ServiceAuthenticationSchemeOptions, ServiceAuthenticationHandler>("ServiceAuth", options =>
+    {
+        options.ServiceToken = builder.Configuration["ServiceAuth:Token"] ?? "innkt-social-service-token-2025";
     });
 
 // Add Authorization
@@ -121,6 +131,21 @@ builder.Services.AddScoped<IBackgroundRemovalService, BackgroundRemovalService>(
 
 // Add Search Services
 builder.Services.AddScoped<ISearchService, SearchService>();
+
+// Add X.AI Configuration
+builder.Services.Configure<innkt.NeuroSpark.Models.XAI.XAIConfiguration>(builder.Configuration.GetSection("XAI"));
+
+// Add X.AI Services
+builder.Services.AddHttpClient<IXAIService, XAIService>();
+builder.Services.AddScoped<IXAIService, XAIService>();
+builder.Services.AddScoped<IDailyUsageTracker, DailyUsageTracker>();
+builder.Services.AddScoped<ISmartTokenManager, SmartTokenManager>();
+builder.Services.AddScoped<IFreeTierRateLimiter, FreeTierRateLimiter>();
+builder.Services.AddScoped<FreeTierFallbackService>();
+
+// Add Grok AI Services
+builder.Services.AddScoped<IGrokService, GrokService>();
+builder.Services.AddScoped<IContentFilteringService, ContentFilteringService>();
 
 // Add HTTP Client for AI Moderation services
 builder.Services.AddHttpClient<IAIModerationService, AIModerationService>();

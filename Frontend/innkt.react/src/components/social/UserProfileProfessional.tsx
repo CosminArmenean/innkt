@@ -29,6 +29,7 @@ import { socialService, UserProfile, Post, Group, Follow, KidAccount } from '../
 import { feedService } from '../../services/feed.service';
 import { Repost, repostService } from '../../services/repost.service';
 import RepostCard from './RepostCard';
+import CommentFloatingCard from './CommentFloatingCard';
 import { useAuth } from '../../contexts/AuthContext';
 import FollowButton from './FollowButton';
 import UserActionsMenu from './UserActionsMenu';
@@ -62,6 +63,9 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
+  const [showCommentCard, setShowCommentCard] = useState(false);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<Post | null>(null);
+  const [commentCardPosition, setCommentCardPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     loadProfile();
@@ -240,6 +244,25 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
     } catch (error) {
       console.error('Failed to load kid accounts:', error);
     }
+  };
+
+  const handleCommentClick = (post: Post, event: React.MouseEvent) => {
+    // Close any existing comment card first
+    if (showCommentCard) {
+      setShowCommentCard(false);
+      setSelectedPostForComments(null);
+    }
+    
+    // Get the position of the comment button
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const position = {
+      top: buttonRect.bottom + 10, // Position below the button
+      left: Math.min(buttonRect.left, window.innerWidth - 600) // Ensure it fits on screen
+    };
+    
+    setCommentCardPosition(position);
+    setSelectedPostForComments(post);
+    setShowCommentCard(true);
   };
 
   const checkFollowStatus = async () => {
@@ -617,7 +640,10 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
                               <Heart className="w-4 h-4" />
                               <span className="text-sm">{post.likesCount || 0}</span>
                             </button>
-                            <button className="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                            <button 
+                              onClick={(e) => handleCommentClick(post, e)}
+                              className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+                            >
                               <MessageSquare className="w-4 h-4" />
                               <span className="text-sm">{post.commentsCount || 0}</span>
                             </button>
@@ -820,6 +846,19 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
             userId={userId}
             userName={profile.displayName || profile.username || 'Unknown User'}
             onClose={() => setShowReportModal(false)}
+          />
+        )}
+
+        {/* Floating Comment Card */}
+        {selectedPostForComments && (
+          <CommentFloatingCard
+            post={selectedPostForComments}
+            isOpen={showCommentCard}
+            onClose={() => {
+              setShowCommentCard(false);
+              setSelectedPostForComments(null);
+            }}
+            position={commentCardPosition}
           />
         )}
     </div>

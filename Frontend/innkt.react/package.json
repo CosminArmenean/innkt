@@ -12,6 +12,7 @@
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
+    "date-fns": "^4.1.0",
     "google-auth-library": "^10.3.0",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",

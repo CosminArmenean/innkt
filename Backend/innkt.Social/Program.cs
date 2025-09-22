@@ -97,9 +97,11 @@ builder.Services.AddScoped<IMigrationService, MigrationService>();
 builder.Services.AddSingleton<IUserProfileCacheService, UserProfileCacheService>();
 builder.Services.AddSingleton<IRealtimeService, RealtimeService>();
 builder.Services.AddHostedService<RealtimeHostedService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IMongoCommentService, MongoCommentService>(); // MongoDB comment service
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IRepostService, RepostService>(); // NEW: Repost service
+builder.Services.AddScoped<IGrokService, GrokService>(); // NEW: Grok AI service
+builder.Services.AddScoped<INeuroSparkService, NeuroSparkService>(); // NEW: NeuroSpark service
 // NOTE: Kid safety, notifications, and content filtering services migrated to dedicated microservices:
 // - Kid safety → Kinder service (Port 5004)
 // - Notifications → Notifications service (Port 5006) 
@@ -110,6 +112,18 @@ builder.Services.AddScoped<TrendingService>();
 
 // Add HTTP Client for Officer service
 builder.Services.AddHttpClient<IOfficerService, OfficerService>();
+
+// Add HTTP Client for NeuroSpark service with service authentication
+builder.Services.AddHttpClient<INeuroSparkService, NeuroSparkService>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var serviceToken = configuration["NeuroSpark:ServiceToken"];
+    client.DefaultRequestHeaders.Add("X-Service-Token", serviceToken);
+    client.DefaultRequestHeaders.Add("X-Service-Name", "innkt-social");
+});
+
+// Add HTTP Client for Notification service (for Grok notifications)
+builder.Services.AddHttpClient<GrokService>();
 
 // Add Logging
 builder.Services.AddLogging(logging =>

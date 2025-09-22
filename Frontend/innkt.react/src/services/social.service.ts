@@ -205,13 +205,14 @@ export interface Comment {
   id: string;
   postId: string;
   authorId: string;
-  authorProfile: UserProfile;
+  author?: UserBasicInfo; // Changed from authorProfile to author to match MongoDB response
   content: string;
   parentCommentId?: string;
   likesCount: number;
   isLiked: boolean;
   createdAt: string;
   updatedAt: string;
+  replies?: Comment[]; // Added for nested comments
 }
 
 // Group Interfaces
@@ -756,7 +757,7 @@ export class SocialService extends BaseApiService {
   // Comment Methods
   async createComment(postId: string, content: string, parentCommentId?: string): Promise<Comment> {
     try {
-      const response = await this.post<Comment>(`/api/v2/mongoposts/${postId}/comment`, {
+      const response = await this.post<Comment>(`/api/mongo/comments/post/${postId}`, {
         content,
         parentCommentId
       });
@@ -792,10 +793,21 @@ export class SocialService extends BaseApiService {
 
   async getComments(postId: string, page?: number, limit?: number): Promise<{ comments: Comment[]; totalCount: number; hasMore: boolean }> {
     try {
-      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/v2/mongoposts/${postId}/comments`, { page, limit });
+      console.log('🔍 SocialService: Getting comments for post:', postId, 'page:', page, 'limit:', limit);
+      console.log('🔍 SocialService: API base URL:', this.api.defaults.baseURL);
+      console.log('🔍 SocialService: Full URL:', `${this.api.defaults.baseURL}/api/mongo/comments/post/${postId}`);
+      
+      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/mongo/comments/post/${postId}`, { page, limit });
+      console.log('🔍 SocialService: Response received:', response);
       return response;
-    } catch (error) {
-      console.error('Failed to get comments:', error);
+    } catch (error: any) {
+      console.error('❌ SocialService: Failed to get comments:', error);
+      console.error('❌ SocialService: Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
       throw error;
     }
   }

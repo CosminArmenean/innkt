@@ -81,8 +81,10 @@ public class MongoDbContext
 
     // Collections
     public IMongoCollection<MongoPost> Posts => GetCollection<MongoPost>();
+    public IMongoCollection<MongoComment> Comments => GetCollection<MongoComment>();
     public IMongoCollection<MongoPollVote> PollVotes => GetCollection<MongoPollVote>();
     public IMongoCollection<MongoRepost> Reposts => GetCollection<MongoRepost>();
+    public IMongoCollection<MongoGrokRequest> GrokRequests => GetCollection<MongoGrokRequest>();
 
     /// <summary>
     /// Get a MongoDB collection with proper naming convention
@@ -204,6 +206,58 @@ public class MongoDbContext
             };
 
             await PollVotes.Indexes.CreateManyAsync(votesIndexes);
+
+            // Comments Collection Indexes
+            var commentsIndexes = new List<CreateIndexModel<MongoComment>>
+            {
+                // CommentId for lookups
+                new CreateIndexModel<MongoComment>(
+                    Builders<MongoComment>.IndexKeys.Ascending(c => c.CommentId),
+                    new CreateIndexOptions { Name = "commentId_unique", Unique = true, Background = true }
+                ),
+                
+                // Post comments for feed queries
+                new CreateIndexModel<MongoComment>(
+                    Builders<MongoComment>.IndexKeys
+                        .Ascending(c => c.PostId)
+                        .Ascending(c => c.ParentCommentId)
+                        .Descending(c => c.CreatedAt),
+                    new CreateIndexOptions { Name = "postId_parentCommentId_createdAt", Background = true }
+                ),
+                
+                // User comments for profile page
+                new CreateIndexModel<MongoComment>(
+                    Builders<MongoComment>.IndexKeys
+                        .Ascending(c => c.UserId)
+                        .Descending(c => c.CreatedAt),
+                    new CreateIndexOptions { Name = "userId_createdAt", Background = true }
+                ),
+                
+                // Thread path for nested comments
+                new CreateIndexModel<MongoComment>(
+                    Builders<MongoComment>.IndexKeys.Ascending(c => c.ThreadPath),
+                    new CreateIndexOptions { Name = "threadPath", Background = true }
+                ),
+                
+                // Depth for comment hierarchy
+                new CreateIndexModel<MongoComment>(
+                    Builders<MongoComment>.IndexKeys
+                        .Ascending(c => c.PostId)
+                        .Ascending(c => c.Depth)
+                        .Descending(c => c.CreatedAt),
+                    new CreateIndexOptions { Name = "postId_depth_createdAt", Background = true }
+                ),
+                
+                // Soft delete filter
+                new CreateIndexModel<MongoComment>(
+                    Builders<MongoComment>.IndexKeys
+                        .Ascending(c => c.IsDeleted)
+                        .Descending(c => c.CreatedAt),
+                    new CreateIndexOptions { Name = "isDeleted_createdAt", Background = true }
+                )
+            };
+
+            await Comments.Indexes.CreateManyAsync(commentsIndexes);
 
             // Reposts Collection Indexes
             var repostsIndexes = new List<CreateIndexModel<MongoRepost>>

@@ -11,15 +11,18 @@ public class GrokService : IGrokService
     private readonly ILogger<GrokService> _logger;
     private readonly IContentFilteringService _contentFilteringService;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly FreeTierFallbackService _fallbackService;
 
     public GrokService(
         ILogger<GrokService> logger,
         IContentFilteringService contentFilteringService,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        FreeTierFallbackService fallbackService)
     {
         _logger = logger;
         _contentFilteringService = contentFilteringService;
         _httpClientFactory = httpClientFactory;
+        _fallbackService = fallbackService;
     }
 
     #region Core Grok Functionality
@@ -126,19 +129,9 @@ public class GrokService : IGrokService
                 return CreateSafetyResponse("I can't help with that question. Let's talk about something else!");
             }
 
-            // Generate response based on content type
-            var response = new GrokResponse
-            {
-                Question = question,
-                Response = GenerateBasicResponse(question, analysis.ContentType),
-                ResponseType = analysis.ContentType,
-                ConfidenceScore = 0.85,
-                SafetyScore = 1.0,
-                IsKidSafe = true,
-                Model = "grok-1.5",
-                GeneratedAt = DateTime.UtcNow
-            };
-
+            // Use X.AI service with fallback
+            var response = await _fallbackService.GenerateResponseWithFallbackAsync(question, context);
+            
             // Add follow-up questions
             response.FollowUpQuestions = GenerateFollowUpQuestions(question);
             response.RelatedTopics = GenerateRelatedTopics(question);

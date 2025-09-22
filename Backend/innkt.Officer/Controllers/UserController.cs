@@ -67,6 +67,29 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
+    /// Get user profile by username
+    /// </summary>
+    [HttpGet("username/{username}")]
+    public async Task<ActionResult<UserProfileDto>> GetUserByUsername(string username)
+    {
+        try
+        {
+            var userProfile = await _authService.GetUserByUsernameAsync(username);
+            if (userProfile == null)
+            {
+                return NotFound(new { error = "User not found" });
+            }
+            return Ok(userProfile);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get user by username: {username}. Error: {ex.Message}");
+            var errorMessage = await _localization.GetStringAsync(AppStrings.General.ServerError);
+            return StatusCode(500, new { error = errorMessage });
+        }
+    }
+
+    /// <summary>
     /// Update user profile
     /// </summary>
     [HttpPut("{userId}")]
