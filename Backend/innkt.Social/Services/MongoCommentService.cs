@@ -3,6 +3,8 @@ using innkt.Social.Data;
 using innkt.Social.DTOs;
 using innkt.Social.Models.MongoDB;
 using AutoMapper;
+using innkt.Common.Services;
+using innkt.Common.Models.Events;
 
 namespace innkt.Social.Services;
 
@@ -13,19 +15,22 @@ public class MongoCommentService : IMongoCommentService
     private readonly IMapper _mapper;
     private readonly IOfficerService _officerService;
     private readonly INeuroSparkService _neuroSparkService;
+    private readonly IEventPublisher _eventPublisher;
 
     public MongoCommentService(
         MongoDbContext mongoContext, 
         ILogger<MongoCommentService> logger, 
         IMapper mapper,
         IOfficerService officerService,
-        INeuroSparkService neuroSparkService)
+        INeuroSparkService neuroSparkService,
+        IEventPublisher eventPublisher)
     {
         _mongoContext = mongoContext;
         _logger = logger;
         _mapper = mapper;
         _officerService = officerService;
         _neuroSparkService = neuroSparkService;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<CommentResponse> CreateCommentAsync(Guid postId, Guid userId, CreateCommentRequest request)
@@ -92,6 +97,9 @@ public class MongoCommentService : IMongoCommentService
                 _ = Task.Run(async () => await ProcessGrokMentionAsync(comment.CommentId, postId, userId, request.Content));
             }
 
+            // Publish comment created event for notifications (not feed)
+            _ = Task.Run(async () => await PublishCommentCreatedEventAsync(comment, postId, userId));
+
             return await GetCommentByIdAsync(comment.CommentId, userId);
         }
         catch (Exception ex)
@@ -120,14 +128,14 @@ public class MongoCommentService : IMongoCommentService
                 .Limit(pageSize)
                 .ToListAsync();
 
-            // Load replies for each comment
+            // Load only first-level comments (no nested replies initially)
             var commentResponses = new List<CommentResponse>();
             foreach (var comment in comments)
             {
                 var commentResponse = await MapToCommentResponse(comment, currentUserId);
                 
-                // Load all nested replies recursively
-                commentResponse.Replies = await LoadNestedRepliesAsync(comment.CommentId, currentUserId, 0);
+                // Don't load nested replies initially - they will be loaded on-demand
+                commentResponse.Replies = new List<CommentResponse>();
                 commentResponses.Add(commentResponse);
             }
 
@@ -145,6 +153,70 @@ public class MongoCommentService : IMongoCommentService
         {
             _logger.LogError(ex, "Error getting comments for post {PostId}", postId);
             throw;
+        }
+    }
+
+    public async Task<CommentListResponse> GetNestedCommentsAsync(Guid parentCommentId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
+    {
+        try
+        {
+            var filter = Builders<MongoComment>.Filter.And(
+                Builders<MongoComment>.Filter.Eq(c => c.ParentCommentId, parentCommentId),
+                Builders<MongoComment>.Filter.Eq(c => c.IsDeleted, false)
+            );
+
+            var totalCount = await _mongoContext.Comments.CountDocumentsAsync(filter);
+
+            var comments = await _mongoContext.Comments
+                .Find(filter)
+                .Sort(Builders<MongoComment>.Sort.Ascending(c => c.CreatedAt))
+                .Skip((page - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+
+            // Load replies for each comment (but not recursively - just one level)
+            var commentResponses = new List<CommentResponse>();
+            foreach (var comment in comments)
+            {
+                var commentResponse = await MapToCommentResponse(comment, currentUserId);
+                
+                // Load only direct replies (one level down)
+                commentResponse.Replies = await LoadNestedRepliesAsync(comment.CommentId, currentUserId, 0);
+                commentResponses.Add(commentResponse);
+            }
+
+            return new CommentListResponse
+            {
+                Comments = commentResponses,
+                TotalCount = (int)totalCount,
+                Page = page,
+                PageSize = pageSize,
+                HasNextPage = page * pageSize < totalCount,
+                HasPreviousPage = page > 1
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting nested comments for parent {ParentCommentId}", parentCommentId);
+            throw;
+        }
+    }
+
+    public async Task<int> GetNestedCommentsCountAsync(Guid parentCommentId)
+    {
+        try
+        {
+            var filter = Builders<MongoComment>.Filter.And(
+                Builders<MongoComment>.Filter.Eq(c => c.ParentCommentId, parentCommentId),
+                Builders<MongoComment>.Filter.Eq(c => c.IsDeleted, false)
+            );
+
+            return (int)await _mongoContext.Comments.CountDocumentsAsync(filter);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting nested comments count for parent {ParentCommentId}", parentCommentId);
+            return 0;
         }
     }
 
@@ -423,8 +495,14 @@ public class MongoCommentService : IMongoCommentService
                     ParentCommentId = commentId
                 };
 
-                // Use a special AI user ID (e.g., a predefined GUID for Grok AI)
-                var grokUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                // Get the grok.xai user ID from Officer service
+                var grokUser = await _officerService.GetUserByUsernameAsync("grok.xai");
+                if (grokUser == null)
+                {
+                    _logger.LogError("grok.xai user account not found. Cannot create AI response.");
+                    return;
+                }
+                var grokUserId = grokUser.Id;
 
                 var aiComment = await CreateCommentAsync(postId, grokUserId, aiCommentRequest);
                 
@@ -450,5 +528,41 @@ public class MongoCommentService : IMongoCommentService
 
         var question = content.Substring(grokIndex + 5).Trim();
         return question;
+    }
+
+    private async Task PublishCommentCreatedEventAsync(MongoComment comment, Guid postId, Guid userId)
+    {
+        try
+        {
+            // Only publish notification events, not feed events
+            // The social feed will continue to use SSE for real-time updates
+            var socialEvent = new SocialEvent
+            {
+                EventType = "comment_notification",
+                UserId = userId.ToString(),
+                PostId = postId.ToString(),
+                CommentId = comment.CommentId.ToString(),
+                Data = new
+                {
+                    commentId = comment.CommentId,
+                    postId = postId,
+                    userId = userId,
+                    content = comment.Content.Length > 100 ? comment.Content.Substring(0, 100) + "..." : comment.Content,
+                    parentCommentId = comment.ParentCommentId,
+                    isGrokMention = comment.Content.Contains("@grok", StringComparison.OrdinalIgnoreCase),
+                    notificationType = "comment_created"
+                }
+            };
+
+            _logger.LogInformation("📤 Publishing social event: UserId={UserId}, EventType={EventType}, PostId={PostId}", 
+                socialEvent.UserId, socialEvent.EventType, socialEvent.PostId);
+            
+            await _eventPublisher.PublishSocialEventAsync(socialEvent);
+            _logger.LogInformation("📤 Comment notification event published for comment {CommentId}", comment.CommentId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to publish comment notification event for comment {CommentId}", comment.CommentId);
+        }
     }
 }

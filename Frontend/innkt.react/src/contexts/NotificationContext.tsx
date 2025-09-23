@@ -29,6 +29,8 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+  console.log('🔔 NotificationProvider initialized');
+  
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [counts, setCounts] = useState<NotificationCounts>({
     total: 0,
@@ -41,6 +43,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       group_invite: 0,
       post_mention: 0,
       system: 0,
+      grok_response: 0,
     },
   });
   const [settings, setSettings] = useState<NotificationSettings>({
@@ -213,9 +216,15 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   // Authenticate and subscribe when user logs in
   useEffect(() => {
+    console.log('🔔 NotificationProvider useEffect - isAuthenticated:', isAuthenticated, 'user:', user?.id);
+    
     if (isAuthenticated && user) {
       const token = localStorage.getItem('accessToken');
+      console.log('🔔 Token found:', !!token);
+      
       if (token) {
+        console.log('🔔 Connecting to notification service for user:', user.id);
+        notificationService.connect();
         notificationService.authenticate(user.id, token);
         notificationService.subscribeToUser(user.id);
       }

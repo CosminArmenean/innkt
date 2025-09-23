@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Serilog;
+using Confluent.Kafka;
+using innkt.Notifications.Services;
+using innkt.Notifications.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,12 +54,71 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("NotificationPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3001", "http://localhost:51303")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:51303")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
     });
 });
+
+// Add Memory Cache
+builder.Services.AddMemoryCache();
+
+// Add Kafka producer
+builder.Services.AddSingleton<IProducer<string, string>>(provider =>
+{
+    var config = new ProducerConfig
+    {
+        BootstrapServers = builder.Configuration["Kafka:BootstrapServers"] ?? "localhost:9092",
+        ClientId = "notification-service",
+        Acks = Acks.All,
+        EnableIdempotence = true,
+        MessageTimeoutMs = 30000,
+        RetryBackoffMs = 100,
+        MessageSendMaxRetries = 3,
+        CompressionType = CompressionType.Snappy,
+        BatchSize = 16384,
+        LingerMs = 5
+    };
+
+    return new ProducerBuilder<string, string>(config)
+        .SetErrorHandler((_, error) => Console.WriteLine($"Kafka producer error: {error.Reason}"))
+        .SetLogHandler((_, logMessage) => Console.WriteLine($"Kafka producer log: {logMessage.Message}"))
+        .Build();
+});
+
+// Add Kafka consumer
+builder.Services.AddSingleton<IConsumer<string, string>>(provider =>
+{
+    var config = new ConsumerConfig
+    {
+        BootstrapServers = builder.Configuration["Kafka:BootstrapServers"] ?? "localhost:9092",
+        GroupId = "notification-service",
+        AutoOffsetReset = AutoOffsetReset.Earliest,
+        EnableAutoCommit = true,
+        AutoCommitIntervalMs = 1000,
+        SessionTimeoutMs = 30000,
+        HeartbeatIntervalMs = 10000
+    };
+
+    return new ConsumerBuilder<string, string>(config)
+        .SetErrorHandler((_, error) => Console.WriteLine($"Kafka consumer error: {error.Reason}"))
+        .SetLogHandler((_, logMessage) => Console.WriteLine($"Kafka consumer log: {logMessage.Message}"))
+        .Build();
+});
+
+// Add HttpClientFactory
+builder.Services.AddHttpClient();
+
+// Add SignalR for real-time notifications
+builder.Services.AddSignalR();
+
+// Add notification services
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IEventConsumer, EventConsumer>();
+
+// Add Event Consumer as hosted service
+builder.Services.AddHostedService<innkt.Notifications.Services.EventConsumerHostedService>();
 
 var app = builder.Build();
 
@@ -72,6 +134,9 @@ app.UseCors("NotificationPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map SignalR hub
+app.MapHub<NotificationHub>("/notificationHub");
 
 // Health check endpoint
 app.MapGet("/health", () => new { 

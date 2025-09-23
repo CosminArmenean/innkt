@@ -19,6 +19,10 @@ interface CommentThread {
   depth: number;
   isExpanded: boolean;
   isCollapsed: boolean;
+  nestedCommentsCount: number;
+  isLoadingNested: boolean;
+  nestedCommentsLoaded: boolean;
+  nestedCommentsError: string | null;
 }
 
 const MAX_DEPTH = 3;
@@ -229,6 +233,9 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
       // Build threaded structure
       buildCommentThreads(reset ? newComments : [...comments, ...newComments]);
       
+      // Load nested comments count for new comments
+      await loadNestedCommentsCounts(newComments);
+      
     } catch (error) {
       console.error('❌ Failed to load comments:', error);
       // Set empty comments and let the UI show "No comments yet"
@@ -236,6 +243,79 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
       setCommentThreads([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadNestedCommentsCounts = async (comments: Comment[]) => {
+    for (const comment of comments) {
+      try {
+        const count = await socialService.getNestedCommentsCount(comment.id);
+        setCommentThreads(prev => {
+          const updated = [...prev];
+          const threadIndex = updated.findIndex(t => t.comment.id === comment.id);
+          if (threadIndex !== -1) {
+            updated[threadIndex] = {
+              ...updated[threadIndex],
+              nestedCommentsCount: count
+            };
+          }
+          return updated;
+        });
+      } catch (error) {
+        console.error('❌ Error loading nested comments count for comment:', comment.id, error);
+      }
+    }
+  };
+
+  const loadNestedComments = async (parentCommentId: string) => {
+    const threadIndex = commentThreads.findIndex(t => t.comment.id === parentCommentId);
+    if (threadIndex === -1) return;
+
+    // Update loading state
+    setCommentThreads(prev => {
+      const updated = [...prev];
+      updated[threadIndex] = {
+        ...updated[threadIndex],
+        isLoadingNested: true,
+        nestedCommentsError: null
+      };
+      return updated;
+    });
+
+    try {
+      const response = await socialService.getNestedComments(parentCommentId, 1, COMMENTS_PER_PAGE);
+      
+      setCommentThreads(prev => {
+        const updated = [...prev];
+        updated[threadIndex] = {
+          ...updated[threadIndex],
+          replies: response.comments.map(comment => ({
+            comment,
+            replies: [],
+            depth: 1,
+            isExpanded: false,
+            isCollapsed: false,
+            nestedCommentsCount: 0,
+            isLoadingNested: false,
+            nestedCommentsLoaded: false,
+            nestedCommentsError: null
+          })),
+          isLoadingNested: false,
+          nestedCommentsLoaded: true
+        };
+        return updated;
+      });
+    } catch (error) {
+      console.error('❌ Error loading nested comments:', error);
+      setCommentThreads(prev => {
+        const updated = [...prev];
+        updated[threadIndex] = {
+          ...updated[threadIndex],
+          isLoadingNested: false,
+          nestedCommentsError: 'Failed to fetch your data. Please try again.'
+        };
+        return updated;
+      });
     }
   };
 
@@ -265,7 +345,11 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
         replies: [],
         depth: 0,
         isExpanded: true,
-        isCollapsed: false
+        isCollapsed: false,
+        nestedCommentsCount: 0,
+        isLoadingNested: false,
+        nestedCommentsLoaded: false,
+        nestedCommentsError: null
       });
     });
 
@@ -446,6 +530,13 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
                       <User className="w-3 h-3 text-blue-500" />
                     </div>
                   )}
+                  {comment.author?.username === 'grok.xai' && (
+                    <div title="AI Account" className="flex items-center space-x-1">
+                      <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">AI</span>
+                      </div>
+                    </div>
+                  )}
                   <span className="text-gray-500 text-xs">
                     @{comment.author?.username || 'unknown'}
                   </span>
@@ -566,6 +657,68 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
               {thread.replies.map((reply, replyIndex) => 
                 renderComment(reply, replyIndex)
               )}
+              
+              {/* Hide Comments Button */}
+              {thread.nestedCommentsLoaded && thread.replies.length > 0 && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => {
+                      setCommentThreads(prev => {
+                        const updated = [...prev];
+                        const threadIndex = updated.findIndex(t => t.comment.id === comment.id);
+                        if (threadIndex !== -1) {
+                          updated[threadIndex] = {
+                            ...updated[threadIndex],
+                            replies: [],
+                            nestedCommentsLoaded: false
+                          };
+                        }
+                        return updated;
+                      });
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    <span>Hide comments</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* See More Comments Button */}
+          {thread.nestedCommentsCount > 0 && !thread.nestedCommentsLoaded && (
+            <div className="mt-3">
+              <button
+                onClick={() => loadNestedComments(comment.id)}
+                disabled={thread.isLoadingNested}
+                className="flex items-center space-x-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {thread.isLoadingNested ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading comments...</span>
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-4 h-4" />
+                    <span>See {thread.nestedCommentsCount} more comment{thread.nestedCommentsCount !== 1 ? 's' : ''}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Error State */}
+          {thread.nestedCommentsError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{thread.nestedCommentsError}</p>
+              <button
+                onClick={() => loadNestedComments(comment.id)}
+                className="mt-2 text-red-700 hover:text-red-800 text-sm underline"
+              >
+                Try again
+              </button>
             </div>
           )}
         </div>

@@ -10,6 +10,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using innkt.Common.Services;
+using innkt.Common.Models.Events;
 
 namespace innkt.Social.Services;
 
@@ -19,23 +21,20 @@ public class GrokService : IGrokService
     private readonly ILogger<GrokService> _logger;
     private readonly INeuroSparkService _neuroSparkService;
     private readonly IMongoCommentService _commentService;
-    private readonly HttpClient _httpClient;
-    private readonly string _notificationServiceUrl;
+    private readonly IEventPublisher _eventPublisher;
 
     public GrokService(
         MongoDbContext mongoContext,
         ILogger<GrokService> logger,
         INeuroSparkService neuroSparkService,
         IMongoCommentService commentService,
-        HttpClient httpClient,
-        IConfiguration configuration)
+        IEventPublisher eventPublisher)
     {
         _mongoContext = mongoContext;
         _logger = logger;
         _neuroSparkService = neuroSparkService;
         _commentService = commentService;
-        _httpClient = httpClient;
-        _notificationServiceUrl = configuration["NotificationService:BaseUrl"] ?? "http://localhost:5006";
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<GrokResponseDto> ProcessGrokRequestAsync(GrokRequestDto request, Guid userId)
@@ -107,9 +106,9 @@ public class GrokService : IGrokService
             _logger.LogInformation("💬 Creating AI comment for {RequestId}", requestId);
             await CreateGrokCommentAsync(requestId, request, userId, neuroSparkResponse.Response);
 
-            // Step 4: Send notification to user via Notification Service
-            _logger.LogInformation("🔔 Sending notification for {RequestId}", requestId);
-            await SendGrokNotificationAsync(userId, requestId, request.PostId, request.CommentId);
+            // Step 4: Publish Grok response event
+            _logger.LogInformation("📤 Publishing Grok response event for {RequestId}", requestId);
+            await PublishGrokResponseEventAsync(userId, requestId, request.PostId, request.CommentId, "completed");
 
             _logger.LogInformation("✅ Grok request {RequestId} completed successfully", requestId);
         }
@@ -118,8 +117,8 @@ public class GrokService : IGrokService
             _logger.LogError(ex, "❌ Error processing Grok request {RequestId}", requestId);
             await UpdateGrokStatusAsync(requestId, "failed", "Failed to process request");
             
-            // Send failure notification
-            await SendGrokNotificationAsync(userId, requestId, request.PostId, request.CommentId, "failed");
+            // Publish failure event
+            await PublishGrokResponseEventAsync(userId, requestId, request.PostId, request.CommentId, "failed");
         }
     }
 
@@ -181,55 +180,42 @@ public class GrokService : IGrokService
         }
     }
 
-    private async Task SendGrokNotificationAsync(Guid userId, string requestId, string postId, string commentId, string status = "completed")
+    private async Task PublishGrokResponseEventAsync(Guid userId, string requestId, string postId, string commentId, string status = "completed")
     {
         try
         {
-            var notification = new
+            var grokEvent = new GrokEvent
             {
-                userId = userId.ToString(),
-                type = "grok_response",
-                title = status == "completed" ? "🤖 Grok AI Response Ready" : "❌ Grok AI Request Failed",
-                message = status == "completed" 
-                    ? "Your Grok AI response has been generated and posted as a comment." 
-                    : "Sorry, your Grok AI request could not be processed. Please try again later.",
-                data = new
+                EventType = "grok_response",
+                UserId = userId.ToString(),
+                PostId = postId,
+                OriginalCommentId = commentId,
+                GrokCommentId = commentId, // Will be updated when AI comment is created
+                OriginalQuestion = "", // Will be extracted from the original comment
+                Confidence = status == "completed" ? 0.9 : 0.0,
+                Data = new
                 {
                     requestId = requestId,
                     postId = postId,
                     commentId = commentId,
+                    status = status,
+                    timestamp = DateTime.UtcNow,
+                    title = status == "completed" ? "🤖 Grok AI Response Ready" : "❌ Grok AI Request Failed",
+                    message = status == "completed" 
+                        ? "Your Grok AI response is ready! Check the comments section."
+                        : "Sorry, there was an issue processing your Grok AI request. Please try again.",
                     action = status == "completed" ? "view_comment" : "retry_request",
                     source = "grok_ai",
-                    status = status
-                },
-                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                priority = status == "completed" ? "normal" : "high",
-                category = "ai_response"
+                    category = "ai_response"
+                }
             };
 
-            var json = JsonSerializer.Serialize(notification, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            _logger.LogInformation("Sending Grok notification to Notification Service for user {UserId}", userId);
-            var response = await _httpClient.PostAsync($"{_notificationServiceUrl}/api/notifications/send", content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Grok notification sent successfully to user {UserId} for request {RequestId}", userId, requestId);
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("Failed to send Grok notification to user {UserId}. Status: {StatusCode}, Error: {Error}", 
-                    userId, response.StatusCode, errorContent);
-            }
+            await _eventPublisher.PublishGrokEventAsync(grokEvent);
+            _logger.LogInformation("📤 Grok response event published for user {UserId}, request {RequestId}", userId, requestId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending Grok notification for request {RequestId}", requestId);
+            _logger.LogError(ex, "❌ Failed to publish Grok response event for request {RequestId}", requestId);
         }
     }
 

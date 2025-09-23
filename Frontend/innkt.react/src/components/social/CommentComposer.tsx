@@ -286,6 +286,27 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           >
             <Image className="w-4 h-4 text-gray-500" />
           </button>
+
+          {/* @grok AI Button */}
+          <button
+            onClick={() => {
+              const currentContent = content;
+              const newContent = currentContent + (currentContent ? ' ' : '') + '@grok ';
+              setContent(newContent);
+              if (textareaRef.current) {
+                textareaRef.current.focus();
+                // Position cursor at the end
+                const length = newContent.length;
+                textareaRef.current.setSelectionRange(length, length);
+              }
+            }}
+            className="p-2 hover:bg-purple-100 rounded-full transition-colors group relative"
+            title="Ask Grok AI - Click to add @grok to your comment"
+          >
+            <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">AI</span>
+            </div>
+          </button>
         </div>
 
         {/* Submit Button */}

@@ -8,6 +8,7 @@ export const environment = {
     groups: process.env.REACT_APP_GROUPS_API_URL || 'http://localhost:5002',
     neurospark: process.env.REACT_APP_NEUROSPARK_API_URL || 'http://localhost:5003',
     messaging: process.env.REACT_APP_MESSAGING_API_URL || 'http://localhost:3000',
+    notifications: process.env.REACT_APP_NOTIFICATIONS_API_URL || 'http://localhost:5006',
     frontier: process.env.REACT_APP_FRONTIER_API_URL || 'http://localhost:51303',
   },
   

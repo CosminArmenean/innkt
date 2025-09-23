@@ -812,6 +812,44 @@ export class SocialService extends BaseApiService {
     }
   }
 
+  async getNestedComments(parentCommentId: string, page?: number, limit?: number): Promise<{ comments: Comment[]; totalCount: number; hasMore: boolean }> {
+    try {
+      console.log('🔍 SocialService: Getting nested comments for parent:', parentCommentId, 'page:', page, 'limit:', limit);
+      
+      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/mongo/comments/parent/${parentCommentId}`, { page, limit });
+      console.log('🔍 SocialService: Nested comments response received:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ SocialService: Failed to get nested comments:', error);
+      console.error('❌ SocialService: Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      throw error;
+    }
+  }
+
+  async getNestedCommentsCount(parentCommentId: string): Promise<number> {
+    try {
+      console.log('🔍 SocialService: Getting nested comments count for parent:', parentCommentId);
+      
+      const response = await this.get<number>(`/api/mongo/comments/parent/${parentCommentId}/count`);
+      console.log('🔍 SocialService: Nested comments count response received:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ SocialService: Failed to get nested comments count:', error);
+      console.error('❌ SocialService: Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      return 0; // Return 0 on error to prevent UI issues
+    }
+  }
+
   // Group Methods
   async createGroup(groupData: Partial<Group>): Promise<Group> {
     try {

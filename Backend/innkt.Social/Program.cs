@@ -102,6 +102,9 @@ builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IRepostService, RepostService>(); // NEW: Repost service
 builder.Services.AddScoped<IGrokService, GrokService>(); // NEW: Grok AI service
 builder.Services.AddScoped<INeuroSparkService, NeuroSparkService>(); // NEW: NeuroSpark service
+
+// Add Event Publisher for notification events
+builder.Services.AddScoped<innkt.Common.Services.IEventPublisher, innkt.Common.Services.EventPublisher>();
 // NOTE: Kid safety, notifications, and content filtering services migrated to dedicated microservices:
 // - Kid safety → Kinder service (Port 5004)
 // - Notifications → Notifications service (Port 5006) 

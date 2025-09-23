@@ -22,6 +22,25 @@ public abstract class BaseNotification
 }
 
 /// <summary>
+/// Generic notification for event processing
+/// </summary>
+public class EventNotification : BaseNotification
+{
+    public EventNotification()
+    {
+        // Default constructor
+    }
+    
+    public EventNotification(string type, Guid recipientId, string title, string message)
+    {
+        Type = type;
+        RecipientId = recipientId;
+        Title = title;
+        Message = message;
+    }
+}
+
+/// <summary>
 /// Repost notification when someone reposts a user's content
 /// </summary>
 public class RepostNotification : BaseNotification

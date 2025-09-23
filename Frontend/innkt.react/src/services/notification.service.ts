@@ -1,9 +1,9 @@
-import { io, Socket } from 'socket.io-client';
+import * as signalR from '@microsoft/signalr';
 import { environment } from '../config/environment';
 
 export interface Notification {
   id: string;
-  type: 'follow' | 'like' | 'comment' | 'message' | 'group_invite' | 'post_mention' | 'system';
+  type: 'follow' | 'like' | 'comment' | 'message' | 'group_invite' | 'post_mention' | 'system' | 'grok_response';
   title: string;
   body: string;
   data?: any;
@@ -23,6 +23,7 @@ export interface NotificationCounts {
     group_invite: number;
     post_mention: number;
     system: number;
+    grok_response: number;
   };
 }
 
@@ -45,7 +46,7 @@ export interface NotificationListResponse {
 }
 
 class NotificationService {
-  private socket: Socket | null = null;
+  private connection: signalR.HubConnection | null = null;
   private isConnected = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -56,57 +57,61 @@ class NotificationService {
     this.connect();
   }
 
-  private connect() {
+  public connect() {
     try {
-      this.socket = io(environment.api.messaging, {
-        transports: ['websocket'],
-        autoConnect: true,
-        reconnection: true,
-        reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: this.reconnectDelay,
-      });
+      const hubUrl = `${environment.api.notifications}/notificationHub`;
+      console.log('🔔 Connecting to SignalR hub at:', hubUrl);
+      
+      this.connection = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl, {
+          accessTokenFactory: () => {
+            const token = localStorage.getItem('accessToken');
+            console.log('🔔 Using token for SignalR:', !!token);
+            return token || '';
+          }
+        })
+        .withAutomaticReconnect()
+        .build();
 
-      this.socket.on('connect', () => {
+      this.connection.start().then(() => {
         console.log('🔔 Connected to notification service');
         this.isConnected = true;
         this.reconnectAttempts = 0;
         this.emit('connected');
-      });
-
-      this.socket.on('disconnect', (reason) => {
-        console.log('🔔 Disconnected from notification service:', reason);
-        this.isConnected = false;
-        this.emit('disconnected', reason);
-      });
-
-      this.socket.on('connect_error', (error) => {
+      }).catch((error) => {
         console.error('🔔 Connection error:', error);
         this.reconnectAttempts++;
         this.emit('error', error);
       });
 
+      this.connection.onclose((error) => {
+        console.log('🔔 Disconnected from notification service:', error);
+        this.isConnected = false;
+        this.emit('disconnected', error);
+      });
+
       // Listen for notifications
-      this.socket.on('notification', (notification: Notification) => {
+      this.connection.on('notification', (notification: Notification) => {
         console.log('🔔 Received notification:', notification);
         this.emit('notification', notification);
       });
 
       // Listen for notification counts
-      this.socket.on('notification_counts', (counts: NotificationCounts) => {
+      this.connection.on('notification_counts', (counts: NotificationCounts) => {
         console.log('🔔 Received notification counts:', counts);
         this.emit('counts', counts);
       });
 
       // Listen for real-time updates
-      this.socket.on('follow_count', (count: number) => {
+      this.connection.on('follow_count', (count: number) => {
         this.emit('follow_count', count);
       });
 
-      this.socket.on('message_count', (count: number) => {
+      this.connection.on('message_count', (count: number) => {
         this.emit('message_count', count);
       });
 
-      this.socket.on('group_invite_count', (count: number) => {
+      this.connection.on('group_invite_count', (count: number) => {
         this.emit('group_invite_count', count);
       });
 
@@ -142,36 +147,36 @@ class NotificationService {
 
   // Authentication
   authenticate(userId: string, token: string) {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('authenticate', { userId, token });
+    if (this.connection && this.isConnected) {
+      this.connection.invoke('authenticate', { userId, token });
     }
   }
 
   // Subscribe to user notifications
   subscribeToUser(userId: string) {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('subscribe_user', userId);
+    if (this.connection && this.isConnected) {
+      this.connection.invoke('subscribe_user', userId);
     }
   }
 
   // Unsubscribe from user notifications
   unsubscribeFromUser(userId: string) {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('unsubscribe_user', userId);
+    if (this.connection && this.isConnected) {
+      this.connection.invoke('unsubscribe_user', userId);
     }
   }
 
   // Mark notification as read
   markAsRead(notificationId: string) {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('mark_read', notificationId);
+    if (this.connection && this.isConnected) {
+      this.connection.invoke('mark_read', notificationId);
     }
   }
 
   // Mark all notifications as read
   markAllAsRead() {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('mark_all_read');
+    if (this.connection && this.isConnected) {
+      this.connection.invoke('mark_all_read');
     }
   }
 
@@ -182,9 +187,9 @@ class NotificationService {
 
   // Disconnect
   disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+    if (this.connection) {
+      this.connection.stop();
+      this.connection = null;
       this.isConnected = false;
     }
   }

@@ -53,6 +53,53 @@ public class MongoCommentsController : ControllerBase
     }
 
     /// <summary>
+    /// Get nested comments for a specific parent comment
+    /// </summary>
+    [HttpGet("parent/{parentCommentId}")]
+    public async Task<ActionResult<CommentListResponse>> GetNestedComments(
+        Guid parentCommentId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var response = await _commentService.GetNestedCommentsAsync(parentCommentId, page, pageSize, currentUserId);
+            
+            _logger.LogInformation("Retrieved {Count} nested comments for parent {ParentCommentId}", response.Comments.Count, parentCommentId);
+            return Ok(response);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Parent comment {ParentCommentId} not found", parentCommentId);
+            return NotFound(new { error = "Parent comment not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting nested comments for parent {ParentCommentId}", parentCommentId);
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get count of nested comments for a parent comment
+    /// </summary>
+    [HttpGet("parent/{parentCommentId}/count")]
+    public async Task<ActionResult<int>> GetNestedCommentsCount(Guid parentCommentId)
+    {
+        try
+        {
+            var count = await _commentService.GetNestedCommentsCountAsync(parentCommentId);
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting nested comments count for parent {ParentCommentId}", parentCommentId);
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+
+    /// <summary>
     /// Create a new comment
     /// </summary>
     [HttpPost("post/{postId}")]
