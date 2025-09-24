@@ -53,6 +53,57 @@ public class NotificationHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
+    // SignalR Hub Methods
+    public async Task Authenticate(string userId, string token)
+    {
+        _logger.LogInformation("🔔 User {UserId} authenticated", userId);
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+    }
+
+    public async Task SubscribeUser(string userId)
+    {
+        _logger.LogInformation("🔔 User {UserId} subscribed to notifications", userId);
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+    }
+
+    public async Task UnsubscribeUser(string userId)
+    {
+        _logger.LogInformation("🔔 User {UserId} unsubscribed from notifications", userId);
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
+    }
+
+    public async Task MarkRead(string notificationId)
+    {
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            _logger.LogWarning("⚠️ Cannot mark notification as read: UserId not found");
+            return;
+        }
+
+        _logger.LogInformation("🔔 User {UserId} marked notification {NotificationId} as read", userId, notificationId);
+        
+        // TODO: Implement actual database update
+        // For now, just log the action
+        await Task.CompletedTask;
+    }
+
+    public async Task MarkAllRead()
+    {
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            _logger.LogWarning("⚠️ Cannot mark all notifications as read: UserId not found");
+            return;
+        }
+
+        _logger.LogInformation("🔔 User {UserId} marked all notifications as read", userId);
+        
+        // TODO: Implement actual database update
+        // For now, just log the action
+        await Task.CompletedTask;
+    }
+
     private string? GetUserId()
     {
         // Try different claim types that might contain the user ID

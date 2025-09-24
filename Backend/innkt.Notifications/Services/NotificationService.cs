@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Caching.Memory;
 using innkt.Notifications.Models;
 using innkt.Notifications.Configuration;
+using innkt.Notifications.Data;
 using Confluent.Kafka;
 using System.Text.Json;
+using MongoDB.Driver;
 
 namespace innkt.Notifications.Services;
 
@@ -15,17 +17,20 @@ public class NotificationService : INotificationService
     private readonly IMemoryCache _cache;
     private readonly IProducer<string, string> _kafkaProducer;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly NotificationDbContext _dbContext;
 
     public NotificationService(
         ILogger<NotificationService> logger,
         IMemoryCache cache,
         IProducer<string, string> kafkaProducer,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        NotificationDbContext dbContext)
     {
         _logger = logger;
         _cache = cache;
         _kafkaProducer = kafkaProducer;
         _httpClientFactory = httpClientFactory;
+        _dbContext = dbContext;
     }
 
     #region Core Notification Operations
@@ -37,13 +42,36 @@ public class NotificationService : INotificationService
             _logger.LogInformation("📤 Sending {Type} notification to user {RecipientId}", 
                 notification.Type, notification.RecipientId);
 
-            // Determine Kafka topic based on notification type
+            // 1. Store notification in MongoDB for offline users
+            var document = new NotificationDocument
+            {
+                Id = notification.Id.ToString(),
+                Type = notification.Type,
+                RecipientId = notification.RecipientId.ToString(),
+                SenderId = notification.SenderId?.ToString(),
+                Title = notification.Title,
+                Message = notification.Message,
+                IsRead = notification.IsRead,
+                CreatedAt = notification.CreatedAt,
+                ReadAt = notification.ReadAt,
+                Priority = notification.Priority,
+                Channel = notification.Channel,
+                Metadata = notification.Metadata,
+                Delivered = false, // Will be marked as delivered when user connects
+                RetryCount = 0,
+                ExpiresAt = notification.CreatedAt.AddDays(30) // Expire after 30 days
+            };
+
+            await _dbContext.Notifications.InsertOneAsync(document);
+            _logger.LogInformation("💾 Notification stored in MongoDB for offline delivery");
+
+            // 2. Determine Kafka topic based on notification type
             var topic = GetKafkaTopicForNotification(notification);
             
-            // Serialize notification
+            // 3. Serialize notification
             var message = JsonSerializer.Serialize(notification);
             
-            // Send to Kafka
+            // 4. Send to Kafka for real-time delivery
             var result = await _kafkaProducer.ProduceAsync(topic, new Message<string, string>
             {
                 Key = notification.RecipientId.ToString(),
@@ -194,6 +222,7 @@ public class NotificationService : INotificationService
                 return kidNotification.SafetyScore >= 0.8;
             }
 
+            await Task.CompletedTask;
             return true;
         }
         catch (Exception ex)
@@ -246,6 +275,7 @@ public class NotificationService : INotificationService
         {
             // TODO: Integrate with email service (SendGrid, AWS SES, etc.)
             _logger.LogInformation("📧 Email notification sent to user {UserId}: {Subject}", userId, subject);
+            await Task.CompletedTask;
             return true;
         }
         catch (Exception ex)
@@ -261,6 +291,7 @@ public class NotificationService : INotificationService
         {
             // TODO: Integrate with FCM/APNS
             _logger.LogInformation("📱 Push notification sent to user {UserId}: {Title}", userId, title);
+            await Task.CompletedTask;
             return true;
         }
         catch (Exception ex)
@@ -276,6 +307,7 @@ public class NotificationService : INotificationService
         {
             // TODO: Integrate with Twilio
             _logger.LogInformation("📱 SMS notification sent to {PhoneNumber}", phoneNumber);
+            await Task.CompletedTask;
             return true;
         }
         catch (Exception ex)
@@ -301,6 +333,7 @@ public class NotificationService : INotificationService
             _cache.Set(cacheKey, cached, TimeSpan.FromHours(24));
 
             _logger.LogInformation("📱 In-app notification cached for user {UserId}", userId);
+            await Task.CompletedTask;
             return true;
         }
         catch (Exception ex)
@@ -392,6 +425,205 @@ public class NotificationService : INotificationService
 
     public Task<DeliveryReport> GetDeliveryReportAsync(Guid notificationId) => 
         Task.FromResult(new DeliveryReport { NotificationId = notificationId });
+
+    #endregion
+
+    #region MongoDB Notification Operations
+
+    /// <summary>
+    /// Get notifications for a user from MongoDB
+    /// </summary>
+    public async Task<List<NotificationDocument>> GetUserNotificationsAsync(string userId, int page = 0, int limit = 50)
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.Eq(n => n.RecipientId, userId);
+            var sort = Builders<NotificationDocument>.Sort.Descending(n => n.CreatedAt);
+            
+            var notifications = await _dbContext.Notifications
+                .Find(filter)
+                .Sort(sort)
+                .Skip(page * limit)
+                .Limit(limit)
+                .ToListAsync();
+
+            _logger.LogInformation("📱 Retrieved {Count} notifications for user {UserId}", 
+                notifications.Count, userId);
+
+            return notifications;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to get notifications for user {UserId}", userId);
+            return new List<NotificationDocument>();
+        }
+    }
+
+    /// <summary>
+    /// Get unread notifications for a user
+    /// </summary>
+    public async Task<List<NotificationDocument>> GetUnreadNotificationsAsync(string userId)
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.And(
+                Builders<NotificationDocument>.Filter.Eq(n => n.RecipientId, userId),
+                Builders<NotificationDocument>.Filter.Eq(n => n.IsRead, false)
+            );
+            
+            var notifications = await _dbContext.Notifications
+                .Find(filter)
+                .Sort(Builders<NotificationDocument>.Sort.Descending(n => n.CreatedAt))
+                .ToListAsync();
+
+            _logger.LogInformation("📱 Retrieved {Count} unread notifications for user {UserId}", 
+                notifications.Count, userId);
+
+            return notifications;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to get unread notifications for user {UserId}", userId);
+            return new List<NotificationDocument>();
+        }
+    }
+
+    /// <summary>
+    /// Mark notification as read in MongoDB
+    /// </summary>
+    public async Task<bool> MarkNotificationAsReadAsync(string notificationId)
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.Eq(n => n.Id, notificationId);
+            var update = Builders<NotificationDocument>.Update
+                .Set(n => n.IsRead, true)
+                .Set(n => n.ReadAt, DateTime.UtcNow);
+
+            var result = await _dbContext.Notifications.UpdateOneAsync(filter, update);
+
+            if (result.ModifiedCount > 0)
+            {
+                _logger.LogInformation("✅ Marked notification {NotificationId} as read", notificationId);
+                return true;
+            }
+
+            _logger.LogWarning("⚠️ Notification {NotificationId} not found or already read", notificationId);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to mark notification {NotificationId} as read", notificationId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Mark all notifications as read for a user
+    /// </summary>
+    public async Task<bool> MarkAllNotificationsAsReadAsync(string userId)
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.And(
+                Builders<NotificationDocument>.Filter.Eq(n => n.RecipientId, userId),
+                Builders<NotificationDocument>.Filter.Eq(n => n.IsRead, false)
+            );
+            
+            var update = Builders<NotificationDocument>.Update
+                .Set(n => n.IsRead, true)
+                .Set(n => n.ReadAt, DateTime.UtcNow);
+
+            var result = await _dbContext.Notifications.UpdateManyAsync(filter, update);
+
+            _logger.LogInformation("✅ Marked {Count} notifications as read for user {UserId}", 
+                result.ModifiedCount, userId);
+
+            return result.ModifiedCount > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to mark all notifications as read for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Get undelivered notifications for offline users
+    /// </summary>
+    public async Task<List<NotificationDocument>> GetUndeliveredNotificationsAsync()
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.And(
+                Builders<NotificationDocument>.Filter.Eq(n => n.Delivered, false),
+                Builders<NotificationDocument>.Filter.Lt(n => n.RetryCount, 3) // Max 3 retries
+            );
+            
+            var notifications = await _dbContext.Notifications
+                .Find(filter)
+                .Sort(Builders<NotificationDocument>.Sort.Ascending(n => n.CreatedAt))
+                .ToListAsync();
+
+            _logger.LogInformation("📱 Retrieved {Count} undelivered notifications", notifications.Count);
+            return notifications;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to get undelivered notifications");
+            return new List<NotificationDocument>();
+        }
+    }
+
+    /// <summary>
+    /// Mark notification as delivered
+    /// </summary>
+    public async Task<bool> MarkNotificationAsDeliveredAsync(string notificationId)
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.Eq(n => n.Id, notificationId);
+            var update = Builders<NotificationDocument>.Update
+                .Set(n => n.Delivered, true)
+                .Set(n => n.DeliveredAt, DateTime.UtcNow);
+
+            var result = await _dbContext.Notifications.UpdateOneAsync(filter, update);
+
+            if (result.ModifiedCount > 0)
+            {
+                _logger.LogInformation("✅ Marked notification {NotificationId} as delivered", notificationId);
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to mark notification {NotificationId} as delivered", notificationId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Clean up expired notifications
+    /// </summary>
+    public async Task<int> CleanupExpiredNotificationsAsync()
+    {
+        try
+        {
+            var filter = Builders<NotificationDocument>.Filter.Lt(n => n.ExpiresAt, DateTime.UtcNow);
+            var result = await _dbContext.Notifications.DeleteManyAsync(filter);
+
+            _logger.LogInformation("🧹 Cleaned up {Count} expired notifications", result.DeletedCount);
+            return (int)result.DeletedCount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to cleanup expired notifications");
+            return 0;
+        }
+    }
+
 
     #endregion
 }

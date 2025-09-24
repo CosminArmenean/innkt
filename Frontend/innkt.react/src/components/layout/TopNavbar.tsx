@@ -239,7 +239,13 @@ const TopNavbar: React.FC = () => {
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                     Privacy & Security
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                  <button 
+                    onClick={() => {
+                      navigate('/notifications');
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
                     Notifications
                   </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
@@ -317,7 +323,13 @@ const TopNavbar: React.FC = () => {
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                     Privacy & Security
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                  <button 
+                    onClick={() => {
+                      navigate('/notifications');
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
                     Notifications
                   </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">

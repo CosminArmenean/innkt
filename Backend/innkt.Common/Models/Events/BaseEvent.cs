@@ -53,6 +53,24 @@ public class SocialEvent : BaseEvent
     
     [JsonPropertyName("targetUserId")]
     public string? TargetUserId { get; set; }
+    
+    [JsonPropertyName("senderId")]
+    public string? SenderId { get; set; }
+    
+    [JsonPropertyName("senderName")]
+    public string? SenderName { get; set; }
+    
+    [JsonPropertyName("senderAvatar")]
+    public string? SenderAvatar { get; set; }
+    
+    [JsonPropertyName("actionUrl")]
+    public string? ActionUrl { get; set; }
+    
+    [JsonPropertyName("relatedContentId")]
+    public string? RelatedContentId { get; set; }
+    
+    [JsonPropertyName("relatedContentType")]
+    public string? RelatedContentType { get; set; }
 }
 
 /// <summary>

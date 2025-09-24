@@ -27,6 +27,8 @@ import FollowersPage from './components/social/FollowersPage';
 import Unauthorized from './components/pages/Unauthorized';
 import Setup2FA from './components/auth/Setup2FA';
 import NotificationToast from './components/notifications/NotificationToast';
+import NotificationsPage from './pages/NotificationsPage';
+import PostDetail from './components/social/PostDetail';
 import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
@@ -120,6 +122,16 @@ function App() {
                   <UserProfileWrapper isOwnProfile={false} />
                 </ProtectedRoute>
               } />
+              <Route path="/post/:id" element={
+                <ProtectedRoute>
+                  <PostDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/messages/:id" element={
+                <ProtectedRoute>
+                  <MessagingDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <SecurityDashboard />
@@ -168,6 +180,11 @@ function App() {
               <Route path="/kid-safety" element={
                 <ProtectedRoute>
                   <KidSafetyDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/notifications" element={
+                <ProtectedRoute>
+                  <NotificationsPage />
                 </ProtectedRoute>
               } />
               <Route path="/unauthorized" element={<Unauthorized />} />

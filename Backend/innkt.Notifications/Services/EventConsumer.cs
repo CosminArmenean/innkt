@@ -16,6 +16,7 @@ public class EventConsumer : IEventConsumer
     private readonly IConsumer<string, string> _kafkaConsumer;
     private readonly INotificationService _notificationService;
     private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly ParentNotificationService _parentNotificationService;
     private readonly ILogger<EventConsumer> _logger;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -23,11 +24,13 @@ public class EventConsumer : IEventConsumer
         IConsumer<string, string> kafkaConsumer,
         INotificationService notificationService,
         IHubContext<NotificationHub> hubContext,
+        ParentNotificationService parentNotificationService,
         ILogger<EventConsumer> logger)
     {
         _kafkaConsumer = kafkaConsumer;
         _notificationService = notificationService;
         _hubContext = hubContext;
+        _parentNotificationService = parentNotificationService;
         _logger = logger;
         _cancellationTokenSource = new CancellationTokenSource();
     }
@@ -44,6 +47,7 @@ public class EventConsumer : IEventConsumer
                 "social.events",
                 "grok.events", 
                 "kid.safety",
+                "kid.accounts",
                 "user.actions",
                 "system.alerts"
             };
@@ -51,6 +55,7 @@ public class EventConsumer : IEventConsumer
             _kafkaConsumer.Subscribe(topics);
             
             _logger.LogInformation("✅ Event consumer started successfully for topics: {Topics}", string.Join(", ", topics));
+            await Task.CompletedTask;
 
             // Start consuming loop
             while (!_cancellationTokenSource.Token.IsCancellationRequested)
@@ -89,6 +94,7 @@ public class EventConsumer : IEventConsumer
             _cancellationTokenSource.Cancel();
             _kafkaConsumer.Unsubscribe();
             _logger.LogInformation("🛑 Event consumer stopped");
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
@@ -113,6 +119,9 @@ public class EventConsumer : IEventConsumer
                     break;
                 case "kid.safety":
                     await ProcessKidSafetyEventAsync(consumeResult);
+                    break;
+                case "kid.accounts":
+                    await ProcessKidAccountEventAsync(consumeResult);
                     break;
                 case "user.actions":
                     await ProcessUserActionEventAsync(consumeResult);
@@ -153,11 +162,21 @@ public class EventConsumer : IEventConsumer
             {
                 Type = socialEvent.EventType,
                 RecipientId = recipientId,
+                SenderId = !string.IsNullOrEmpty(socialEvent.SenderId) && Guid.TryParse(socialEvent.SenderId, out var senderId) ? senderId : null,
                 Title = GetSocialEventTitle(socialEvent),
                 Message = GetSocialEventMessage(socialEvent),
                 Priority = socialEvent.Metadata.Priority,
                 Channel = "in_app,push",
-                Metadata = socialEvent.Metadata.Tags
+                Metadata = new Dictionary<string, object>
+                {
+                    { "senderName", socialEvent.SenderName ?? "Someone" },
+                    { "senderAvatar", socialEvent.SenderAvatar ?? "" },
+                    { "actionUrl", socialEvent.ActionUrl ?? "" },
+                    { "relatedContentId", socialEvent.RelatedContentId ?? socialEvent.PostId },
+                    { "relatedContentType", socialEvent.RelatedContentType ?? "post" },
+                    { "postId", socialEvent.PostId },
+                    { "commentId", socialEvent.CommentId ?? "" }
+                }
             };
 
             await _notificationService.SendNotificationAsync(notification);
@@ -255,6 +274,7 @@ public class EventConsumer : IEventConsumer
 
             // Process user action notifications (likes, follows, etc.)
             // Implementation depends on specific user action types
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
@@ -313,6 +333,85 @@ public class EventConsumer : IEventConsumer
             "follow_notification" => "Someone started following you",
             _ => "You have a new social update"
         };
+    }
+
+    private async Task ProcessKidAccountEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("👶 Processing kid account event: {Key}", consumeResult.Message.Key);
+
+            // Parse the kid account event
+            var kidAccountEvent = System.Text.Json.JsonSerializer.Deserialize<dynamic>(consumeResult.Message.Value);
+            
+            if (kidAccountEvent == null)
+            {
+                _logger.LogWarning("⚠️ Failed to deserialize kid account event");
+                return;
+            }
+
+            // Extract event data
+            var eventType = kidAccountEvent.GetProperty("eventType").GetString() ?? "unknown";
+            var kidUserId = kidAccountEvent.GetProperty("kidUserId").GetString() ?? "";
+            var kidDisplayName = kidAccountEvent.GetProperty("kidDisplayName").GetString() ?? "";
+
+            // Handle different kid account events
+            switch (eventType)
+            {
+                case "kid_follow_request":
+                    var targetUserId = kidAccountEvent.GetProperty("targetUserId").GetString();
+                    var targetDisplayName = kidAccountEvent.GetProperty("targetDisplayName").GetString();
+                    await _parentNotificationService.NotifyParentKidFollowRequestAsync(
+                        kidUserId, targetUserId, kidDisplayName, targetDisplayName);
+                    break;
+
+                case "follow_request_for_kid":
+                    var followerUserId = kidAccountEvent.GetProperty("followerUserId").GetString();
+                    var followerDisplayName = kidAccountEvent.GetProperty("followerDisplayName").GetString();
+                    await _parentNotificationService.NotifyParentFollowRequestForKidAsync(
+                        followerUserId, kidUserId, followerDisplayName, kidDisplayName);
+                    break;
+
+                case "kid_post":
+                    var postId = kidAccountEvent.GetProperty("postId").GetString();
+                    var postContent = kidAccountEvent.GetProperty("postContent").GetString();
+                    await _parentNotificationService.NotifyParentKidPostAsync(
+                        kidUserId, postId, kidDisplayName, postContent);
+                    break;
+
+                case "kid_message":
+                    var senderUserId = kidAccountEvent.GetProperty("senderUserId").GetString();
+                    var senderDisplayName = kidAccountEvent.GetProperty("senderDisplayName").GetString();
+                    var messageContent = kidAccountEvent.GetProperty("messageContent").GetString();
+                    await _parentNotificationService.NotifyParentKidMessageAsync(
+                        kidUserId, senderUserId, senderDisplayName, kidDisplayName, messageContent);
+                    break;
+
+                case "kid_content_flagged":
+                    var contentId = kidAccountEvent.GetProperty("contentId").GetString();
+                    var reason = kidAccountEvent.GetProperty("reason").GetString();
+                    await _parentNotificationService.NotifyParentKidContentFlaggedAsync(
+                        kidUserId, contentId, kidDisplayName, reason);
+                    break;
+
+                case "kid_time_limit":
+                    var timeUsed = kidAccountEvent.GetProperty("timeUsed").GetInt32();
+                    var timeLimit = kidAccountEvent.GetProperty("timeLimit").GetInt32();
+                    await _parentNotificationService.NotifyParentKidTimeLimitReachedAsync(
+                        kidUserId, kidDisplayName, timeUsed, timeLimit);
+                    break;
+
+                default:
+                    _logger.LogWarning("⚠️ Unknown kid account event type: {EventType}", (string)eventType);
+                    break;
+            }
+
+            _logger.LogInformation("✅ Kid account event processed successfully: {EventType}", (string)eventType);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process kid account event");
+        }
     }
 
     public void Dispose()

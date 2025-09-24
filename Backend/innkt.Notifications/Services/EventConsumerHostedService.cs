@@ -65,3 +65,4 @@ public class EventConsumerHostedService : BackgroundService
         await base.StopAsync(cancellationToken);
     }
 }
+

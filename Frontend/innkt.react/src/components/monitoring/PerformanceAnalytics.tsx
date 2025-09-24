@@ -20,7 +20,7 @@ const PerformanceAnalytics: React.FC = () => {
     try {
       setIsLoading(true);
       const performanceMetrics = await monitoringService.getPerformanceMetrics(selectedService, timeRange);
-      setMetrics(performanceMetrics);
+      setMetrics([performanceMetrics]); // Wrap in array since metrics expects PerformanceMetrics[]
     } catch (error) {
       console.error('Failed to load performance metrics:', error);
     } finally {
@@ -32,21 +32,40 @@ const PerformanceAnalytics: React.FC = () => {
     return metrics.length > 0 ? metrics[metrics.length - 1] : null;
   };
 
-  const getAverageMetric = (key: keyof PerformanceMetrics) => {
+  const getAverageMetric = (key: string) => {
     if (metrics.length === 0) return 0;
-    const values = metrics.map(m => m[key]).filter(v => typeof v === 'number') as number[];
+    
+    const getNestedValue = (obj: PerformanceMetrics, path: string): number => {
+      const keys = path.split('.');
+      let value: any = obj;
+      for (const k of keys) {
+        value = value[k];
+      }
+      return typeof value === 'number' ? value : 0;
+    };
+    
+    const values = metrics.map(m => getNestedValue(m, key)).filter(v => typeof v === 'number') as number[];
     return values.reduce((sum, val) => sum + val, 0) / values.length;
   };
 
-  const getTrend = (key: keyof PerformanceMetrics) => {
+  const getTrend = (key: string) => {
     if (metrics.length < 2) return 'stable';
     const recent = metrics.slice(-3);
     const older = metrics.slice(-6, -3);
     
     if (recent.length === 0 || older.length === 0) return 'stable';
     
-    const recentAvg = recent.reduce((sum, m) => sum + (m[key] as number), 0) / recent.length;
-    const olderAvg = older.reduce((sum, m) => sum + (m[key] as number), 0) / older.length;
+    const getNestedValue = (obj: PerformanceMetrics, path: string): number => {
+      const keys = path.split('.');
+      let value: any = obj;
+      for (const k of keys) {
+        value = value[k];
+      }
+      return typeof value === 'number' ? value : 0;
+    };
+    
+    const recentAvg = recent.reduce((sum, m) => sum + getNestedValue(m, key), 0) / recent.length;
+    const olderAvg = older.reduce((sum, m) => sum + getNestedValue(m, key), 0) / older.length;
     
     const change = ((recentAvg - olderAvg) / olderAvg) * 100;
     
@@ -140,38 +159,38 @@ const PerformanceAnalytics: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {formatPercentage(getLatestMetrics()!.cpuUsage)}
+                {formatPercentage(getLatestMetrics()!.system.cpuUsage)}
               </div>
               <div className="text-sm text-gray-600">CPU Usage</div>
-              <div className={`text-xs mt-1 ${getTrendColor(getTrend('cpuUsage'))}`}>
-                {getTrendIcon(getTrend('cpuUsage'))} {getTrend('cpuUsage')}
+              <div className={`text-xs mt-1 ${getTrendColor(getTrend('system.cpuUsage'))}`}>
+                {getTrendIcon(getTrend('system.cpuUsage'))} {getTrend('system.cpuUsage')}
               </div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {formatPercentage(getLatestMetrics()!.memoryUsage)}
+                {formatPercentage(getLatestMetrics()!.system.memoryUsage)}
               </div>
               <div className="text-sm text-gray-600">Memory Usage</div>
-              <div className={`text-xs mt-1 ${getTrendColor(getTrend('memoryUsage'))}`}>
-                {getTrendIcon(getTrend('memoryUsage'))} {getTrend('memoryUsage')}
+              <div className={`text-xs mt-1 ${getTrendColor(getTrend('system.memoryUsage'))}`}>
+                {getTrendIcon(getTrend('system.memoryUsage'))} {getTrend('system.memoryUsage')}
               </div>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
-                {formatTime(getLatestMetrics()!.responseTime.p95)}
+                {formatTime(getLatestMetrics()!.system.networkLatency)}
               </div>
               <div className="text-sm text-gray-600">P95 Response Time</div>
-              <div className={`text-xs mt-1 ${getTrendColor(getTrend('responseTime'))}`}>
-                {getTrendIcon(getTrend('responseTime'))} {getTrend('responseTime')}
+              <div className={`text-xs mt-1 ${getTrendColor(getTrend('system.networkLatency'))}`}>
+                {getTrendIcon(getTrend('system.networkLatency'))} {getTrend('system.networkLatency')}
               </div>
             </div>
             <div className="text-center p-4 bg-orange-50 rounded-lg">
               <div className="text-2xl font-bold text-orange-600">
-                {formatMetricValue(getLatestMetrics()!.requestRate, '/s')}
+                {formatMetricValue(getLatestMetrics()!.kafka.throughput, '/s')}
               </div>
               <div className="text-sm text-gray-600">Request Rate</div>
-              <div className={`text-xs mt-1 ${getTrendColor(getTrend('requestRate'))}`}>
-                {getTrendIcon(getTrend('requestRate'))} {getTrend('requestRate')}
+              <div className={`text-xs mt-1 ${getTrendColor(getTrend('kafka.throughput'))}`}>
+                {getTrendIcon(getTrend('kafka.throughput'))} {getTrend('kafka.throughput')}
               </div>
             </div>
           </div>
@@ -187,12 +206,12 @@ const PerformanceAnalytics: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">CPU Usage</span>
-                <span className="font-medium">{formatPercentage(getAverageMetric('cpuUsage'))}</span>
+                <span className="font-medium">{formatPercentage(getAverageMetric('system.cpuUsage'))}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${getLatestMetrics()?.cpuUsage || 0}%` }}
+                  style={{ width: `${getLatestMetrics()?.system.cpuUsage || 0}%` }}
                 ></div>
               </div>
             </div>
@@ -200,12 +219,12 @@ const PerformanceAnalytics: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Memory Usage</span>
-                <span className="font-medium">{formatPercentage(getAverageMetric('memoryUsage'))}</span>
+                <span className="font-medium">{formatPercentage(getAverageMetric('system.memoryUsage'))}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${getLatestMetrics()?.memoryUsage || 0}%` }}
+                  style={{ width: `${getLatestMetrics()?.system.memoryUsage || 0}%` }}
                 ></div>
               </div>
             </div>
@@ -213,12 +232,12 @@ const PerformanceAnalytics: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Disk Usage</span>
-                <span className="font-medium">{formatPercentage(getAverageMetric('diskUsage'))}</span>
+                <span className="font-medium">{formatPercentage(getAverageMetric('system.diskUsage'))}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${getLatestMetrics()?.diskUsage || 0}%` }}
+                  style={{ width: `${getLatestMetrics()?.system.diskUsage || 0}%` }}
                 ></div>
               </div>
             </div>
@@ -231,19 +250,19 @@ const PerformanceAnalytics: React.FC = () => {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Network Latency</span>
-              <span className="font-medium">{formatTime(getAverageMetric('networkLatency'))}</span>
+              <span className="font-medium">{formatTime(getAverageMetric('system.networkLatency'))}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Active Connections</span>
-              <span className="font-medium">{formatMetricValue(getAverageMetric('activeConnections'))}</span>
+              <span className="font-medium">{formatMetricValue(getAverageMetric('connection.reconnectAttempts'))}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Error Rate</span>
-              <span className="font-medium">{formatPercentage(getAverageMetric('errorRate'))}</span>
+              <span className="font-medium">{formatPercentage(getAverageMetric('kafka.errors'))}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Request Rate</span>
-              <span className="font-medium">{formatMetricValue(getAverageMetric('requestRate'), '/s')}</span>
+              <span className="font-medium">{formatMetricValue(getAverageMetric('kafka.throughput'), '/s')}</span>
             </div>
           </div>
         </div>
@@ -255,21 +274,21 @@ const PerformanceAnalytics: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <div className="text-3xl font-bold text-blue-600">
-              {formatTime(getLatestMetrics()?.responseTime.p50 || 0)}
+              {formatTime(getLatestMetrics()?.system.networkLatency || 0)}
             </div>
             <div className="text-sm text-gray-600">P50 (Median)</div>
             <div className="text-xs text-gray-500 mt-1">50% of requests</div>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-3xl font-bold text-green-600">
-              {formatTime(getLatestMetrics()?.responseTime.p95 || 0)}
+              {formatTime(getLatestMetrics()?.system.networkLatency || 0)}
             </div>
             <div className="text-sm text-gray-600">P95</div>
             <div className="text-xs text-gray-500 mt-1">95% of requests</div>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-3xl font-bold text-purple-600">
-              {formatTime(getLatestMetrics()?.responseTime.p99 || 0)}
+              {formatTime(getLatestMetrics()?.system.networkLatency || 0)}
             </div>
             <div className="text-sm text-gray-600">P99</div>
             <div className="text-xs text-gray-500 mt-1">99% of requests</div>
@@ -312,19 +331,19 @@ const PerformanceAnalytics: React.FC = () => {
                       {new Date(metric.timestamp).toLocaleTimeString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatPercentage(metric.cpuUsage)}
+                      {formatPercentage(metric.system.cpuUsage)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatPercentage(metric.memoryUsage)}
+                      {formatPercentage(metric.system.memoryUsage)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatTime(metric.responseTime.p95)}
+                      {formatTime(metric.system.networkLatency)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatMetricValue(metric.requestRate, '/s')}
+                      {formatMetricValue(metric.kafka.throughput, '/s')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatPercentage(metric.errorRate)}
+                      {formatPercentage(metric.kafka.errors)}
                     </td>
                   </tr>
                 ))}

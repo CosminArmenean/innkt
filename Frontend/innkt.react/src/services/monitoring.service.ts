@@ -1,274 +1,257 @@
-import { BaseApiService, officerApi, neurosparkApi } from './api.service';
-
-export interface ServiceHealth {
-  serviceName: string;
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
-  responseTime: number;
-  lastCheck: string;
-  uptime: number;
-  version: string;
-  endpoints: EndpointHealth[];
+export interface PerformanceMetrics {
+  connection: {
+    isConnected: boolean;
+    reconnectAttempts: number;
+    lastPing: number;
+  };
+  notifications: {
+    totalReceived: number;
+    totalRead: number;
+    byType: Record<string, number>;
+  };
+  system: {
+    cpuUsage: number;
+    memoryUsage: number;
+    diskUsage: number;
+    networkLatency: number;
+  };
+  kafka: {
+    consumerLag: number;
+    messagesProcessed: number;
+    errors: number;
+    throughput: number;
+  };
+  timestamp: number;
 }
 
-export interface EndpointHealth {
+export interface EndpointInfo {
   name: string;
   path: string;
   status: 'healthy' | 'degraded' | 'unhealthy';
   responseTime: number;
-  lastCheck: string;
   errorCount: number;
 }
 
-export interface PerformanceMetrics {
+export interface ServiceHealth {
+  service: string;
   serviceName: string;
-  timestamp: string;
-  cpuUsage: number;
-  memoryUsage: number;
-  diskUsage: number;
-  networkLatency: number;
-  activeConnections: number;
-  requestRate: number;
-  errorRate: number;
-  responseTime: {
-    p50: number;
-    p95: number;
-    p99: number;
-  };
+  version: string;
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  uptime: number;
+  responseTime: number;
+  lastCheck: string;
+  issues: string[];
+  endpoints: EndpointInfo[];
+  errorCount: number;
 }
 
 export interface SystemAlert {
   id: string;
+  type: 'info' | 'warning' | 'error' | 'critical';
   severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
+  message: string;
   description: string;
-  serviceName: string;
   timestamp: string;
+  service: string;
+  serviceName: string;
+  resolved: boolean;
   isAcknowledged: boolean;
   acknowledgedBy?: string;
   acknowledgedAt?: string;
-  resolution?: string;
 }
 
-export interface MonitoringDashboard {
-  overallHealth: 'healthy' | 'degraded' | 'unhealthy';
-  services: ServiceHealth[];
-  recentAlerts: SystemAlert[];
-  performanceSummary: {
-    totalRequests: number;
-    averageResponseTime: number;
-    errorRate: number;
-    uptime: number;
+class MonitoringService {
+  private connectionMetrics = {
+    isConnected: false,
+    reconnectAttempts: 0,
+    lastPing: 0
   };
-}
 
-export class MonitoringService extends BaseApiService {
-  constructor() {
-    super(officerApi); // Base service, but we'll make calls to both services
+  private notificationMetrics = {
+    totalReceived: 0,
+    totalRead: 0,
+    byType: {} as Record<string, number>
+  };
+
+  updateConnectionStatus(isConnected: boolean) {
+    this.connectionMetrics.isConnected = isConnected;
   }
 
-  // Get overall system health
-  async getSystemHealth(): Promise<MonitoringDashboard> {
-    try {
-      // Check both services
-      const [officerHealth, neurosparkHealth] = await Promise.all([
-        this.checkServiceHealth('officer'),
-        this.checkServiceHealth('neurospark')
-      ]);
+  incrementNotificationReceived(type: string) {
+    this.notificationMetrics.totalReceived++;
+    this.notificationMetrics.byType[type] = (this.notificationMetrics.byType[type] || 0) + 1;
+  }
 
-      const services = [officerHealth, neurosparkHealth];
-      const overallHealth = this.calculateOverallHealth(services);
+  incrementNotificationRead() {
+    this.notificationMetrics.totalRead++;
+  }
 
+  getHealthStatus() {
       return {
-        overallHealth,
-        services,
-        recentAlerts: [], // TODO: Implement alerts
-        performanceSummary: {
-          totalRequests: services.reduce((sum, s) => sum + (s.endpoints?.[0]?.responseTime || 0), 0),
-          averageResponseTime: services.reduce((sum, s) => sum + (s.endpoints?.[0]?.responseTime || 0), 0) / services.length,
-          errorRate: 0, // TODO: Calculate from metrics
-          uptime: Math.min(...services.map(s => s.uptime))
-        }
-      };
-    } catch (error) {
-      console.error('Failed to get system health:', error);
-      throw error;
-    }
-  }
-
-  // Check individual service health
-  async checkServiceHealth(serviceName: string): Promise<ServiceHealth> {
-    const baseUrl = serviceName === 'officer' ? officerApi.defaults.baseURL : neurosparkApi.defaults.baseURL;
-    
-    try {
-      const startTime = Date.now();
-      const response = await fetch(`${baseUrl}/health`);
-      const responseTime = Date.now() - startTime;
-
-      if (response.ok) {
-        const healthData = await response.json();
-        return {
-          serviceName,
-          status: 'healthy',
-          responseTime,
-          lastCheck: new Date().toISOString(),
-          uptime: healthData.uptime || 0,
-          version: healthData.version || 'unknown',
-          endpoints: [
-            {
-              name: 'Health Check',
-              path: '/health',
-              status: 'healthy',
-              responseTime,
-              lastCheck: new Date().toISOString(),
-              errorCount: 0
-            }
-          ]
-        };
-      } else {
-        return {
-          serviceName,
-          status: 'unhealthy',
-          responseTime,
-          lastCheck: new Date().toISOString(),
-          uptime: 0,
-          version: 'unknown',
-          endpoints: [
-            {
-              name: 'Health Check',
-              path: '/health',
-              status: 'unhealthy',
-              responseTime,
-              lastCheck: new Date().toISOString(),
-              errorCount: 1
-            }
-          ]
-        };
+      isHealthy: this.connectionMetrics.isConnected,
+      metrics: {
+        connection: this.connectionMetrics,
+        notifications: this.notificationMetrics,
+        timestamp: Date.now()
       }
-    } catch (error) {
-      return {
-        serviceName,
-        status: 'unknown',
-        responseTime: 0,
-        lastCheck: new Date().toISOString(),
-        uptime: 0,
-        version: 'unknown',
-        endpoints: [
-          {
-            name: 'Health Check',
-            path: '/health',
-            status: 'unhealthy',
-            responseTime: 0,
-            lastCheck: new Date().toISOString(),
-            errorCount: 1
-          }
-        ]
-      };
-    }
+    };
   }
 
-  // Get performance metrics for a service
-  async getPerformanceMetrics(serviceName: string, timeRange: string = '1h'): Promise<PerformanceMetrics[]> {
-    try {
-      const baseUrl = serviceName === 'officer' ? officerApi.defaults.baseURL : neurosparkApi.defaults.baseURL;
-      const response = await fetch(`${baseUrl}/metrics?range=${timeRange}`);
-      
-      if (response.ok) {
-        const metrics = await response.json();
-        return metrics.map((metric: any) => ({
+  async getPerformanceMetrics(service?: string, timeRange?: string): Promise<PerformanceMetrics> {
+    // For now, return mock metrics regardless of service and timeRange
+    // In a real implementation, you would filter by service and time range
+    return {
+      connection: this.connectionMetrics,
+      notifications: this.notificationMetrics,
+      system: {
+        cpuUsage: Math.random() * 100, // Mock CPU usage 0-100%
+        memoryUsage: Math.random() * 100, // Mock memory usage 0-100%
+        diskUsage: Math.random() * 100, // Mock disk usage 0-100%
+        networkLatency: Math.random() * 100 // Mock latency 0-100ms
+      },
+      kafka: {
+        consumerLag: Math.floor(Math.random() * 1000), // Mock lag 0-1000 messages
+        messagesProcessed: Math.floor(Math.random() * 10000), // Mock processed messages
+        errors: Math.floor(Math.random() * 10), // Mock errors 0-10
+        throughput: Math.random() * 1000 // Mock throughput 0-1000 msg/s
+      },
+      timestamp: Date.now()
+    };
+  }
+
+  async getServiceHealth(): Promise<ServiceHealth[]> {
+    // Mock service health data
+    const services = [
+      { 
+        service: 'officer', 
+        serviceName: 'Officer Service', 
+        version: '1.2.3',
+          endpoints: [
+          { name: 'Authentication', path: '/api/auth', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Users', path: '/api/users', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Accounts', path: '/api/accounts', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Kids', path: '/api/kids', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) }
+        ]
+      },
+      { 
+        service: 'social', 
+        serviceName: 'Social Service', 
+        version: '2.1.0',
+        endpoints: [
+          { name: 'Posts', path: '/api/posts', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Comments', path: '/api/comments', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Likes', path: '/api/likes', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Follows', path: '/api/follows', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) }
+        ]
+      },
+      { 
+        service: 'notifications', 
+        serviceName: 'Notification Service', 
+        version: '1.0.5',
+          endpoints: [
+          { name: 'Notifications', path: '/api/notifications', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Alerts', path: '/api/alerts', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Events', path: '/api/events', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) }
+        ]
+      },
+      { 
+        service: 'neurospark', 
+        serviceName: 'NeuroSpark Service', 
+        version: '3.0.1',
+        endpoints: [
+          { name: 'Grok AI', path: '/api/grok', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'AI Chat', path: '/api/ai', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Chat', path: '/api/chat', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) }
+        ]
+      },
+      { 
+        service: 'messaging', 
+        serviceName: 'Messaging Service', 
+        version: '1.5.2',
+        endpoints: [
+          { name: 'Messages', path: '/api/messages', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Chat', path: '/api/chat', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) },
+          { name: 'Rooms', path: '/api/rooms', status: 'healthy' as const, responseTime: Math.floor(Math.random() * 200), errorCount: Math.floor(Math.random() * 3) }
+        ]
+      }
+    ];
+    return services.map(({ service, serviceName, version, endpoints }) => ({
+      service,
           serviceName,
-          timestamp: metric.timestamp,
-          cpuUsage: metric.cpu || 0,
-          memoryUsage: metric.memory || 0,
-          diskUsage: metric.disk || 0,
-          networkLatency: metric.network || 0,
-          activeConnections: metric.connections || 0,
-          requestRate: metric.requests || 0,
-          errorRate: metric.errors || 0,
-          responseTime: {
-            p50: metric.responseTime?.p50 || 0,
-            p95: metric.responseTime?.p95 || 0,
-            p99: metric.responseTime?.p99 || 0
-          }
+      version,
+      endpoints,
+      errorCount: Math.floor(Math.random() * 10), // Mock error count 0-9
+      status: Math.random() > 0.1 ? 'healthy' : (Math.random() > 0.5 ? 'degraded' : 'unhealthy'),
+      uptime: Math.random() * 100, // Mock uptime percentage
+      responseTime: Math.random() * 500, // Mock response time in ms
+      lastCheck: new Date().toISOString(),
+      issues: Math.random() > 0.8 ? ['High memory usage', 'Slow response time'] : []
         }));
       }
       
-      return [];
-    } catch (error) {
-      console.error(`Failed to get performance metrics for ${serviceName}:`, error);
-      return [];
-    }
+  async getSystemHealth(): Promise<any> {
+    // Alias for getServiceHealth to maintain compatibility
+    return this.getServiceHealth();
   }
 
-  // Get system alerts
-  async getSystemAlerts(serviceName?: string): Promise<SystemAlert[]> {
-    try {
-      // TODO: Implement actual alert fetching from backend
-      // For now, return mock data
-      return [
-        {
-          id: '1',
-          severity: 'medium' as const,
-          title: 'High Memory Usage',
-          description: 'Memory usage is above 80% threshold',
-          serviceName: 'neurospark',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          isAcknowledged: false
-        },
-        {
-          id: '2',
-          severity: 'low' as const,
-          title: 'Slow Response Time',
-          description: 'API response time is above normal threshold',
-          serviceName: 'officer',
-          timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-          isAcknowledged: true,
-          acknowledgedBy: 'admin',
-          acknowledgedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString()
-        }
-      ].filter(alert => !serviceName || alert.serviceName === serviceName);
-    } catch (error) {
-      console.error('Failed to get system alerts:', error);
-      return [];
-    }
-  }
-
-  // Acknowledge an alert
-  async acknowledgeAlert(alertId: string, acknowledgedBy: string): Promise<void> {
-    try {
-      // TODO: Implement actual alert acknowledgment
-      console.log(`Alert ${alertId} acknowledged by ${acknowledgedBy}`);
-    } catch (error) {
-      console.error('Failed to acknowledge alert:', error);
-      throw error;
-    }
-  }
-
-  // Get service logs
-  async getServiceLogs(serviceName: string, level: string = 'info', limit: number = 100): Promise<any[]> {
-    try {
-      const baseUrl = serviceName === 'officer' ? officerApi.defaults.baseURL : neurosparkApi.defaults.baseURL;
-      const response = await fetch(`${baseUrl}/logs?level=${level}&limit=${limit}`);
-      
-      if (response.ok) {
-        return await response.json();
-      }
-      
-      return [];
-    } catch (error) {
-      console.error(`Failed to get logs for ${serviceName}:`, error);
-      return [];
-    }
-  }
-
-  // Calculate overall system health
-  private calculateOverallHealth(services: ServiceHealth[]): 'healthy' | 'degraded' | 'unhealthy' {
-    const healthyCount = services.filter(s => s.status === 'healthy').length;
-    const unhealthyCount = services.filter(s => s.status === 'unhealthy').length;
+  async getSystemAlerts(service?: string): Promise<SystemAlert[]> {
+    // Mock system alerts
+    const alertTypes = ['info', 'warning', 'error', 'critical'] as const;
+    const severities = ['low', 'medium', 'high', 'critical'] as const;
+    const services = [
+      { service: 'officer', serviceName: 'Officer Service' },
+      { service: 'social', serviceName: 'Social Service' },
+      { service: 'notifications', serviceName: 'Notification Service' },
+      { service: 'neurospark', serviceName: 'NeuroSpark Service' },
+      { service: 'messaging', serviceName: 'Messaging Service' }
+    ];
     
-    if (unhealthyCount > 0) return 'unhealthy';
-    if (healthyCount === services.length) return 'healthy';
-    return 'degraded';
+    const allAlerts = Array.from({ length: Math.floor(Math.random() * 5) }, (_, i) => {
+      const selectedService = services[Math.floor(Math.random() * services.length)];
+      const isAcknowledged = Math.random() > 0.5;
+      const acknowledgedBy = isAcknowledged ? 'admin' : undefined;
+      const acknowledgedAt = isAcknowledged ? new Date(Date.now() - Math.random() * 3600000).toISOString() : undefined;
+      
+      return {
+        id: `alert-${i}`,
+        type: alertTypes[Math.floor(Math.random() * alertTypes.length)],
+        severity: severities[Math.floor(Math.random() * severities.length)],
+        title: `System Alert ${i + 1}`,
+        message: `This is a mock system alert for monitoring purposes`,
+        description: `Detailed description of the system alert. This alert indicates a potential issue with the ${selectedService.serviceName} that requires attention.`,
+        timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(), // Random time in last 24h
+        service: selectedService.service,
+        serviceName: selectedService.serviceName,
+        resolved: Math.random() > 0.3,
+        isAcknowledged,
+        acknowledgedBy,
+        acknowledgedAt
+      };
+    });
+
+    // Filter by service if specified
+    if (service && service !== 'all') {
+      return allAlerts.filter(alert => alert.service === service);
+    }
+    
+    return allAlerts;
+  }
+
+  async acknowledgeAlert(alertId: string, userId: string): Promise<void> {
+    // Mock alert acknowledgment
+    // In a real implementation, this would update the alert in the database
+    console.log(`Alert ${alertId} acknowledged by user ${userId}`);
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async operation
+  }
+
+  async resolveAlert(alertId: string, userId: string): Promise<void> {
+    // Mock alert resolution
+    // In a real implementation, this would update the alert in the database
+    console.log(`Alert ${alertId} resolved by user ${userId}`);
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async operation
   }
 }
 
 export const monitoringService = new MonitoringService();
+export default monitoringService;

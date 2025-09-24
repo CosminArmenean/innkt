@@ -44,6 +44,14 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       post_mention: 0,
       system: 0,
       grok_response: 0,
+      kid_follow_request: 0,
+      kid_post: 0,
+      kid_message: 0,
+      kid_content_flagged: 0,
+      kid_time_limit: 0,
+      comment_notification: 0,
+      like_notification: 0,
+      follow_notification: 0,
     },
   });
   const [settings, setSettings] = useState<NotificationSettings>({
@@ -62,7 +70,15 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   // Handle new notifications
   const handleNotification = useCallback((notification: Notification) => {
-    setNotifications(prev => [notification, ...prev]);
+    setNotifications(prev => {
+      // Check if notification already exists to prevent duplicates
+      const exists = prev.some(n => n.id === notification.id);
+      if (exists) {
+        console.log('🔔 Notification already exists, skipping duplicate:', notification.id);
+        return prev;
+      }
+      return [notification, ...prev];
+    });
     
     // Update counts
     setCounts(prev => ({
@@ -146,11 +162,22 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, []);
 
   // Refresh notifications
-  const refreshNotifications = useCallback(() => {
-    // This would typically fetch notifications from the API
-    // For now, we'll just log that refresh was requested
-    console.log('Refreshing notifications...');
-  }, []);
+  const refreshNotifications = useCallback(async () => {
+    try {
+      console.log('Refreshing notifications...');
+      const response = await notificationService.getNotifications(0, 50, user?.id);
+      setNotifications(response.notifications);
+      
+      const unreadCount = await notificationService.getUnreadCount(user?.id);
+      setCounts(prev => ({
+        ...prev,
+        total: response.notifications.length,
+        unread: unreadCount,
+      }));
+    } catch (error) {
+      console.error('Failed to refresh notifications:', error);
+    }
+  }, [user?.id]);
 
   // Update settings
   const updateSettings = useCallback(async (newSettings: Partial<NotificationSettings>) => {
@@ -224,12 +251,21 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       
       if (token) {
         console.log('🔔 Connecting to notification service for user:', user.id);
-        notificationService.connect();
+        // Only connect if not already connected
+        if (!notificationService.connectionStatus) {
+          console.log('🔔 Initiating connection to notification service...');
+          notificationService.connect();
+        } else {
+          console.log('🔔 Already connected to notification service');
+        }
         notificationService.authenticate(user.id, token);
         notificationService.subscribeToUser(user.id);
+        
+        // Load existing notifications
+        refreshNotifications();
       }
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.id, refreshNotifications]);
 
   // Cleanup on unmount
   useEffect(() => {

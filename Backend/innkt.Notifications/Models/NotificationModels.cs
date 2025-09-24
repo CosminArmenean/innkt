@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace innkt.Notifications.Models;
 
@@ -196,5 +198,63 @@ public class GrokResponseNotification : BaseNotification
         Priority = "medium";
         Channel = "in_app,push";
     }
+}
+
+    /// <summary>
+    /// MongoDB document for persistent notification storage
+    /// Handles offline users by storing undelivered notifications
+    /// </summary>
+    public class NotificationDocument
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
+        public string Id { get; set; } = string.Empty;
+    
+    [BsonElement("type")]
+    public string Type { get; set; } = string.Empty;
+    
+    [BsonElement("recipientId")]
+    [BsonRepresentation(BsonType.String)]
+    public string RecipientId { get; set; } = string.Empty;
+    
+    [BsonElement("senderId")]
+    [BsonRepresentation(BsonType.String)]
+    public string? SenderId { get; set; }
+    
+    [BsonElement("title")]
+    public string Title { get; set; } = string.Empty;
+    
+    [BsonElement("message")]
+    public string Message { get; set; } = string.Empty;
+    
+    [BsonElement("isRead")]
+    public bool IsRead { get; set; } = false;
+    
+    [BsonElement("createdAt")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    [BsonElement("readAt")]
+    public DateTime? ReadAt { get; set; }
+    
+    [BsonElement("priority")]
+    public string Priority { get; set; } = "medium";
+    
+    [BsonElement("channel")]
+    public string Channel { get; set; } = "in_app";
+    
+    [BsonElement("metadata")]
+    public Dictionary<string, object> Metadata { get; set; } = new();
+    
+    [BsonElement("delivered")]
+    public bool Delivered { get; set; } = false;
+    
+    [BsonElement("deliveredAt")]
+    public DateTime? DeliveredAt { get; set; }
+    
+    [BsonElement("retryCount")]
+    public int RetryCount { get; set; } = 0;
+    
+    [BsonElement("expiresAt")]
+    public DateTime? ExpiresAt { get; set; }
 }
 

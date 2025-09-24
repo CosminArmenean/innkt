@@ -680,6 +680,61 @@ export class SocialService extends BaseApiService {
     }
   }
 
+  async getPostComments(postId: string, page: number = 1, limit: number = 15): Promise<Comment[]> {
+    try {
+      console.log('📝 Fetching comments for post:', postId, 'page:', page, 'limit:', limit);
+      const response = await this.get<{ comments: any[], Comments?: any[] }>(`/api/mongo/comments/post/${postId}?page=${page}&limit=${limit}`);
+      console.log('📝 Comments API response:', response);
+      // Convert MongoDB response to frontend Comment format
+      // Handle both 'comments' and 'Comments' field names
+      const commentsArray = response.comments || response.Comments || [];
+      console.log('📝 Processing comments array:', commentsArray.length, 'comments');
+      return commentsArray.map((comment) => ({
+        id: comment.id,
+        postId: comment.postId,
+        authorId: comment.userId,
+        author: comment.userProfile ? {
+          id: comment.userProfile.userId,
+          username: comment.userProfile.username,
+          displayName: comment.userProfile.displayName,
+          avatarUrl: comment.userProfile.avatarUrl,
+          isVerified: comment.userProfile.isVerified,
+          isKidAccount: false
+        } : undefined,
+        content: comment.content,
+        parentCommentId: comment.parentCommentId,
+        likesCount: comment.likesCount || 0,
+        isLiked: false, // TODO: Implement like status
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt || comment.createdAt,
+        replies: comment.replies ? comment.replies.map((reply: any) => ({
+          id: reply.id,
+          postId: reply.postId,
+          authorId: reply.userId,
+          author: reply.userProfile ? {
+            id: reply.userProfile.userId,
+            username: reply.userProfile.username,
+            displayName: reply.userProfile.displayName,
+            avatarUrl: reply.userProfile.avatarUrl,
+            isVerified: reply.userProfile.isVerified,
+            isKidAccount: false
+          } : undefined,
+          content: reply.content,
+          parentCommentId: reply.parentCommentId,
+          likesCount: reply.likesCount || 0,
+          isLiked: false,
+          createdAt: reply.createdAt,
+          updatedAt: reply.updatedAt || reply.createdAt,
+          replies: [] // Limit to 2 levels for now
+        })) : []
+      }));
+    } catch (error) {
+      console.error('Failed to get post comments:', error);
+      throw error;
+    }
+  }
+
+
   async updatePost(postId: string, updates: Partial<Post>): Promise<Post> {
     try {
       const response = await this.put<MongoPostResponse>(`/api/v2/mongoposts/${postId}`, updates);

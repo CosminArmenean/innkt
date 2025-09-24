@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { notificationService } from '../../services/notification.service';
 import PushNotificationSettings from './PushNotificationSettings';
@@ -21,6 +22,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   onClose,
   className = ''
 }) => {
+  const navigate = useNavigate();
   const {
     notifications,
     counts,
@@ -50,16 +52,18 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   }, [isOpen, onClose]);
 
   const handleNotificationClick = async (notification: any) => {
-    if (!notification.isRead) {
+    // Mark as read immediately but keep dropdown open
+    if (!notification.read) {
       await markAsRead(notification.id);
     }
     
-    // Navigate to notification action URL if available
-    if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
-    }
+    // Use smart navigation with React Router
+    notificationService.navigateToNotification(notification, navigate);
     
-    onClose();
+    // Close dropdown after a short delay to allow navigation
+    setTimeout(() => {
+      onClose();
+    }, 100);
   };
 
   const handleMarkAllAsRead = async () => {
@@ -203,17 +207,33 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          !notification.read ? 'text-gray-900' : 'text-gray-700'
-                        }`}>
-                          {notification.title}
-                        </p>
+                        <div className="flex items-center space-x-2">
+                          {notification.senderAvatar && (
+                            <img 
+                              src={notification.senderAvatar} 
+                              alt={notification.senderName || 'User'}
+                              className="w-6 h-6 rounded-full"
+                            />
+                          )}
+                          <p className={`text-sm font-medium ${
+                            !notification.read ? 'text-gray-900' : 'text-gray-700'
+                          }`}>
+                            {notification.title}
+                          </p>
+                        </div>
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                           {notification.body}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {formatTime(notification.timestamp)}
-                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-gray-500">
+                            {formatTime(notification.timestamp)}
+                          </p>
+                          {notification.senderName && (
+                            <p className="text-xs text-gray-400">
+                              by {notification.senderName}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="flex items-center space-x-1 ml-2">
@@ -239,8 +259,14 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       {/* Footer */}
       {notifications.length > 0 && (
         <div className="p-3 border-t border-gray-200 bg-gray-50">
-          <button className="w-full text-center text-sm text-purple-600 hover:text-purple-700 font-medium">
-            View all notifications
+          <button 
+            onClick={() => {
+              window.location.href = '/notifications';
+              onClose();
+            }}
+            className="w-full text-center text-sm text-purple-600 hover:text-purple-700 font-medium"
+          >
+            Load More / View All
           </button>
         </div>
       )}

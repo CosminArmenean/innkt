@@ -217,7 +217,7 @@ const SystemHealthDashboard: React.FC = () => {
                   <div>
                     <span className="font-medium text-gray-700">Errors:</span>
                     <div className="text-gray-900">
-                      {service.endpoints.reduce((sum, ep) => sum + ep.errorCount, 0)}
+                      {service.errorCount}
                     </div>
                   </div>
                 </div>

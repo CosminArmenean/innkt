@@ -5,6 +5,8 @@ using Serilog;
 using Confluent.Kafka;
 using innkt.Notifications.Services;
 using innkt.Notifications.Hubs;
+using innkt.Notifications.Data;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,9 +115,22 @@ builder.Services.AddHttpClient();
 // Add SignalR for real-time notifications
 builder.Services.AddSignalR();
 
+// Add MongoDB for notification persistence
+builder.Services.AddSingleton<IMongoDatabase>(provider =>
+{
+    var connectionString = builder.Configuration["MongoDB:ConnectionString"] ?? "mongodb://localhost:27017";
+    var databaseName = builder.Configuration["MongoDB:DatabaseName"] ?? "innkt_notifications";
+    
+    var client = new MongoClient(connectionString);
+    return client.GetDatabase(databaseName);
+});
+
+builder.Services.AddScoped<NotificationDbContext>();
+
 // Add notification services
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IEventConsumer, EventConsumer>();
+builder.Services.AddScoped<ParentNotificationService>();
 
 // Add Event Consumer as hosted service
 builder.Services.AddHostedService<innkt.Notifications.Services.EventConsumerHostedService>();

@@ -12,8 +12,17 @@ public interface INotificationService
     Task<bool> SendNotificationAsync(BaseNotification notification);
     Task<bool> SendBulkNotificationsAsync(List<BaseNotification> notifications);
     Task<List<BaseNotification>> GetUserNotificationsAsync(Guid userId, int page = 1, int pageSize = 20);
+    Task<List<NotificationDocument>> GetUserNotificationsAsync(string userId, int page = 0, int limit = 50);
+    Task<List<NotificationDocument>> GetUnreadNotificationsAsync(string userId);
     Task<bool> MarkNotificationAsReadAsync(Guid notificationId, Guid userId);
+    Task<bool> MarkNotificationAsReadAsync(string notificationId);
     Task<bool> MarkAllNotificationsAsReadAsync(Guid userId);
+    Task<bool> MarkAllNotificationsAsReadAsync(string userId);
+    
+    // MongoDB-specific methods
+    Task<List<NotificationDocument>> GetUndeliveredNotificationsAsync();
+    Task<bool> MarkNotificationAsDeliveredAsync(string notificationId);
+    Task<int> CleanupExpiredNotificationsAsync();
 
     // Specialized notification types
     Task<bool> SendRepostNotificationAsync(RepostNotification notification);
