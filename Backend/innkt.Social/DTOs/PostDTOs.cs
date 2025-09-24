@@ -111,6 +111,7 @@ public class CommentResponse
     public string Content { get; set; } = string.Empty;
     public Guid? ParentCommentId { get; set; }
     public int LikesCount { get; set; }
+    public int RepliesCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public bool IsLikedByCurrentUser { get; set; }

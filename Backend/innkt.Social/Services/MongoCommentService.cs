@@ -265,6 +265,14 @@ public class MongoCommentService : IMongoCommentService
             var postUpdate = Builders<MongoPost>.Update.Inc(p => p.CommentsCount, -1);
             await _mongoContext.Posts.UpdateOneAsync(postUpdateFilter, postUpdate);
 
+            // Update parent comment replies count if this was a reply
+            if (comment.ParentCommentId.HasValue)
+            {
+                var parentUpdateFilter = Builders<MongoComment>.Filter.Eq(c => c.CommentId, comment.ParentCommentId.Value);
+                var parentUpdate = Builders<MongoComment>.Update.Inc(c => c.RepliesCount, -1);
+                await _mongoContext.Comments.UpdateOneAsync(parentUpdateFilter, parentUpdate);
+            }
+
             _logger.LogInformation("Deleted comment {CommentId} by user {UserId}", commentId, userId);
             return true;
         }
@@ -286,6 +294,7 @@ public class MongoCommentService : IMongoCommentService
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             LikesCount = comment.LikesCount,
+            RepliesCount = comment.RepliesCount,
             ParentCommentId = comment.ParentCommentId
         };
 
@@ -534,14 +543,27 @@ public class MongoCommentService : IMongoCommentService
     {
         try
         {
+            // Get post author to send notification to
+            var post = await _mongoContext.Posts.Find(p => p.PostId == postId).FirstOrDefaultAsync();
+            if (post == null) return;
+
+            // Note: User information would typically come from the Officer service
+            // For now, we'll use a placeholder approach
+            
             // Only publish notification events, not feed events
             // The social feed will continue to use SSE for real-time updates
             var socialEvent = new SocialEvent
             {
                 EventType = "comment_notification",
-                UserId = userId.ToString(),
+                UserId = post.UserId.ToString(), // Notify the post author
                 PostId = postId.ToString(),
                 CommentId = comment.CommentId.ToString(),
+                SenderId = userId.ToString(),
+                SenderName = "Someone", // TODO: Get from Officer service
+                SenderAvatar = "", // TODO: Get from Officer service
+                ActionUrl = $"/post/{postId}#comment-{comment.CommentId}",
+                RelatedContentId = postId.ToString(),
+                RelatedContentType = "post",
                 Data = new
                 {
                     commentId = comment.CommentId,

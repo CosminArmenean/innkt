@@ -71,6 +71,49 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
     }
   }, [isOpen, onClose]);
 
+  // Infinite scroll for loading more comments
+  useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    let isRequestInProgress = false;
+    
+    const handleScroll = () => {
+      if (!scrollRef.current || !hasMore || isLoadingMore || isRequestInProgress) return;
+      
+      // Clear previous timeout
+      clearTimeout(scrollTimeout);
+      
+      // Debounce scroll events
+      scrollTimeout = setTimeout(() => {
+        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current!;
+        const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+        
+        // Load more when user scrolls to 90% of the content
+        if (scrollPercentage > 0.9) {
+          console.log('🔄 Infinite scroll triggered, loading more comments...', {
+            scrollPercentage,
+            hasMore,
+            isLoadingMore,
+            currentPage: page
+          });
+          isRequestInProgress = true;
+          loadComments(false).finally(() => {
+            isRequestInProgress = false;
+          });
+        }
+      }, 200); // Increased debounce to 200ms
+    };
+
+    if (isOpen && scrollRef.current) {
+      scrollRef.current.addEventListener('scroll', handleScroll);
+      return () => {
+        clearTimeout(scrollTimeout);
+        if (scrollRef.current) {
+          scrollRef.current.removeEventListener('scroll', handleScroll);
+        }
+      };
+    }
+  }, [isOpen, hasMore, isLoadingMore, page]);
+
   // Auto-scroll to center the comment card when it opens
   useEffect(() => {
     if (isOpen) {
@@ -177,7 +220,7 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
   }, [isOpen, onClose]);
 
   const loadComments = async (reset = false) => {
-    if (isLoading) return;
+    if (isLoading || isLoadingMore) return;
 
     console.log('🔄 Loading comments for post:', post.id, 'reset:', reset);
     
@@ -186,9 +229,15 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
     console.log('🔐 Auth token present:', !!token);
     console.log('🔐 Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
     
-    setIsLoading(true);
+    if (reset) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+    
     try {
       const currentPage = reset ? 1 : page;
+      console.log('🔄 Loading page:', currentPage, 'reset:', reset, 'current page state:', page, 'hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
       const response = await socialService.getComments(post.id, currentPage, COMMENTS_PER_PAGE);
       
       console.log('📝 Comment API response:', response);
@@ -216,55 +265,70 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
       
       console.log('💬 New comments loaded:', newComments.length, newComments);
       
+      let allComments: Comment[];
+      
       if (reset) {
         setComments(newComments);
-        setPage(2);
+        setPage(2); // Next page will be 2
+        allComments = newComments;
+        console.log('🔄 Reset: Set page to 2, allComments length:', allComments.length);
       } else {
-        setComments(prev => {
-          const existingIds = new Set(prev.map(c => c.id));
-          const uniqueNewComments = newComments.filter(c => !existingIds.has(c.id));
-          return [...prev, ...uniqueNewComments];
+        // For loading more comments, we need to get the current comments and add new ones
+        const existingIds = new Set(comments.map(c => c.id));
+        const uniqueNewComments = newComments.filter(c => !existingIds.has(c.id));
+        const updatedComments = [...comments, ...uniqueNewComments];
+        
+        setComments(updatedComments);
+        setPage(prev => {
+          const newPage = prev + 1;
+          console.log('🔄 Load more: Incrementing page from', prev, 'to', newPage);
+          return newPage;
         });
-        setPage(prev => prev + 1);
+        allComments = updatedComments;
+        console.log('🔄 Load more: allComments length:', allComments.length, 'new comments:', uniqueNewComments.length);
       }
       
-      setHasMore(response.hasMore || false);
+      const hasMoreValue = response.hasNextPage || response.hasMore || false;
+      console.log('📊 Has more pages:', hasMoreValue, 'hasNextPage:', response.hasNextPage, 'hasMore:', response.hasMore);
+      setHasMore(hasMoreValue);
       
-      // Build threaded structure
-      buildCommentThreads(reset ? newComments : [...comments, ...newComments]);
+      // Build threaded structure with all comments (existing + new)
+      buildCommentThreads(allComments);
       
       // Load nested comments count for new comments
       await loadNestedCommentsCounts(newComments);
       
     } catch (error) {
       console.error('❌ Failed to load comments:', error);
-      // Set empty comments and let the UI show "No comments yet"
-      setComments([]);
-      setCommentThreads([]);
+      if (reset) {
+        // Only clear comments on initial load failure
+        setComments([]);
+        setCommentThreads([]);
+      }
     } finally {
-      setIsLoading(false);
+      if (reset) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
   };
 
   const loadNestedCommentsCounts = async (comments: Comment[]) => {
-    for (const comment of comments) {
-      try {
-        const count = await socialService.getNestedCommentsCount(comment.id);
-        setCommentThreads(prev => {
-          const updated = [...prev];
-          const threadIndex = updated.findIndex(t => t.comment.id === comment.id);
-          if (threadIndex !== -1) {
-            updated[threadIndex] = {
-              ...updated[threadIndex],
-              nestedCommentsCount: count
-            };
-          }
-          return updated;
-        });
-      } catch (error) {
-        console.error('❌ Error loading nested comments count for comment:', comment.id, error);
-      }
-    }
+    // Use the repliesCount from the comment response instead of making separate API calls
+    setCommentThreads(prev => {
+      const updated = [...prev];
+      comments.forEach(comment => {
+        const threadIndex = updated.findIndex(t => t.comment.id === comment.id);
+        if (threadIndex !== -1) {
+          updated[threadIndex] = {
+            ...updated[threadIndex],
+            nestedCommentsCount: comment.repliesCount || 0
+          };
+        }
+      });
+      return updated;
+    });
   };
 
   const loadNestedComments = async (parentCommentId: string) => {
@@ -290,15 +354,15 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
         updated[threadIndex] = {
           ...updated[threadIndex],
           replies: response.comments.map(comment => ({
-            comment,
-            replies: [],
-            depth: 1,
-            isExpanded: false,
-            isCollapsed: false,
-            nestedCommentsCount: 0,
-            isLoadingNested: false,
-            nestedCommentsLoaded: false,
-            nestedCommentsError: null
+        comment,
+        replies: [],
+        depth: 1,
+        isExpanded: false,
+        isCollapsed: false,
+        nestedCommentsCount: comment.repliesCount || 0,
+        isLoadingNested: false,
+        nestedCommentsLoaded: false,
+        nestedCommentsError: null
           })),
           isLoadingNested: false,
           nestedCommentsLoaded: true
@@ -346,7 +410,7 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
         depth: 0,
         isExpanded: true,
         isCollapsed: false,
-        nestedCommentsCount: 0,
+        nestedCommentsCount: comment.repliesCount || 0,
         isLoadingNested: false,
         nestedCommentsLoaded: false,
         nestedCommentsError: null
@@ -797,16 +861,23 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
             <>
               {commentThreads.map((thread, index) => renderComment(thread, index))}
               
-              {/* Load More Button */}
-              {hasMore && (
+              {/* Loading indicator for infinite scroll */}
+              {isLoadingMore && (
                 <div className="flex justify-center py-4">
-                  <button
-                    onClick={() => loadComments(false)}
-                    disabled={isLoadingMore}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
-                  >
-                    {isLoadingMore ? 'Loading...' : 'Load More Comments'}
-                  </button>
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                    <span>Loading more comments...</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* End of comments indicator */}
+              {!hasMore && commentThreads.length > 0 && (
+                <div className="flex justify-center py-4">
+                  <div className="text-gray-400 text-sm">
+                    <MessageCircle className="w-4 h-4 inline mr-1" />
+                    All comments loaded
+                  </div>
                 </div>
               )}
             </>

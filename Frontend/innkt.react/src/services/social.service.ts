@@ -209,6 +209,7 @@ export interface Comment {
   content: string;
   parentCommentId?: string;
   likesCount: number;
+  repliesCount: number; // Added for nested comment count optimization
   isLiked: boolean;
   createdAt: string;
   updatedAt: string;
@@ -704,6 +705,7 @@ export class SocialService extends BaseApiService {
         content: comment.content,
         parentCommentId: comment.parentCommentId,
         likesCount: comment.likesCount || 0,
+        repliesCount: comment.repliesCount || 0,
         isLiked: false, // TODO: Implement like status
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt || comment.createdAt,
@@ -846,13 +848,13 @@ export class SocialService extends BaseApiService {
     }
   }
 
-  async getComments(postId: string, page?: number, limit?: number): Promise<{ comments: Comment[]; totalCount: number; hasMore: boolean }> {
+  async getComments(postId: string, page?: number, limit?: number): Promise<{ comments: Comment[]; totalCount: number; hasMore: boolean; hasNextPage?: boolean; hasPreviousPage?: boolean; page?: number; pageSize?: number }> {
     try {
       console.log('🔍 SocialService: Getting comments for post:', postId, 'page:', page, 'limit:', limit);
       console.log('🔍 SocialService: API base URL:', this.api.defaults.baseURL);
       console.log('🔍 SocialService: Full URL:', `${this.api.defaults.baseURL}/api/mongo/comments/post/${postId}`);
       
-      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/mongo/comments/post/${postId}`, { page, limit });
+      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean; hasNextPage?: boolean; hasPreviousPage?: boolean; page?: number; pageSize?: number }>(`/api/mongo/comments/post/${postId}?page=${page || 1}&limit=${limit || 20}`);
       console.log('🔍 SocialService: Response received:', response);
       return response;
     } catch (error: any) {
@@ -871,7 +873,7 @@ export class SocialService extends BaseApiService {
     try {
       console.log('🔍 SocialService: Getting nested comments for parent:', parentCommentId, 'page:', page, 'limit:', limit);
       
-      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/mongo/comments/parent/${parentCommentId}`, { page, limit });
+      const response = await this.get<{ comments: Comment[]; totalCount: number; hasMore: boolean }>(`/api/mongo/comments/parent/${parentCommentId}?page=${page || 1}&limit=${limit || 20}`);
       console.log('🔍 SocialService: Nested comments response received:', response);
       return response;
     } catch (error: any) {

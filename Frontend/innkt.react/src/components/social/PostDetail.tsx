@@ -50,24 +50,7 @@ const PostDetail: React.FC = () => {
     }
   }, [location.hash, comments]);
 
-  // Scroll-based loading for comments
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isLoadingMoreComments || !hasMoreComments) return;
-      
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      
-      // Load more when user is 200px from bottom
-      if (scrollTop + windowHeight >= documentHeight - 200) {
-        loadMoreComments();
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isLoadingMoreComments, hasMoreComments]);
+  // Removed automatic scroll loading - using "View More Comments" button instead
 
   const loadPost = async () => {
     try {
@@ -237,8 +220,7 @@ const PostDetail: React.FC = () => {
       await socialService.createComment(post.id, content);
       
       // Reload comments to show the new one
-      const commentsData = await socialService.getPostComments(post.id);
-      setComments(commentsData);
+      await loadComments(true);
       
       // Update post comment count
       setPost(prev => prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : null);
@@ -348,7 +330,7 @@ const PostDetail: React.FC = () => {
     const hasReplies = comment.replies && comment.replies.length > 0;
     const isLiked = likedComments.has(comment.id);
     const isHighlighted = location.hash === `#comment-${comment.id}`;
-    const hasNestedComments = comment.replies && comment.replies.length > 0;
+    const hasNestedComments = comment.repliesCount > 0;
     const areNestedCommentsLoaded = nestedCommentsLoaded.has(comment.id);
 
     return (
@@ -471,7 +453,7 @@ const PostDetail: React.FC = () => {
                 className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-blue-50"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>View {comment.replies?.length || 0} replies</span>
+                <span>View {comment.repliesCount} replies</span>
               </button>
             </div>
           )}
@@ -491,7 +473,7 @@ const PostDetail: React.FC = () => {
                 ) : (
                   <>
                     <ChevronDown className="w-4 h-4" />
-                    <span>Show {comment.replies?.length || 0} replies</span>
+                    <span>Show {comment.repliesCount} replies</span>
                   </>
                 )}
               </button>
@@ -738,7 +720,7 @@ const PostDetail: React.FC = () => {
                           <span>Loading...</span>
                         </div>
                       ) : (
-                        'Load More Comments'
+                        `View More Comments (${post?.commentsCount || 0 - comments.length} remaining)`
                       )}
                     </button>
                   </div>
