@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Orx+vY6dH2X3joe2JgXBraYkO+9ZQes5A6M1QMcyQPU=",
+  "Hash": "t7jfvMxqCY9nIFxW51KBoXzx8i2VySGve7AV5tfvdZI=",
   "Source": "innkt.Officer",
   "BasePath": "_content/innkt.Officer",
   "Mode": "Default",
@@ -36,6 +36,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\profiles\\0fc4dfe9-2343-4bf0-9549-a978d6c59368_20250916075408.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.jpg",
+      "SourceId": "innkt.Officer",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\",
+      "BasePath": "_content/innkt.Officer",
+      "RelativePath": "uploads/profiles/2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "5wuldkuj67",
+      "Integrity": "W9NZvzUZ/ujURSAZQjdZ7FL5i4XiOJG3H9W0hBfF76w=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.jpg"
     },
     {
       "Identity": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2b8c0ad7-dc09-4905-a8a3-9fcdf9b98cf9_20250915184133.png",
@@ -496,6 +517,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-qgL2vhvt8heqXwCW1pCEBmsqV4BLzI0UShD6F2jKzCw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.5wuldkuj67.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4621"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"W9NZvzUZ/ujURSAZQjdZ7FL5i4XiOJG3H9W0hBfF76w=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 23 Sep 2025 18:46:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "5wuldkuj67"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-W9NZvzUZ/ujURSAZQjdZ7FL5i4XiOJG3H9W0hBfF76w="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.jpg",
+      "AssetFile": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\wwwroot\\uploads\\profiles\\2a57461e-8db0-4605-ae7d-e6f822ad3967_20250923184606.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4621"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"W9NZvzUZ/ujURSAZQjdZ7FL5i4XiOJG3H9W0hBfF76w=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 23 Sep 2025 18:46:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-W9NZvzUZ/ujURSAZQjdZ7FL5i4XiOJG3H9W0hBfF76w="
         }
       ]
     },

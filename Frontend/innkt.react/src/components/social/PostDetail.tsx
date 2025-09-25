@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { socialService, Post, Comment } from '../../services/social.service';
-import { ArrowLeft, Bell, Home, Heart, MessageCircle, Share2, MoreHorizontal, ChevronDown, ChevronUp, Reply, Flag, User } from 'lucide-react';
+import { ArrowLeft, Bell, Home, Heart, MessageCircle, Share2, MoreHorizontal, ChevronDown, ChevronUp, Reply, Flag, User, Smile, Image, AtSign, Hash, Send } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const PostDetail: React.FC = () => {
@@ -23,6 +23,10 @@ const PostDetail: React.FC = () => {
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [showReplyComposer, setShowReplyComposer] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMentions, setShowMentions] = useState(false);
+  const [showHashtags, setShowHashtags] = useState(false);
+  const [commentThreads, setCommentThreads] = useState<Comment[]>([]);
   
   // Pagination and loading states
   const [isLoadingComments, setIsLoadingComments] = useState(false);
@@ -44,12 +48,15 @@ const PostDetail: React.FC = () => {
     const hash = location.hash;
     if (hash && hash.startsWith('#comment-')) {
       const commentId = hash.replace('#comment-', '');
-      // Scroll to comment after a short delay to ensure it's loaded
-      setTimeout(() => {
-        scrollToComment(commentId);
-      }, 1000);
+      // Only scroll if comments are loaded and not currently loading
+      if (commentThreads.length > 0 && !isLoadingComments) {
+        // Scroll to comment after a short delay to ensure DOM is updated
+        setTimeout(() => {
+          scrollToComment(commentId);
+        }, 500);
+      }
     }
-  }, [location.hash, comments]);
+  }, [location.hash, commentThreads, isLoadingComments]);
 
   // Removed automatic scroll loading - using "View More Comments" button instead
 
@@ -79,14 +86,12 @@ const PostDetail: React.FC = () => {
   const loadComments = async (reset = false) => {
     if (isLoadingComments) return;
 
-    console.log('🔄 Loading comments for post:', id, 'reset:', reset);
     
     setIsLoadingComments(true);
     try {
       const currentPage = reset ? 1 : commentsPage;
       const response = await socialService.getPostComments(id!, currentPage, COMMENTS_PER_PAGE);
       
-      console.log('📝 Comment API response:', response);
       
       if (reset) {
         // Sort comments to put highlighted comment on top
@@ -100,14 +105,21 @@ const PostDetail: React.FC = () => {
         });
         
         setComments(sortedComments);
+        const threads = buildCommentThreads(sortedComments);
+        setCommentThreads(threads);
         setCommentsPage(2);
       } else {
-        setComments(prev => [...prev, ...response]);
+        // Add all comments and rebuild threads
+        const allComments = [...comments, ...response];
+        setComments(allComments);
+        const threads = buildCommentThreads(allComments);
+        setCommentThreads(threads);
         setCommentsPage(prev => prev + 1);
+        
+        // Check if there are more top-level comments
+        const topLevelComments = response.filter(comment => !comment.parentCommentId);
+        setHasMoreComments(topLevelComments.length >= COMMENTS_PER_PAGE);
       }
-      
-      // Check if there are more comments
-      setHasMoreComments(response.length >= COMMENTS_PER_PAGE);
       
     } catch (err) {
       console.error('Failed to load comments:', err);
@@ -131,15 +143,15 @@ const PostDetail: React.FC = () => {
     if (nestedCommentsLoaded.has(commentId)) return;
     
     try {
-      console.log('🔄 Loading nested comments for:', commentId);
       const response = await socialService.getNestedComments(commentId);
       
-      setComments(prev => prev.map(comment => {
-        if (comment.id === commentId) {
-          return { ...comment, replies: response.comments };
-        }
-        return comment;
-      }));
+      // Add nested comments to the main comments array
+      const updatedComments = [...comments, ...response.comments];
+      setComments(updatedComments);
+      
+      // Rebuild comment threads
+      const threads = buildCommentThreads(updatedComments);
+      setCommentThreads(threads);
       
       setNestedCommentsLoaded(prev => {
         const newSet = new Set(prev);
@@ -149,6 +161,36 @@ const PostDetail: React.FC = () => {
     } catch (err) {
       console.error('Failed to load nested comments:', err);
     }
+  };
+
+  // Build comment threads from flat comment list
+  const buildCommentThreads = (allComments: Comment[]) => {
+    const commentMap = new Map<string, Comment>();
+    const rootComments: Comment[] = [];
+
+    // First pass: create a map of all comments
+    allComments.forEach(comment => {
+      commentMap.set(comment.id, { ...comment, replies: [] });
+    });
+
+    // Second pass: build the tree structure
+    allComments.forEach(comment => {
+      const commentWithReplies = commentMap.get(comment.id)!;
+      
+      if (comment.parentCommentId) {
+        // This is a nested comment
+        const parent = commentMap.get(comment.parentCommentId);
+        if (parent) {
+          parent.replies = parent.replies || [];
+          parent.replies.push(commentWithReplies);
+        }
+      } else {
+        // This is a root comment
+        rootComments.push(commentWithReplies);
+      }
+    });
+
+    return rootComments;
   };
 
   const loadRecentPosts = async () => {
@@ -167,10 +209,8 @@ const PostDetail: React.FC = () => {
   };
 
   const scrollToComment = (commentId: string) => {
-    console.log('🎯 Attempting to scroll to comment:', commentId);
     const commentElement = document.getElementById(`comment-${commentId}`);
     if (commentElement) {
-      console.log('✅ Found comment element, scrolling...');
       commentElement.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'center' 
@@ -189,8 +229,6 @@ const PostDetail: React.FC = () => {
         commentElement.style.borderRadius = '';
         commentElement.style.padding = '';
       }, 3000);
-    } else {
-      console.log('❌ Comment element not found:', `comment-${commentId}`);
     }
   };
 
@@ -228,7 +266,10 @@ const PostDetail: React.FC = () => {
     
     try {
       setIsCommenting(true);
-      await socialService.createComment(post.id, content);
+      
+      // If replying to a comment, pass the parentCommentId
+      const parentCommentId = replyingTo?.id;
+      await socialService.createComment(post.id, content, parentCommentId);
       
       // Reload comments to show the new one
       await loadComments(true);
@@ -294,14 +335,18 @@ const PostDetail: React.FC = () => {
       });
 
       // Update comment likes count
-      setComments(prev => prev.map(comment => 
+      const updatedComments = comments.map(comment => 
         comment.id === commentId 
           ? { ...comment, likesCount: likedComments.has(commentId) ? comment.likesCount - 1 : comment.likesCount + 1 }
           : comment
-      ));
+      );
+      setComments(updatedComments);
+      
+      // Rebuild comment threads
+      const threads = buildCommentThreads(updatedComments);
+      setCommentThreads(threads);
 
       // TODO: Call API to like/unlike comment
-      console.log('Liked comment:', commentId);
     } catch (error) {
       console.error('Failed to like comment:', error);
     }
@@ -346,6 +391,7 @@ const PostDetail: React.FC = () => {
     const isHighlighted = location.hash === `#comment-${comment.id}`;
     const hasNestedComments = comment.repliesCount > 0;
     const areNestedCommentsLoaded = nestedCommentsLoaded.has(comment.id);
+    
     
     
 
@@ -626,7 +672,7 @@ const PostDetail: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                Comments ({post?.commentsCount || comments.length})
+                Comments ({post?.commentsCount || commentThreads.length})
               </h3>
               <button 
                 onClick={() => setShowComments(false)}
@@ -637,12 +683,12 @@ const PostDetail: React.FC = () => {
             </div>
             
             
-            {comments.length === 0 ? (
+            {commentThreads.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>
             ) : (
               <>
                 <div className="space-y-2">
-                  {comments.map((comment) => renderComment(comment))}
+                  {commentThreads.map((comment) => renderComment(comment))}
                 </div>
                 
                 {/* Load More Comments Button */}
@@ -659,7 +705,7 @@ const PostDetail: React.FC = () => {
                           <span>Loading...</span>
                         </div>
                       ) : (
-                        `Load More Comments (${(post?.commentsCount || 0) - comments.length} remaining)`
+                        `Load More Comments (${(post?.commentsCount || 0) - commentThreads.length} remaining)`
                       )}
                     </button>
                   </div>
@@ -684,38 +730,82 @@ const PostDetail: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    rows={3}
-                    maxLength={280}
-                  />
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          if (newComment.includes('@grok')) {
-                            setNewComment(newComment + ' ');
-                          } else {
-                            setNewComment(newComment + '@grok ');
-                          }
-                        }}
-                        className="text-sm text-purple-600 hover:text-purple-700 px-2 py-1 rounded hover:bg-purple-50"
-                      >
-                        🤖 @grok
-                      </button>
-                      <span className="text-xs text-gray-500">
+                  <div className="relative">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      rows={3}
+                      maxLength={280}
+                    />
+                    {/* Character Counter */}
+                    <div className="absolute bottom-2 right-2 text-xs">
+                      <span className={newComment.length > 280 ? 'text-red-500' : 'text-gray-400'}>
                         {newComment.length}/280
                       </span>
                     </div>
+                  </div>
+                  
+                  {/* Toolbar */}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center space-x-2">
+                      {/* Mention Button */}
+                      <button
+                        onClick={() => setShowMentions(!showMentions)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Mention someone"
+                      >
+                        <AtSign className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* Hashtag Button */}
+                      <button
+                        onClick={() => setShowHashtags(!showHashtags)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add hashtag"
+                      >
+                        <Hash className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* Emoji Button */}
+                      <button
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add emoji"
+                      >
+                        <Smile className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* Media Button */}
+                      <button
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add media"
+                      >
+                        <Image className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* @grok AI Button */}
+                      <button
+                        onClick={() => {
+                          const currentContent = newComment;
+                          const newContent = currentContent + (currentContent ? ' ' : '') + '@grok ';
+                          setNewComment(newContent);
+                        }}
+                        className="text-sm text-purple-600 hover:text-purple-700 px-2 py-1 rounded hover:bg-purple-50 transition-colors"
+                        title="Add @grok AI"
+                      >
+                        🤖 @grok
+                      </button>
+                    </div>
+                    
                     <button
                       onClick={() => handleComment(newComment)}
                       disabled={!newComment.trim() || isCommenting}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                     >
-                      {isCommenting ? 'Posting...' : 'Post Comment'}
+                      <Send className="w-4 h-4" />
+                      <span>{isCommenting ? 'Posting...' : 'Post'}</span>
                     </button>
                   </div>
                 </div>
@@ -759,32 +849,75 @@ const PostDetail: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={replyingTo ? `Reply to ${replyingTo.author?.displayName || replyingTo.author?.username || 'User'}...` : "Write a comment..."}
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    rows={4}
-                    maxLength={280}
-                  />
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          if (newComment.includes('@grok')) {
-                            setNewComment(newComment + ' ');
-                          } else {
-                            setNewComment(newComment + '@grok ');
-                          }
-                        }}
-                        className="text-sm text-purple-600 hover:text-purple-700 px-2 py-1 rounded hover:bg-purple-50"
-                      >
-                        🤖 @grok
-                      </button>
-                      <span className="text-xs text-gray-500">
+                  <div className="relative">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder={replyingTo ? `Reply to ${replyingTo.author?.displayName || replyingTo.author?.username || 'User'}...` : "Write a comment..."}
+                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      rows={4}
+                      maxLength={280}
+                    />
+                    {/* Character Counter */}
+                    <div className="absolute bottom-2 right-2 text-xs">
+                      <span className={newComment.length > 280 ? 'text-red-500' : 'text-gray-400'}>
                         {newComment.length}/280
                       </span>
                     </div>
+                  </div>
+                  
+                  {/* Toolbar */}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center space-x-2">
+                      {/* Mention Button */}
+                      <button
+                        onClick={() => setShowMentions(!showMentions)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Mention someone"
+                      >
+                        <AtSign className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* Hashtag Button */}
+                      <button
+                        onClick={() => setShowHashtags(!showHashtags)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add hashtag"
+                      >
+                        <Hash className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* Emoji Button */}
+                      <button
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add emoji"
+                      >
+                        <Smile className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* Media Button */}
+                      <button
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add media"
+                      >
+                        <Image className="w-4 h-4 text-gray-500" />
+                      </button>
+
+                      {/* @grok AI Button */}
+                      <button
+                        onClick={() => {
+                          const currentContent = newComment;
+                          const newContent = currentContent + (currentContent ? ' ' : '') + '@grok ';
+                          setNewComment(newContent);
+                        }}
+                        className="text-sm text-purple-600 hover:text-purple-700 px-2 py-1 rounded hover:bg-purple-50 transition-colors"
+                        title="Add @grok AI"
+                      >
+                        🤖 @grok
+                      </button>
+                    </div>
+                    
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => {
@@ -799,9 +932,10 @@ const PostDetail: React.FC = () => {
                       <button
                         onClick={() => handleComment(newComment)}
                         disabled={!newComment.trim() || isCommenting}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                       >
-                        {isCommenting ? 'Posting...' : replyingTo ? 'Reply' : 'Post Comment'}
+                        <Send className="w-4 h-4" />
+                        <span>{isCommenting ? 'Posting...' : replyingTo ? 'Reply' : 'Post'}</span>
                       </button>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "gDuN0pw/UM0=",
+  "dgSpecHash": "abawCvLpLug=",
   "success": true,
   "projectFilePath": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Officer\\innkt.Officer.csproj",
   "expectedPackageFiles": [
@@ -12,7 +12,7 @@
     "C:\\Users\\cosmi\\.nuget\\packages\\awssdk.core\\3.7.100.14\\awssdk.core.3.7.100.14.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
-    "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.4.0\\confluent.kafka.2.4.0.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.11.1\\confluent.kafka.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\dapper\\2.1.35\\dapper.2.1.35.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\duende.identityserver\\7.0.0\\duende.identityserver.7.0.0.nupkg.sha512",
@@ -22,7 +22,7 @@
     "C:\\Users\\cosmi\\.nuget\\packages\\fluentvalidation\\11.4.0\\fluentvalidation.11.4.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\identitymodel\\6.2.0\\identitymodel.6.2.0.nupkg.sha512",
-    "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.4.0\\librdkafka.redist.2.4.0.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.11.1\\librdkafka.redist.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.0\\microsoft.aspnetcore.authentication.jwtbearer.9.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.aspnetcore.authentication.openidconnect\\8.0.0\\microsoft.aspnetcore.authentication.openidconnect.8.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\9.0.0\\microsoft.aspnetcore.cryptography.internal.9.0.0.nupkg.sha512",

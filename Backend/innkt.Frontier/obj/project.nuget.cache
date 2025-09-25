@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "ggm/hndKRYk=",
+  "dgSpecHash": "91SkBzas0M0=",
   "success": true,
   "projectFilePath": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Frontier\\innkt.Frontier.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cosmi\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
-    "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.4.0\\confluent.kafka.2.4.0.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.11.1\\confluent.kafka.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\fluentvalidation\\11.8.0\\fluentvalidation.11.8.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\ipaddressrange\\6.0.0\\ipaddressrange.6.0.0.nupkg.sha512",
-    "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.4.0\\librdkafka.redist.2.4.0.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.11.1\\librdkafka.redist.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\mediatr\\13.0.0\\mediatr.13.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\mediatr.extensions.microsoft.dependencyinjection\\11.0.0\\mediatr.extensions.microsoft.dependencyinjection.11.0.0.nupkg.sha512",
@@ -69,7 +69,6 @@
     "C:\\Users\\cosmi\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.0\\system.diagnostics.diagnosticsource.8.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.0.1\\system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\system.io.pipelines\\5.0.1\\system.io.pipelines.5.0.1.nupkg.sha512",
-    "C:\\Users\\cosmi\\.nuget\\packages\\system.memory\\4.5.0\\system.memory.4.5.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\system.text.json\\9.0.0\\system.text.json.9.0.0.nupkg.sha512"
   ],

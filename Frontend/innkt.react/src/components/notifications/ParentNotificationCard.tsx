@@ -144,3 +144,4 @@ const ParentNotificationCard: React.FC<ParentNotificationCardProps> = ({
 };
 
 export default ParentNotificationCard;
+

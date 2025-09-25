@@ -7,8 +7,8 @@ interface NotificationContextType {
   counts: NotificationCounts;
   isConnected: boolean;
   settings: NotificationSettings;
-  markAsRead: (notificationId: string) => void;
-  markAllAsRead: () => void;
+  markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
   refreshNotifications: () => void;
   updateSettings: (settings: Partial<NotificationSettings>) => Promise<void>;
   deleteNotification: (notificationId: string) => Promise<void>;
@@ -130,36 +130,70 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, []);
 
   // Mark notification as read
-  const markAsRead = useCallback((notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-    
-    setCounts(prev => ({
-      ...prev,
-      unread: Math.max(0, prev.unread - 1),
-    }));
+  const markAsRead = useCallback(async (notificationId: string) => {
+    try {
+      // Update local state first for immediate UI feedback
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true }
+            : notification
+        )
+      );
+      
+      setCounts(prev => ({
+        ...prev,
+        unread: Math.max(0, prev.unread - 1),
+      }));
 
-    notificationService.markAsRead(notificationId);
+      // Call the API to persist the read status
+      await notificationService.markAsRead(notificationId);
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      // Revert the local state if API call failed
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: false }
+            : notification
+        )
+      );
+      
+      setCounts(prev => ({
+        ...prev,
+        unread: prev.unread + 1,
+      }));
+    }
   }, []);
 
   // Mark all notifications as read
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-    
-    setCounts(prev => ({
-      ...prev,
-      unread: 0,
-    }));
+  const markAllAsRead = useCallback(async () => {
+    try {
+      // Update local state first for immediate UI feedback
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, read: true }))
+      );
+      
+      setCounts(prev => ({
+        ...prev,
+        unread: 0,
+      }));
 
-    notificationService.markAllAsRead();
-  }, []);
+      // Call the API to persist the read status
+      await notificationService.markAllAsRead();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+      // Revert the local state if API call failed
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, read: false }))
+      );
+      
+      setCounts(prev => ({
+        ...prev,
+        unread: notifications.filter(n => !n.read).length,
+      }));
+    }
+  }, [notifications]);
 
   // Refresh notifications
   const refreshNotifications = useCallback(async () => {

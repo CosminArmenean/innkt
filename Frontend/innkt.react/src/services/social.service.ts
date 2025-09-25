@@ -683,23 +683,22 @@ export class SocialService extends BaseApiService {
 
   async getPostComments(postId: string, page: number = 1, limit: number = 15): Promise<Comment[]> {
     try {
-      console.log('📝 Fetching comments for post:', postId, 'page:', page, 'limit:', limit);
       const response = await this.get<{ comments: any[], Comments?: any[] }>(`/api/mongo/comments/post/${postId}?page=${page}&limit=${limit}`);
-      console.log('📝 Comments API response:', response);
       // Convert MongoDB response to frontend Comment format
       // Handle both 'comments' and 'Comments' field names
       const commentsArray = response.comments || response.Comments || [];
-      console.log('📝 Processing comments array:', commentsArray.length, 'comments');
+      
+      
       return commentsArray.map((comment) => ({
         id: comment.id,
         postId: comment.postId,
         authorId: comment.userId,
-        author: comment.userProfile ? {
-          id: comment.userProfile.userId,
-          username: comment.userProfile.username,
-          displayName: comment.userProfile.displayName,
-          avatarUrl: comment.userProfile.avatarUrl,
-          isVerified: comment.userProfile.isVerified,
+        author: comment.author ? {
+          id: comment.author.id,
+          username: comment.author.username,
+          displayName: comment.author.displayName,
+          avatarUrl: comment.author.avatarUrl,
+          isVerified: comment.author.isVerified,
           isKidAccount: false
         } : undefined,
         content: comment.content,
@@ -713,12 +712,12 @@ export class SocialService extends BaseApiService {
           id: reply.id,
           postId: reply.postId,
           authorId: reply.userId,
-          author: reply.userProfile ? {
-            id: reply.userProfile.userId,
-            username: reply.userProfile.username,
-            displayName: reply.userProfile.displayName,
-            avatarUrl: reply.userProfile.avatarUrl,
-            isVerified: reply.userProfile.isVerified,
+          author: reply.author ? {
+            id: reply.author.id,
+            username: reply.author.username,
+            displayName: reply.author.displayName,
+            avatarUrl: reply.author.avatarUrl,
+            isVerified: reply.author.isVerified,
             isKidAccount: false
           } : undefined,
           content: reply.content,

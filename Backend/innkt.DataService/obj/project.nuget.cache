@@ -1,15 +1,17 @@
 {
   "version": 2,
-  "dgSpecHash": "oZ1xMbnO54c=",
+  "dgSpecHash": "tWFg3Siavro=",
   "success": true,
   "projectFilePath": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.DataService\\innkt.DataService.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cosmi\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\awssdk.core\\3.7.100.14\\awssdk.core.3.7.100.14.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.11.1\\confluent.kafka.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\fluentvalidation\\11.4.0\\fluentvalidation.11.4.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.11.1\\librdkafka.redist.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.build.framework\\17.8.3\\microsoft.build.framework.17.8.3.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.build.locator\\1.7.8\\microsoft.build.locator.1.7.8.nupkg.sha512",

@@ -261,41 +261,80 @@ class NotificationService {
 
   // Mark notification as read
   async markAsRead(notificationId: string) {
-    if (this.connection && this.isConnected) {
-      try {
-        await this.connection.invoke('MarkRead', notificationId);
-      } catch (error) {
-        // Silently handle connection errors to prevent user-facing errors
-        console.warn('SignalR connection error during markAsRead (this is normal during navigation):', error);
-      }
-    }
-    
-    // Also mark as read in offline storage
     try {
-      await offlineStorageService.markAsRead(notificationId);
-      monitoringService.incrementNotificationRead();
+      // Call the API to mark notification as read
+      const response = await fetch(`${environment.api.notifications}/api/notification/mark-read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark notification as read: ${response.statusText}`);
+      }
+
+      // Also call SignalR if connected
+      if (this.connection && this.isConnected) {
+        try {
+          await this.connection.invoke('MarkRead', notificationId);
+        } catch (error) {
+          // Silently handle connection errors to prevent user-facing errors
+          console.warn('SignalR connection error during markAsRead (this is normal during navigation):', error);
+        }
+      }
+      
+      // Mark as read in offline storage
+      try {
+        await offlineStorageService.markAsRead(notificationId);
+        monitoringService.incrementNotificationRead();
+      } catch (error) {
+        console.error('Failed to mark notification as read offline:', error);
+      }
     } catch (error) {
-      console.error('Failed to mark notification as read offline:', error);
+      console.error('Failed to mark notification as read:', error);
+      throw error;
     }
   }
 
   // Mark all notifications as read
   async markAllAsRead() {
-    if (this.connection && this.isConnected) {
-      try {
-        await this.connection.invoke('MarkAllRead');
-      } catch (error) {
-        // Silently handle connection errors to prevent user-facing errors
-        console.warn('SignalR connection error during markAllAsRead (this is normal during navigation):', error);
-      }
-    }
-    
-    // Also mark all as read in offline storage
     try {
       const userId = localStorage.getItem('userId') || 'current-user';
-      await offlineStorageService.markAllAsRead(userId);
+      
+      // Call the API to mark all notifications as read
+      const response = await fetch(`${environment.api.notifications}/api/notification/user/${userId}/mark-all-read`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark all notifications as read: ${response.statusText}`);
+      }
+
+      // Also call SignalR if connected
+      if (this.connection && this.isConnected) {
+        try {
+          await this.connection.invoke('MarkAllRead');
+        } catch (error) {
+          // Silently handle connection errors to prevent user-facing errors
+          console.warn('SignalR connection error during markAllAsRead (this is normal during navigation):', error);
+        }
+      }
+      
+      // Mark all as read in offline storage
+      try {
+        await offlineStorageService.markAllAsRead(userId);
+      } catch (error) {
+        console.error('Failed to mark all notifications as read offline:', error);
+      }
     } catch (error) {
-      console.error('Failed to mark all notifications as read offline:', error);
+      console.error('Failed to mark all notifications as read:', error);
+      throw error;
     }
   }
 

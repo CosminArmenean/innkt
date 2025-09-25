@@ -2,24 +2,23 @@
   "version": 3,
   "targets": {
     "net9.0": {
-      "Confluent.Kafka/2.4.0": {
+      "Confluent.Kafka/2.11.1": {
         "type": "package",
         "dependencies": {
-          "System.Memory": "4.5.0",
-          "librdkafka.redist": "2.4.0"
+          "librdkafka.redist": "2.11.1"
         },
         "compile": {
-          "lib/net6.0/Confluent.Kafka.dll": {
+          "lib/net8.0/Confluent.Kafka.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Confluent.Kafka.dll": {
+          "lib/net8.0/Confluent.Kafka.dll": {
             "related": ".xml"
           }
         }
       },
-      "librdkafka.redist/2.4.0": {
+      "librdkafka.redist/2.11.1": {
         "type": "package",
         "build": {
           "build/_._": {}
@@ -33,11 +32,7 @@
             "assetType": "native",
             "rid": "linux-x64"
           },
-          "runtimes/linux-x64/native/centos6-librdkafka.so": {
-            "assetType": "native",
-            "rid": "linux-x64"
-          },
-          "runtimes/linux-x64/native/centos7-librdkafka.so": {
+          "runtimes/linux-x64/native/centos8-librdkafka.so": {
             "assetType": "native",
             "rid": "linux-x64"
           },
@@ -230,15 +225,6 @@
           }
         }
       },
-      "System.Memory/4.5.0": {
-        "type": "package",
-        "compile": {
-          "ref/netcoreapp2.1/_._": {}
-        },
-        "runtime": {
-          "lib/netcoreapp2.1/_._": {}
-        }
-      },
       "System.Text.Json/9.0.0": {
         "type": "package",
         "compile": {
@@ -259,6 +245,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
+          "Confluent.Kafka": "2.11.1",
           "Microsoft.Extensions.Configuration.Abstractions": "9.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "9.0.0",
@@ -276,30 +263,31 @@
     }
   },
   "libraries": {
-    "Confluent.Kafka/2.4.0": {
-      "sha512": "3xrE8SUSLN10klkDaXFBAiXxTc+2wMffvjcZ3RUyvOo2ckaRJZ3dY7yjs6R7at7+tjUiuq2OlyTiEaV6G9zFHA==",
+    "Confluent.Kafka/2.11.1": {
+      "sha512": "IV06YJSTsBvl4T282qlUADqQa5OPQOnZ+/+mQ8k0wVJy/GSjfFINamUk4zs/PtZ5+NpRdS5VHuQP7bJaTr9RBQ==",
       "type": "package",
-      "path": "confluent.kafka/2.4.0",
+      "path": "confluent.kafka/2.11.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "README.md",
-        "confluent.kafka.2.4.0.nupkg.sha512",
+        "confluent-logo.png",
+        "confluent.kafka.2.11.1.nupkg.sha512",
         "confluent.kafka.nuspec",
         "lib/net462/Confluent.Kafka.dll",
         "lib/net462/Confluent.Kafka.xml",
         "lib/net6.0/Confluent.Kafka.dll",
         "lib/net6.0/Confluent.Kafka.xml",
-        "lib/netstandard1.3/Confluent.Kafka.dll",
-        "lib/netstandard1.3/Confluent.Kafka.xml",
+        "lib/net8.0/Confluent.Kafka.dll",
+        "lib/net8.0/Confluent.Kafka.xml",
         "lib/netstandard2.0/Confluent.Kafka.dll",
         "lib/netstandard2.0/Confluent.Kafka.xml"
       ]
     },
-    "librdkafka.redist/2.4.0": {
-      "sha512": "uqi1sNe0LEV50pYXZ3mYNJfZFF1VmsZ6m8wbpWugAAPOzOcX8FJP5FOhLMoUKVFiuenBH2v8zVBht7f1RCs3rA==",
+    "librdkafka.redist/2.11.1": {
+      "sha512": "fgzBgvnvDPyQ+VbGDs4piz7TYv2Gaz9niYv/ztwMoAQ+uyk0wTYR1NmyIKSN8JsE4hr5JHhDccSSNnbAFZQhBA==",
       "type": "package",
-      "path": "librdkafka.redist/2.4.0",
+      "path": "librdkafka.redist/2.11.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -315,12 +303,11 @@
         "build/native/lib/win/x86/win-x86-Release/v142/librdkafka.lib",
         "build/native/lib/win/x86/win-x86-Release/v142/librdkafkacpp.lib",
         "build/native/librdkafka.redist.targets",
-        "librdkafka.redist.2.4.0.nupkg.sha512",
+        "librdkafka.redist.2.11.1.nupkg.sha512",
         "librdkafka.redist.nuspec",
         "runtimes/linux-arm64/native/librdkafka.so",
         "runtimes/linux-x64/native/alpine-librdkafka.so",
-        "runtimes/linux-x64/native/centos6-librdkafka.so",
-        "runtimes/linux-x64/native/centos7-librdkafka.so",
+        "runtimes/linux-x64/native/centos8-librdkafka.so",
         "runtimes/linux-x64/native/librdkafka.so",
         "runtimes/osx-arm64/native/librdkafka.dylib",
         "runtimes/osx-x64/native/librdkafka.dylib",
@@ -576,45 +563,6 @@
         "packageIcon.png"
       ]
     },
-    "System.Memory/4.5.0": {
-      "sha512": "m0psCSpUxTGfvwyO0i03ajXVhgBqyXlibXz0Mo1dtKGjaHrXFLnuQ8rNBTmWRqbfRjr4eC6Wah4X5FfuFDu5og==",
-      "type": "package",
-      "path": "system.memory/4.5.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE.TXT",
-        "THIRD-PARTY-NOTICES.TXT",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/netcoreapp2.1/_._",
-        "lib/netstandard1.1/System.Memory.dll",
-        "lib/netstandard1.1/System.Memory.xml",
-        "lib/netstandard2.0/System.Memory.dll",
-        "lib/netstandard2.0/System.Memory.xml",
-        "lib/uap10.0.16300/_._",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "lib/xamarintvos10/_._",
-        "lib/xamarinwatchos10/_._",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/netcoreapp2.1/_._",
-        "ref/netstandard1.1/System.Memory.dll",
-        "ref/netstandard1.1/System.Memory.xml",
-        "ref/netstandard2.0/System.Memory.dll",
-        "ref/netstandard2.0/System.Memory.xml",
-        "ref/uap10.0.16300/_._",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "ref/xamarintvos10/_._",
-        "ref/xamarinwatchos10/_._",
-        "system.memory.4.5.0.nupkg.sha512",
-        "system.memory.nuspec",
-        "useSharedDesignerContext.txt",
-        "version.txt"
-      ]
-    },
     "System.Text.Json/9.0.0": {
       "sha512": "js7+qAu/9mQvnhA4EfGMZNEzXtJCDxgkgj8ohuxq/Qxv+R56G+ljefhiJHOxTNiw54q8vmABCWUwkMulNdlZ4A==",
       "type": "package",
@@ -694,7 +642,7 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
-      "Confluent.Kafka >= 2.4.0",
+      "Confluent.Kafka >= 2.11.1",
       "Microsoft.Extensions.Configuration.Abstractions >= 9.0.0",
       "Microsoft.Extensions.DependencyInjection.Abstractions >= 9.0.0",
       "Microsoft.Extensions.Logging.Abstractions >= 9.0.0",
@@ -761,7 +709,7 @@
         "dependencies": {
           "Confluent.Kafka": {
             "target": "Package",
-            "version": "[2.4.0, )"
+            "version": "[2.11.1, )"
           },
           "Microsoft.Extensions.Configuration.Abstractions": {
             "target": "Package",

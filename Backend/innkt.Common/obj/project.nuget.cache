@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "NP3HDApD8z4=",
+  "dgSpecHash": "NGuwz4oFYSo=",
   "success": true,
   "projectFilePath": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Common\\innkt.Common.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.11.1\\confluent.kafka.2.11.1.nupkg.sha512",
+    "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.11.1\\librdkafka.redist.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.0\\microsoft.extensions.configuration.abstractions.9.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.0\\microsoft.extensions.dependencyinjection.abstractions.9.0.0.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.0\\microsoft.extensions.logging.abstractions.9.0.0.nupkg.sha512",
