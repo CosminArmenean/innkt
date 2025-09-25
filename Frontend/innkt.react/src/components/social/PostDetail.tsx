@@ -22,6 +22,7 @@ const PostDetail: React.FC = () => {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+  const [showReplyComposer, setShowReplyComposer] = useState(false);
   
   // Pagination and loading states
   const [isLoadingComments, setIsLoadingComments] = useState(false);
@@ -88,7 +89,17 @@ const PostDetail: React.FC = () => {
       console.log('📝 Comment API response:', response);
       
       if (reset) {
-        setComments(response);
+        // Sort comments to put highlighted comment on top
+        const sortedComments = [...response].sort((a, b) => {
+          const aHighlighted = location.hash === `#comment-${a.id}`;
+          const bHighlighted = location.hash === `#comment-${b.id}`;
+          
+          if (aHighlighted && !bHighlighted) return -1;
+          if (!aHighlighted && bHighlighted) return 1;
+          return 0; // Keep original order for non-highlighted comments
+        });
+        
+        setComments(sortedComments);
         setCommentsPage(2);
       } else {
         setComments(prev => [...prev, ...response]);
@@ -96,7 +107,7 @@ const PostDetail: React.FC = () => {
       }
       
       // Check if there are more comments
-      setHasMoreComments(response.length === COMMENTS_PER_PAGE);
+      setHasMoreComments(response.length >= COMMENTS_PER_PAGE);
       
     } catch (err) {
       console.error('Failed to load comments:', err);
@@ -226,6 +237,8 @@ const PostDetail: React.FC = () => {
       setPost(prev => prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : null);
       
       setNewComment('');
+      setReplyingTo(null);
+      setShowReplyComposer(false);
     } catch (error) {
       console.error('Failed to create comment:', error);
     } finally {
@@ -296,7 +309,8 @@ const PostDetail: React.FC = () => {
 
   const handleReply = (comment: Comment) => {
     setReplyingTo(comment);
-    setNewComment(`@${comment.author?.displayName || 'User'} `);
+    setNewComment(`@${comment.author?.username || comment.author?.displayName || 'User'} `);
+    setShowReplyComposer(true);
   };
 
   const handleExpandReplies = (commentId: string) => {
@@ -332,67 +346,58 @@ const PostDetail: React.FC = () => {
     const isHighlighted = location.hash === `#comment-${comment.id}`;
     const hasNestedComments = comment.repliesCount > 0;
     const areNestedCommentsLoaded = nestedCommentsLoaded.has(comment.id);
+    
+    
 
     return (
       <div key={comment.id} className="comment-thread">
         <div 
           id={`comment-${comment.id}`}
-          className={`comment-item bg-white rounded-2xl p-5 mb-4 border border-gray-100 hover:border-gray-200 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 ${
-            isHighlighted ? 'ring-4 ring-blue-400 bg-blue-50 border-blue-300 shadow-blue-200' : ''
+          className={`comment-item bg-white rounded-lg p-3 mb-2 border border-gray-100 hover:border-gray-200 transition-colors ${
+            isHighlighted ? 'ring-2 ring-blue-400 bg-blue-50 border-blue-300' : ''
           }`}
           style={{ 
-            marginLeft: `${depth * 32}px`,
-            borderLeft: depth > 0 ? '6px solid #e5e7eb' : 'none',
-            paddingLeft: depth > 0 ? '24px' : '0',
-            position: 'relative',
-            backdropFilter: 'blur(10px)',
-            background: 'rgba(255, 255, 255, 0.95)'
+            marginLeft: `${depth * 20}px`,
+            borderLeft: depth > 0 ? '2px solid #e5e7eb' : 'none',
+            paddingLeft: depth > 0 ? '12px' : '0'
           }}
         >
-          {/* Thin vertical line for nested comments */}
-          {depth > 0 && (
-            <div 
-              className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-blue-300 via-purple-300 to-pink-300 rounded-full shadow-sm"
-              style={{ left: '-3px' }}
-            />
-          )}
-
           {/* Comment Header */}
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 ring-3 ring-gray-100 shadow-lg">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                 {comment.author?.avatarUrl ? (
                   <img 
                     src={comment.author.avatarUrl} 
-                    alt={comment.author.displayName || 'User'}
+                    alt={comment.author.displayName || comment.author.username || 'User'}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                  <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
                     {comment.author?.displayName?.charAt(0) || comment.author?.username?.charAt(0) || 'U'}
                   </div>
                 )}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-bold text-gray-900 text-lg">
+              <div>
+                <div className="flex items-center space-x-1">
+                  <span className="font-semibold text-gray-900 text-sm">
                     {comment.author?.displayName || comment.author?.username || 'Unknown User'}
                   </span>
                   {comment.author?.username === 'grok.xai' && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                       🤖 AI
                     </span>
                   )}
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
                   {comment.author?.username && comment.author.username !== 'grok.xai' && (
-                    <span className="text-sm text-gray-600 font-medium">@{comment.author.username}</span>
+                    <span className="text-xs text-gray-500">@{comment.author.username}</span>
                   )}
                   <span className="text-xs text-gray-400">•</span>
-                  <span className="text-xs text-gray-500 font-medium">
+                  <span className="text-xs text-gray-500">
                     {new Date(comment.createdAt).toLocaleString()}
                   </span>
                 </div>
@@ -400,59 +405,57 @@ const PostDetail: React.FC = () => {
             </div>
             
             {/* More Options */}
-            <div className="flex items-center space-x-2">
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <MoreHorizontal className="w-4 h-4 text-gray-400" />
-              </button>
-            </div>
+            <button className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+              <MoreHorizontal className="w-4 h-4 text-gray-400" />
+            </button>
           </div>
 
           {/* Comment Content */}
-          <div className="mb-5 ml-20">
-            <p className="text-gray-800 text-base leading-relaxed whitespace-pre-wrap font-medium">
+          <div className="mb-3">
+            <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
               {comment.content}
             </p>
           </div>
 
           {/* Comment Actions */}
-          <div className="flex items-center space-x-8 text-sm ml-20">
+          <div className="flex items-center space-x-4 text-xs">
             <button
               onClick={() => handleCommentLike(comment.id)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
                 isLiked 
-                  ? 'text-red-500 bg-red-50 hover:bg-red-100' 
+                  ? 'text-red-500 bg-red-50' 
                   : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
               }`}
             >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="font-medium">{comment.likesCount || 0}</span>
+              <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
+              <span>{comment.likesCount || 0}</span>
             </button>
 
             <button
               onClick={() => handleReply(comment)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"
+              className="flex items-center space-x-1 px-2 py-1 rounded text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span className="font-medium">Reply</span>
+              <MessageCircle className="w-3 h-3" />
+              <span>Reply</span>
             </button>
 
             <button
               onClick={() => handleCommentShare(comment)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-green-500 hover:bg-green-50 transition-all duration-200"
+              className="flex items-center space-x-1 px-2 py-1 rounded text-gray-500 hover:text-green-500 hover:bg-green-50 transition-colors"
             >
-              <Share2 className="w-4 h-4" />
-              <span className="font-medium">Share</span>
+              <Share2 className="w-3 h-3" />
+              <span>Share</span>
             </button>
           </div>
 
           {/* View Comments Button for Nested Comments */}
           {hasNestedComments && !areNestedCommentsLoaded && (
-            <div className="mt-4 pt-4 border-t border-gray-100 ml-20">
+            <div className="mt-2 pt-2 border-t border-gray-100">
               <button
                 onClick={() => loadNestedComments(comment.id)}
-                className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-blue-50"
+                className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors px-2 py-1 rounded hover:bg-blue-50"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3 h-3" />
                 <span>View {comment.repliesCount} replies</span>
               </button>
             </div>
@@ -460,19 +463,19 @@ const PostDetail: React.FC = () => {
 
           {/* Show/Hide Replies Button for Loaded Nested Comments */}
           {hasReplies && areNestedCommentsLoaded && (
-            <div className="mt-4 pt-4 border-t border-gray-100 ml-20">
+            <div className="mt-2 pt-2 border-t border-gray-100">
               <button
                 onClick={() => handleExpandReplies(comment.id)}
-                className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
                 {isExpanded ? (
                   <>
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-3 h-3" />
                     <span>Hide {comment.replies?.length || 0} replies</span>
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-3 h-3" />
                     <span>Show {comment.repliesCount} replies</span>
                   </>
                 )}
@@ -623,7 +626,7 @@ const PostDetail: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                Comments ({comments.length})
+                Comments ({post?.commentsCount || comments.length})
               </h3>
               <button 
                 onClick={() => setShowComments(false)}
@@ -633,37 +636,58 @@ const PostDetail: React.FC = () => {
               </button>
             </div>
             
-            {/* Comment Composer */}
-            <div className="mb-6">
-              {replyingTo && (
-                <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-blue-600">Replying to:</span>
-                      <span className="text-sm font-medium text-blue-800">
-                        {replyingTo.author?.displayName || 'User'}
-                      </span>
-                    </div>
+            
+            {comments.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  {comments.map((comment) => renderComment(comment))}
+                </div>
+                
+                {/* Load More Comments Button */}
+                {hasMoreComments && (
+                  <div className="mt-4 text-center">
                     <button
-                      onClick={() => setReplyingTo(null)}
-                      className="text-blue-500 hover:text-blue-700 text-sm"
+                      onClick={loadMoreComments}
+                      disabled={isLoadingMoreComments}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
                     >
-                      ✕
+                      {isLoadingMoreComments ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                          <span>Loading...</span>
+                        </div>
+                      ) : (
+                        `Load More Comments (${(post?.commentsCount || 0) - comments.length} remaining)`
+                      )}
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </>
+            )}
+            
+            {/* Main Comment Composer */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="flex space-x-3">
-                <img 
-                  src="/default-avatar.png" 
-                  alt="Your avatar"
-                  className="w-8 h-8 rounded-full"
-                />
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  {user?.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={`${user.firstName} ${user.lastName}` || 'Your avatar'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                      {user?.firstName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1">
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={replyingTo ? `Reply to ${replyingTo.author?.displayName || 'User'}...` : "Write a comment..."}
+                    placeholder="Write a comment..."
                     className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     rows={3}
                     maxLength={280}
@@ -678,7 +702,7 @@ const PostDetail: React.FC = () => {
                             setNewComment(newComment + '@grok ');
                           }
                         }}
-                        className="text-sm text-purple-600 hover:text-purple-700"
+                        className="text-sm text-purple-600 hover:text-purple-700 px-2 py-1 rounded hover:bg-purple-50"
                       >
                         🤖 @grok
                       </button>
@@ -689,48 +713,105 @@ const PostDetail: React.FC = () => {
                     <button
                       onClick={() => handleComment(newComment)}
                       disabled={!newComment.trim() || isCommenting}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isCommenting ? 'Posting...' : replyingTo ? 'Reply' : 'Post Comment'}
+                      {isCommenting ? 'Posting...' : 'Post Comment'}
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-            
-            {comments.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>
-            ) : (
-              <>
-                <div className="space-y-4">
-                  {comments.map((comment) => renderComment(comment))}
-                </div>
-                
-                {/* Load More Comments Button */}
-                {hasMoreComments && (
-                  <div className="mt-6 text-center">
-                    <button
-                      onClick={loadMoreComments}
-                      disabled={isLoadingMoreComments}
-                      className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                    >
-                      {isLoadingMoreComments ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          <span>Loading...</span>
-                        </div>
-                      ) : (
-                        `View More Comments (${post?.commentsCount || 0 - comments.length} remaining)`
-                      )}
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
           </div>
         )}
 
-        {/* Recent Posts Section - Below Main Content */}
+        {/* Floating Reply Composer */}
+        {showReplyComposer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {replyingTo ? `Reply to ${replyingTo.author?.displayName || replyingTo.author?.username || 'User'}` : 'Write a comment'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowReplyComposer(false);
+                    setReplyingTo(null);
+                    setNewComment('');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="flex space-x-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  {user?.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={`${user.firstName} ${user.lastName}` || 'Your avatar'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                      {user?.firstName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder={replyingTo ? `Reply to ${replyingTo.author?.displayName || replyingTo.author?.username || 'User'}...` : "Write a comment..."}
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    rows={4}
+                    maxLength={280}
+                  />
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          if (newComment.includes('@grok')) {
+                            setNewComment(newComment + ' ');
+                          } else {
+                            setNewComment(newComment + '@grok ');
+                          }
+                        }}
+                        className="text-sm text-purple-600 hover:text-purple-700 px-2 py-1 rounded hover:bg-purple-50"
+                      >
+                        🤖 @grok
+                      </button>
+                      <span className="text-xs text-gray-500">
+                        {newComment.length}/280
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setShowReplyComposer(false);
+                          setReplyingTo(null);
+                          setNewComment('');
+                        }}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleComment(newComment)}
+                        disabled={!newComment.trim() || isCommenting}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isCommenting ? 'Posting...' : replyingTo ? 'Reply' : 'Post Comment'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Posts Section - Grid Layout */}
         <div className="mt-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -746,14 +827,13 @@ const PostDetail: React.FC = () => {
             {loadingRecentPosts ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="flex space-x-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
+                  <div key={i} className="animate-pulse bg-gray-100 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
+                    <div className="h-3 bg-gray-200 rounded w-full mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 ))}
               </div>
@@ -766,32 +846,40 @@ const PostDetail: React.FC = () => {
                     <div 
                       key={recentPost.id}
                       onClick={() => navigate(`/post/${recentPost.id}`)}
-                      className="cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors border border-gray-100"
+                      className="cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors border border-gray-100 hover:border-gray-200 hover:shadow-sm"
                     >
-                      <div className="flex items-start space-x-3">
-                        <img 
-                          src={recentPost.author?.avatarUrl || '/default-avatar.png'} 
-                          alt={recentPost.author?.displayName || 'Unknown User'}
-                          className="w-10 h-10 rounded-full"
-                        />
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                          {recentPost.author?.avatarUrl ? (
+                            <img 
+                              src={recentPost.author.avatarUrl} 
+                              alt={recentPost.author?.displayName || 'Unknown User'}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold">
+                              {recentPost.author?.displayName?.charAt(0) || 'U'}
+                            </div>
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
-                            <h4 className="font-medium text-gray-900 truncate">
+                          <div className="flex items-center space-x-1">
+                            <span className="font-medium text-gray-900 text-sm truncate">
                               {recentPost.author?.displayName || 'Unknown User'}
-                            </h4>
-                            <span className="text-gray-500 text-sm">•</span>
-                            <span className="text-gray-500 text-sm">
-                              {formatDate(recentPost.createdAt)}
+                            </span>
+                            <span className="text-gray-400 text-xs">•</span>
+                            <span className="text-gray-500 text-xs">
+                              {new Date(recentPost.createdAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-gray-700 text-sm mt-1 line-clamp-2">
-                            {recentPost.content}
-                          </p>
-                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                            <span>❤️ {recentPost.likesCount}</span>
-                            <span>💬 {recentPost.commentsCount}</span>
-                          </div>
                         </div>
+                      </div>
+                      <p className="text-gray-700 text-sm line-clamp-3 mb-2">
+                        {recentPost.content}
+                      </p>
+                      <div className="flex items-center space-x-3 text-xs text-gray-500">
+                        <span>❤️ {recentPost.likesCount}</span>
+                        <span>💬 {recentPost.commentsCount}</span>
                       </div>
                     </div>
                   ))}
