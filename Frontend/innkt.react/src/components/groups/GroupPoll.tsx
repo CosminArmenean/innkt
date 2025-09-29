@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { socialService, Post } from '../../services/social.service';
+import { groupsService, PollResponse } from '../../services/groups.service';
 import { ChartBarIcon, PlusIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 interface GroupPollProps {
   groupId: string;
   groupName: string;
-  onPollCreated?: (post: Post) => void;
+  onPollCreated?: (poll: PollResponse) => void;
   className?: string;
 }
 
@@ -62,19 +62,21 @@ const GroupPoll: React.FC<GroupPollProps> = ({
 
     setIsLoading(true);
     try {
-      const pollContent = `📊 **${question.trim()}**\n\n${validOptions.map((option, index) => 
-        `${index + 1}. ${option.text.trim()}`
-      ).join('\n')}\n\n⏰ Poll duration: ${duration} days`;
+      // Calculate expiration date
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + parseInt(duration));
 
-      const postData = {
-        content: pollContent,
-        postType: 'poll' as const,
-        visibility: 'group' as const,
+      const pollData = {
         groupId: groupId,
-        tags: ['poll', 'survey']
+        question: question.trim(),
+        options: validOptions.map(option => option.text.trim()),
+        allowMultipleVotes: false,
+        allowKidVoting: false,
+        allowParentVotingForKid: true,
+        expiresAt: expiresAt.toISOString()
       };
 
-      const newPost = await socialService.createPost(postData);
+      const newPoll = await groupsService.createPoll(pollData);
       
       // Reset form
       setQuestion('');
@@ -86,7 +88,7 @@ const GroupPoll: React.FC<GroupPollProps> = ({
       setIsCreating(false);
       
       if (onPollCreated) {
-        onPollCreated(newPost);
+        onPollCreated(newPoll);
       }
     } catch (error) {
       console.error('Failed to create poll:', error);

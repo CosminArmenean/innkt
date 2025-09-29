@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { socialService, Post, PostLocation } from '../../services/social.service';
+import { groupsService, PollResponse } from '../../services/groups.service';
 import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon } from '@heroicons/react/24/outline';
 import GroupPoll from './GroupPoll';
 
@@ -7,6 +8,7 @@ interface GroupPostCreationProps {
   groupId: string;
   groupName: string;
   onPostCreated?: (post: Post) => void;
+  onPollCreated?: (poll: PollResponse) => void;
   className?: string;
 }
 
@@ -14,6 +16,7 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
   groupId,
   groupName,
   onPostCreated,
+  onPollCreated,
   className = ''
 }) => {
   const [content, setContent] = useState('');
@@ -371,10 +374,10 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
           <GroupPoll
             groupId={groupId}
             groupName={groupName}
-            onPollCreated={(post) => {
+            onPollCreated={(poll) => {
               setShowPollCreation(false);
-              if (onPostCreated) {
-                onPostCreated(post);
+              if (onPollCreated) {
+                onPollCreated(poll);
               }
             }}
           />

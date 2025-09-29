@@ -33,6 +33,10 @@ import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
 
+// GroupsPage now uses useAuth() directly, no wrapper needed
+
+// GroupDetailPage now uses useAuth() directly, no wrapper needed
+
 // Wrapper component to handle user ID for profile routes
 const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile }) => {
   const { user } = useAuth();
@@ -94,12 +98,12 @@ function App() {
               } />
               <Route path="/groups" element={
                 <ProtectedRoute>
-                  <GroupsPage currentUserId="demo-user" />
+                  <GroupsPage />
                 </ProtectedRoute>
               } />
               <Route path="/groups/:id" element={
                 <ProtectedRoute>
-                  <GroupDetailPage currentUserId="demo-user" />
+                  <GroupDetailPage />
                 </ProtectedRoute>
               } />
               <Route path="/followers" element={

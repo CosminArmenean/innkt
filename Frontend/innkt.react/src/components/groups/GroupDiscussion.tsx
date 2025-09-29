@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, Post, Group } from '../../services/social.service';
+import { groupsService, PollResponse } from '../../services/groups.service';
 import PostCard from '../social/PostCard';
 import GroupPostCreation from './GroupPostCreation';
 import GroupAnnouncement from './GroupAnnouncement';
+import PollDisplay from './PollDisplay';
 import { 
   ChatBubbleLeftRightIcon, 
   FireIcon, 
@@ -23,6 +25,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
   className = ''
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [polls, setPolls] = useState<PollResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'recent' | 'popular' | 'discussions'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,13 +33,13 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
 
   useEffect(() => {
     loadPosts();
+    loadPolls();
   }, [group.id, activeFilter]);
 
   const loadPosts = async () => {
     try {
       setIsLoading(true);
-      const response = await socialService.getPosts({
-        groupId: group.id,
+      const response = await groupsService.getGroupPosts(group.id, {
         limit: 20
       });
       setPosts(response.posts);
@@ -47,8 +50,31 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
     }
   };
 
+  const loadPolls = async () => {
+    try {
+      const polls = await groupsService.getGroupPolls(group.id);
+      setPolls(polls);
+    } catch (error) {
+      console.error('Failed to load group polls:', error);
+    }
+  };
+
   const handlePostCreated = (newPost: Post) => {
     setPosts(prev => [newPost, ...prev]);
+  };
+
+  const handlePollCreated = (newPoll: PollResponse) => {
+    setPolls(prev => [newPoll, ...prev]);
+  };
+
+  const handlePollVote = async (pollId: string, optionIndex: number) => {
+    try {
+      await groupsService.votePoll(pollId, optionIndex);
+      // Reload polls to get updated results
+      await loadPolls();
+    } catch (error) {
+      console.error('Failed to vote on poll:', error);
+    }
   };
 
   const handlePostUpdate = (updatedPost: Post) => {
@@ -67,14 +93,41 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
     return true;
   });
 
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
+  const filteredPolls = polls.filter(poll => {
+    if (searchQuery.trim()) {
+      return poll.question.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return true;
+  });
+
+  // Create a combined feed of posts and polls
+  const combinedItems = [
+    ...filteredPosts.map(post => ({ type: 'post' as const, data: post, createdAt: post.createdAt })),
+    ...filteredPolls.map(poll => ({ type: 'poll' as const, data: poll, createdAt: poll.createdAt }))
+  ];
+
+  const sortedItems = [...combinedItems].sort((a, b) => {
     switch (activeFilter) {
       case 'recent':
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case 'popular':
-        return (b.likesCount + b.commentsCount + b.sharesCount) - (a.likesCount + a.commentsCount + a.sharesCount);
+        if (a.type === 'post' && b.type === 'post') {
+          return (b.data.likesCount + b.data.commentsCount + b.data.sharesCount) - (a.data.likesCount + a.data.commentsCount + a.data.sharesCount);
+        }
+        if (a.type === 'poll' && b.type === 'poll') {
+          return b.data.totalVotes - a.data.totalVotes;
+        }
+        // Mixed types - prioritize posts for popular
+        return a.type === 'post' ? -1 : 1;
       case 'discussions':
-        return b.commentsCount - a.commentsCount;
+        if (a.type === 'post' && b.type === 'post') {
+          return b.data.commentsCount - a.data.commentsCount;
+        }
+        if (a.type === 'poll' && b.type === 'poll') {
+          return b.data.totalVotes - a.data.totalVotes;
+        }
+        // Mixed types - prioritize posts for discussions
+        return a.type === 'post' ? -1 : 1;
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
@@ -183,6 +236,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
           groupId={group.id}
           groupName={group.name}
           onPostCreated={handlePostCreated}
+          onPollCreated={handlePollCreated}
         />
       )}
 
@@ -192,7 +246,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
           </div>
-        ) : sortedPosts.length === 0 ? (
+        ) : sortedItems.length === 0 ? (
           <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
             <div className="text-6xl mb-4">💬</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions yet</h3>
@@ -209,7 +263,10 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
             )}
           </div>
         ) : (
-          sortedPosts.map((post) => (
+          sortedItems.map((item) => {
+            if (item.type === 'post') {
+              const post = item.data;
+              return (
             <PostCard
               key={post.id}
               post={post}
@@ -241,12 +298,22 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
               }}
               currentUserId={currentUserId}
             />
-          ))
+              );
+            } else {
+              return (
+                <PollDisplay
+                  key={`poll-${item.data.id}`}
+                  poll={item.data}
+                  onVote={handlePollVote}
+                />
+              );
+            }
+          })
         )}
       </div>
 
       {/* Load More Button */}
-      {sortedPosts.length > 0 && (
+      {sortedItems.length > 0 && (
         <div className="text-center">
           <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
             Load More Posts

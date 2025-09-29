@@ -328,9 +328,9 @@ public class EventConsumer : IEventConsumer
     {
         return socialEvent.EventType switch
         {
-            "comment_notification" => "Someone commented on your post",
-            "like_notification" => "Someone liked your post",
-            "follow_notification" => "Someone started following you",
+            "comment_notification" => $"{socialEvent.SenderName} commented on your post",
+            "like_notification" => $"{socialEvent.SenderName} liked your post",
+            "follow_notification" => $"{socialEvent.SenderName} started following you",
             _ => "You have a new social update"
         };
     }

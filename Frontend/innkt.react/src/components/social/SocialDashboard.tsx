@@ -19,6 +19,8 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
   const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  console.log('SocialDashboard rendered - currentUserId:', currentUserId, 'activeTab:', activeTab);
+  
 
   const loadCurrentUser = useCallback(async () => {
     if (!currentUserId) return;
@@ -168,7 +170,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
       
       {activeTab === 'groups' && (
         <div className="h-full">
-          <GroupsPage currentUserId={currentUser?.id} />
+          <GroupsPage />
         </div>
       )}
       

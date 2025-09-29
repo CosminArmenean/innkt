@@ -34,9 +34,28 @@ export const createApiInstance = (baseURL: string) => {
     },
     (error) => {
       if (error.response?.status === 401) {
-        // Handle unauthorized access
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login';
+        const token = localStorage.getItem('accessToken');
+        const isPublicEndpoint = error.config?.url?.includes('/public') || 
+                                error.config?.url?.includes('/login') || 
+                                error.config?.url?.includes('/register');
+        
+        console.log('401 Error - Token exists:', !!token, 'Is public endpoint:', isPublicEndpoint, 'URL:', error.config?.url);
+        
+        // Only redirect to login for critical endpoints or if no token exists
+        // Let components handle 401 errors for non-critical endpoints
+        const isCriticalEndpoint = error.config?.url?.includes('/api/auth/me') ||
+                                  error.config?.url?.includes('/api/auth/refresh');
+        
+        if (isCriticalEndpoint && token) {
+          console.log('Redirecting to login due to 401 on critical auth endpoint');
+          localStorage.removeItem('accessToken');
+          window.location.href = '/login';
+        } else if (!token && !isPublicEndpoint) {
+          console.log('Redirecting to login - no token and not public endpoint');
+          window.location.href = '/login';
+        } else {
+          console.log('Not redirecting - letting component handle 401 error');
+        }
       }
       return Promise.reject(error);
     }

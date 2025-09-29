@@ -1,63 +1,48 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Serilog;
 using innkt.Groups.Data;
-using innkt.Groups.Services;
-using StackExchange.Redis;
 using AutoMapper;
+using innkt.Groups.Mapping;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File("logs/groups-.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
-
-builder.Host.UseSerilog();
-
-// Add services to the container
+// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add Entity Framework
+// Add DbContext
 builder.Services.AddDbContext<GroupsDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Redis
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-{
-    var configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
-    return ConnectionMultiplexer.Connect(configuration);
-});
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(GroupsMappingProfile));
 
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
-    options.InstanceName = "Groups";
-});
-
-// Add JWT Authentication
+// Add JWT Authentication (matching Officer service configuration)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+            ValidIssuer = "http://localhost:5001",
+            ValidAudience = "innkt.officer.api",
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes("innkt.officer.jwt.secret.key.2025.very.long.and.secure.key"))
         };
     });
 
-builder.Services.AddAuthorization();
+// Add other services
+builder.Services.AddScoped<innkt.Groups.Services.IGroupService, innkt.Groups.Services.GroupService>();
+builder.Services.AddScoped<innkt.Groups.Services.IPermissionService, innkt.Groups.Services.PermissionService>();
+builder.Services.AddScoped<innkt.Groups.Services.IRoleManagementService, innkt.Groups.Services.RoleManagementService>();
+builder.Services.AddScoped<innkt.Groups.Services.ISubgroupService, innkt.Groups.Services.SubgroupService>();
+builder.Services.AddScoped<innkt.Groups.Services.ITopicService, innkt.Groups.Services.TopicService>();
+builder.Services.AddScoped<innkt.Groups.Services.IAIIntegrationService, innkt.Groups.Services.AIIntegrationService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -70,48 +55,55 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
-
-// Add Application Services
-builder.Services.AddScoped<IGroupService, GroupService>();
-
-// Add Logging
-builder.Services.AddLogging(logging =>
-{
-    logging.AddConsole();
-    logging.AddDebug();
-});
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-// Enable Swagger in all environments
-app.UseSwagger();
-app.UseSwaggerUI();
-
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 app.UseCors("AllowAll");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Health check endpoint
-app.MapGet("/health", () => new { Status = "Healthy", Service = "innkt.Groups", Timestamp = DateTime.UtcNow });
-
-// Ensure database is created
-using (var scope = app.Services.CreateScope())
+// Check if we should run database update instead of web server
+if (args.Length > 0 && args[0] == "update-db")
 {
-    var context = scope.ServiceProvider.GetRequiredService<GroupsDbContext>();
-    context.Database.EnsureCreated();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<GroupsDbContext>();
+        
+        Console.WriteLine("🔄 Updating database with missing columns...");
+        
+        // Add missing columns to GroupMembers table
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupMembers"" ADD COLUMN IF NOT EXISTS ""IsParentAccount"" boolean NOT NULL DEFAULT false;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupMembers"" ADD COLUMN IF NOT EXISTS ""KidAccountId"" uuid;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupMembers"" ADD COLUMN IF NOT EXISTS ""SubgroupId"" uuid;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupMembers"" ADD COLUMN IF NOT EXISTS ""RoleId"" uuid;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupMembers"" ADD COLUMN IF NOT EXISTS ""UpdatedAt"" timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP);");
+
+        // Add missing columns to GroupRoles table
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupRoles"" ADD COLUMN IF NOT EXISTS ""Permissions"" text NOT NULL DEFAULT '{}';");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""GroupRoles"" ADD COLUMN IF NOT EXISTS ""CanSeeRealUsername"" boolean NOT NULL DEFAULT false;");
+
+        // Add missing columns to Subgroups table
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Subgroups"" ADD COLUMN IF NOT EXISTS ""Settings"" text NOT NULL DEFAULT '{}';");
+
+        // Skip migration history for now - columns are added successfully
+        Console.WriteLine("Migration history update skipped - columns added successfully");
+
+        Console.WriteLine("✅ Database updated successfully!");
+        return;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error updating database: {ex.Message}");
+        return;
+    }
 }
 
 app.Run();

@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { socialService, Group } from '../../services/social.service';
-import { XMarkIcon, PhotoIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+import { Group } from '../../services/social.service';
+import { groupsService, CreateEducationalGroupRequest, CreateFamilyGroupRequest } from '../../services/groups.service';
+import { useAuth } from '../../contexts/AuthContext';
+import { XMarkIcon, AcademicCapIcon, HomeIcon } from '@heroicons/react/24/outline';
 
 interface CreateGroupModalProps {
   onClose: () => void;
@@ -8,28 +10,28 @@ interface CreateGroupModalProps {
 }
 
 const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCreated }) => {
+  const { user } = useAuth();
+  const [groupType, setGroupType] = useState<'family' | 'educational'>('family');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: '',
     type: 'public' as 'public' | 'private' | 'secret',
     tags: [] as string[],
-    rules: [] as { title: string; description: string }[]
+    // Educational group fields
+    institutionName: '',
+    // Note: gradeLevel and detailed settings will be moved to subgroup creation
   });
-  const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
-  const [selectedCover, setSelectedCover] = useState<File | null>(null);
   const [tagInput, setTagInput] = useState('');
-  const [ruleInput, setRuleInput] = useState({ title: '', description: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const categories = [
     'Technology', 'Business', 'Education', 'Entertainment', 
     'Lifestyle', 'Sports', 'Health', 'Travel', 'Art', 'Music'
   ];
+
+  // Grade levels will be handled in subgroup creation
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -38,13 +40,27 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
     }
   };
 
-  const handleFileSelect = (file: File, type: 'avatar' | 'cover') => {
-    if (type === 'avatar') {
-      setSelectedAvatar(file);
+  // Handle group type change and set appropriate defaults
+  const handleGroupTypeChange = (type: 'family' | 'educational') => {
+    setGroupType(type);
+    
+    if (type === 'educational') {
+      // Set educational group defaults
+      setFormData(prev => ({
+        ...prev,
+        category: 'Education', // Auto-select Education category
+        type: 'private' as 'public' | 'private' | 'secret' // Default to invitation-only
+      }));
     } else {
-      setSelectedCover(file);
+      // Reset to family group defaults
+      setFormData(prev => ({
+        ...prev,
+        category: '',
+        type: 'public' as 'public' | 'private' | 'secret'
+      }));
     }
   };
+
 
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
@@ -63,22 +79,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
     }));
   };
 
-  const handleAddRule = () => {
-    if (ruleInput.title.trim() && ruleInput.description.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        rules: [...prev.rules, { ...ruleInput }]
-      }));
-      setRuleInput({ title: '', description: '' });
-    }
-  };
-
-  const handleRemoveRule = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      rules: prev.rules.filter((_, i) => i !== index)
-    }));
-  };
+  // Rules will be handled after group creation
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -99,6 +100,13 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
       newErrors.category = 'Category is required';
     }
 
+    // Educational group specific validation
+    if (groupType === 'educational') {
+      if (!formData.institutionName.trim()) {
+        newErrors.institutionName = 'Institution name is required';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -110,28 +118,72 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
 
     setIsLoading(true);
     try {
-      const groupData = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        category: formData.category.toLowerCase(),
-        type: formData.type,
-        tags: formData.tags,
-        rules: formData.rules.map((rule, index) => ({
-          id: `rule-${index}-${Date.now()}`,
-          title: rule.title.trim(),
-          description: rule.description.trim(),
-          isActive: true
-        }))
-      };
+      let newGroup;
 
-      const newGroup = await socialService.createGroup(groupData);
+      if (groupType === 'educational') {
+        const educationalGroupData: CreateEducationalGroupRequest = {
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          institutionName: formData.institutionName.trim(),
+          gradeLevel: '', // Will be set when creating subgroups
+          isKidFriendly: true, // Default for educational groups
+          allowParentParticipation: true, // Default for educational groups
+          requireParentApproval: true, // Default for educational groups
+          category: formData.category.toLowerCase(),
+          tags: formData.tags,
+          rules: [], // Will be added after group creation
+          settings: {
+            allowMemberPosts: true,
+            allowKidPosts: true,
+            allowParentPosts: true,
+            requireApprovalForPosts: true, // Default for educational groups
+            allowFileUploads: true,
+            allowPolls: true,
+            allowEvents: true,
+            maxFileSize: 10 * 1024 * 1024, // 10MB
+            allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'],
+            moderationLevel: 'strict', // Default for educational groups
+            contentFiltering: true,
+            profanityFilter: true,
+            imageModeration: true,
+            autoApproveParents: false, // Default for educational groups
+            autoApproveKids: false, // Default for educational groups
+            notificationSettings: {
+              newPosts: true,
+              newMembers: true,
+              newComments: true,
+              newPolls: true,
+              newEvents: true
+            }
+          }
+        };
+
+        // Get userId from auth context
+        const userId = user?.id || '00000000-0000-0000-0000-000000000001';
+        newGroup = await groupsService.createEducationalGroup(userId, educationalGroupData);
+      } else {
+        const familyGroupData: CreateFamilyGroupRequest = {
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          isKidFriendly: true, // Default for family groups
+          allowParentParticipation: true, // Default for family groups
+          requireParentApproval: false, // Default for family groups
+          category: formData.category.toLowerCase(),
+          tags: formData.tags,
+          rules: [] // Will be added after group creation
+        };
+
+        // Get userId from auth context
+        const userId = user?.id || '00000000-0000-0000-0000-000000000001';
+        newGroup = await groupsService.createFamilyGroup(userId, familyGroupData);
+      }
       
       // TODO: Upload avatar and cover image if selected
       // if (selectedAvatar) {
-      //   await socialService.uploadGroupAvatar(newGroup.id, selectedAvatar);
+      //   await groupsService.uploadGroupAvatar(newGroup.id, selectedAvatar);
       // }
       // if (selectedCover) {
-      //   await socialService.uploadGroupCover(newGroup.id, selectedCover);
+      //   await groupsService.uploadGroupCover(newGroup.id, selectedCover);
       // }
 
       onGroupCreated(newGroup);
@@ -159,6 +211,49 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Group Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Group Type *
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => handleGroupTypeChange('family')}
+                className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                  groupType === 'family'
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <HomeIcon className="w-6 h-6 text-purple-600" />
+                  <div>
+                    <h3 className="font-medium text-gray-900">Family Group</h3>
+                    <p className="text-sm text-gray-500">For families and close friends</p>
+                  </div>
+                </div>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => handleGroupTypeChange('educational')}
+                className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                  groupType === 'educational'
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <AcademicCapIcon className="w-6 h-6 text-purple-600" />
+                  <div>
+                    <h3 className="font-medium text-gray-900">Educational Group</h3>
+                    <p className="text-sm text-gray-500">For schools and learning</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
           {/* Group Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -193,6 +288,28 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
             {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
           </div>
 
+          {/* Educational Group Specific Fields */}
+          {groupType === 'educational' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Institution Name *
+              </label>
+              <input
+                type="text"
+                value={formData.institutionName}
+                onChange={(e) => handleInputChange('institutionName', e.target.value)}
+                placeholder="School or organization name..."
+                className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  errors.institutionName ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.institutionName && <p className="mt-1 text-sm text-red-600">{errors.institutionName}</p>}
+              <p className="mt-1 text-sm text-gray-500">
+                Grade levels and specific settings will be configured when creating subgroups (1st grade, 2nd grade, etc.)
+              </p>
+            </div>
+          )}
+
           {/* Category and Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -202,9 +319,10 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
               <select
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
+                disabled={groupType === 'educational'}
                 className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                   errors.category ? 'border-red-300' : 'border-gray-300'
-                }`}
+                } ${groupType === 'educational' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               >
                 <option value="">Select category...</option>
                 {categories.map(category => (
@@ -213,6 +331,11 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                   </option>
                 ))}
               </select>
+              {groupType === 'educational' && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Educational groups automatically use "Education" category
+                </p>
+              )}
               {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
             </div>
 
@@ -229,6 +352,11 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                 <option value="private">Private - Approval required</option>
                 <option value="secret">Secret - Invite only</option>
               </select>
+              {groupType === 'educational' && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Educational groups default to invitation-only with admin approval
+                </p>
+              )}
             </div>
           </div>
 
@@ -237,19 +365,22 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tags
             </label>
+            <p className="text-sm text-gray-500 mb-3">
+              Add tags to help people find your group. Tags make your group discoverable in search results and help categorize content.
+            </p>
             <div className="flex space-x-2 mb-2">
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                placeholder="Add a tag..."
+                placeholder="Add a tag (e.g., mathematics, science, art)..."
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Add
               </button>
@@ -275,53 +406,11 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
             )}
           </div>
 
-          {/* Group Rules */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Group Rules
-            </label>
-            <div className="space-y-2 mb-2">
-              <input
-                type="text"
-                value={ruleInput.title}
-                onChange={(e) => setRuleInput(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Rule title..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <input
-                type="text"
-                value={ruleInput.description}
-                onChange={(e) => setRuleInput(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Rule description..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <button
-                type="button"
-                onClick={handleAddRule}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Add Rule
-              </button>
-            </div>
-            {formData.rules.length > 0 && (
-              <div className="space-y-2">
-                {formData.rules.map((rule, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium text-sm text-gray-900">{rule.title}</div>
-                      <div className="text-sm text-gray-600">{rule.description}</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveRule(index)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Note about Group Rules */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Group rules can be added after creating the group. This allows you to set up the basic group structure first, then customize rules and settings as needed.
+            </p>
           </div>
 
           {/* Error Message */}

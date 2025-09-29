@@ -1,0 +1,2 @@
+ALTER TABLE "Groups" ADD COLUMN IF NOT EXISTS "Tags" text[] DEFAULT '{}';
+

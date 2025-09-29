@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using innkt.Groups.Services;
 using innkt.Groups.DTOs;
+using innkt.Groups.Middleware;
 using System.Security.Claims;
 
 namespace innkt.Groups.Controllers;
@@ -24,6 +25,7 @@ public class GroupsController : ControllerBase
     /// Create a new group
     /// </summary>
     [HttpPost]
+    [RequirePermission("create_group")]
     public async Task<ActionResult<GroupResponse>> CreateGroup([FromBody] CreateGroupRequest request)
     {
         try
@@ -36,6 +38,44 @@ public class GroupsController : ControllerBase
         {
             _logger.LogError(ex, "Error creating group for user {UserId}", GetCurrentUserId());
             return StatusCode(500, "An error occurred while creating the group");
+        }
+    }
+
+    /// <summary>
+    /// Create a new educational group
+    /// </summary>
+    [HttpPost("educational/{userId}")]
+    [RequirePermission("create_group")]
+    public async Task<ActionResult<GroupResponse>> CreateEducationalGroup(Guid userId, [FromBody] CreateEducationalGroupRequest request)
+    {
+        try
+        {
+            var group = await _groupService.CreateEducationalGroupAsync(userId, request);
+            return CreatedAtAction(nameof(GetGroup), new { id = group.Id }, group);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating educational group for user {UserId}", userId);
+            return StatusCode(500, "An error occurred while creating the educational group");
+        }
+    }
+
+    /// <summary>
+    /// Create a new family group
+    /// </summary>
+    [HttpPost("family/{userId}")]
+    [RequirePermission("create_group")]
+    public async Task<ActionResult<GroupResponse>> CreateFamilyGroup(Guid userId, [FromBody] CreateFamilyGroupRequest request)
+    {
+        try
+        {
+            var group = await _groupService.CreateFamilyGroupAsync(userId, request);
+            return CreatedAtAction(nameof(GetGroup), new { id = group.Id }, group);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating family group for user {UserId}", userId);
+            return StatusCode(500, "An error occurred while creating the family group");
         }
     }
 
@@ -88,14 +128,22 @@ public class GroupsController : ControllerBase
     /// Get public groups
     /// </summary>
     [HttpGet("public")]
+    [AllowAnonymous]
     public async Task<ActionResult<GroupListResponse>> GetPublicGroups(
         [FromQuery] int page = 1, 
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? currentUserId = null)
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
-            var groups = await _groupService.GetPublicGroupsAsync(page, pageSize, currentUserId);
+            // Parse currentUserId if provided
+            Guid? userId = null;
+            if (!string.IsNullOrEmpty(currentUserId) && Guid.TryParse(currentUserId, out var parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            
+            var groups = await _groupService.GetPublicGroupsAsync(page, pageSize, userId);
             return Ok(groups);
         }
         catch (Exception ex)
@@ -109,6 +157,7 @@ public class GroupsController : ControllerBase
     /// Update a group
     /// </summary>
     [HttpPut("{id}")]
+    [RequirePermission("update_group", "id")]
     public async Task<ActionResult<GroupResponse>> UpdateGroup(Guid id, [FromBody] UpdateGroupRequest request)
     {
         try
@@ -136,6 +185,7 @@ public class GroupsController : ControllerBase
     /// Delete a group
     /// </summary>
     [HttpDelete("{id}")]
+    [RequireRole("owner", "id")]
     public async Task<ActionResult> DeleteGroup(Guid id)
     {
         try
@@ -296,5 +346,116 @@ public class GroupsController : ControllerBase
             throw new UnauthorizedAccessException("Invalid user ID in token");
         }
         return userId;
+    }
+
+    // Group Rules Management
+    [HttpPost("{groupId}/rules")]
+    [RequirePermission("groups.manage")]
+    public async Task<ActionResult<GroupRuleResponse>> CreateGroupRule(Guid groupId, [FromBody] CreateGroupRuleRequest request)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var rule = await _groupService.CreateGroupRuleAsync(groupId, currentUserId, request);
+            return Ok(rule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating group rule for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while creating the group rule");
+        }
+    }
+
+    [HttpGet("{groupId}/rules")]
+    public async Task<ActionResult<List<GroupRuleResponse>>> GetGroupRules(Guid groupId)
+    {
+        try
+        {
+            var rules = await _groupService.GetGroupRulesAsync(groupId);
+            return Ok(rules);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting group rules for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while retrieving group rules");
+        }
+    }
+
+    [HttpGet("{groupId}/rules/{ruleId}")]
+    public async Task<ActionResult<GroupRuleResponse>> GetGroupRule(Guid groupId, Guid ruleId)
+    {
+        try
+        {
+            var rule = await _groupService.GetGroupRuleAsync(groupId, ruleId);
+            if (rule == null)
+                return NotFound("Group rule not found");
+            
+            return Ok(rule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting group rule {RuleId} for group {GroupId}", ruleId, groupId);
+            return StatusCode(500, "An error occurred while retrieving the group rule");
+        }
+    }
+
+    [HttpPut("{groupId}/rules/{ruleId}")]
+    [RequirePermission("groups.manage")]
+    public async Task<ActionResult<GroupRuleResponse>> UpdateGroupRule(Guid groupId, Guid ruleId, [FromBody] UpdateGroupRuleRequest request)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var rule = await _groupService.UpdateGroupRuleAsync(groupId, ruleId, currentUserId, request);
+            if (rule == null)
+                return NotFound("Group rule not found");
+            
+            return Ok(rule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating group rule {RuleId} for group {GroupId}", ruleId, groupId);
+            return StatusCode(500, "An error occurred while updating the group rule");
+        }
+    }
+
+    [HttpDelete("{groupId}/rules/{ruleId}")]
+    [RequirePermission("groups.manage")]
+    public async Task<ActionResult> DeleteGroupRule(Guid groupId, Guid ruleId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var success = await _groupService.DeleteGroupRuleAsync(groupId, ruleId, currentUserId);
+            if (!success)
+                return NotFound("Group rule not found");
+            
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting group rule {RuleId} for group {GroupId}", ruleId, groupId);
+            return StatusCode(500, "An error occurred while deleting the group rule");
+        }
+    }
+
+    [HttpPut("{groupId}/rules/{ruleId}/toggle")]
+    [RequirePermission("groups.manage")]
+    public async Task<ActionResult<GroupRuleResponse>> ToggleGroupRule(Guid groupId, Guid ruleId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var rule = await _groupService.ToggleGroupRuleAsync(groupId, ruleId, currentUserId);
+            if (rule == null)
+                return NotFound("Group rule not found");
+            
+            return Ok(rule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling group rule {RuleId} for group {GroupId}", ruleId, groupId);
+            return StatusCode(500, "An error occurred while toggling the group rule");
+        }
     }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, Group } from '../../services/social.service';
+import { groupsService } from '../../services/groups.service';
 
 interface GroupManagementProps {
   userId: string;
@@ -62,7 +63,7 @@ const GroupManagement: React.FC<GroupManagementProps> = ({ userId }) => {
         },
       };
 
-      const createdGroup = await socialService.createGroup(groupData);
+      const createdGroup = await groupsService.createGroup(groupData);
       setGroups(prev => [createdGroup, ...prev]);
       setShowCreateModal(false);
       resetForm();
@@ -227,7 +228,7 @@ const GroupManagement: React.FC<GroupManagementProps> = ({ userId }) => {
               </p>
 
               <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>{group.memberCount} members</span>
+                <span>{group.memberCount?.toLocaleString() || '0'} members</span>
                 <span className={`px-2 py-1 rounded-full text-xs ${
                   group.type === 'public' 
                     ? 'bg-green-100 text-green-800' 

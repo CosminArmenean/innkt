@@ -17,13 +17,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
+  console.log('ProtectedRoute - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', user);
+
   if (isLoading) {
+    console.log('ProtectedRoute - showing loading spinner');
     return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {
+    console.log('ProtectedRoute - user not authenticated, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  console.log('ProtectedRoute - user authenticated, rendering children');
 
   if (requireMfa && !user?.isMfaEnabled) {
     return <Navigate to="/setup-2fa" state={{ from: location }} replace />;

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { socialService, Group, Post } from '../../services/social.service';
+import { groupsService } from '../../services/groups.service';
 import PostCard from '../social/PostCard';
 import GroupDiscussion from './GroupDiscussion';
+import GroupSettingsPanel from './GroupSettingsPanel';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   UserGroupIcon, 
   UsersIcon, 
@@ -10,16 +13,17 @@ import {
   CogIcon,
   ShareIcon,
   BellIcon,
-  BellSlashIcon
+  BellSlashIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
-interface GroupDetailPageProps {
-  currentUserId?: string;
-}
-
-const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
+const GroupDetailPage: React.FC = () => {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  console.log('GroupDetailPage rendered for group ID:', id);
   const [group, setGroup] = useState<Group | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'members' | 'rules' | 'settings'>('posts');
@@ -53,10 +57,10 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
     if (!id) return;
     
     try {
-      const response = await socialService.getPosts({ groupId: id, limit: 20 });
+      const response = await groupsService.getGroupPosts(id, { limit: 20 });
       setPosts(response.posts);
     } catch (error) {
-      console.error('Failed to load posts:', error);
+      console.error('Failed to load group posts:', error);
     }
   };
 
@@ -195,11 +199,11 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
                 <div className="flex items-center space-x-6 text-sm text-gray-500">
                   <div className="flex items-center space-x-1">
                     <UsersIcon className="w-4 h-4" />
-                    <span>{group.memberCount.toLocaleString()} members</span>
+                    <span>{group.memberCount?.toLocaleString() || '0'} members</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                    <span>{group.postCount} posts</span>
+                    <span>{group.postCount || '0'} posts</span>
                   </div>
                   <span>Created {new Date(group.createdAt).toLocaleDateString()}</span>
                 </div>
@@ -255,8 +259,8 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
           <nav className="-mb-px flex space-x-8 px-6">
             {[
               { id: 'posts', label: 'Posts', count: posts.length },
-              { id: 'members', label: 'Members', count: group.memberCount },
-              { id: 'rules', label: 'Rules', count: group.rules.length }
+              { id: 'members', label: 'Members', count: group.memberCount || 0 },
+              { id: 'rules', label: 'Rules', count: group.rules?.length || 0 }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -351,12 +355,12 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
 
           {activeTab === 'rules' && (
             <div className="space-y-4">
-              {group.rules.length === 0 ? (
+              {(!group.rules || group.rules.length === 0) ? (
                 <div className="text-center py-8 text-gray-500">
                   <p>No rules set for this group.</p>
                 </div>
               ) : (
-                group.rules.map((rule) => (
+                group.rules?.map((rule) => (
                   <div key={rule.id} className="p-4 border border-gray-200 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">{rule.title}</h4>
                     <p className="text-gray-700">{rule.description}</p>
@@ -367,12 +371,10 @@ const GroupDetailPage: React.FC<GroupDetailPageProps> = ({ currentUserId }) => {
           )}
 
           {activeTab === 'settings' && (
-            <div className="space-y-6">
-              <div className="text-center py-8 text-gray-500">
-                <p>Group settings will be implemented here.</p>
-                <p className="text-sm mt-2">Manage group details, rules, and member permissions.</p>
-              </div>
-            </div>
+            <GroupSettingsPanel
+              group={group}
+              currentUserId={currentUserId}
+            />
           )}
         </div>
       </div>

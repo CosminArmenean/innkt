@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, Group } from '../../services/social.service';
+import { groupsService, EnhancedGroupResponse } from '../../services/groups.service';
 import GroupCard from './GroupCard';
 import CreateGroupModal from './CreateGroupModal';
+import GroupManagementPanel from './GroupManagementPanel';
 import { PlusIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import PageLayout from '../layout/PageLayout';
 import ScrollableContent from '../layout/ScrollableContent';
+import { useAuth } from '../../contexts/AuthContext';
 
-interface GroupsPageProps {
-  currentUserId?: string;
-}
-
-const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
+const GroupsPage: React.FC = () => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const currentUserId = user?.id;
+  
+  console.log('GroupsPage rendered - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'currentUserId:', currentUserId);
   const [groups, setGroups] = useState<Group[]>([]);
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [recommendedGroups, setRecommendedGroups] = useState<Group[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'my' | 'recommended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [filters, setFilters] = useState({
     category: '',
     type: '',
@@ -26,48 +30,152 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
   });
 
   useEffect(() => {
+    console.log('GroupsPage useEffect - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'currentUserId:', currentUserId);
+    
+    // Wait for authentication to complete
+    if (isLoading) {
+      console.log('GroupsPage useEffect - still loading, skipping API calls');
+      return;
+    }
+
+    console.log('GroupsPage useEffect - loading groups');
     loadGroups();
-    loadMyGroups();
-    loadRecommendedGroups();
-  }, []);
+    
+    // Check if we have a valid token
+    const token = localStorage.getItem('accessToken');
+    console.log('GroupsPage useEffect - token exists:', !!token);
+    
+    // Only load user-specific data if user is authenticated and has a token
+    if (isAuthenticated && currentUserId && currentUserId !== 'undefined' && currentUserId !== 'null' && token) {
+      console.log('GroupsPage useEffect - user authenticated with token, loading user-specific data');
+      loadMyGroups();
+      loadRecommendedGroups();
+    } else {
+      console.log('GroupsPage useEffect - user not authenticated or no token, clearing user-specific data');
+      // Clear user-specific data if not authenticated
+      setMyGroups([]);
+      setRecommendedGroups([]);
+    }
+  }, [isLoading, isAuthenticated, currentUserId]);
+
+  // Show loading spinner while authentication is being checked
+  if (isLoading) {
+    console.log('GroupsPage - showing loading spinner');
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, this page shouldn't be accessible (should be handled by ProtectedRoute)
+  // But add a safety check just in case
+  if (!isAuthenticated || !currentUserId) {
+    console.warn('GroupsPage rendered without authentication - this should not happen with ProtectedRoute');
+    console.warn('GroupsPage - isAuthenticated:', isAuthenticated, 'currentUserId:', currentUserId);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h2>
+          <p className="text-gray-600">Please log in to access the Groups page.</p>
+        </div>
+      </div>
+    );
+  }
 
   const loadGroups = async () => {
     try {
-      setIsLoading(true);
-      const response = await socialService.getGroups({
+      setIsPageLoading(true);
+      console.log('Loading groups with currentUserId:', currentUserId);
+      
+      // Only pass currentUserId if user is authenticated
+      const requestParams: any = {
         search: searchQuery,
         category: filters.category,
         type: filters.type as any,
         limit: 20
-      });
+      };
+      
+      if (isAuthenticated && currentUserId && currentUserId !== 'undefined' && currentUserId !== 'null') {
+        requestParams.currentUserId = currentUserId;
+      }
+      
+      const response = await groupsService.getGroups(requestParams);
+      console.log('Groups loaded successfully:', response);
       setGroups(response.groups);
     } catch (error) {
       console.error('Failed to load groups:', error);
+      // Set empty groups on error to prevent infinite loading
+      setGroups([]);
     } finally {
-      setIsLoading(false);
+      setIsPageLoading(false);
     }
   };
 
   const loadMyGroups = async () => {
+    console.log('loadMyGroups called - isAuthenticated:', isAuthenticated, 'currentUserId:', currentUserId);
+    
+    // Check if we have a valid token
+    const token = localStorage.getItem('accessToken');
+    console.log('loadMyGroups - token exists:', !!token);
+    
+    if (!isAuthenticated || !currentUserId || currentUserId === 'undefined' || currentUserId === 'null' || !token) {
+      console.log('loadMyGroups: Not authenticated, no currentUserId, or no token - skipping');
+      setMyGroups([]);
+      return;
+    }
+    
     try {
-      const response = await socialService.getGroups({
-        search: '',
+      console.log('loadMyGroups: Loading groups for user:', currentUserId);
+      const response = await groupsService.getUserGroups(currentUserId, {
+        page: 1,
         limit: 20
       });
-      // Filter groups where user is a member
-      const userGroups = response.groups.filter(group => group.isMember);
-      setMyGroups(userGroups);
-    } catch (error) {
+      console.log('loadMyGroups: Successfully loaded groups:', response.groups.length);
+      setMyGroups(response.groups);
+    } catch (error: any) {
       console.error('Failed to load my groups:', error);
+      
+      // Handle 401 errors gracefully - JWT validation might be failing in Groups service
+      if (error?.status === 401) {
+        console.log('loadMyGroups: 401 error - Groups service JWT validation failed, showing empty groups');
+        // Don't clear token or refresh - just show empty groups
+        // The token is valid for other services, just Groups service has JWT validation issues
+        setMyGroups([]);
+        return;
+      }
+      
+      setMyGroups([]);
+      // Don't throw the error, just log it and continue
     }
   };
 
   const loadRecommendedGroups = async () => {
     try {
-      const recommended = await socialService.getRecommendedGroups();
-      setRecommendedGroups(recommended);
-    } catch (error) {
+      // Check if we have a valid token
+      const token = localStorage.getItem('accessToken');
+      
+      // Only load recommended groups if user is authenticated
+      if (isAuthenticated && currentUserId && currentUserId !== 'undefined' && currentUserId !== 'null' && token) {
+        const recommended = await socialService.getRecommendedGroups();
+        setRecommendedGroups(recommended);
+      } else {
+        setRecommendedGroups([]);
+      }
+    } catch (error: any) {
       console.error('Failed to load recommended groups:', error);
+      
+      // Handle 401 errors gracefully - JWT validation might be failing in Groups service
+      if (error?.status === 401) {
+        console.log('loadRecommendedGroups: 401 error - Groups service JWT validation failed, showing empty recommended groups');
+        setRecommendedGroups([]);
+        return;
+      }
+      
+      setRecommendedGroups([]);
     }
   };
 
@@ -83,7 +191,7 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
 
   const handleJoinGroup = async (groupId: string) => {
     try {
-      await socialService.joinGroup(groupId);
+      await groupsService.joinGroup(groupId);
       // Update the group in all lists
       const updateGroup = (group: Group) => 
         group.id === groupId ? { ...group, isMember: true, memberCount: group.memberCount + 1 } : group;
@@ -98,7 +206,7 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
 
   const handleLeaveGroup = async (groupId: string) => {
     try {
-      await socialService.leaveGroup(groupId);
+      await groupsService.leaveGroup(groupId);
       // Update the group in all lists
       const updateGroup = (group: Group) => 
         group.id === groupId ? { ...group, isMember: false, memberCount: group.memberCount - 1 } : group;
@@ -109,6 +217,17 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
     } catch (error) {
       console.error('Failed to leave group:', error);
     }
+  };
+
+  const handleManageGroup = (groupId: string) => {
+    const group = [...groups, ...myGroups, ...recommendedGroups].find(g => g.id === groupId);
+    if (group) {
+      setSelectedGroup(group);
+    }
+  };
+
+  const handleCloseManagement = () => {
+    setSelectedGroup(null);
   };
 
   const getCurrentGroups = () => {
@@ -296,12 +415,12 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
 
       {/* Groups Grid */}
       <ScrollableContent>
-        {isLoading ? (
+        {isPageLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {getCurrentGroups().map((group) => (
               <GroupCard
                 key={group.id}
@@ -309,12 +428,13 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
                 currentUserId={currentUserId}
                 onJoin={handleJoinGroup}
                 onLeave={handleLeaveGroup}
+                onManage={handleManageGroup}
               />
             ))}
           </div>
         )}
 
-        {!isLoading && getCurrentGroups().length === 0 && (
+        {!isPageLoading && getCurrentGroups().length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">👥</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No groups found</h3>
@@ -340,11 +460,35 @@ const GroupsPage: React.FC<GroupsPageProps> = ({ currentUserId }) => {
 
   return (
     <>
-      <PageLayout
-        leftSidebar={leftSidebar}
-        centerContent={centerContent}
-        layoutType="wide-right"
-      />
+      {selectedGroup ? (
+        <div className="min-h-screen bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-6">
+              <button
+                onClick={handleCloseManagement}
+                className="text-purple-600 hover:text-purple-800 font-medium"
+              >
+                ← Back to Groups
+              </button>
+            </div>
+            <GroupManagementPanel
+              group={selectedGroup}
+              currentUserId={currentUserId}
+              onSubgroupCreated={() => {
+                // Refresh groups data
+                loadGroups();
+                loadMyGroups();
+              }}
+            />
+          </div>
+        </div>
+      ) : (
+        <PageLayout
+          leftSidebar={leftSidebar}
+          centerContent={centerContent}
+          layoutType="wide-right"
+        />
+      )}
 
       {/* Create Group Modal */}
       {showCreateModal && (

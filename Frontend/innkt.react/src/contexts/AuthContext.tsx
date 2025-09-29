@@ -88,18 +88,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('accessToken');
+      console.log('Auth check - token exists:', !!token);
       if (!token) {
+        console.log('No token found, user not authenticated');
+        setUser(null);
         setIsLoading(false);
         return;
       }
 
       // Verify token with backend
+      console.log('Verifying token with backend...');
       const response = await officerApi.get('/api/auth/me');
+      console.log('Auth verification successful:', response.data);
       setUser(response.data);
       setIsLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('accessToken');
+      // Only remove token if it's a 401 error (token expired/invalid)
+      if (error?.status === 401) {
+        console.log('Token invalid, removing from localStorage');
+        localStorage.removeItem('accessToken');
+      }
       setUser(null);
       setIsLoading(false);
     }
