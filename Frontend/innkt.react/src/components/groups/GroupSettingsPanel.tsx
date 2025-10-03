@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
 import { Group } from '../../services/social.service';
+import SubgroupManagementPanel from './SubgroupManagementPanel';
+import TopicManagementPanel from './TopicManagementPanel';
+import RoleManagementPanel from './RoleManagementPanel';
 import { 
   Cog6ToothIcon,
   UsersIcon,
   UserGroupIcon,
   ShieldCheckIcon,
   DocumentTextIcon,
-  AdjustmentsHorizontalIcon
+  AdjustmentsHorizontalIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 
 interface GroupSettingsPanelProps {
-  group: Group;
+  groupId: string;
   currentUserId?: string;
 }
 
-const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ group, currentUserId }) => {
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'roles' | 'subgroups' | 'permissions'>('general');
+const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, currentUserId }) => {
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'roles' | 'subgroups' | 'topics' | 'permissions'>('general');
 
   const settingsTabs = [
     { id: 'general', label: 'General Settings', icon: Cog6ToothIcon },
     { id: 'roles', label: 'Role Management', icon: UsersIcon },
     { id: 'subgroups', label: 'Subgroup Settings', icon: UserGroupIcon },
+    { id: 'topics', label: 'Topic Management', icon: ChatBubbleLeftRightIcon },
     { id: 'permissions', label: 'Permissions', icon: ShieldCheckIcon }
   ];
 
@@ -33,14 +38,14 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ group, currentU
             <label className="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
             <input
               type="text"
-              defaultValue={group.name}
+              placeholder="Enter group name"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
             <textarea
-              defaultValue={group.description}
+              placeholder="Enter group description"
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -48,7 +53,6 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ group, currentU
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Group Type</label>
             <select
-              defaultValue={group.type}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="educational">Educational</option>
@@ -69,7 +73,6 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ group, currentU
             </div>
             <input
               type="checkbox"
-              defaultChecked={group.type === 'public'}
               className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
             />
           </div>
@@ -90,115 +93,24 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ group, currentU
   );
 
   const renderRoleManagement = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">Role Management</h3>
-        <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-          Create New Role
-        </button>
-      </div>
-
-      <div className="space-y-4">
-        {/* Admin Role */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <ShieldCheckIcon className="w-4 h-4 text-purple-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Admin</h4>
-                <p className="text-sm text-gray-500">Full control over group</p>
-              </div>
-            </div>
-            <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-              {group.admins?.length || 0} members
-            </span>
-          </div>
-          <div className="text-sm text-gray-600">
-            <p>• Create and manage topics</p>
-            <p>• Manage all members and roles</p>
-            <p>• Upload files and manage settings</p>
-            <p>• View analytics and reports</p>
-          </div>
-        </div>
-
-        {/* Moderator Role */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <UsersIcon className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Moderator</h4>
-                <p className="text-sm text-gray-500">Content moderation and member management</p>
-              </div>
-            </div>
-            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-              {group.moderators?.length || 0} members
-            </span>
-          </div>
-          <div className="text-sm text-gray-600">
-            <p>• Create and manage topics</p>
-            <p>• Moderate content and comments</p>
-            <p>• Upload files</p>
-            <p>• Cannot manage roles or settings</p>
-          </div>
-        </div>
-
-        {/* Member Role */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <UserGroupIcon className="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Member</h4>
-                <p className="text-sm text-gray-500">Standard group participation</p>
-              </div>
-            </div>
-            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-              {group.memberCount - (group.admins?.length || 0) - (group.moderators?.length || 0)} members
-            </span>
-          </div>
-          <div className="text-sm text-gray-600">
-            <p>• Post and comment in topics</p>
-            <p>• Vote on polls</p>
-            <p>• View group content</p>
-            <p>• Cannot create topics or manage members</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <RoleManagementPanel
+      groupId={groupId}
+      currentUserId={currentUserId || ''}
+    />
   );
 
   const renderSubgroupSettings = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">Subgroup Management</h3>
-        <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-          Create Subgroup
-        </button>
-      </div>
+    <SubgroupManagementPanel
+      groupId={groupId}
+      currentUserId={currentUserId || ''}
+    />
+  );
 
-      <div className="space-y-4">
-        <div className="text-center py-8 text-gray-500">
-          <UserGroupIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p>No subgroups created yet</p>
-          <p className="text-sm mt-2">Create subgroups to organize your group into smaller, focused communities</p>
-        </div>
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-medium text-blue-900 mb-2">Educational Group Structure</h4>
-        <p className="text-sm text-blue-700">
-          For educational groups, you can create subgroups for different grade levels, classes, or subjects.
-          Each subgroup can have its own settings, topics, and member permissions.
-        </p>
-      </div>
-    </div>
+  const renderTopicManagement = () => (
+    <TopicManagementPanel
+      groupId={groupId}
+      currentUserId={currentUserId || ''}
+    />
   );
 
   const renderPermissions = () => (
@@ -317,6 +229,7 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ group, currentU
         {activeSettingsTab === 'general' && renderGeneralSettings()}
         {activeSettingsTab === 'roles' && renderRoleManagement()}
         {activeSettingsTab === 'subgroups' && renderSubgroupSettings()}
+        {activeSettingsTab === 'topics' && renderTopicManagement()}
         {activeSettingsTab === 'permissions' && renderPermissions()}
       </div>
 

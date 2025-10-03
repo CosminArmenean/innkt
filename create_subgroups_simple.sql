@@ -20,3 +20,9 @@ CREATE INDEX IF NOT EXISTS "IX_Subgroups_ParentSubgroupId" ON "Subgroups" ("Pare
 CREATE INDEX IF NOT EXISTS "IX_Subgroups_Level" ON "Subgroups" ("Level");
 CREATE INDEX IF NOT EXISTS "IX_Subgroups_IsActive" ON "Subgroups" ("IsActive");
 
+
+
+
+
+
+

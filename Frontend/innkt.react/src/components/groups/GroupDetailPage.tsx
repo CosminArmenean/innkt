@@ -26,7 +26,7 @@ const GroupDetailPage: React.FC = () => {
   console.log('GroupDetailPage rendered for group ID:', id);
   const [group, setGroup] = useState<Group | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [activeTab, setActiveTab] = useState<'posts' | 'members' | 'rules' | 'settings'>('posts');
+  const [activeTab, setActiveTab] = useState<'posts' | 'members' | 'rules' | 'subgroups' | 'settings'>('posts');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -260,7 +260,8 @@ const GroupDetailPage: React.FC = () => {
             {[
               { id: 'posts', label: 'Posts', count: posts.length },
               { id: 'members', label: 'Members', count: group.memberCount || 0 },
-              { id: 'rules', label: 'Rules', count: group.rules?.length || 0 }
+              { id: 'rules', label: 'Rules', count: group.rules?.length || 0 },
+              { id: 'subgroups', label: 'Subgroups', count: 0 }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -370,9 +371,29 @@ const GroupDetailPage: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'subgroups' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">Subgroups</h3>
+                {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Manage Subgroups
+                  </button>
+                )}
+              </div>
+              <div className="text-center py-8 text-gray-500">
+                <p>No subgroups created yet.</p>
+                <p className="text-sm mt-2">Admins can create subgroups to organize discussions by topics or categories.</p>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'settings' && (
             <GroupSettingsPanel
-              group={group}
+              groupId={id || ''}
               currentUserId={currentUserId}
             />
           )}

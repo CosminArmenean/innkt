@@ -458,4 +458,183 @@ public class GroupsController : ControllerBase
             return StatusCode(500, "An error occurred while toggling the group rule");
         }
     }
+
+    /// <summary>
+    /// Get posts for a specific group
+    /// </summary>
+    [HttpGet("{groupId}/posts")]
+    public async Task<ActionResult<object>> GetGroupPosts(Guid groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Guid? topicId = null)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var posts = await _groupService.GetGroupPostsAsync(groupId, page, pageSize, userId);
+            return Ok(posts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting posts for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while getting group posts");
+        }
+    }
+
+    /// <summary>
+    /// Get polls for a specific group
+    /// </summary>
+    [HttpGet("{groupId}/polls")]
+    public async Task<ActionResult<object>> GetGroupPolls(Guid groupId, [FromQuery] Guid? topicId = null, [FromQuery] bool? isActive = null)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var polls = await _groupService.GetGroupPollsAsync(groupId, userId, topicId, isActive);
+            return Ok(polls);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting polls for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while getting group polls");
+        }
+    }
+
+    /// <summary>
+    /// Get topics for a specific group
+    /// </summary>
+    [HttpGet("{groupId}/topics")]
+    public async Task<ActionResult<object>> GetGroupTopics(Guid groupId, [FromQuery] Guid? subgroupId = null)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var topics = await _groupService.GetGroupTopicsAsync(groupId, userId, subgroupId);
+            return Ok(topics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting topics for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while getting group topics");
+        }
+    }
+
+    /// <summary>
+    /// Create a new topic in a group
+    /// </summary>
+    [HttpPost("{groupId}/topics")]
+    [RequirePermission("create_topic")]
+    public async Task<ActionResult<object>> CreateTopic(Guid groupId, [FromBody] CreateTopicRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var topic = await _groupService.CreateTopicAsync(userId, request);
+            return CreatedAtAction(nameof(GetGroupTopics), new { groupId }, topic);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating topic for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while creating the topic");
+        }
+    }
+
+    /// <summary>
+    /// Get subgroups for a specific group
+    /// </summary>
+    [HttpGet("{groupId}/subgroups")]
+    public async Task<ActionResult<object>> GetGroupSubgroups(Guid groupId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var subgroups = await _groupService.GetGroupSubgroupsAsync(groupId, userId);
+            return Ok(subgroups);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting subgroups for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while getting group subgroups");
+        }
+    }
+
+    /// <summary>
+    /// Create a new subgroup
+    /// </summary>
+    [HttpPost("{groupId}/subgroups")]
+    [RequirePermission("manage_subgroups")]
+    public async Task<ActionResult<object>> CreateSubgroup(Guid groupId, [FromBody] CreateSubgroupRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            request.GroupId = groupId;
+            var subgroup = await _groupService.CreateSubgroupAsync(userId, request);
+            return CreatedAtAction(nameof(GetGroupSubgroups), new { groupId }, subgroup);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating subgroup for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while creating the subgroup");
+        }
+    }
+
+    /// <summary>
+    /// Get roles for a specific group
+    /// </summary>
+    [HttpGet("{groupId}/roles")]
+    public async Task<ActionResult<object>> GetGroupRoles(Guid groupId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var roles = await _groupService.GetGroupRolesAsync(groupId, userId);
+            return Ok(roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting roles for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while getting group roles");
+        }
+    }
+
+    /// <summary>
+    /// Create a new role for a group
+    /// </summary>
+    [HttpPost("{groupId}/roles")]
+    [RequirePermission("manage_roles")]
+    public async Task<ActionResult<object>> CreateGroupRole(Guid groupId, [FromBody] CreateGroupRoleRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            request.GroupId = groupId;
+            var role = await _groupService.CreateGroupRoleAsync(userId, request);
+            return CreatedAtAction(nameof(GetGroupRoles), new { groupId }, role);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating role for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while creating the role");
+        }
+    }
+
+    /// <summary>
+    /// Assign role to a group member
+    /// </summary>
+    [HttpPut("{groupId}/members/{memberId}/role")]
+    [RequirePermission("manage_members")]
+    public async Task<ActionResult> AssignRoleToMember(Guid groupId, Guid memberId, [FromBody] AssignRoleRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            request.GroupId = groupId;
+            request.UserId = memberId; // Use UserId instead of MemberId
+            await _groupService.AssignRoleToMemberAsync(request.RoleId, userId, request);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning role to member {MemberId} in group {GroupId}", memberId, groupId);
+            return StatusCode(500, "An error occurred while assigning the role");
+        }
+    }
 }

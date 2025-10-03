@@ -1005,8 +1005,8 @@ public class DocumentationResponse
 // Enhanced Group Response with new fields
 public class EnhancedGroupResponse : GroupResponse
 {
-    public string GroupType { get; set; } = string.Empty;
-    public string? Category { get; set; }
+    public new string GroupType { get; set; } = string.Empty;
+    public new string? Category { get; set; }
     public string? InstitutionName { get; set; }
     public string? GradeLevel { get; set; }
     public bool IsKidFriendly { get; set; }

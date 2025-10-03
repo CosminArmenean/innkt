@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Group, GroupMember } from '../../services/social.service';
-import { groupsService, SubgroupResponse } from '../../services/groups.service';
+import { groupsService, SubgroupResponse, GroupMemberResponse } from '../../services/groups.service';
 import CreateSubgroupModal from './CreateSubgroupModal';
 import GroupRulesManagement from './GroupRulesManagement';
 import { PlusIcon, UserGroupIcon, AcademicCapIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
@@ -17,7 +17,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   onSubgroupCreated 
 }) => {
   const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);
-  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [members, setMembers] = useState<GroupMemberResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateSubgroup, setShowCreateSubgroup] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'subgroups' | 'members' | 'rules' | 'settings'>('overview');
@@ -39,7 +39,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   const loadMembers = async () => {
     try {
       const membersData = await groupsService.getGroupMembers(group.id);
-      setMembers(membersData.members);
+      setMembers(membersData);
     } catch (error) {
       console.error('Failed to load members:', error);
     } finally {
@@ -56,8 +56,8 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   };
 
   const isAdmin = members.find(member => 
-    member.profile.id === currentUserId && 
-    member.role === 'admin'
+    member.userId === currentUserId && 
+    member.roleName === 'admin'
   );
 
   const renderOverview = () => (
@@ -151,14 +151,14 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h4 className="text-lg font-semibold text-gray-900">{subgroup.name}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{subgroup.gradeLevel}</p>
+                  <p className="text-sm text-gray-500 mt-1">Level {subgroup.level}</p>
                   <p className="text-sm text-gray-600 mt-2 line-clamp-2">{subgroup.description}</p>
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center text-sm text-gray-500">
                   <UserGroupIcon className="w-4 h-4 mr-1" />
-                  {subgroup.memberCount} members
+                  {subgroup.membersCount} members
                 </div>
                 <button className="text-purple-600 hover:text-purple-800 text-sm font-medium">
                   View Details
@@ -183,35 +183,28 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
               <div key={member.id} className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <img
-                      className="h-10 w-10 rounded-full"
-                      src={member.profile.avatar || member.profile.profilePictureUrl || '/default-avatar.png'}
-                      alt={member.profile.displayName}
-                    />
+                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                      <span className="text-purple-600 font-medium text-sm">
+                        {member.userName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                   </div>
                   <div className="ml-4">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-gray-900">
-                        {member.profile.displayName}
+                        {member.userName}
                       </p>
-                      {member.profile.isVerified && (
-                        <span className="ml-2 text-blue-500">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </span>
-                      )}
                     </div>
-                    <p className="text-sm text-gray-500">@{member.profile.username}</p>
+                    <p className="text-sm text-gray-500">@{member.userName}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    member.role === 'admin' ? 'bg-yellow-100 text-yellow-800' :
-                    member.role === 'moderator' ? 'bg-blue-100 text-blue-800' :
+                    member.roleName === 'admin' ? 'bg-yellow-100 text-yellow-800' :
+                    member.roleName === 'moderator' ? 'bg-blue-100 text-blue-800' :
                     'bg-green-100 text-green-800'
                   }`}>
-                    {member.role}
+                    {member.roleName || 'member'}
                   </span>
                 </div>
               </div>

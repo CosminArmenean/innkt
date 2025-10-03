@@ -105,7 +105,17 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
         }
       };
       
-      const newSubgroup = await groupsService.createSubgroup(groupId, subgroupData);
+      const newSubgroup = await groupsService.createSubgroup({
+        groupId,
+        name: subgroupData.name,
+        description: subgroupData.description,
+        settings: {
+          allowMemberPosts: subgroupData.settings.allowMemberPosts,
+          allowKidPosts: subgroupData.settings.allowKidPosts,
+          allowParentPosts: subgroupData.settings.allowParentPosts,
+          requireApproval: subgroupData.settings.requireApprovalForPosts
+        }
+      });
       onSubgroupCreated(newSubgroup);
     } catch (error) {
       console.error('Failed to create subgroup:', error);

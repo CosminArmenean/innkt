@@ -1,6 +1,121 @@
 import { BaseApiService, groupsApi } from './api.service';
 import { Group, GroupMember, GroupRule, Post } from './social.service';
 
+// Additional interfaces for new features
+export interface SubgroupResponse {
+  id: string;
+  groupId: string;
+  name: string;
+  description?: string;
+  parentSubgroupId?: string;
+  level: number;
+  membersCount: number;
+  isActive: boolean;
+  settings?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSubgroupRequest {
+  groupId: string;
+  name: string;
+  description?: string;
+  settings?: {
+    allowMemberPosts: boolean;
+    allowKidPosts: boolean;
+    allowParentPosts: boolean;
+    requireApproval: boolean;
+  };
+}
+
+export interface TopicResponse {
+  id: string;
+  groupId: string;
+  subgroupId?: string;
+  name: string;
+  description?: string;
+  status: 'active' | 'paused' | 'archived';
+  isAnnouncementOnly: boolean;
+  allowMemberPosts: boolean;
+  allowKidPosts: boolean;
+  allowParentPosts: boolean;
+  allowRolePosts: boolean;
+  postsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTopicRequest {
+  groupId: string;
+  subgroupId?: string;
+  name: string;
+  description?: string;
+  status?: 'active' | 'paused' | 'archived';
+  isAnnouncementOnly?: boolean;
+  allowMemberPosts?: boolean;
+  allowKidPosts?: boolean;
+  allowParentPosts?: boolean;
+  allowRolePosts?: boolean;
+}
+
+export interface GroupRoleResponse {
+  id: string;
+  groupId: string;
+  name: string;
+  alias?: string;
+  description?: string;
+  canCreateTopics: boolean;
+  canManageMembers: boolean;
+  canManageRoles: boolean;
+  canManageSubgroups: boolean;
+  canPostAnnouncements: boolean;
+  canModerateContent: boolean;
+  canAccessAllSubgroups: boolean;
+  canUseGrokAI: boolean;
+  canUsePerpetualPhotos: boolean;
+  canUsePaperScanning: boolean;
+  canManageFunds: boolean;
+  canSeeRealUsername: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRoleRequest {
+  groupId: string;
+  name: string;
+  alias?: string;
+  description?: string;
+  canCreateTopics?: boolean;
+  canManageMembers?: boolean;
+  canManageRoles?: boolean;
+  canManageSubgroups?: boolean;
+  canPostAnnouncements?: boolean;
+  canModerateContent?: boolean;
+  canAccessAllSubgroups?: boolean;
+  canUseGrokAI?: boolean;
+  canUsePerpetualPhotos?: boolean;
+  canUsePaperScanning?: boolean;
+  canManageFunds?: boolean;
+  canSeeRealUsername?: boolean;
+}
+
+export interface GroupMemberResponse {
+  id: string;
+  groupId: string;
+  userId: string;
+  userName: string;
+  roleId?: string;
+  roleName?: string;
+  joinedAt: string;
+  status: 'pending' | 'active' | 'suspended' | 'left';
+}
+
+export interface AssignRoleRequest {
+  groupId: string;
+  memberId: string;
+  roleId: string;
+}
+
 // Enhanced Group Interfaces matching our new Groups API
 export interface CreateEducationalGroupRequest {
   name: string;
@@ -66,17 +181,6 @@ export interface EnhancedGroupResponse extends Group {
   documentation: DocumentationResponse[];
 }
 
-export interface SubgroupResponse {
-  id: string;
-  name: string;
-  description: string;
-  parentGroupId: string;
-  gradeLevel: string;
-  memberCount: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface GroupRuleResponse {
   id: string;
@@ -92,21 +196,6 @@ export interface GroupRuleResponse {
   updatedAt: string;
 }
 
-export interface TopicResponse {
-  id: string;
-  name: string;
-  description: string;
-  groupId: string;
-  subgroupId?: string;
-  status: 'active' | 'paused' | 'archived';
-  isAnnouncementOnly: boolean;
-  allowMemberPosts: boolean;
-  allowKidPosts: boolean;
-  allowParentPosts: boolean;
-  postCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface PollResponse {
   id: string;
@@ -326,50 +415,7 @@ export class GroupsService extends BaseApiService {
     }
   }
 
-  async getGroupMembers(groupId: string, page?: number, limit?: number): Promise<{ members: GroupMember[]; totalCount: number; hasMore: boolean }> {
-    try {
-      const response = await this.get<{ members: GroupMember[]; totalCount: number; hasMore: boolean }>(`/api/groups/${groupId}/members`, {
-        page: page || 1,
-        pageSize: limit || 50
-      });
-      return response;
-    } catch (error) {
-      console.error('Failed to get group members:', error);
-      throw error;
-    }
-  }
 
-  // Subgroup Management
-  async createSubgroup(groupId: string, subgroupData: {
-    name: string;
-    description: string;
-    gradeLevel: string;
-    settings: {
-      isKidFriendly: boolean;
-      allowParentParticipation: boolean;
-      requireParentApproval: boolean;
-      allowMemberPosts: boolean;
-      allowKidPosts: boolean;
-      allowParentPosts: boolean;
-      requireApprovalForPosts: boolean;
-      allowFileUploads: boolean;
-      allowPolls: boolean;
-      moderationLevel: 'none' | 'basic' | 'strict';
-      contentFiltering: boolean;
-      profanityFilter: boolean;
-      imageModeration: boolean;
-      autoApproveParents: boolean;
-      autoApproveKids: boolean;
-    };
-  }): Promise<SubgroupResponse> {
-    try {
-      const response = await this.post<SubgroupResponse>(`/api/groups/${groupId}/subgroups`, subgroupData);
-      return response;
-    } catch (error) {
-      console.error('Failed to create subgroup:', error);
-      throw error;
-    }
-  }
 
   async getGroupSubgroups(groupId: string): Promise<SubgroupResponse[]> {
     try {
@@ -381,36 +427,7 @@ export class GroupsService extends BaseApiService {
     }
   }
 
-  // Topic Management
-  async createTopic(groupId: string, topicData: {
-    name: string;
-    description: string;
-    subgroupId?: string;
-    isAnnouncementOnly?: boolean;
-    allowMemberPosts?: boolean;
-    allowKidPosts?: boolean;
-    allowParentPosts?: boolean;
-  }): Promise<TopicResponse> {
-    try {
-      const response = await this.post<TopicResponse>(`/api/groups/${groupId}/topics`, topicData);
-      return response;
-    } catch (error) {
-      console.error('Failed to create topic:', error);
-      throw error;
-    }
-  }
 
-  async getGroupTopics(groupId: string, subgroupId?: string): Promise<TopicResponse[]> {
-    try {
-      const response = await this.get<TopicResponse[]>(`/api/groups/${groupId}/topics`, {
-        subgroupId
-      });
-      return response;
-    } catch (error) {
-      console.error('Failed to get group topics:', error);
-      throw error;
-    }
-  }
 
   // Poll Management
   async createPoll(pollData: {
@@ -616,6 +633,137 @@ export class GroupsService extends BaseApiService {
       return response;
     } catch (error) {
       console.error('Failed to toggle group rule:', error);
+      throw error;
+    }
+  }
+
+
+  async createSubgroup(request: CreateSubgroupRequest): Promise<SubgroupResponse> {
+    try {
+      const response = await this.post<SubgroupResponse>(`/api/groups/${request.groupId}/subgroups`, request);
+      return response;
+    } catch (error) {
+      console.error('Failed to create subgroup:', error);
+      throw error;
+    }
+  }
+
+  async updateSubgroup(subgroupId: string, updates: Partial<SubgroupResponse>): Promise<SubgroupResponse> {
+    try {
+      const response = await this.put<SubgroupResponse>(`/api/subgroups/${subgroupId}`, updates);
+      return response;
+    } catch (error) {
+      console.error('Failed to update subgroup:', error);
+      throw error;
+    }
+  }
+
+  async deleteSubgroup(subgroupId: string): Promise<void> {
+    try {
+      await this.delete(`/api/subgroups/${subgroupId}`);
+    } catch (error) {
+      console.error('Failed to delete subgroup:', error);
+      throw error;
+    }
+  }
+
+  // Topic Management
+  async getGroupTopics(groupId: string, options?: { subgroupId?: string }): Promise<TopicResponse[]> {
+    try {
+      const params = options?.subgroupId ? { subgroupId: options.subgroupId } : {};
+      const response = await this.get<TopicResponse[]>(`/api/groups/${groupId}/topics`, params);
+      return response;
+    } catch (error) {
+      console.error('Failed to get group topics:', error);
+      throw error;
+    }
+  }
+
+  async createTopic(request: CreateTopicRequest): Promise<TopicResponse> {
+    try {
+      const response = await this.post<TopicResponse>(`/api/groups/${request.groupId}/topics`, request);
+      return response;
+    } catch (error) {
+      console.error('Failed to create topic:', error);
+      throw error;
+    }
+  }
+
+  async updateTopic(topicId: string, updates: Partial<TopicResponse>): Promise<TopicResponse> {
+    try {
+      const response = await this.put<TopicResponse>(`/api/topics/${topicId}`, updates);
+      return response;
+    } catch (error) {
+      console.error('Failed to update topic:', error);
+      throw error;
+    }
+  }
+
+  async deleteTopic(topicId: string): Promise<void> {
+    try {
+      await this.delete(`/api/topics/${topicId}`);
+    } catch (error) {
+      console.error('Failed to delete topic:', error);
+      throw error;
+    }
+  }
+
+  // Role Management
+  async getGroupRoles(groupId: string): Promise<GroupRoleResponse[]> {
+    try {
+      const response = await this.get<GroupRoleResponse[]>(`/api/groups/${groupId}/roles`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get group roles:', error);
+      throw error;
+    }
+  }
+
+  async createGroupRole(request: CreateRoleRequest): Promise<GroupRoleResponse> {
+    try {
+      const response = await this.post<GroupRoleResponse>(`/api/groups/${request.groupId}/roles`, request);
+      return response;
+    } catch (error) {
+      console.error('Failed to create group role:', error);
+      throw error;
+    }
+  }
+
+  async updateGroupRole(roleId: string, updates: Partial<GroupRoleResponse>): Promise<GroupRoleResponse> {
+    try {
+      const response = await this.put<GroupRoleResponse>(`/api/roles/${roleId}`, updates);
+      return response;
+    } catch (error) {
+      console.error('Failed to update group role:', error);
+      throw error;
+    }
+  }
+
+  async deleteGroupRole(roleId: string): Promise<void> {
+    try {
+      await this.delete(`/api/roles/${roleId}`);
+    } catch (error) {
+      console.error('Failed to delete group role:', error);
+      throw error;
+    }
+  }
+
+  async getGroupMembers(groupId: string): Promise<GroupMemberResponse[]> {
+    try {
+      const response = await this.get<{ members: GroupMemberResponse[] } | GroupMemberResponse[]>(`/api/groups/${groupId}/members`);
+      // Handle both array response and object with members property
+      return Array.isArray(response) ? response : response.members || [];
+    } catch (error) {
+      console.error('Failed to get group members:', error);
+      throw error;
+    }
+  }
+
+  async assignRoleToMember(request: AssignRoleRequest): Promise<void> {
+    try {
+      await this.put(`/api/groups/${request.groupId}/members/${request.memberId}/role`, { roleId: request.roleId });
+    } catch (error) {
+      console.error('Failed to assign role to member:', error);
       throw error;
     }
   }

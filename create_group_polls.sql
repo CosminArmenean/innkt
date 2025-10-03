@@ -21,3 +21,9 @@ CREATE INDEX IF NOT EXISTS "IX_GroupPolls_IsActive" ON "GroupPolls" ("IsActive")
 CREATE INDEX IF NOT EXISTS "IX_GroupPolls_TopicId" ON "GroupPolls" ("TopicId");
 CREATE INDEX IF NOT EXISTS "IX_GroupPolls_ExpiresAt" ON "GroupPolls" ("ExpiresAt");
 
+
+
+
+
+
+
