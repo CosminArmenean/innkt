@@ -247,13 +247,6 @@ const TopicManagementPanel: React.FC<TopicManagementPanelProps> = ({
             {subgroupId ? 'Manage topics within this subgroup' : 'Organize discussions with topics'}
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-        >
-          <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
-          Create Topic
-        </button>
       </div>
 
       {/* Create/Edit Form */}

@@ -32,7 +32,7 @@ public interface IGroupService
     
     // Group posts
     Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request);
-    Task<GroupPostListResponse> GetGroupPostsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null);
+    Task<GroupPostListResponse> GetGroupPostsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null, Guid? topicId = null);
     Task<GroupPostResponse?> GetGroupPostByIdAsync(Guid groupPostId, Guid? currentUserId = null);
     Task<bool> PinGroupPostAsync(Guid groupPostId, Guid userId);
     Task<bool> UnpinGroupPostAsync(Guid groupPostId, Guid userId);
@@ -74,7 +74,7 @@ public interface IGroupService
     Task<TopicResponse> CreateTopicAsync(Guid userId, CreateTopicRequest request);
     Task<TopicResponse?> GetTopicByIdAsync(Guid topicId, Guid? currentUserId = null);
     Task<List<TopicResponse>> GetGroupTopicsAsync(Guid groupId, Guid? currentUserId = null, Guid? subgroupId = null, string? status = null);
-    Task<TopicResponse> UpdateTopicStatusAsync(Guid topicId, Guid userId, UpdateTopicStatusRequest request);
+    Task<TopicResponse> UpdateTopicStatusAsync(Guid topicId, Guid userId, string status);
     Task<bool> DeleteTopicAsync(Guid topicId, Guid userId);
     Task<TopicPostListResponse> GetTopicPostsAsync(Guid topicId, Guid? currentUserId = null, int page = 1, int pageSize = 20);
     Task<TopicPostResponse> CreateTopicPostAsync(Guid topicId, Guid userId, CreateTopicPostRequest request);

@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { socialService, Post, PostLocation } from '../../services/social.service';
-import { groupsService, PollResponse } from '../../services/groups.service';
-import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon } from '@heroicons/react/24/outline';
+import { groupsService, PollResponse, TopicResponse } from '../../services/groups.service';
+import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon, PlusIcon } from '@heroicons/react/24/outline';
 import GroupPoll from './GroupPoll';
 
 interface GroupPostCreationProps {
@@ -10,6 +10,8 @@ interface GroupPostCreationProps {
   onPostCreated?: (post: Post) => void;
   onPollCreated?: (poll: PollResponse) => void;
   className?: string;
+  selectedTopicId?: string;
+  currentUserId?: string;
 }
 
 const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
@@ -17,7 +19,9 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
   groupName,
   onPostCreated,
   onPollCreated,
-  className = ''
+  className = '',
+  selectedTopicId,
+  currentUserId
 }) => {
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -25,6 +29,8 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [location, setLocation] = useState<PostLocation | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(selectedTopicId || null);
+  const [topics, setTopics] = useState<TopicResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{[key: number]: number}>({});
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -33,6 +39,19 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    loadTopics();
+  }, [groupId]);
+
+  const loadTopics = async () => {
+    try {
+      const topics = await groupsService.getGroupTopics(groupId);
+      setTopics(topics);
+    } catch (error) {
+      console.error('Failed to load group topics:', error);
+    }
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -84,8 +103,18 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(prev => prev.filter(tag => tag !== tagToRemove));
+  const removeTag = (index: number) => {
+    setTags(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTagInputKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      if (!tags.includes(tagInput.trim())) {
+        setTags(prev => [...prev, tagInput.trim()]);
+      }
+      setTagInput('');
+    }
   };
 
   const handleSubmit = async () => {
@@ -98,16 +127,30 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
     
     try {
       // Create the post
-      const postData: Partial<Post> = {
+      const postData: any = {
         content: content.trim(),
         postType: postType,
         visibility: 'group',
         tags,
         groupId: groupId,
         location: location || undefined,
+        topicId: selectedTopic || undefined,
       };
 
-      const newPost = await socialService.createPost(postData);
+      let newPost;
+      if (selectedTopic) {
+        // Create post in topic using Groups service
+        console.log('Creating post in topic:', selectedTopic, 'with data:', postData);
+        newPost = await groupsService.createTopicPost(groupId, selectedTopic, {
+          content: content.trim(),
+          hashtags: tags,
+          location: location?.name,
+          mediaUrls: [], // Will be updated after media upload
+        });
+      } else {
+        // Create regular group post using Social service
+        newPost = await socialService.createPost(postData);
+      }
 
       // Upload media if any
       if (selectedFiles.length > 0) {
@@ -157,18 +200,69 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
     }
   };
 
+  const currentTopic = topics.find(t => t.id === selectedTopic);
+
   return (
     <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-          <span className="text-purple-600 font-semibold">👥</span>
+      {/* Compact Header / Unexpanded State */}
+      {!isExpanded && (
+        <div 
+          className="flex items-center space-x-3 cursor-pointer"
+          onClick={() => setIsExpanded(true)}
+        >
+          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+            <PlusIcon className="w-6 h-6 text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-gray-900">
+              {currentTopic ? `Create a post in ${currentTopic.name}` : `Create a post in ${groupName}`}
+            </p>
+            <p className="text-sm text-gray-500">Share what's on your mind with your community...</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+              title="Add media"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(true);
+                fileInputRef.current?.click();
+              }}
+            >
+              <PhotoIcon className="w-5 h-5" />
+            </button>
+            <button
+              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+              title="Create poll"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(true);
+                setShowPollCreation(true);
+              }}
+            >
+              <ChartBarIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-        <div>
-          <h3 className="font-medium text-gray-900">Post to {groupName}</h3>
-          <p className="text-sm text-gray-500">Share something with the group</p>
-        </div>
-      </div>
+      )}
+
+      {/* Expanded State */}
+      {isExpanded && (
+        <>
+          {/* Header */}
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+              <span className="text-purple-600 font-semibold">👥</span>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">
+                {currentTopic ? `Post to ${currentTopic.name}` : `Post to ${groupName}`}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {currentTopic ? `Share your thoughts in this topic` : `Share something with the group`}
+              </p>
+            </div>
+          </div>
 
       {/* Content Input */}
       <div className="mb-4">
@@ -240,7 +334,7 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
               >
                 #{tag}
                 <button
-                  onClick={() => handleRemoveTag(tag)}
+                  onClick={() => removeTag(index)}
                   className="ml-2 text-purple-600 hover:text-purple-800"
                 >
                   ×
@@ -382,6 +476,63 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
             }}
           />
         </div>
+      )}
+
+      {/* Advanced Options */}
+      {showAdvancedOptions && (
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4">
+            {/* Topic Selection */}
+            {topics.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
+                <select
+                  value={selectedTopic || ''}
+                  onChange={(e) => setSelectedTopic(e.target.value || null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">No specific topic</option>
+                  {topics.map((topic) => (
+                    <option key={topic.id} value={topic.id}>
+                      {topic.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Tag Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-sm rounded-full"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => removeTag(index)}
+                      className="ml-1 text-purple-600 hover:text-purple-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={handleTagInputKeyPress}
+                placeholder="Add tags..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+        </>
       )}
     </div>
   );

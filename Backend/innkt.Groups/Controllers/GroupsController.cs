@@ -468,7 +468,7 @@ public class GroupsController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            var posts = await _groupService.GetGroupPostsAsync(groupId, page, pageSize, userId);
+            var posts = await _groupService.GetGroupPostsAsync(groupId, page, pageSize, userId, topicId);
             return Ok(posts);
         }
         catch (Exception ex)
@@ -635,6 +635,48 @@ public class GroupsController : ControllerBase
         {
             _logger.LogError(ex, "Error assigning role to member {MemberId} in group {GroupId}", memberId, groupId);
             return StatusCode(500, "An error occurred while assigning the role");
+        }
+    }
+
+    /// <summary>
+    /// Create a post in a specific topic
+    /// </summary>
+    [HttpPost("{groupId}/topics/{topicId}/posts")]
+    public async Task<ActionResult<object>> CreateTopicPost(Guid groupId, Guid topicId, [FromBody] CreateTopicPostRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var post = await _groupService.CreateTopicPostAsync(topicId, userId, request);
+            return CreatedAtAction(nameof(GetGroupPosts), new { groupId }, post);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating post in topic {TopicId} for group {GroupId}", topicId, groupId);
+            return StatusCode(500, "An error occurred while creating the post");
+        }
+    }
+
+    /// <summary>
+    /// Update topic status (active/paused)
+    /// </summary>
+    [HttpPut("{groupId}/topics/{topicId}/status")]
+    public async Task<ActionResult<TopicResponse>> UpdateTopicStatus(Guid groupId, Guid topicId, [FromBody] UpdateTopicStatusRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var updatedTopic = await _groupService.UpdateTopicStatusAsync(topicId, userId, request.Status);
+            return Ok(updatedTopic);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating status for topic {TopicId} in group {GroupId}", topicId, groupId);
+            return StatusCode(500, "An error occurred while updating topic status");
         }
     }
 }

@@ -25,8 +25,8 @@ const PageLayout: React.FC<PageLayoutProps> = ({
       };
     } else if (layoutType === 'wide-right') {
       return {
-        left: leftSidebar ? 'lg:col-span-4' : '',
-        center: leftSidebar ? 'lg:col-span-8' : 'lg:col-span-12',
+        left: leftSidebar ? 'lg:col-span-3' : '',
+        center: leftSidebar ? 'lg:col-span-9' : 'lg:col-span-12',
         right: rightSidebar ? 'lg:col-span-0' : ''
       };
     } else {

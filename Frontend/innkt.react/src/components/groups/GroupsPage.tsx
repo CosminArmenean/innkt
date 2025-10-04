@@ -253,28 +253,28 @@ const GroupsPage: React.FC = () => {
   };
 
   const leftSidebar = (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Quick Actions */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Quick Actions</h3>
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Quick Actions</h3>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="w-full flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          className="w-full flex items-center space-x-2 bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-colors text-sm"
         >
-          <PlusIcon className="h-5 w-5" />
+          <PlusIcon className="h-4 w-4" />
           <span>Create Group</span>
         </button>
       </div>
 
       {/* Categories */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
-        <div className="space-y-2">
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Categories</h3>
+        <div className="space-y-1">
           {['Technology', 'Business', 'Education', 'Entertainment', 'Lifestyle', 'Sports', 'Health', 'Travel'].map((category) => (
             <button
               key={category}
               onClick={() => setFilters(prev => ({ ...prev, category: category.toLowerCase() }))}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
                 filters.category === category.toLowerCase()
                   ? 'bg-purple-100 text-purple-700'
                   : 'text-gray-700 hover:bg-gray-100'

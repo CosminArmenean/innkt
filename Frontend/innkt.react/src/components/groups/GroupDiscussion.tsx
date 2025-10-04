@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, Post, Group } from '../../services/social.service';
-import { groupsService, PollResponse } from '../../services/groups.service';
+import { groupsService, PollResponse, TopicResponse } from '../../services/groups.service';
 import PostCard from '../social/PostCard';
 import GroupPostCreation from './GroupPostCreation';
 import GroupAnnouncement from './GroupAnnouncement';
@@ -26,21 +26,25 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [polls, setPolls] = useState<PollResponse[]>([]);
+  const [topics, setTopics] = useState<TopicResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'recent' | 'popular' | 'discussions'>('all');
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
     loadPosts();
     loadPolls();
-  }, [group.id, activeFilter]);
+    loadTopics();
+  }, [group.id, activeFilter, selectedTopic]);
 
   const loadPosts = async () => {
     try {
       setIsLoading(true);
       const response = await groupsService.getGroupPosts(group.id, {
-        limit: 20
+        limit: 20,
+        topicId: selectedTopic || undefined
       });
       setPosts(response.posts);
     } catch (error) {
@@ -52,10 +56,19 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
 
   const loadPolls = async () => {
     try {
-      const polls = await groupsService.getGroupPolls(group.id);
+      const polls = await groupsService.getGroupPolls(group.id, selectedTopic || undefined);
       setPolls(polls);
     } catch (error) {
       console.error('Failed to load group polls:', error);
+    }
+  };
+
+  const loadTopics = async () => {
+    try {
+      const topics = await groupsService.getGroupTopics(group.id);
+      setTopics(topics);
+    } catch (error) {
+      console.error('Failed to load group topics:', error);
     }
   };
 
@@ -198,6 +211,38 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
                 placeholder="Search posts and discussions..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
+            </div>
+          </div>
+        )}
+
+        {/* Topic Filter */}
+        {topics.length > 0 && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Topic</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedTopic(null)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  selectedTopic === null
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All Topics
+              </button>
+              {topics.map((topic) => (
+                <button
+                  key={topic.id}
+                  onClick={() => setSelectedTopic(topic.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    selectedTopic === topic.id
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {topic.name}
+                </button>
+              ))}
             </div>
           </div>
         )}

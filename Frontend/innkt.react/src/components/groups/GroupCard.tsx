@@ -101,11 +101,11 @@ const GroupCard: React.FC<GroupCardProps> = ({
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${className}`}>
-      <div className="flex h-32 md:h-28">
+    <div className={`bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}>
+      <div className="flex h-28">
         {/* Left Section - Avatar and Basic Info */}
-        <div className="flex-shrink-0 w-20 md:w-24 p-3 md:p-4 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 overflow-hidden flex items-center justify-center shadow-lg">
+        <div className="flex-shrink-0 w-16 p-3 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 overflow-hidden flex items-center justify-center shadow-lg">
             {group.avatar ? (
               <img 
                 src={group.avatar} 
@@ -113,21 +113,19 @@ const GroupCard: React.FC<GroupCardProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <UserGroupIcon className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              <UserGroupIcon className="w-6 h-6 text-white" />
             )}
           </div>
         </div>
 
         {/* Center Section - Main Content */}
-        <div className="flex-1 p-3 md:p-4 min-w-0">
+        <div className="flex-1 p-3 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div className="min-w-0 flex-1">
               <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
                 {group.name}
               </h3>
               <div className="flex items-center space-x-2 mb-2">
-                <span className="text-sm text-gray-600 capitalize">{group.category}</span>
-                <span className="text-gray-300">•</span>
                 <div className="flex items-center space-x-1">
                   {getVisibilityIcon(group.type)}
                   <span className="text-xs text-gray-500 capitalize">{group.type}</span>
@@ -146,68 +144,66 @@ const GroupCard: React.FC<GroupCardProps> = ({
 
           {/* Tags */}
           {group.tags && group.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {group.tags.slice(0, 3).map((tag, index) => (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {group.tags.slice(0, 2).map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium"
+                  className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded font-medium"
                 >
-                  <TagIcon className="w-3 h-3 mr-1" />
+                  <TagIcon className="w-2 h-2 mr-1" />
                   {tag}
                 </span>
               ))}
-              {group.tags && group.tags.length > 3 && (
-                <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium">
-                  +{group.tags.length - 3}
+              {group.tags && group.tags.length > 2 && (
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded font-medium">
+                  +{group.tags.length - 2}
                 </span>
               )}
             </div>
           )}
 
           {/* Stats */}
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-1">
-                <UsersIcon className="w-4 h-4" />
+                <UsersIcon className="w-3 h-3" />
                 <span className="font-medium">{group.memberCount?.toLocaleString() || '0'}</span>
-                <span>members</span>
               </div>
               <div className="flex items-center space-x-1">
-                <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                <ChatBubbleLeftRightIcon className="w-3 h-3" />
                 <span className="font-medium">{group.postCount || '0'}</span>
-                <span>posts</span>
               </div>
             </div>
             <div className="flex items-center space-x-1">
-              <CalendarIcon className="w-4 h-4" />
+              <CalendarIcon className="w-3 h-3" />
               <span>{new Date(group.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
         {/* Right Section - Actions */}
-        <div className="flex-shrink-0 w-28 md:w-32 p-3 md:p-4 flex flex-col justify-center space-y-2">
+        <div className="flex-shrink-0 w-24 p-3 flex flex-col justify-center space-y-2">
           {group.isMember ? (
             <>
               <button 
                 onClick={handleViewGroup}
-                className="w-full px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                className="w-full px-2 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs font-medium"
               >
-                View Group
+                View
               </button>
               <div className="flex space-x-1">
                 {onManage && (
                   <button
                     onClick={() => onManage(group.id)}
-                    className="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    className="flex-1 px-1 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                     title="Manage Group"
                   >
-                    <Cog6ToothIcon className="w-4 h-4 mx-auto" />
+                    <Cog6ToothIcon className="w-3 h-3 mx-auto" />
                   </button>
                 )}
                 <button
                   onClick={handleLeave}
-                  className="flex-1 px-2 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-xs"
+                  className="flex-1 px-1 py-1 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors text-xs"
                 >
                   Leave
                 </button>
@@ -216,9 +212,9 @@ const GroupCard: React.FC<GroupCardProps> = ({
           ) : (
             <button
               onClick={handleJoin}
-              className="w-full px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+              className="w-full px-2 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs font-medium"
             >
-              Join Group
+              Join
             </button>
           )}
         </div>
@@ -226,22 +222,22 @@ const GroupCard: React.FC<GroupCardProps> = ({
 
       {/* Rules Preview - Only show if there are rules */}
       {group.rules && group.rules.length > 0 && (
-        <div className="px-4 pb-4 border-t border-gray-100">
-          <div className="pt-3">
-            <div className="flex items-center space-x-2 mb-2">
-              <ShieldCheckIcon className="w-4 h-4 text-gray-500" />
-              <span className="text-xs font-medium text-gray-700">Group Rules</span>
+        <div className="px-3 pb-3 border-t border-gray-100">
+          <div className="pt-2">
+            <div className="flex items-center space-x-1 mb-1">
+              <ShieldCheckIcon className="w-3 h-3 text-gray-500" />
+              <span className="text-xs font-medium text-gray-700">Rules</span>
             </div>
-            <div className="space-y-1">
-              {group.rules.slice(0, 2).map((rule) => (
+            <div className="space-y-0.5">
+              {group.rules.slice(0, 1).map((rule) => (
                 <div key={rule.id} className="text-xs text-gray-600 flex items-start">
-                  <span className="text-gray-400 mr-2">•</span>
+                  <span className="text-gray-400 mr-1">•</span>
                   <span className="line-clamp-1">{rule.title}</span>
                 </div>
               ))}
-              {group.rules.length > 2 && (
+              {group.rules.length > 1 && (
                 <div className="text-xs text-gray-500">
-                  +{group.rules.length - 2} more rules
+                  +{group.rules.length - 1} more rules
                 </div>
               )}
             </div>

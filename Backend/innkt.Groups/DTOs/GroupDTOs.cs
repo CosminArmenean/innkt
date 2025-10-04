@@ -201,7 +201,9 @@ public class GroupPostResponse
     public bool IsPinned { get; set; }
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
+    public int SharesCount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public bool IsLikedByCurrentUser { get; set; }
     public UserBasicInfo? Author { get; set; }
     public GroupBasicInfo? Group { get; set; }
@@ -505,6 +507,7 @@ public class CreateTopicPostRequest
     
     public Guid? KidId { get; set; } // If parent posting for kid
 }
+
 
 public class TopicPostResponse
 {
@@ -1068,6 +1071,7 @@ public class UpdateGroupRuleRequest
     public int? Order { get; set; }
     public string? Category { get; set; }
 }
+
 
 public class GroupRuleResponse
 {

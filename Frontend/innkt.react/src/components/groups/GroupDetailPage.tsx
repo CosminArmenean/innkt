@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { socialService, Group, Post } from '../../services/social.service';
+import { socialService, Group } from '../../services/social.service';
 import { groupsService } from '../../services/groups.service';
-import PostCard from '../social/PostCard';
-import GroupDiscussion from './GroupDiscussion';
 import GroupSettingsPanel from './GroupSettingsPanel';
+import SubgroupManagementPanel from './SubgroupManagementPanel';
+import TopicsList from './TopicsList';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   UserGroupIcon, 
@@ -13,8 +13,7 @@ import {
   CogIcon,
   ShareIcon,
   BellIcon,
-  BellSlashIcon,
-  Cog6ToothIcon
+  PhotoIcon,
 } from '@heroicons/react/24/outline';
 
 const GroupDetailPage: React.FC = () => {
@@ -25,16 +24,16 @@ const GroupDetailPage: React.FC = () => {
   
   console.log('GroupDetailPage rendered for group ID:', id);
   const [group, setGroup] = useState<Group | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [activeTab, setActiveTab] = useState<'posts' | 'members' | 'rules' | 'subgroups' | 'settings'>('posts');
+  const [activeTab, setActiveTab] = useState<'topics' | 'members' | 'rules' | 'subgroups' | 'settings'>('topics');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [topicsCount, setTopicsCount] = useState(0);
+  const [subgroupsCount, setSubgroupsCount] = useState(0);
 
   useEffect(() => {
     if (id) {
       loadGroup();
-      loadPosts();
     }
   }, [id]);
 
@@ -45,6 +44,9 @@ const GroupDetailPage: React.FC = () => {
       setIsLoading(true);
       const groupData = await socialService.getGroup(id);
       setGroup(groupData);
+      
+      // Load topics and subgroups counts
+      await loadCounts(id);
     } catch (error) {
       console.error('Failed to load group:', error);
       navigate('/groups');
@@ -53,16 +55,35 @@ const GroupDetailPage: React.FC = () => {
     }
   };
 
-  const loadPosts = async () => {
-    if (!id) return;
-    
+  const loadCounts = async (groupId: string) => {
     try {
-      const response = await groupsService.getGroupPosts(id, { limit: 20 });
-      setPosts(response.posts);
+      // Load topics count
+      const topics = await groupsService.getGroupTopics(groupId);
+      setTopicsCount(topics?.length || 0);
+      
+      // Load subgroups count
+      const subgroups = await groupsService.getGroupSubgroups(groupId);
+      setSubgroupsCount(subgroups?.length || 0);
     } catch (error) {
-      console.error('Failed to load group posts:', error);
+      console.error('Failed to load counts:', error);
+      // Set default counts on error
+      setTopicsCount(0);
+      setSubgroupsCount(0);
     }
   };
+
+  const handleTopicCreated = () => {
+    if (id) {
+      loadCounts(id);
+    }
+  };
+
+  const handleSubgroupCreated = () => {
+    if (id) {
+      loadCounts(id);
+    }
+  };
+
 
   const handleJoin = async () => {
     if (!group) return;
@@ -154,14 +175,24 @@ const GroupDetailPage: React.FC = () => {
               {group.type}
             </span>
           </div>
+          
+          {/* Cover Photo Button - Admin Only */}
+          {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+            <div className="absolute bottom-4 right-4">
+              <button className="flex items-center space-x-2 px-3 py-2 bg-black bg-opacity-50 text-white rounded-lg hover:bg-opacity-70 transition-colors">
+                <PhotoIcon className="w-4 h-4" />
+                <span className="text-sm">Add Cover</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Group Info */}
-        <div className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-4">
+        {/* Group Info - Compact */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
               {/* Avatar */}
-              <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0 -mt-10 border-4 border-white">
+              <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0 -mt-8 border-4 border-white">
                 {group.avatar ? (
                   <img 
                     src={group.avatar} 
@@ -170,80 +201,87 @@ const GroupDetailPage: React.FC = () => {
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                    <UserGroupIcon className="w-10 h-10 text-gray-600" />
+                    <UserGroupIcon className="w-8 h-8 text-gray-600" />
                   </div>
                 )}
               </div>
               
               {/* Group Details */}
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{group.name}</h1>
-                <p className="text-gray-600 mb-2 capitalize">{group.category}</p>
-                <p className="text-gray-700 mb-4">{group.description}</p>
+                <div className="flex items-center space-x-2 mb-1">
+                  <h1 className="text-xl font-bold text-gray-900">{group.name}</h1>
+                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">{group.category}</span>
+                </div>
+                <p className="text-gray-600 text-sm mb-2 line-clamp-1">{group.description}</p>
                 
                 {/* Tags */}
                 {group.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {group.tags.map((tag, index) => (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {group.tags.slice(0, 2).map((tag, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-sm rounded-full"
+                        className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
                       >
                         #{tag}
                       </span>
                     ))}
+                    {group.tags.length > 2 && (
+                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                        +{group.tags.length - 2}
+                      </span>
+                    )}
                   </div>
                 )}
                 
                 {/* Stats */}
-                <div className="flex items-center space-x-6 text-sm text-gray-500">
+                <div className="flex items-center space-x-4 text-xs text-gray-500">
                   <div className="flex items-center space-x-1">
-                    <UsersIcon className="w-4 h-4" />
-                    <span>{group.memberCount?.toLocaleString() || '0'} members</span>
+                    <UsersIcon className="w-3 h-3" />
+                    <span>{group.memberCount?.toLocaleString() || '0'}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                    <span>{group.postCount || '0'} posts</span>
+                    <ChatBubbleLeftRightIcon className="w-3 h-3" />
+                    <span>{group.postCount || '0'}</span>
                   </div>
-                  <span>Created {new Date(group.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(group.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex space-x-3">
+            {/* Action Buttons - Compact */}
+            <div className="flex space-x-2">
               {group.isMember ? (
                 <>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-                    <BellIcon className="w-4 h-4" />
-                    <span>Notifications</span>
+                  <button className="flex items-center space-x-1 px-2 py-1.5 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300 transition-colors">
+                    <BellIcon className="w-3 h-3" />
+                    <span>Notify</span>
                   </button>
-                  <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <ShareIcon className="w-4 h-4" />
+                  <button className="flex items-center space-x-1 px-2 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors">
+                    <ShareIcon className="w-3 h-3" />
                     <span>Share</span>
                   </button>
                   {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                     <button 
                       onClick={() => setActiveTab('settings')}
-                      className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      className="flex items-center space-x-1 px-2 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
                     >
-                      <CogIcon className="w-4 h-4" />
+                      <CogIcon className="w-3 h-3" />
                       <span>Manage</span>
                     </button>
                   )}
                   <button
                     onClick={handleLeave}
                     disabled={isLeaving}
-                    className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+                    className="px-2 py-1.5 border border-red-300 text-red-700 rounded text-sm hover:bg-red-50 disabled:opacity-50 transition-colors"
                   >
-                    {isLeaving ? 'Leaving...' : 'Leave Group'}
+                    {isLeaving ? 'Leaving...' : 'Leave'}
                   </button>
                 </>
               ) : (
                 <button
                   onClick={handleJoin}
                   disabled={isJoining}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                  className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 disabled:opacity-50 transition-colors"
                 >
                   {isJoining ? 'Joining...' : 'Join Group'}
                 </button>
@@ -258,10 +296,10 @@ const GroupDetailPage: React.FC = () => {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8 px-6">
             {[
-              { id: 'posts', label: 'Posts', count: posts.length },
+              { id: 'topics', label: 'Topics', count: topicsCount },
               { id: 'members', label: 'Members', count: group.memberCount || 0 },
               { id: 'rules', label: 'Rules', count: group.rules?.length || 0 },
-              { id: 'subgroups', label: 'Subgroups', count: 0 }
+              { id: 'subgroups', label: 'Subgroups', count: subgroupsCount }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -293,10 +331,11 @@ const GroupDetailPage: React.FC = () => {
 
         {/* Tab Content */}
         <div className="p-6">
-          {activeTab === 'posts' && (
-            <GroupDiscussion
+          {activeTab === 'topics' && (
+            <TopicsList
               group={group}
               currentUserId={currentUserId}
+              onTopicCreated={handleTopicCreated}
             />
           )}
 
@@ -372,24 +411,13 @@ const GroupDetailPage: React.FC = () => {
           )}
 
           {activeTab === 'subgroups' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Subgroups</h3>
-                {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
-                  <button
-                    onClick={() => setActiveTab('settings')}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    Manage Subgroups
-                  </button>
-                )}
-              </div>
-              <div className="text-center py-8 text-gray-500">
-                <p>No subgroups created yet.</p>
-                <p className="text-sm mt-2">Admins can create subgroups to organize discussions by topics or categories.</p>
-              </div>
-            </div>
+            <SubgroupManagementPanel
+              groupId={id || ''}
+              currentUserId={currentUserId || ''}
+              onSubgroupCreated={handleSubgroupCreated}
+            />
           )}
+
 
           {activeTab === 'settings' && (
             <GroupSettingsPanel

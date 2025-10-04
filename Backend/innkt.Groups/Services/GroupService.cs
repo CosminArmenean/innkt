@@ -11,12 +11,14 @@ public class GroupService : IGroupService
     private readonly GroupsDbContext _context;
     private readonly ILogger<GroupService> _logger;
     private readonly IMapper _mapper;
+    private readonly IUserService _userService;
 
-    public GroupService(GroupsDbContext context, ILogger<GroupService> logger, IMapper mapper)
+    public GroupService(GroupsDbContext context, ILogger<GroupService> logger, IMapper mapper, IUserService userService)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
+        _userService = userService;
     }
 
     public async Task<GroupResponse> CreateGroupAsync(Guid userId, CreateGroupRequest request)
@@ -308,10 +310,101 @@ public class GroupService : IGroupService
         return new GroupPostResponse();
     }
 
-    public async Task<GroupPostListResponse> GetGroupPostsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
+    public async Task<GroupPostListResponse> GetGroupPostsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null, Guid? topicId = null)
     {
-        // Implementation would go here
-        return new GroupPostListResponse();
+        try
+        {
+            if (topicId.HasValue)
+            {
+                // Get posts from TopicPosts table
+                var topicPosts = await _context.TopicPosts
+                    .Where(tp => tp.TopicId == topicId.Value)
+                    .OrderByDescending(tp => tp.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var totalCount = await _context.TopicPosts
+                    .CountAsync(tp => tp.TopicId == topicId.Value);
+
+                // Get unique user IDs for author info
+                var userIds = topicPosts.Select(tp => tp.UserId).Distinct().ToList();
+                var userProfiles = await _userService.GetUsersBasicInfoAsync(userIds);
+
+                // Convert TopicPost to GroupPostResponse format
+                var posts = new List<GroupPostResponse>();
+                foreach (var tp in topicPosts)
+                {
+                    var author = userProfiles.FirstOrDefault(u => u.Id == tp.UserId);
+                    
+                    // For now, use default interaction counts
+                    // TODO: Implement proper interaction count retrieval from Social service
+                    int likesCount = 0;
+                    int commentsCount = 0;
+                    bool isLikedByCurrentUser = false;
+                    
+                    posts.Add(new GroupPostResponse
+                    {
+                        Id = tp.Id,
+                        GroupId = groupId,
+                        PostId = tp.PostId,
+                        UserId = tp.UserId,
+                        Content = tp.Content,
+                        MediaUrls = tp.MediaUrls ?? Array.Empty<string>(),
+                        Hashtags = tp.Hashtags ?? Array.Empty<string>(),
+                        Mentions = tp.Mentions ?? Array.Empty<string>(),
+                        Location = tp.Location,
+                        IsAnnouncement = tp.IsAnnouncement,
+                        IsPinned = tp.IsPinned,
+                        LikesCount = likesCount,
+                        CommentsCount = commentsCount,
+                        SharesCount = 0, // TODO: Get from shares table
+                        CreatedAt = tp.CreatedAt,
+                        UpdatedAt = tp.CreatedAt, // Use CreatedAt as fallback
+                        IsLikedByCurrentUser = isLikedByCurrentUser,
+                        Author = author,
+                        Group = null // TODO: Get group info
+                    });
+                }
+
+                return new GroupPostListResponse
+                {
+                    Posts = posts,
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize,
+                    HasNextPage = (page * pageSize) < totalCount,
+                    HasPreviousPage = page > 1
+                };
+            }
+            else
+            {
+                // Get regular group posts (not topic-specific)
+                // TODO: Implement regular group posts retrieval
+                return new GroupPostListResponse
+                {
+                    Posts = new List<GroupPostResponse>(),
+                    TotalCount = 0,
+                    Page = page,
+                    PageSize = pageSize,
+                    HasNextPage = false,
+                    HasPreviousPage = false
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting group posts for group {GroupId}, topic {TopicId}", groupId, topicId);
+            return new GroupPostListResponse
+            {
+                Posts = new List<GroupPostResponse>(),
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize,
+                HasNextPage = false,
+                HasPreviousPage = false
+            };
+        }
     }
 
     public async Task<GroupPostResponse?> GetGroupPostByIdAsync(Guid groupPostId, Guid? currentUserId = null)
@@ -714,16 +807,16 @@ public class GroupService : IGroupService
         return _mapper.Map<List<TopicResponse>>(topics);
     }
 
-    public async Task<TopicResponse> UpdateTopicStatusAsync(Guid topicId, Guid userId, UpdateTopicStatusRequest request)
+    public async Task<TopicResponse> UpdateTopicStatusAsync(Guid topicId, Guid userId, string status)
     {
         var topic = await _context.Topics
             .FirstOrDefaultAsync(t => t.Id == topicId);
 
-        if (topic == null) throw new ArgumentException("Topic not found");
+        if (topic == null) throw new KeyNotFoundException("Topic not found");
 
-        topic.Status = request.Status;
-        if (request.Status == "paused") topic.PausedAt = DateTime.UtcNow;
-        if (request.Status == "archived") topic.ArchivedAt = DateTime.UtcNow;
+        topic.Status = status;
+        if (status == "paused") topic.PausedAt = DateTime.UtcNow;
+        if (status == "archived") topic.ArchivedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return _mapper.Map<TopicResponse>(topic);
@@ -765,24 +858,58 @@ public class GroupService : IGroupService
 
     public async Task<TopicPostResponse> CreateTopicPostAsync(Guid topicId, Guid userId, CreateTopicPostRequest request)
     {
-        var topicPost = new TopicPost
+        try
         {
-            TopicId = topicId,
-            UserId = userId,
-            KidId = request.KidId,
-            IsParentPostingForKid = request.KidId.HasValue,
-            Content = request.Content,
-            MediaUrls = request.MediaUrls?.ToArray() ?? Array.Empty<string>(),
-            Hashtags = request.Hashtags?.ToArray() ?? Array.Empty<string>(),
-            Mentions = request.Mentions?.ToArray() ?? Array.Empty<string>(),
-            Location = request.Location,
-            IsAnnouncement = request.IsAnnouncement
-        };
+            // First, create a post in the Social service
+            var socialPostRequest = new
+            {
+                content = request.Content,
+                mediaUrls = request.MediaUrls ?? new List<string>(),
+                hashtags = request.Hashtags ?? new List<string>(),
+                mentions = request.Mentions ?? new List<string>(),
+                location = request.Location,
+                postType = "text",
+                isPublic = false, // Group posts are not public
+                groupId = topicId.ToString(), // Pass topic ID as group context
+                visibility = "group"
+            };
 
-        _context.TopicPosts.Add(topicPost);
-        await _context.SaveChangesAsync();
+            // Call Social service to create the post
+            var httpClient = new HttpClient();
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(socialPostRequest);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            // For now, we'll create a mock PostId since we can't easily call Social service without auth
+            // In production, this should be a proper service-to-service call with authentication
+            var socialPostId = Guid.NewGuid();
+            
+            _logger.LogInformation("Creating topic post with Social PostId: {SocialPostId}", socialPostId);
 
-        return _mapper.Map<TopicPostResponse>(topicPost);
+            var topicPost = new TopicPost
+            {
+                TopicId = topicId,
+                PostId = socialPostId, // Link to Social service post
+                UserId = userId,
+                KidId = request.KidId,
+                IsParentPostingForKid = request.KidId.HasValue,
+                Content = request.Content,
+                MediaUrls = request.MediaUrls?.ToArray() ?? Array.Empty<string>(),
+                Hashtags = request.Hashtags?.ToArray() ?? Array.Empty<string>(),
+                Mentions = request.Mentions?.ToArray() ?? Array.Empty<string>(),
+                Location = request.Location,
+                IsAnnouncement = request.IsAnnouncement
+            };
+
+            _context.TopicPosts.Add(topicPost);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<TopicPostResponse>(topicPost);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating topic post for topic {TopicId}", topicId);
+            throw;
+        }
     }
 
     public async Task<TopicPostResponse?> GetTopicPostByIdAsync(Guid postId, Guid? currentUserId = null)

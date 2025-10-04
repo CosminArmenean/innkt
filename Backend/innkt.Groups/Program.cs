@@ -36,7 +36,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Add HttpClient for external API calls
+builder.Services.AddHttpClient();
+
 // Add other services
+builder.Services.AddScoped<innkt.Groups.Services.IUserService, innkt.Groups.Services.UserService>();
 builder.Services.AddScoped<innkt.Groups.Services.IGroupService, innkt.Groups.Services.GroupService>();
 builder.Services.AddScoped<innkt.Groups.Services.IPermissionService, innkt.Groups.Services.PermissionService>();
 builder.Services.AddScoped<innkt.Groups.Services.IRoleManagementService, innkt.Groups.Services.RoleManagementService>();
@@ -92,6 +96,17 @@ if (args.Length > 0 && args[0] == "update-db")
 
         // Add missing columns to Subgroups table
         await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Subgroups"" ADD COLUMN IF NOT EXISTS ""Settings"" text NOT NULL DEFAULT '{}';");
+
+        // Add missing columns to Topics table
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""AllowKidPosts"" boolean NOT NULL DEFAULT false;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""AllowParentPosts"" boolean NOT NULL DEFAULT true;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""AllowMemberPosts"" boolean NOT NULL DEFAULT true;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""AllowRolePosts"" boolean NOT NULL DEFAULT true;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""IsAnnouncementOnly"" boolean NOT NULL DEFAULT false;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""Status"" text NOT NULL DEFAULT 'active';");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""PausedAt"" timestamp with time zone;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""ArchivedAt"" timestamp with time zone;");
+        await context.Database.ExecuteSqlRawAsync(@"ALTER TABLE ""Topics"" ADD COLUMN IF NOT EXISTS ""PostsCount"" integer NOT NULL DEFAULT 0;");
 
         // Skip migration history for now - columns are added successfully
         Console.WriteLine("Migration history update skipped - columns added successfully");

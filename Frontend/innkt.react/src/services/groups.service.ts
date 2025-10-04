@@ -759,6 +759,28 @@ export class GroupsService extends BaseApiService {
     }
   }
 
+  async createTopicPost(groupId: string, topicId: string, postData: any): Promise<any> {
+    try {
+      console.log('Creating topic post:', { groupId, topicId, postData });
+      const response = await this.post(`/api/groups/${groupId}/topics/${topicId}/posts`, postData);
+      console.log('Topic post created successfully:', response);
+      return response;
+    } catch (error) {
+      console.error('Failed to create topic post:', error);
+      throw error;
+    }
+  }
+
+  async updateTopicStatus(groupId: string, topicId: string, status: 'active' | 'paused'): Promise<TopicResponse> {
+    try {
+      const response = await this.put<TopicResponse>(`/api/groups/${groupId}/topics/${topicId}/status`, { status });
+      return response;
+    } catch (error) {
+      console.error('Failed to update topic status:', error);
+      throw error;
+    }
+  }
+
   async assignRoleToMember(request: AssignRoleRequest): Promise<void> {
     try {
       await this.put(`/api/groups/${request.groupId}/members/${request.memberId}/role`, { roleId: request.roleId });

@@ -20,16 +20,29 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-start space-x-3">
-        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-          <span className="text-gray-600 font-semibold">
-            {post.authorId?.charAt(0) || 'U'}
-          </span>
-        </div>
+        {post.author?.avatarUrl ? (
+          <img
+            src={post.author.avatarUrl}
+            alt={post.author.displayName || post.author.username}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+            <span className="text-gray-600 font-semibold">
+              {(post.author?.displayName || post.author?.username || 'U').charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <h3 className="font-semibold text-gray-900">
-              {post.authorId || 'Unknown User'}
+              {post.author?.displayName || post.author?.username || 'Unknown User'}
             </h3>
+            {post.author?.username && (
+              <span className="text-gray-500 text-sm">
+                @{post.author.username}
+              </span>
+            )}
             <span className="text-gray-500 text-sm">
               {new Date(post.createdAt).toLocaleDateString()}
             </span>
