@@ -21,6 +21,7 @@ public interface IGroupService
     
     // Group members
     Task<GroupMemberListResponse> GetGroupMembersAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null);
+    Task<GroupMemberResponse?> GetGroupMemberAsync(Guid groupId, Guid userId);
     Task<bool> UpdateMemberRoleAsync(Guid groupId, Guid targetUserId, string newRole, Guid adminUserId);
     Task<bool> RemoveMemberAsync(Guid groupId, Guid targetUserId, Guid adminUserId);
     
@@ -29,6 +30,7 @@ public interface IGroupService
     Task<GroupInvitationListResponse> GetGroupInvitationsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null);
     Task<GroupInvitationListResponse> GetUserInvitationsAsync(Guid userId, int page = 1, int pageSize = 20);
     Task<bool> RespondToInvitationAsync(Guid invitationId, Guid userId, string action);
+    Task<bool> CancelInvitationAsync(Guid invitationId, Guid userId);
     
     // Group posts
     Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request);

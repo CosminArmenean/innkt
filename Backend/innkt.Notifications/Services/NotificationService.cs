@@ -345,6 +345,79 @@ public class NotificationService : INotificationService
 
     #endregion
 
+    #region Group Notifications
+
+    public async Task<bool> SendGroupInvitationNotificationAsync(GroupInvitationNotification notification)
+    {
+        try
+        {
+            _logger.LogInformation("📧 Sending group invitation notification to user {RecipientId} for group {GroupName}", 
+                notification.RecipientId, notification.GroupName);
+
+            // Set appropriate channels based on group type
+            if (notification.IsEducationalGroup)
+            {
+                notification.Channel = "in_app,email"; // Educational groups prefer email
+                notification.Priority = "high"; // Educational invitations are important
+            }
+
+            return await SendNotificationAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error sending group invitation notification");
+            return false;
+        }
+    }
+
+    public async Task<bool> SendGroupNotificationAsync(GroupNotification notification)
+    {
+        try
+        {
+            _logger.LogInformation("📢 Sending group notification to user {RecipientId} for group {GroupName}", 
+                notification.RecipientId, notification.GroupName);
+
+            // Adjust priority based on notification type
+            if (notification.IsUrgent)
+            {
+                notification.Priority = "urgent";
+                notification.Channel = "in_app,email,push,sms";
+            }
+
+            return await SendNotificationAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error sending group notification");
+            return false;
+        }
+    }
+
+    public async Task<bool> SendGroupRoleChangeNotificationAsync(GroupRoleChangeNotification notification)
+    {
+        try
+        {
+            _logger.LogInformation("👑 Sending group role change notification to user {RecipientId} for group {GroupName}", 
+                notification.RecipientId, notification.GroupName);
+
+            // Role changes are important, especially for admins
+            if (notification.NewRole == "admin")
+            {
+                notification.Priority = "urgent";
+                notification.Channel = "in_app,email,push";
+            }
+
+            return await SendNotificationAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error sending group role change notification");
+            return false;
+        }
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private string GetKafkaTopicForNotification(BaseNotification notification)

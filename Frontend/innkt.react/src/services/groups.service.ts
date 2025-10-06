@@ -58,6 +58,46 @@ export interface CreateTopicRequest {
   allowRolePosts?: boolean;
 }
 
+export interface GroupInvitationResponse {
+  id: string;
+  groupId: string;
+  invitedUserId: string;
+  invitedByUserId: string;
+  message?: string;
+  status: string;
+  createdAt: string;
+  respondedAt?: string;
+  expiresAt: string;
+  group?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  invitedBy?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface InviteUserRequest {
+  groupId: string;
+  userId: string;
+  message?: string;
+  targetType?: 'main' | 'subgroup';
+  subgroupId?: string;
+}
+
+export interface GroupInvitationListResponse {
+  invitations: GroupInvitationResponse[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 export interface GroupRoleResponse {
   id: string;
   groupId: string;
@@ -103,11 +143,16 @@ export interface GroupMemberResponse {
   id: string;
   groupId: string;
   userId: string;
-  userName: string;
-  roleId?: string;
-  roleName?: string;
+  role: string;
   joinedAt: string;
-  status: 'pending' | 'active' | 'suspended' | 'left';
+  lastSeenAt?: string;
+  isActive: boolean;
+  user?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
 }
 
 export interface AssignRoleRequest {
@@ -750,9 +795,10 @@ export class GroupsService extends BaseApiService {
 
   async getGroupMembers(groupId: string): Promise<GroupMemberResponse[]> {
     try {
-      const response = await this.get<{ members: GroupMemberResponse[] } | GroupMemberResponse[]>(`/api/groups/${groupId}/members`);
-      // Handle both array response and object with members property
-      return Array.isArray(response) ? response : response.members || [];
+      const response = await this.get<any>(`/api/groups/${groupId}/members`);
+      // Handle both array response and object with members property (lowercase from backend)
+      const result = Array.isArray(response) ? response : response.members || [];
+      return result;
     } catch (error) {
       console.error('Failed to get group members:', error);
       throw error;
@@ -786,6 +832,95 @@ export class GroupsService extends BaseApiService {
       await this.put(`/api/groups/${request.groupId}/members/${request.memberId}/role`, { roleId: request.roleId });
     } catch (error) {
       console.error('Failed to assign role to member:', error);
+      throw error;
+    }
+  }
+
+  // Group invitation methods
+  async inviteUser(request: InviteUserRequest): Promise<GroupInvitationResponse> {
+    try {
+      const response = await this.post<GroupInvitationResponse>(`/api/groups/${request.groupId}/invite`, request);
+      return response;
+    } catch (error) {
+      console.error('Failed to invite user:', error);
+      throw error;
+    }
+  }
+
+  async getGroupInvitations(groupId: string, page: number = 1, pageSize: number = 20): Promise<GroupInvitationListResponse> {
+    try {
+      const response = await this.get<GroupInvitationListResponse>(`/api/groups/${groupId}/invitations?page=${page}&pageSize=${pageSize}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get group invitations:', error);
+      throw error;
+    }
+  }
+
+  async cancelInvitation(groupId: string, invitationId: string): Promise<void> {
+    try {
+      await this.delete(`/api/groups/${groupId}/invitations/${invitationId}`);
+    } catch (error) {
+      console.error('Failed to cancel invitation:', error);
+      throw error;
+    }
+  }
+
+  // User search for invitations
+  async searchUsers(query: string): Promise<any[]> {
+    try {
+      // This would typically call a user search API
+      // For now, we'll return mock data
+      const mockUsers = [
+        { id: '1', username: 'teresa.lisbon', displayName: 'Teresa Lisbon', avatarUrl: '/avatars/teresa.jpg' },
+        { id: '2', username: 'jane.wayne', displayName: 'Jane Wayne', avatarUrl: '/avatars/jane.jpg' },
+        { id: '3', username: 'kimball.cho', displayName: 'Kimball Cho', avatarUrl: '/avatars/kimball.jpg' }
+      ];
+      
+      return mockUsers.filter(user => 
+        user.username.toLowerCase().includes(query.toLowerCase()) ||
+        user.displayName.toLowerCase().includes(query.toLowerCase())
+      );
+    } catch (error) {
+      console.error('Failed to search users:', error);
+      throw error;
+    }
+  }
+
+
+  async getParentKidAccounts(): Promise<any[]> {
+    try {
+      const response = await this.get<any[]>('/api/parent/kid-accounts');
+      return response;
+    } catch (error) {
+      console.error('Failed to get parent kid accounts:', error);
+      throw error;
+    }
+  }
+
+  async acceptEducationalInvitation(invitationId: string, data: {
+    kidId: string;
+    groupId: string;
+    subgroupId?: string;
+  }): Promise<any> {
+    try {
+      const response = await this.post(`/api/groups/invitations/${invitationId}/accept-educational`, data);
+      return response;
+    } catch (error) {
+      console.error('Failed to accept educational invitation:', error);
+      throw error;
+    }
+  }
+
+  async sendGroupNotification(userId: string, notificationData: any): Promise<any> {
+    try {
+      const response = await this.post(`/api/groups/notifications/send`, {
+        userId,
+        ...notificationData
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to send group notification:', error);
       throw error;
     }
   }

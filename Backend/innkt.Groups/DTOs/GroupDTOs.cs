@@ -107,6 +107,8 @@ public class InviteUserRequest
     
     [MaxLength(500)]
     public string? Message { get; set; }
+    
+    public Guid? SubgroupId { get; set; }
 }
 
 public class RespondToInvitationRequest

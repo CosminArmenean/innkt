@@ -3,6 +3,7 @@ using innkt.Groups.Data;
 using AutoMapper;
 using innkt.Groups.Mapping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add HttpClient for external API calls
 builder.Services.AddHttpClient();
 
+// Add Memory Cache
+builder.Services.AddMemoryCache();
+
+// Add Kafka producer
+builder.Services.AddSingleton<IProducer<string, string>>(provider =>
+{
+    var config = new ProducerConfig
+    {
+        BootstrapServers = builder.Configuration["Kafka:BootstrapServers"] ?? "localhost:9092",
+        ClientId = "groups-service",
+        Acks = Acks.All,
+        EnableIdempotence = true,
+        MessageTimeoutMs = 30000,
+        RetryBackoffMs = 100,
+        MessageSendMaxRetries = 3,
+        CompressionType = CompressionType.Snappy,
+        BatchSize = 16384,
+        LingerMs = 5
+    };
+
+    return new ProducerBuilder<string, string>(config)
+        .SetErrorHandler((_, error) => Console.WriteLine($"Kafka producer error: {error.Reason}"))
+        .SetLogHandler((_, logMessage) => Console.WriteLine($"Kafka producer log: {logMessage.Message}"))
+        .Build();
+});
+
 // Add other services
 builder.Services.AddScoped<innkt.Groups.Services.IUserService, innkt.Groups.Services.UserService>();
 builder.Services.AddScoped<innkt.Groups.Services.IGroupService, innkt.Groups.Services.GroupService>();
@@ -47,6 +74,8 @@ builder.Services.AddScoped<innkt.Groups.Services.IRoleManagementService, innkt.G
 builder.Services.AddScoped<innkt.Groups.Services.ISubgroupService, innkt.Groups.Services.SubgroupService>();
 builder.Services.AddScoped<innkt.Groups.Services.ITopicService, innkt.Groups.Services.TopicService>();
 builder.Services.AddScoped<innkt.Groups.Services.IAIIntegrationService, innkt.Groups.Services.AIIntegrationService>();
+
+// Notification service removed - using Kafka events instead
 
 // Add CORS
 builder.Services.AddCors(options =>

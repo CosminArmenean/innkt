@@ -1,30 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Group, GroupMember } from '../../services/social.service';
-import { groupsService, SubgroupResponse, GroupMemberResponse } from '../../services/groups.service';
+import { groupsService, SubgroupResponse, GroupMemberResponse, GroupInvitationResponse } from '../../services/groups.service';
 import CreateSubgroupModal from './CreateSubgroupModal';
 import GroupRulesManagement from './GroupRulesManagement';
-import { PlusIcon, UserGroupIcon, AcademicCapIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import InviteUserModal from './InviteUserModal';
+import EnhancedInviteUserModal from './EnhancedInviteUserModal';
+import NestedMemberDisplay from './NestedMemberDisplay';
+import { PlusIcon, UserGroupIcon, AcademicCapIcon, Cog6ToothIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 
 interface GroupManagementPanelProps {
   group: Group;
   currentUserId?: string;
   onSubgroupCreated?: (subgroup: SubgroupResponse) => void;
+  showOnlyTab?: 'overview' | 'subgroups' | 'members' | 'rules' | 'settings';
 }
 
 const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({ 
   group, 
   currentUserId, 
-  onSubgroupCreated 
+  onSubgroupCreated,
+  showOnlyTab
 }) => {
   const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);
   const [members, setMembers] = useState<GroupMemberResponse[]>([]);
+  const [invitations, setInvitations] = useState<GroupInvitationResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateSubgroup, setShowCreateSubgroup] = useState(false);
+  const [showInviteUser, setShowInviteUser] = useState(false);
+  const [showEnhancedInvite, setShowEnhancedInvite] = useState(false);
+  const [useNestedView, setUseNestedView] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'subgroups' | 'members' | 'rules' | 'settings'>('overview');
 
   useEffect(() => {
     loadSubgroups();
     loadMembers();
+    loadInvitations();
   }, [group.id]);
 
   const loadSubgroups = async () => {
@@ -38,12 +48,37 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
 
   const loadMembers = async () => {
     try {
+      console.log('Loading members for group:', group.id);
       const membersData = await groupsService.getGroupMembers(group.id);
+      console.log('Members data received:', membersData);
       setMembers(membersData);
     } catch (error) {
       console.error('Failed to load members:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadInvitations = async () => {
+    try {
+      const invitationsData = await groupsService.getGroupInvitations(group.id);
+      setInvitations(invitationsData.invitations);
+    } catch (error) {
+      console.error('Failed to load invitations:', error);
+    }
+  };
+
+  const handleInvitationSent = (invitation: GroupInvitationResponse) => {
+    setInvitations(prev => [invitation, ...prev]);
+    setShowInviteUser(false);
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    try {
+      await groupsService.cancelInvitation(group.id, invitationId);
+      setInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+    } catch (error) {
+      console.error('Failed to cancel invitation:', error);
     }
   };
 
@@ -57,7 +92,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
 
   const isAdmin = members.find(member => 
     member.userId === currentUserId && 
-    member.roleName === 'admin'
+    member.role === 'admin'
   );
 
   const renderOverview = () => (
@@ -172,40 +207,137 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   );
 
   const renderMembers = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Members</h3>
+    <div className="space-y-6">
+      {/* Header with Invite Button and View Toggle */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <h3 className="text-lg font-semibold text-gray-900">Members</h3>
+          {group.category?.toLowerCase() === 'education' && (
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-gray-600">View:</label>
+              <button
+                onClick={() => setUseNestedView(!useNestedView)}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  useNestedView 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {useNestedView ? 'Nested (Parent-Kid)' : 'Standard'}
+              </button>
+            </div>
+          )}
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              if (group.category?.toLowerCase() === 'education') {
+                setShowEnhancedInvite(true);
+              } else {
+                setShowInviteUser(true);
+              }
+            }}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" />
+            Invite Members
+          </button>
+        )}
+      </div>
+
+      {/* Current Members */}
       {isLoading ? (
         <div className="text-center py-8 text-gray-500">Loading members...</div>
-      ) : (
+      ) : useNestedView && group.category?.toLowerCase() === 'education' ? (
+          <NestedMemberDisplay
+            members={members}
+            currentUserId={currentUserId}
+          />
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h4 className="text-sm font-medium text-gray-900">Current Members ({members.length})</h4>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {members.map((member) => (
+                <div key={member.id} className="p-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      {member.user?.avatarUrl ? (
+                        <img className="h-10 w-10 rounded-full" src={member.user.avatarUrl} alt={member.user.displayName} />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                          <span className="text-purple-600 font-medium text-sm">
+                            {member.user?.displayName?.charAt(0).toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4">
+                      <div className="flex items-center">
+                        <p className="text-sm font-medium text-gray-900">
+                          {member.user?.displayName || 'Unknown User'}
+                        </p>
+                      </div>
+                      <p className="text-sm text-gray-500">@{member.user?.username || 'unknown'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      member.role === 'admin' ? 'bg-yellow-100 text-yellow-800' :
+                      member.role === 'moderator' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {member.role || 'member'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      {/* Pending Invitations */}
+      {invitations.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h4 className="text-sm font-medium text-gray-900">Pending Invitations ({invitations.length})</h4>
+          </div>
           <div className="divide-y divide-gray-200">
-            {members.map((member) => (
-              <div key={member.id} className="p-4 flex items-center justify-between">
+            {invitations.map((invitation) => (
+              <div key={invitation.id} className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <span className="text-purple-600 font-medium text-sm">
-                        {member.userName.charAt(0).toUpperCase()}
-                      </span>
+                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                      <UserPlusIcon className="h-5 w-5 text-orange-600" />
                     </div>
                   </div>
                   <div className="ml-4">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-gray-900">
-                        {member.userName}
+                        {invitation.invitedBy?.displayName || 'Unknown User'}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-500">@{member.userName}</p>
+                    <p className="text-sm text-gray-500">
+                      Invited by @{invitation.invitedBy?.username || 'unknown'}
+                    </p>
+                    {invitation.message && (
+                      <p className="text-xs text-gray-400 mt-1">"{invitation.message}"</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    member.roleName === 'admin' ? 'bg-yellow-100 text-yellow-800' :
-                    member.roleName === 'moderator' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {member.roleName || 'member'}
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    Pending
                   </span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleCancelInvitation(invitation.id)}
+                      className="text-xs text-red-600 hover:text-red-800"
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -238,6 +370,48 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
       )}
     </div>
   );
+
+  // If showOnlyTab is specified, render only that tab content
+  if (showOnlyTab) {
+    switch (showOnlyTab) {
+      case 'members':
+        return (
+          <div className="space-y-6">
+            {renderMembers()}
+            {/* Modals */}
+            {showInviteUser && (
+              <InviteUserModal
+                groupId={group.id}
+                groupName={group.name}
+                onClose={() => setShowInviteUser(false)}
+                onInvitationSent={handleInvitationSent}
+              />
+            )}
+          </div>
+        );
+      case 'subgroups':
+        return (
+          <div className="space-y-6">
+            {renderSubgroups()}
+            {/* Modals */}
+            {showCreateSubgroup && (
+              <CreateSubgroupModal
+                groupId={group.id}
+                groupName={group.name}
+                onClose={() => setShowCreateSubgroup(false)}
+                onSubgroupCreated={handleSubgroupCreated}
+              />
+            )}
+          </div>
+        );
+      case 'rules':
+        return <div className="space-y-6">{renderRules()}</div>;
+      case 'settings':
+        return <div className="space-y-6">{renderSettings()}</div>;
+      default:
+        return <div className="space-y-6">{renderOverview()}</div>;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -311,6 +485,29 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
           groupName={group.name}
           onClose={() => setShowCreateSubgroup(false)}
           onSubgroupCreated={handleSubgroupCreated}
+        />
+      )}
+
+      {/* Invite User Modal */}
+      {showInviteUser && (
+        <InviteUserModal
+          groupId={group.id}
+          groupName={group.name}
+          onClose={() => setShowInviteUser(false)}
+          onInvitationSent={handleInvitationSent}
+        />
+      )}
+
+      {/* Enhanced Invite User Modal for Educational Groups */}
+      {showEnhancedInvite && (
+        <EnhancedInviteUserModal
+          isOpen={showEnhancedInvite}
+          onClose={() => setShowEnhancedInvite(false)}
+          groupId={group.id}
+          groupName={group.name}
+          groupCategory={group.category || ''}
+          subgroups={subgroups}
+          onInviteSent={() => handleInvitationSent({} as GroupInvitationResponse)}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ using innkt.Groups.Services;
 using innkt.Groups.DTOs;
 using innkt.Groups.Middleware;
 using System.Security.Claims;
+using Confluent.Kafka;
 
 namespace innkt.Groups.Controllers;
 
@@ -14,11 +15,13 @@ public class GroupsController : ControllerBase
 {
     private readonly IGroupService _groupService;
     private readonly ILogger<GroupsController> _logger;
+    private readonly IProducer<string, string> _kafkaProducer;
 
-    public GroupsController(IGroupService groupService, ILogger<GroupsController> logger)
+    public GroupsController(IGroupService groupService, ILogger<GroupsController> logger, IProducer<string, string> kafkaProducer)
     {
         _groupService = groupService;
         _logger = logger;
+        _kafkaProducer = kafkaProducer;
     }
 
     /// <summary>
@@ -268,6 +271,7 @@ public class GroupsController : ControllerBase
         {
             var currentUserId = GetCurrentUserId();
             var members = await _groupService.GetGroupMembersAsync(id, page, pageSize, currentUserId);
+            _logger.LogInformation("Returning {Count} members for group {GroupId}", members.Members.Count, id);
             return Ok(members);
         }
         catch (Exception ex)
@@ -679,4 +683,184 @@ public class GroupsController : ControllerBase
             return StatusCode(500, "An error occurred while updating topic status");
         }
     }
+
+    /// <summary>
+    /// Invite a user to join the group
+    /// </summary>
+        [HttpPost("{groupId}/invite")]
+        [RequirePermission("invite_members")]
+        public async Task<ActionResult<GroupInvitationResponse>> InviteUser(Guid groupId, [FromBody] InviteUserRequest request)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var invitation = await _groupService.InviteUserAsync(groupId, userId, request.UserId, request.Message);
+                
+                // Get group information for Kafka event
+                var group = await _groupService.GetGroupByIdAsync(groupId);
+                if (group != null)
+                {
+                    // Send invitation event to Kafka
+                    var invitationEvent = new
+                    {
+                        EventType = "GroupInvitation",
+                        GroupId = groupId,
+                        GroupName = group.Name,
+                        GroupCategory = group.Category ?? "",
+                        RecipientId = request.UserId,
+                        SenderId = userId,
+                        SubgroupId = request.SubgroupId,
+                        InvitationMessage = request.Message ?? "",
+                        IsEducationalGroup = group.Category?.ToLower() == "education",
+                        RequiresParentApproval = group.Category?.ToLower() == "education",
+                        ExpiresAt = DateTime.UtcNow.AddDays(7),
+                        Timestamp = DateTime.UtcNow
+                    };
+
+                    var message = new Message<string, string>
+                    {
+                        Key = request.UserId.ToString(),
+                        Value = System.Text.Json.JsonSerializer.Serialize(invitationEvent)
+                    };
+
+                    await _kafkaProducer.ProduceAsync("group-invitations", message);
+                    _logger.LogInformation("Group invitation event sent to Kafka for user {UserId} and group {GroupName}", request.UserId, group.Name);
+                }
+                
+                return Ok(invitation);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inviting user {UserId} to group {GroupId}", request.UserId, groupId);
+                return StatusCode(500, "An error occurred while sending the invitation");
+            }
+        }
+
+    /// <summary>
+    /// Get pending invitations for a group
+    /// </summary>
+    [HttpGet("{groupId}/invitations")]
+    [RequirePermission("view_group")]
+    public async Task<ActionResult<GroupInvitationListResponse>> GetGroupInvitations(Guid groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var invitations = await _groupService.GetGroupInvitationsAsync(groupId, page, pageSize, userId);
+            return Ok(invitations);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting invitations for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while retrieving invitations");
+        }
+    }
+
+    /// <summary>
+    /// Cancel a pending invitation
+    /// </summary>
+    [HttpDelete("{groupId}/invitations/{invitationId}")]
+    [RequirePermission("invite_members")]
+    public async Task<ActionResult> CancelInvitation(Guid groupId, Guid invitationId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            await _groupService.CancelInvitationAsync(invitationId, userId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error canceling invitation {InvitationId} for group {GroupId}", invitationId, groupId);
+            return StatusCode(500, "An error occurred while canceling the invitation");
+        }
+    }
+
+        [HttpPost("{id}/notifications/send")]
+        public async Task<ActionResult> SendGroupNotification(Guid id, [FromBody] SendGroupNotificationRequest request)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                var group = await _groupService.GetGroupByIdAsync(id);
+                
+                if (group == null)
+                {
+                    return NotFound("Group not found");
+                }
+
+                // Check if user has permission to send notifications
+                var member = await _groupService.GetGroupMemberAsync(id, currentUserId);
+                if (member == null || (member.Role != "admin" && member.Role != "moderator"))
+                {
+                    return Forbid("Only admins and moderators can send group notifications");
+                }
+
+                // Get all group members
+                var members = await _groupService.GetGroupMembersAsync(id);
+                
+                // Send notification event to Kafka for each member
+                foreach (var groupMember in members.Members)
+                {
+                    var notificationEvent = new
+                    {
+                        EventType = "GroupNotification",
+                        RecipientId = groupMember.UserId,
+                        SenderId = currentUserId,
+                        GroupId = id,
+                        GroupName = group.Name,
+                        NotificationType = request.Type,
+                        Title = request.Title,
+                        Message = request.Message,
+                        IsUrgent = request.IsUrgent,
+                        GroupData = request.Data ?? new Dictionary<string, object>(),
+                        Timestamp = DateTime.UtcNow
+                    };
+
+                    var message = new Message<string, string>
+                    {
+                        Key = groupMember.UserId.ToString(),
+                        Value = System.Text.Json.JsonSerializer.Serialize(notificationEvent)
+                    };
+
+                    await _kafkaProducer.ProduceAsync("group-notifications", message);
+                }
+
+                return Ok(new { message = $"Notification event sent to Kafka for {members.Members.Count} group members" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending group notification for group {GroupId}", id);
+                return StatusCode(500, "An error occurred while sending group notification");
+            }
+        }
+}
+
+public class SendGroupNotificationRequest
+{
+    public string Type { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public bool IsUrgent { get; set; } = false;
+    public Dictionary<string, object>? Data { get; set; }
 }

@@ -264,8 +264,92 @@ public class GroupService : IGroupService
     // Placeholder implementations for other methods
     public async Task<GroupMemberListResponse> GetGroupMembersAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
     {
-        // Implementation would go here
-        return new GroupMemberListResponse();
+        try
+        {
+            // Get total count
+            var totalCount = await _context.GroupMembers
+                .CountAsync(gm => gm.GroupId == groupId && gm.IsActive);
+
+            // Get members with pagination
+            var members = await _context.GroupMembers
+                .Where(gm => gm.GroupId == groupId && gm.IsActive)
+                .OrderBy(gm => gm.JoinedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Map to response DTOs
+            var memberResponses = new List<GroupMemberResponse>();
+            _logger.LogInformation("Found {Count} members for group {GroupId}", members.Count, groupId);
+            
+            foreach (var member in members)
+            {
+                var userBasicInfo = await _userService.GetUserBasicInfoAsync(member.UserId);
+                _logger.LogInformation("Processing member {UserId} with role {Role}", member.UserId, member.Role);
+                
+                memberResponses.Add(new GroupMemberResponse
+                {
+                    Id = member.Id,
+                    GroupId = member.GroupId,
+                    UserId = member.UserId,
+                    Role = member.Role ?? "member",
+                    JoinedAt = member.JoinedAt,
+                    LastSeenAt = member.LastSeenAt,
+                    IsActive = member.IsActive,
+                    User = userBasicInfo
+                });
+            }
+            
+            _logger.LogInformation("Created {Count} member responses for group {GroupId}", memberResponses.Count, groupId);
+
+            return new GroupMemberListResponse
+            {
+                Members = memberResponses,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                HasNextPage = (page * pageSize) < totalCount,
+                HasPreviousPage = page > 1
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting members for group {GroupId}", groupId);
+            throw;
+        }
+    }
+
+    public async Task<GroupMemberResponse?> GetGroupMemberAsync(Guid groupId, Guid userId)
+    {
+        try
+        {
+            var member = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId && gm.IsActive);
+
+            if (member == null)
+            {
+                return null;
+            }
+
+            var userBasicInfo = await _userService.GetUserBasicInfoAsync(member.UserId);
+
+            return new GroupMemberResponse
+            {
+                Id = member.Id,
+                GroupId = member.GroupId,
+                UserId = member.UserId,
+                Role = member.Role ?? "member",
+                JoinedAt = member.JoinedAt,
+                LastSeenAt = member.LastSeenAt,
+                IsActive = member.IsActive,
+                User = userBasicInfo
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting member {UserId} for group {GroupId}", userId, groupId);
+            throw;
+        }
     }
 
     public async Task<bool> UpdateMemberRoleAsync(Guid groupId, Guid targetUserId, string newRole, Guid adminUserId)
@@ -302,6 +386,45 @@ public class GroupService : IGroupService
     {
         // Implementation would go here
         return false;
+    }
+
+    public async Task<bool> CancelInvitationAsync(Guid invitationId, Guid userId)
+    {
+        try
+        {
+            var invitation = await _context.GroupInvitations
+                .FirstOrDefaultAsync(i => i.Id == invitationId);
+
+            if (invitation == null)
+            {
+                return false;
+            }
+
+            // Check if user has permission to cancel this invitation
+            var group = await _context.Groups
+                .Include(g => g.Members)
+                .FirstOrDefaultAsync(g => g.Id == invitation.GroupId);
+
+            if (group == null)
+            {
+                return false;
+            }
+
+            var userMembership = group.Members.FirstOrDefault(m => m.UserId == userId);
+            if (userMembership == null || (userMembership.Role != "admin" && userMembership.Role != "owner" && invitation.InvitedByUserId != userId))
+            {
+                return false;
+            }
+
+            _context.GroupInvitations.Remove(invitation);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error canceling invitation {InvitationId} by user {UserId}", invitationId, userId);
+            return false;
+        }
     }
 
     public async Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request)
@@ -795,7 +918,13 @@ public class GroupService : IGroupService
 
         if (subgroupId.HasValue)
         {
+            // If subgroupId is specified, get topics for that specific subgroup
             query = query.Where(t => t.SubgroupId == subgroupId);
+        }
+        else
+        {
+            // If no subgroupId is specified, get only main group topics (where SubgroupId is null)
+            query = query.Where(t => t.SubgroupId == null);
         }
 
         if (!string.IsNullOrEmpty(status))

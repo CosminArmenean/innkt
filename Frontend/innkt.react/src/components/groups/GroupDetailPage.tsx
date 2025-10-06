@@ -4,7 +4,9 @@ import { socialService, Group } from '../../services/social.service';
 import { groupsService } from '../../services/groups.service';
 import GroupSettingsPanel from './GroupSettingsPanel';
 import SubgroupManagementPanel from './SubgroupManagementPanel';
+import GroupManagementPanel from './GroupManagementPanel';
 import TopicsList from './TopicsList';
+import EnhancedInviteUserModal from './EnhancedInviteUserModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   UserGroupIcon, 
@@ -14,6 +16,7 @@ import {
   ShareIcon,
   BellIcon,
   PhotoIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 
 const GroupDetailPage: React.FC = () => {
@@ -30,6 +33,8 @@ const GroupDetailPage: React.FC = () => {
   const [isLeaving, setIsLeaving] = useState(false);
   const [topicsCount, setTopicsCount] = useState(0);
   const [subgroupsCount, setSubgroupsCount] = useState(0);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [subgroups, setSubgroups] = useState<any[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -61,14 +66,16 @@ const GroupDetailPage: React.FC = () => {
       const topics = await groupsService.getGroupTopics(groupId);
       setTopicsCount(topics?.length || 0);
       
-      // Load subgroups count
-      const subgroups = await groupsService.getGroupSubgroups(groupId);
-      setSubgroupsCount(subgroups?.length || 0);
+      // Load subgroups count and data
+      const subgroupsData = await groupsService.getGroupSubgroups(groupId);
+      setSubgroupsCount(subgroupsData?.length || 0);
+      setSubgroups(subgroupsData || []);
     } catch (error) {
       console.error('Failed to load counts:', error);
       // Set default counts on error
       setTopicsCount(0);
       setSubgroupsCount(0);
+      setSubgroups([]);
     }
   };
 
@@ -99,15 +106,88 @@ const GroupDetailPage: React.FC = () => {
     }
   };
 
+  const handleNotify = async () => {
+    if (!group) return;
+    
+    try {
+      // Send notification to all group members
+      const members = await groupsService.getGroupMembers(group.id);
+      const notificationData = {
+        type: 'group_notification',
+        groupId: group.id,
+        groupName: group.name,
+        message: `New notification from ${group.name}`,
+        priority: 'medium'
+      };
+      
+      // Send notification to each member
+      for (const member of members) {
+        await groupsService.sendGroupNotification(member.userId, notificationData);
+      }
+      
+      alert(`Notification sent to ${members.length} group members!`);
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+      alert('Failed to send notification. Please try again.');
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: group?.name || 'Group',
+        text: group?.description || 'Check out this group!',
+        url: window.location.href
+      });
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      alert('Group link copied to clipboard!');
+    }
+  };
+
   const handleLeave = async () => {
     if (!group) return;
+    
+    // Check if user is the only admin
+    if (group.memberRole === 'admin') {
+      const members = await groupsService.getGroupMembers(group.id);
+      const adminCount = members.filter(member => member.role === 'admin').length;
+      
+      if (adminCount <= 1) {
+        const confirmTransfer = window.confirm(
+          'You are the only admin of this group. Leaving will delete the group permanently. ' +
+          'Do you want to transfer admin rights to another member first?'
+        );
+        
+        if (confirmTransfer) {
+          // Show member selection for admin transfer
+          const memberList = members
+            .filter(member => member.role !== 'admin')
+            .map(member => `${member.user?.displayName || 'Unknown User'} (${member.role})`)
+            .join('\n');
+          
+          if (memberList) {
+            alert(`Please transfer admin rights to one of these members first:\n\n${memberList}\n\nUse the Manage button to transfer admin rights.`);
+          } else {
+            alert('No other members available to transfer admin rights to. The group will be deleted if you leave.');
+          }
+          return;
+        }
+      }
+    }
+    
+    const confirmLeave = window.confirm('Are you sure you want to leave this group?');
+    if (!confirmLeave) return;
     
     setIsLeaving(true);
     try {
       await socialService.leaveGroup(group.id);
       setGroup(prev => prev ? { ...prev, isMember: false, memberCount: prev.memberCount - 1 } : null);
+      navigate('/groups');
     } catch (error) {
       console.error('Failed to leave group:', error);
+      alert('Failed to leave group. Please try again.');
     } finally {
       setIsLeaving(false);
     }
@@ -252,11 +332,26 @@ const GroupDetailPage: React.FC = () => {
             <div className="flex space-x-2">
               {group.isMember ? (
                 <>
-                  <button className="flex items-center space-x-1 px-2 py-1.5 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300 transition-colors">
+                  <button 
+                    onClick={handleNotify}
+                    className="flex items-center space-x-1 px-2 py-1.5 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300 transition-colors"
+                  >
                     <BellIcon className="w-3 h-3" />
                     <span>Notify</span>
                   </button>
-                  <button className="flex items-center space-x-1 px-2 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors">
+                  {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                    <button 
+                      onClick={() => setShowInviteModal(true)}
+                      className="flex items-center space-x-1 px-2 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                    >
+                      <UserPlusIcon className="w-3 h-3" />
+                      <span>Invite</span>
+                    </button>
+                  )}
+                  <button 
+                    onClick={handleShare}
+                    className="flex items-center space-x-1 px-2 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors"
+                  >
                     <ShareIcon className="w-3 h-3" />
                     <span>Share</span>
                   </button>
@@ -340,57 +435,12 @@ const GroupDetailPage: React.FC = () => {
           )}
 
           {activeTab === 'members' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Admins */}
-                {group.admins.map((admin) => (
-                  <div key={admin.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                      {admin.profile?.avatar ? (
-                        <img src={admin.profile.avatar} alt={admin.profile.displayName} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-gray-600 text-sm">{admin.profile?.displayName?.charAt(0) || 'U'}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900 truncate">{admin.profile?.displayName || 'Unknown User'}</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor('admin')}`}>
-                          Admin
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500">@{admin.profile?.username || 'unknown'}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                {/* Moderators */}
-                {group.moderators.map((moderator) => (
-                  <div key={moderator.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                      {moderator.profile?.avatar ? (
-                        <img src={moderator.profile.avatar} alt={moderator.profile.displayName} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-gray-600 text-sm">{moderator.profile?.displayName?.charAt(0) || 'U'}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900 truncate">{moderator.profile?.displayName || 'Unknown User'}</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor('moderator')}`}>
-                          Moderator
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500">@{moderator.profile?.username || 'unknown'}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <GroupManagementPanel
+              group={group}
+              currentUserId={currentUserId}
+              onSubgroupCreated={handleSubgroupCreated}
+              showOnlyTab="members"
+            />
           )}
 
           {activeTab === 'rules' && (
@@ -427,6 +477,22 @@ const GroupDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Invite Modal */}
+      {showInviteModal && group && (
+        <EnhancedInviteUserModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          groupId={group.id}
+          groupName={group.name}
+          groupCategory={group.category || ''}
+          subgroups={subgroups}
+          onInviteSent={() => {
+            setShowInviteModal(false);
+            // Optionally refresh group data
+          }}
+        />
+      )}
     </div>
   );
 };

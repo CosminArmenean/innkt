@@ -36,6 +36,11 @@ public interface INotificationService
     // Kid-safe notification filtering
     Task<bool> IsNotificationSafeForKidAsync(BaseNotification notification, Guid kidAccountId);
     Task<List<BaseNotification>> FilterNotificationsForKidAsync(List<BaseNotification> notifications, Guid kidAccountId);
+    
+    // Group-specific notifications
+    Task<bool> SendGroupInvitationNotificationAsync(GroupInvitationNotification notification);
+    Task<bool> SendGroupNotificationAsync(GroupNotification notification);
+    Task<bool> SendGroupRoleChangeNotificationAsync(GroupRoleChangeNotification notification);
     Task<bool> RequiresParentApprovalAsync(BaseNotification notification, Guid kidAccountId);
 
     // Multi-channel delivery
