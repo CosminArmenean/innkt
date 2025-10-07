@@ -1,4 +1,4 @@
-import { BaseApiService, groupsApi } from './api.service';
+import { BaseApiService, groupsApi, officerApi } from './api.service';
 import { Group, GroupMember, GroupRule, Post } from './social.service';
 
 // Additional interfaces for new features
@@ -842,11 +842,20 @@ export class GroupsService extends BaseApiService {
       // Extract groupId from request and send only the required fields in the body
       // Backend expects PascalCase property names
       const { groupId, userId, message, subgroupId } = request;
+      
+      console.log('InviteUser - Raw request:', request);
+      console.log('InviteUser - userId type:', typeof userId, 'value:', userId);
+      console.log('InviteUser - groupId type:', typeof groupId, 'value:', groupId);
+      
       const body = { 
         UserId: userId, 
         Message: message, 
         SubgroupId: subgroupId 
       };
+      
+      console.log('InviteUser - Sending body:', body);
+      console.log('InviteUser - POST URL:', `/api/groups/${groupId}/invite`);
+      
       const response = await this.post<GroupInvitationResponse>(`/api/groups/${groupId}/invite`, body);
       return response;
     } catch (error) {
@@ -877,21 +886,34 @@ export class GroupsService extends BaseApiService {
   // User search for invitations
   async searchUsers(query: string): Promise<any[]> {
     try {
-      // This would typically call a user search API
-      // For now, we'll return mock data
-      const mockUsers = [
-        { id: '1', username: 'teresa.lisbon', displayName: 'Teresa Lisbon', avatarUrl: '/avatars/teresa.jpg' },
-        { id: '2', username: 'jane.wayne', displayName: 'Jane Wayne', avatarUrl: '/avatars/jane.jpg' },
-        { id: '3', username: 'kimball.cho', displayName: 'Kimball Cho', avatarUrl: '/avatars/kimball.jpg' }
-      ];
+      // Call the Officer service to search for real users
+      // Note: Route is api/User (capital U) not api/users
+      const response = await officerApi.get(`/api/User/search?query=${encodeURIComponent(query)}&limit=10`);
       
-      return mockUsers.filter(user => 
-        user.username.toLowerCase().includes(query.toLowerCase()) ||
-        user.displayName.toLowerCase().includes(query.toLowerCase())
-      );
+      console.log('User search response:', response.data);
+      
+      // Map the response to the expected format
+      if (response.data && Array.isArray(response.data.users)) {
+        return response.data.users.map((user: any) => {
+          const avatarPath = user.avatarUrl || user.profilePictureUrl;
+          // If avatar path is relative, prepend the Officer service base URL
+          const fullAvatarUrl = avatarPath && avatarPath.startsWith('/') 
+            ? `http://localhost:5001${avatarPath}` 
+            : avatarPath;
+            
+          return {
+            id: user.id || user.userId,
+            username: user.username || user.userName,
+            displayName: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
+            avatarUrl: fullAvatarUrl
+          };
+        });
+      }
+      
+      return [];
     } catch (error) {
       console.error('Failed to search users:', error);
-      throw error;
+      return [];
     }
   }
 

@@ -34,6 +34,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import FollowButton from './FollowButton';
 import UserActionsMenu from './UserActionsMenu';
 import ReportUserModal from './ReportUserModal';
+import KidAccountManagement from '../accounts/KidAccountManagement';
 
 interface UserProfileProfessionalProps {
   userId: string;
@@ -66,6 +67,7 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
   const [showCommentCard, setShowCommentCard] = useState(false);
   const [selectedPostForComments, setSelectedPostForComments] = useState<Post | null>(null);
   const [commentCardPosition, setCommentCardPosition] = useState({ top: 0, left: 0 });
+  const [showKidAccountModal, setShowKidAccountModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -803,7 +805,10 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Kid Accounts</h3>
                     <p className="text-gray-500 mb-4">Create and manage kid accounts for your family</p>
-                    <button className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                    <button 
+                      onClick={() => setShowKidAccountModal(true)}
+                      className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
                       Add Kid Account
                     </button>
                   </div>
@@ -860,6 +865,28 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
             }}
             position={commentCardPosition}
           />
+        )}
+
+        {/* Kid Account Management Modal */}
+        {showKidAccountModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">Kid Account Management</h2>
+                  <button
+                    onClick={() => setShowKidAccountModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <KidAccountManagement parentId={user?.id || ''} hideHeader={true} />
+              </div>
+            </div>
+          </div>
         )}
     </div>
   );

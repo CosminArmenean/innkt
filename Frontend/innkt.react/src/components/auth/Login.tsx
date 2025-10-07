@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleAuth from './GoogleAuth';
+import KidLoginModal from './KidLoginModal';
 
 const Login: React.FC = () => {
   const { login } = useAuth();
@@ -12,6 +13,7 @@ const Login: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showKidLogin, setShowKidLogin] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,8 +160,28 @@ const Login: React.FC = () => {
               <GoogleAuth />
             </div>
           </div>
+
+          {/* Kid Account Login Button */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowKidLogin(true)}
+              className="w-full flex items-center justify-center px-4 py-3 border border-purple-300 rounded-lg text-purple-600 bg-purple-50 hover:bg-purple-100 transition-colors font-medium"
+            >
+              <span className="mr-2">👶</span>
+              Kid Account Login
+            </button>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              For kids: Scan QR code or enter login code
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* Kid Login Modal */}
+      <KidLoginModal 
+        isOpen={showKidLogin} 
+        onClose={() => setShowKidLogin(false)} 
+      />
     </div>
   );
 };

@@ -76,22 +76,26 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
 
   const handleInvite = async () => {
     if (!selectedUser) return;
-
+    
     setIsLoading(true);
+    const inviteData = {
+      groupId: groupId,
+      userId: selectedUser.id,
+      message: inviteMessage,
+      targetType: inviteTarget,
+      subgroupId: inviteTarget === 'subgroup' ? selectedSubgroup : undefined
+    };
+    
     try {
-      const inviteData = {
-        groupId: groupId,
-        userId: selectedUser.id,
-        message: inviteMessage,
-        targetType: inviteTarget,
-        subgroupId: inviteTarget === 'subgroup' ? selectedSubgroup : undefined
-      };
-
+      console.log('Sending invite with data:', inviteData);
+      console.log('Selected user:', selectedUser);
+      
       await groupsService.inviteUser(inviteData);
       onInviteSent();
       onClose();
     } catch (error) {
       console.error('Failed to send invite:', error);
+      console.error('Invite data that failed:', inviteData);
       alert('Failed to send invitation. Please try again.');
     } finally {
       setIsLoading(false);

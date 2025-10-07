@@ -10,6 +10,7 @@ import {
   EyeIcon,
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
+import UsernameInput from '../common/UsernameInput';
 
 interface RegistrationData {
   email: string;
@@ -291,35 +292,24 @@ const EnhancedRegister: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^a-zA-Z0-9.]/g, '');
-                    setFormData(prev => ({ ...prev, username: value }));
-                  }}
-                  className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                    errors.username ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Choose a unique username (letters, numbers, dots only)"
-                />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  {formData.username && (
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      formData.username.length >= 3 ? 'bg-green-100' : 'bg-gray-100'
-                    }`}>
-                      {formData.username.length >= 3 ? (
-                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <UsernameInput
+                value={formData.username}
+                onChange={(value) => setFormData(prev => ({ ...prev, username: value }))}
+                placeholder="Choose a unique username"
+                showSuggestions={true}
+                debounceMs={500}
+                onValidationChange={(isValid, errors) => {
+                  if (!isValid) {
+                    setErrors(prev => ({ ...prev, username: errors.join(', ') }));
+                  } else {
+                    setErrors(prev => {
+                      const newErrors = { ...prev };
+                      delete newErrors.username;
+                      return newErrors;
+                    });
+                  }
+                }}
+              />
               {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
               {formData.username && formData.username.length >= 3 && !errors.username && (
                 <p className="text-green-600 text-sm mt-1">✓ Username looks good!</p>

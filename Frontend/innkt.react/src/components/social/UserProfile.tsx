@@ -9,6 +9,7 @@ import UserActionsMenu from './UserActionsMenu';
 import ReportUserModal from './ReportUserModal';
 import PageLayout from '../layout/PageLayout';
 import ScrollableContent from '../layout/ScrollableContent';
+import KidAccountManagement from '../accounts/KidAccountManagement';
 
 interface UserProfileProps {
   userId: string;
@@ -37,6 +38,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showKidAccountModal, setShowKidAccountModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -799,7 +801,10 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                             </svg>
                             <span>Add Family Member</span>
                           </button>
-                          <button className="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium flex items-center justify-center space-x-2">
+                          <button 
+                            onClick={() => setShowKidAccountModal(true)}
+                            className="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                          >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
@@ -1177,6 +1182,28 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                   Save Changes
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kid Account Management Modal */}
+      {showKidAccountModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Kid Account Management</h2>
+                <button
+                  onClick={() => setShowKidAccountModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <KidAccountManagement parentId={user?.id || ''} />
             </div>
           </div>
         </div>

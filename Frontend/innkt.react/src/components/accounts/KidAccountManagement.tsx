@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { socialService, UserProfile } from '../../services/social.service';
 import { qrCodeService, QRCodeGenerationResult } from '../../services/qr-code.service';
+import { kinderService, KidLoginCodeResponse } from '../../services/kinder.service';
+import { officerService, CreateKidAccountRequest } from '../../services/officer.service';
+import ParentalControlDashboard from './ParentalControlDashboard';
+import UsernameInput from '../common/UsernameInput';
 
 interface KidAccountManagementProps {
   parentId: string;
+  hideHeader?: boolean;
 }
 
 interface KidAccount extends UserProfile {
   qrCode?: QRCodeGenerationResult;
+  loginCode?: KidLoginCodeResponse; // New: Kinder service login code
   independenceDate?: string;
+  age?: number; // Kid's age for maturity calculations
   parentalControls: {
     canPost: boolean;
     canMessage: boolean;
@@ -25,13 +32,14 @@ interface KidAccount extends UserProfile {
   };
 }
 
-const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId }) => {
+const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId, hideHeader = false }) => {
   const [kidAccounts, setKidAccounts] = useState<KidAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedKid, setSelectedKid] = useState<KidAccount | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showVerificationRequired, setShowVerificationRequired] = useState(false);
 
   // Form state for creating kid account
   const [newKidAccount, setNewKidAccount] = useState({
@@ -59,61 +67,63 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
   const loadKidAccounts = async () => {
     setIsLoading(true);
     try {
-      // This would be a custom endpoint to get kid accounts for a parent
-      const response = await socialService.getUserProfile(parentId);
-      // For now, we'll simulate kid accounts
-             const mockKidAccounts: KidAccount[] = [
-         {
-           id: 'kid1',
-           username: 'alex_kid',
-           displayName: 'Alex Johnson',
-           email: 'alex@example.com',
-           isKidAccount: true,
-           isVerified: false,
-           parentId: parentId,
-           independenceDate: '2025-12-31',
-          followersCount: 0,
-          followingCount: 0,
-          postsCount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          preferences: {
-            privacyLevel: 'private',
-            allowDirectMessages: false,
-            allowMentions: true,
-            notificationSettings: {
-              newFollowers: false,
-              newPosts: true,
-              mentions: true,
-              directMessages: false,
-              groupUpdates: false,
-              emailNotifications: false,
-              pushNotifications: true,
-            },
-            theme: 'light',
-            language: 'en',
+      // Get kid accounts from Officer service
+      const kidAccountsData = await officerService.getParentKidAccounts(parentId);
+      
+      // Convert to KidAccount format for the UI
+      const kidAccounts: KidAccount[] = kidAccountsData.map(kid => ({
+        id: kid.id,
+        username: kid.firstName.toLowerCase() + '.' + kid.lastName.toLowerCase(),
+        displayName: kid.fullName,
+        email: `${kid.firstName.toLowerCase()}.${kid.lastName.toLowerCase()}@innkt.kid`,
+        isKidAccount: true,
+        isVerified: false,
+        parentId: kid.parentUserId,
+        independenceDate: kid.independenceDate,
+        followersCount: 0,
+        followingCount: 0,
+        postsCount: 0,
+        createdAt: kid.createdAt,
+        updatedAt: kid.createdAt,
+        preferences: {
+          privacyLevel: 'private',
+          allowDirectMessages: false,
+          allowMentions: true,
+          notificationSettings: {
+            newFollowers: false,
+            newPosts: true,
+            mentions: true,
+            directMessages: false,
+            groupUpdates: false,
+            emailNotifications: false,
+            pushNotifications: true,
+          },
+          theme: 'light',
+          language: 'en',
+          timezone: 'UTC',
+        },
+        socialLinks: {},
+        parentalControls: {
+          canPost: true,
+          canMessage: false,
+          canJoinGroups: false,
+          canViewContent: 'filtered',
+          timeRestrictions: {
+            enabled: true,
+            startTime: '08:00',
+            endTime: '20:00',
             timezone: 'UTC',
           },
-          socialLinks: {},
-          parentalControls: {
-            canPost: true,
-            canMessage: false,
-            canJoinGroups: false,
-            canViewContent: 'filtered',
-            timeRestrictions: {
-              enabled: true,
-              startTime: '08:00',
-              endTime: '20:00',
-              timezone: 'UTC',
-            },
-            contentFilters: ['violence', 'adult-content'],
-            allowedContacts: [],
-          },
+          contentFilters: ['violence', 'adult-content'],
+          allowedContacts: [],
         },
-      ];
-      setKidAccounts(mockKidAccounts);
+      }));
+      
+      setKidAccounts(kidAccounts);
     } catch (error) {
       console.error('Failed to load kid accounts:', error);
+      // Fallback to empty array if service is not available
+      setKidAccounts([]);
     } finally {
       setIsLoading(false);
     }
@@ -129,26 +139,32 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
 
     setIsLoading(true);
     try {
-      const kidData = {
+      // Split display name into first and last name
+      const displayNameParts = newKidAccount.displayName.trim().split(' ');
+      const firstName = displayNameParts[0] || newKidAccount.displayName.trim();
+      const lastName = displayNameParts.slice(1).join(' ') || 'User'; // Default to 'User' if no last name
+
+      const kidData: CreateKidAccountRequest = {
         username: newKidAccount.username.trim(),
-        displayName: newKidAccount.displayName.trim(),
-        dateOfBirth: newKidAccount.dateOfBirth,
-        isKidAccount: true,
-        parentId: parentId,
+        firstName: firstName,
+        lastName: lastName,
+        birthDate: newKidAccount.dateOfBirth,
+        country: 'US', // Default country, could be made configurable
         independenceDate: newKidAccount.independenceDate,
-        parentalControls: newKidAccount.parentalControls,
+        acceptTerms: true,
+        acceptPrivacyPolicy: true,
       };
 
-      // This would be a custom endpoint to create kid accounts
-      const createdKid = await socialService.createUser(kidData);
+      // Create kid account via Officer service
+      const createdKid = await officerService.createKidAccount(kidData);
       
       // Generate QR code for the kid account
       const qrData = {
         type: 'kid_account',
-        kidId: createdKid.id,
+        kidId: createdKid.kidAccountId,
         parentId: parentId,
-        username: createdKid.username,
-        independenceDate: createdKid.independenceDate,
+        username: newKidAccount.username.trim(),
+        independenceDate: newKidAccount.independenceDate,
       };
 
       const qrCode = await qrCodeService.generateQRCode({
@@ -159,24 +175,66 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
         errorCorrection: 'H',
       });
 
+      // Create a mock kid account object for the UI
       const kidWithQR: KidAccount = {
-        ...createdKid,
-        qrCode,
+        id: createdKid.kidAccountId,
+        username: newKidAccount.username.trim(),
+        displayName: newKidAccount.displayName.trim(),
+        email: `${newKidAccount.username.trim()}@innkt.kid`,
+        isKidAccount: true,
+        isVerified: false,
+        parentId: parentId,
+        independenceDate: newKidAccount.independenceDate,
+        followersCount: 0,
+        followingCount: 0,
+        postsCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preferences: {
+          privacyLevel: 'private',
+          allowDirectMessages: false,
+          allowMentions: true,
+          notificationSettings: {
+            newFollowers: false,
+            newPosts: true,
+            mentions: true,
+            directMessages: false,
+            groupUpdates: false,
+            emailNotifications: false,
+            pushNotifications: true,
+          },
+          theme: 'light',
+          language: 'en',
+          timezone: 'UTC',
+        },
+        socialLinks: {},
         parentalControls: newKidAccount.parentalControls,
+        qrCode,
       };
 
       setKidAccounts(prev => [kidWithQR, ...prev]);
       setShowCreateModal(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create kid account:', error);
-      alert('Failed to create kid account. Please try again.');
+      console.log('Error response data:', error.response?.data);
+      console.log('Error response data type:', typeof error.response?.data);
+      
+      // Check if the error is due to parent verification requirement
+      if (typeof error.response?.data === 'string' && 
+          error.response.data.includes("Parent user must be verified to create kid accounts")) {
+        console.log('Showing verification required modal');
+        setShowVerificationRequired(true);
+      } else {
+        console.log('Showing generic error alert');
+        alert('Failed to create kid account. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Generate QR code for existing kid
+  // Generate QR code for existing kid (Legacy - NeuroSpark)
   const generateQRForKid = async (kid: KidAccount) => {
     try {
       const qrData = {
@@ -202,6 +260,30 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
       return qrCode;
     } catch (error) {
       console.error('Failed to generate QR code:', error);
+      return null;
+    }
+  };
+
+  // Generate login code with QR for kid (NEW - Kinder Service)
+  const generateLoginCodeForKid = async (kid: KidAccount, expirationDays: number = 0) => {
+    try {
+      console.log('Generating login code for kid:', kid.id);
+      
+      const loginCode = await kinderService.generateLoginCode({
+        kidAccountId: kid.id,
+        parentId: parentId,
+        expirationDays: expirationDays // 0 = use maturity-based default
+      });
+
+      console.log('Login code generated:', loginCode);
+
+      setKidAccounts(prev =>
+        prev.map(k => k.id === kid.id ? { ...k, loginCode } : k)
+      );
+
+      return loginCode;
+    } catch (error) {
+      console.error('Failed to generate login code:', error);
       return null;
     }
   };
@@ -275,23 +357,39 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Kid Account Management</h2>
-          <p className="text-gray-600">Manage your children's accounts and parental controls</p>
+      {!hideHeader && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Kid Account Management</h2>
+            <p className="text-gray-600">Manage your children's accounts and parental controls</p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn-primary"
+          >
+            Add Kid Account
+          </button>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="btn-primary"
-        >
-          Add Kid Account
-        </button>
-      </div>
+      )}
 
       {/* Kid Accounts Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-innkt-primary"></div>
+        </div>
+      ) : kidAccounts.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <span className="text-2xl">👶</span>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Kid Accounts Yet</h3>
+          <p className="text-gray-600 mb-6">Create your first kid account to get started with parental controls.</p>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn-primary"
+          >
+            Create First Kid Account
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -398,12 +496,12 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Username *
                 </label>
-                <input
-                  type="text"
+                <UsernameInput
                   value={newKidAccount.username}
-                  onChange={(e) => setNewKidAccount(prev => ({ ...prev, username: e.target.value }))}
-                  className="input-field"
+                  onChange={(value) => setNewKidAccount(prev => ({ ...prev, username: value }))}
                   placeholder="Enter username"
+                  showSuggestions={true}
+                  debounceMs={500}
                 />
               </div>
 
@@ -522,156 +620,124 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId })
             </h3>
             
             <div className="text-center">
-              <div className="w-48 h-48 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                {selectedKid.qrCode ? (
+              <div className="w-64 h-64 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                {selectedKid.loginCode ? (
                   <img
-                    src={selectedKid.qrCode.qrCodeUrl}
-                    alt="QR Code"
-                    className="w-full h-full object-contain"
+                    src={selectedKid.loginCode.qrCodeDataUrl}
+                    alt="Login QR Code"
+                    className="w-full h-full object-contain p-4"
                   />
                 ) : (
                   <span className="text-gray-500">QR Code will appear here</span>
                 )}
               </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Share this QR code with teachers or caregivers to allow them to post on behalf of <strong>{selectedKid.displayName}</strong>
+
+              {selectedKid.loginCode && (
+                <div className="space-y-3 mb-4">
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-2">Login Code:</p>
+                    <p className="text-2xl font-mono font-bold text-purple-600 tracking-widest">
+                      {selectedKid.loginCode.code}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Maturity Level:</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      selectedKid.loginCode.maturityLevel === 'high' ? 'bg-green-100 text-green-800' :
+                      selectedKid.loginCode.maturityLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {selectedKid.loginCode.maturityLevel.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Expires:</span>
+                    <span className="text-gray-900 font-medium">
+                      {new Date(selectedKid.loginCode.expiresAt).toLocaleDateString()} 
+                      ({selectedKid.loginCode.expirationDays} days)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-sm text-gray-600">
+                {selectedKid.loginCode 
+                  ? 'Your kid can scan this QR code or enter the code to login securely.'
+                  : `Generate a secure login code for ${selectedKid.displayName}'s device. Expiration is based on maturity level.`
+                }
               </p>
             </div>
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4">
               <button
                 onClick={() => setShowQRModal(false)}
                 className="btn-secondary"
               >
                 Close
               </button>
-              {!selectedKid.qrCode && (
-                <button
-                  onClick={async () => {
-                    await generateQRForKid(selectedKid);
-                  }}
-                  className="btn-primary"
-                >
-                  Generate QR Code
-                </button>
-              )}
+              <button
+                onClick={async () => {
+                  await generateLoginCodeForKid(selectedKid);
+                }}
+                className="btn-primary"
+              >
+                {selectedKid.loginCode ? 'Regenerate Code' : 'Generate Login Code'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Settings Modal */}
+      {/* Settings Modal - Parental Control Dashboard */}
       {showSettingsModal && selectedKid && (
+        <ParentalControlDashboard
+          kid={{
+            id: selectedKid.id,
+            username: selectedKid.username,
+            displayName: selectedKid.displayName,
+            age: selectedKid.age || 10 // Default age if not set
+          }}
+          parentId={parentId}
+          onClose={() => setShowSettingsModal(false)}
+        />
+      )}
+
+      {/* Verification Required Modal */}
+      {showVerificationRequired && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Parental Controls - {selectedKid.displayName}
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full mb-4">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            
+            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+              Account Verification Required
             </h3>
             
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">Permissions</h4>
-                
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedKid.parentalControls.canPost}
-                    onChange={(e) => handleUpdateParentalControls(selectedKid.id, { canPost: e.target.checked })}
-                    className="rounded border-gray-300 text-innkt-primary focus:ring-innkt-primary"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Can create posts</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedKid.parentalControls.canMessage}
-                    onChange={(e) => handleUpdateParentalControls(selectedKid.id, { canMessage: e.target.checked })}
-                    className="rounded border-gray-300 text-innkt-primary focus:ring-innkt-primary"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Can send messages</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedKid.parentalControls.canJoinGroups}
-                    onChange={(e) => handleUpdateParentalControls(selectedKid.id, { canJoinGroups: e.target.checked })}
-                    className="rounded border-gray-300 text-innkt-primary focus:ring-innkt-primary"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Can join groups</span>
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Content Filter Level
-                </label>
-                <select
-                  value={selectedKid.parentalControls.canViewContent}
-                  onChange={(e) => handleUpdateParentalControls(selectedKid.id, { canViewContent: e.target.value as any })}
-                  className="input-field"
-                >
-                  <option value="all">All Content</option>
-                  <option value="filtered">Filtered Content</option>
-                  <option value="restricted">Restricted Content</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedKid.parentalControls.timeRestrictions.enabled}
-                    onChange={(e) => handleUpdateParentalControls(selectedKid.id, {
-                      timeRestrictions: {
-                        ...selectedKid.parentalControls.timeRestrictions,
-                        enabled: e.target.checked
-                      }
-                    })}
-                    className="rounded border-gray-300 text-innkt-primary focus:ring-innkt-primary"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Enable time restrictions</span>
-                </label>
-
-                {selectedKid.parentalControls.timeRestrictions.enabled && (
-                  <div className="ml-6 space-y-2">
-                    <div className="flex space-x-2">
-                      <input
-                        type="time"
-                        value={selectedKid.parentalControls.timeRestrictions.startTime}
-                        onChange={(e) => handleUpdateParentalControls(selectedKid.id, {
-                          timeRestrictions: {
-                            ...selectedKid.parentalControls.timeRestrictions,
-                            startTime: e.target.value
-                          }
-                        })}
-                        className="input-field flex-1"
-                      />
-                      <span className="text-gray-500 self-center">to</span>
-                      <input
-                        type="time"
-                        value={selectedKid.parentalControls.timeRestrictions.endTime}
-                        onChange={(e) => handleUpdateParentalControls(selectedKid.id, {
-                          timeRestrictions: {
-                            ...selectedKid.parentalControls.timeRestrictions,
-                            endTime: e.target.value
-                          }
-                        })}
-                        className="input-field flex-1"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
+            <p className="text-gray-600 text-center mb-6">
+              To create kid accounts, you need to verify your identity first. This helps us ensure a safe environment for children.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => setShowSettingsModal(false)}
-                className="btn-secondary"
+                onClick={() => setShowVerificationRequired(false)}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                Close
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowVerificationRequired(false);
+                  // Navigate to verification page - you can customize this route
+                  window.location.href = '/verification';
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Go to Verification
               </button>
             </div>
           </div>
