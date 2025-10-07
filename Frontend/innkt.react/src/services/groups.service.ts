@@ -839,7 +839,10 @@ export class GroupsService extends BaseApiService {
   // Group invitation methods
   async inviteUser(request: InviteUserRequest): Promise<GroupInvitationResponse> {
     try {
-      const response = await this.post<GroupInvitationResponse>(`/api/groups/${request.groupId}/invite`, request);
+      // Extract groupId from request and send only the required fields in the body
+      const { groupId, userId, message, subgroupId } = request;
+      const body = { userId, message, subgroupId };
+      const response = await this.post<GroupInvitationResponse>(`/api/groups/${groupId}/invite`, body);
       return response;
     } catch (error) {
       console.error('Failed to invite user:', error);
