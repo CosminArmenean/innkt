@@ -840,8 +840,13 @@ export class GroupsService extends BaseApiService {
   async inviteUser(request: InviteUserRequest): Promise<GroupInvitationResponse> {
     try {
       // Extract groupId from request and send only the required fields in the body
+      // Backend expects PascalCase property names
       const { groupId, userId, message, subgroupId } = request;
-      const body = { userId, message, subgroupId };
+      const body = { 
+        UserId: userId, 
+        Message: message, 
+        SubgroupId: subgroupId 
+      };
       const response = await this.post<GroupInvitationResponse>(`/api/groups/${groupId}/invite`, body);
       return response;
     } catch (error) {
