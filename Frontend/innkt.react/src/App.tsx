@@ -21,6 +21,7 @@ import SocialDashboard from './components/social/SocialDashboard';
 import SearchPage from './components/search/SearchPage';
 import GroupsPage from './components/groups/GroupsPage';
 import GroupDetailPage from './components/groups/GroupDetailPage';
+import InvitePage from './pages/InvitePage';
 import AdvancedFeatures from './components/pages/AdvancedFeatures';
 import MessagingDashboard from './components/messaging/MessagingDashboard';
 import FollowersPage from './components/social/FollowersPage';
@@ -104,6 +105,16 @@ function App() {
               <Route path="/groups/:id" element={
                 <ProtectedRoute>
                   <GroupDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/invite/:inviteId" element={
+                <ProtectedRoute>
+                  <InvitePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-invite" element={
+                <ProtectedRoute>
+                  <InvitePage />
                 </ProtectedRoute>
               } />
               <Route path="/followers" element={

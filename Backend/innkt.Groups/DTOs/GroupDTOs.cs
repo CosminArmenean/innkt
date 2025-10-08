@@ -91,6 +91,12 @@ public class JoinGroupRequest
     public string? Message { get; set; }
 }
 
+public class JoinGroupWithKidRequest
+{
+    [Required]
+    public string KidAccountId { get; set; } = string.Empty;
+}
+
 public class LeaveGroupRequest
 {
     [Required]
@@ -123,10 +129,17 @@ public class GroupMemberResponse
     public Guid GroupId { get; set; }
     public Guid UserId { get; set; }
     public string Role { get; set; } = string.Empty;
+    public Guid? AssignedRoleId { get; set; } // Custom role assignment
     public DateTime JoinedAt { get; set; }
     public DateTime? LastSeenAt { get; set; }
     public bool IsActive { get; set; }
     public UserBasicInfo? User { get; set; }
+    
+    // Parent-Kid relationship fields
+    public bool IsParentAccount { get; set; } = false;
+    public Guid? ParentId { get; set; }
+    public Guid? KidId { get; set; }
+    public Guid? KidAccountId { get; set; }
 }
 
 public class GroupMemberListResponse
@@ -1238,6 +1251,13 @@ public class RolePermissions
     public bool CanManageRoles { get; set; } = false;
     public bool CanManageSubgroups { get; set; } = false;
     public bool CanManageSettings { get; set; } = false;
+    
+    // Role-based posting permissions
+    public bool CanPostText { get; set; } = true;
+    public bool CanPostImages { get; set; } = true;
+    public bool CanPostPolls { get; set; } = false;
+    public bool CanPostVideos { get; set; } = false;
+    public bool CanPostAnnouncements { get; set; } = false;
     public bool CanModerateContent { get; set; } = false;
 }
 
@@ -1263,12 +1283,71 @@ public class AssignRoleRequest
     [Required]
     public Guid UserId { get; set; }
 
-    [Required]
-    public Guid RoleId { get; set; }
+    // RoleId can be null to remove custom role assignment
+    public Guid? RoleId { get; set; }
 
     public Guid? SubgroupId { get; set; }
     public bool IsParentAccount { get; set; } = false;
     public Guid? KidAccountId { get; set; }
+}
+
+// Role-based posting request
+public class CreateRolePostRequest
+{
+    [Required]
+    public Guid GroupId { get; set; }
+    
+    [Required]
+    public Guid UserId { get; set; }
+    
+    public Guid? TopicId { get; set; } // For topic posts
+    
+    [Required]
+    public string Content { get; set; } = string.Empty;
+    
+    public string[]? MediaUrls { get; set; }
+    
+    public string[]? Hashtags { get; set; }
+    
+    public string[]? Mentions { get; set; }
+    
+    public string? Location { get; set; }
+    
+    public bool IsAnnouncement { get; set; } = false;
+    
+    // Role posting context
+    public Guid? PostedAsRoleId { get; set; }
+    public string? PostedAsRoleName { get; set; }
+    public string? PostedAsRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; } = false;
+}
+
+// Role posting response
+public class RolePostResponse
+{
+    public Guid Id { get; set; }
+    public Guid GroupId { get; set; }
+    public Guid UserId { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string[]? MediaUrls { get; set; }
+    public string[]? Hashtags { get; set; }
+    public string[]? Mentions { get; set; }
+    public string? Location { get; set; }
+    public bool IsAnnouncement { get; set; }
+    public bool IsPinned { get; set; }
+    
+    // Role posting context
+    public Guid? PostedAsRoleId { get; set; }
+    public string? PostedAsRoleName { get; set; }
+    public string? PostedAsRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; }
+    public string? RealUsername { get; set; }
+    
+    // User info
+    public string UserDisplayName { get; set; } = string.Empty;
+    public string? UserAvatarUrl { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
 }
 
 public class RoleMemberResponse
@@ -1651,4 +1730,5 @@ public class HomeworkAnalytics
     public Dictionary<string, int> ScoreDistribution { get; set; } = new();
     public Dictionary<string, int> SubmissionTimeline { get; set; } = new();
 }
+
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { socialService, Post, PostLocation } from '../../services/social.service';
-import { groupsService, PollResponse, TopicResponse } from '../../services/groups.service';
-import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { groupsService, PollResponse, TopicResponse, GroupRoleResponse } from '../../services/groups.service';
+import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import GroupPoll from './GroupPoll';
 
 interface GroupPostCreationProps {
@@ -37,11 +37,17 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showPollCreation, setShowPollCreation] = useState(false);
   
+  // Role-based posting state
+  const [availableRoles, setAvailableRoles] = useState<GroupRoleResponse[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     loadTopics();
+    loadUserRoles();
   }, [groupId]);
 
   const loadTopics = async () => {
@@ -49,7 +55,18 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
       const topics = await groupsService.getGroupTopics(groupId);
       setTopics(topics);
     } catch (error) {
-      console.error('Failed to load group topics:', error);
+      console.error('Failed to load topics:', error);
+    }
+  };
+
+  const loadUserRoles = async () => {
+    try {
+      console.log('🔍 Loading user roles for group:', groupId);
+      const roles = await groupsService.getUserRolesInGroup(groupId);
+      console.log('📋 Available roles:', roles);
+      setAvailableRoles(roles);
+    } catch (error) {
+      console.error('❌ Failed to load user roles:', error);
     }
   };
 
@@ -126,6 +143,9 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
     setIsLoading(true);
     
     try {
+      // Get selected role info
+      const selectedRoleInfo = selectedRole ? availableRoles.find(r => r.id === selectedRole) : null;
+      
       // Create the post
       const postData: any = {
         content: content.trim(),
@@ -135,6 +155,11 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
         groupId: groupId,
         location: location || undefined,
         topicId: selectedTopic || undefined,
+        // Role posting context
+        postedAsRoleId: selectedRoleInfo?.id,
+        postedAsRoleName: selectedRoleInfo?.name,
+        postedAsRoleAlias: selectedRoleInfo?.alias,
+        showRealUsername: selectedRoleInfo?.showRealUsername || false,
       };
 
       let newPost;
@@ -428,6 +453,19 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
             <ChartBarIcon className="w-5 h-5" />
           </button>
 
+          {/* Role Selector */}
+          <button
+            onClick={() => setShowRoleSelector(!showRoleSelector)}
+            className={`p-2 rounded-full transition-colors ${
+              selectedRole 
+                ? 'text-purple-600 bg-purple-50' 
+                : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'
+            }`}
+            title="Post as role"
+          >
+            <UserGroupIcon className="w-5 h-5" />
+          </button>
+
           {/* Advanced Options */}
           <button
             onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
@@ -529,6 +567,63 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Selector */}
+      {showRoleSelector && (
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Post as Role</h4>
+          <div className="space-y-2">
+            <button
+              onClick={() => setSelectedRole(null)}
+              className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                !selectedRole 
+                  ? 'bg-purple-100 text-purple-700' 
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium">👤</span>
+                </div>
+                <div>
+                  <div className="font-medium">Post as yourself</div>
+                  <div className="text-xs text-gray-500">Your personal account</div>
+                </div>
+              </div>
+            </button>
+            
+            {availableRoles.length > 0 ? (
+              availableRoles.map((role) => (
+                <button
+                  key={role.id}
+                  onClick={() => setSelectedRole(role.id)}
+                  className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                    selectedRole === role.id 
+                      ? 'bg-purple-100 text-purple-700' 
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium">
+                        {role.alias ? role.alias.charAt(0).toUpperCase() : role.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-medium">{role.alias || role.name}</div>
+                      <div className="text-xs text-gray-500">{role.name}</div>
+                    </div>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-500">
+                No roles assigned. Contact group admin to get a role.
+              </div>
+            )}
           </div>
         </div>
       )}

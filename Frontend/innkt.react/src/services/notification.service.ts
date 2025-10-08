@@ -5,7 +5,7 @@ import { monitoringService } from './monitoring.service';
 
 export interface Notification {
   id: string;
-  type: 'follow' | 'like' | 'comment' | 'message' | 'group_invite' | 'post_mention' | 'system' | 'grok_response' | 'kid_follow_request' | 'kid_post' | 'kid_message' | 'kid_content_flagged' | 'kid_time_limit' | 'comment_notification' | 'like_notification' | 'follow_notification';
+  type: 'follow' | 'like' | 'comment' | 'message' | 'group_invite' | 'group_invitation' | 'post_mention' | 'system' | 'grok_response' | 'kid_follow_request' | 'kid_post' | 'kid_message' | 'kid_content_flagged' | 'kid_time_limit' | 'comment_notification' | 'like_notification' | 'follow_notification';
   title: string;
   body: string;
   data?: any;
@@ -29,6 +29,7 @@ export interface NotificationCounts {
     comment: number;
     message: number;
     group_invite: number;
+    group_invitation: number;
     post_mention: number;
     system: number;
     grok_response: number;
@@ -543,7 +544,9 @@ class NotificationService {
   // Navigate to notification-related content
   async navigateToNotification(notification: Notification, navigate?: (path: string) => void) {
     console.log('🧭 Navigating to notification:', notification);
+    console.log('🧭 Notification type:', notification.type);
     console.log('🧭 Notification data:', notification.data);
+    console.log('🧭 Related content ID:', notification.relatedContentId);
     
     // If using React Router navigation, we can keep the connection alive
     // If using window.location.href, we should gracefully disconnect first
@@ -624,6 +627,25 @@ class NotificationService {
             navigate(`/post/${notification.relatedContentId}`);
           } else {
             window.location.href = `/post/${notification.relatedContentId}`;
+          }
+        }
+        break;
+      case 'group_invitation':
+        if (notification.relatedContentId) {
+          // Navigate to invite page
+          console.log('🧭 Navigating to group invitation:', `/invite/${notification.relatedContentId}`);
+          if (navigate) {
+            navigate(`/invite/${notification.relatedContentId}`);
+          } else {
+            window.location.href = `/invite/${notification.relatedContentId}`;
+          }
+        } else {
+          // Fallback: use notification ID as invite ID
+          console.log('🧭 No relatedContentId, using notification ID as invite ID:', `/invite/${notification.id}`);
+          if (navigate) {
+            navigate(`/invite/${notification.id}`);
+          } else {
+            window.location.href = `/invite/${notification.id}`;
           }
         }
         break;

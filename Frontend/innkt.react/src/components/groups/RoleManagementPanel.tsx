@@ -12,7 +12,10 @@ import {
   XMarkIcon,
   EyeIcon,
   EyeSlashIcon,
-  CogIcon
+  CogIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 
 interface RoleManagementPanelProps {
@@ -57,6 +60,15 @@ const RoleManagementPanel: React.FC<RoleManagementPanelProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingRole, setEditingRole] = useState<GroupRoleResponse | null>(null);
+  
+  // New state for improved member management
+  const [showMemberAssignment, setShowMemberAssignment] = useState(false);
+  const [memberSearchTerm, setMemberSearchTerm] = useState('');
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  
+  // State for role-specific member assignment
+  const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
+  const [roleMemberAssignments, setRoleMemberAssignments] = useState<{[roleId: string]: string[]}>({});
   const [formData, setFormData] = useState<CreateRoleFormData>({
     name: '',
     alias: '',
@@ -96,12 +108,37 @@ const RoleManagementPanel: React.FC<RoleManagementPanelProps> = ({
 
   const loadMembers = async () => {
     try {
+      setIsLoadingMembers(true);
       const response = await groupsService.getGroupMembers(groupId);
       // Handle both GroupMember[] and GroupMemberResponse[] types
-      const members = Array.isArray(response) ? response : (response as any).members || [];
-      setMembers(members);
+      const allMembers = Array.isArray(response) ? response : (response as any).members || [];
+      
+      // Filter out kid accounts - only show main group members (adults)
+      const mainGroupMembers = allMembers.filter((member: any) => {
+        // Only filter out actual kid accounts, but keep parent accounts
+        // Parent accounts can have roles assigned to them
+        return !member.kidAccountId && !member.kidId;
+      });
+      
+      console.log('🔍 Loaded main group members:', mainGroupMembers.length, 'out of', allMembers.length);
+      setMembers(mainGroupMembers);
+      
+      // Load existing role assignments from member data
+      const assignments: {[roleId: string]: string[]} = {};
+      mainGroupMembers.forEach((member: any) => {
+        if (member.assignedRoleId) {
+          if (!assignments[member.assignedRoleId]) {
+            assignments[member.assignedRoleId] = [];
+          }
+          assignments[member.assignedRoleId].push(member.id);
+        }
+      });
+      setRoleMemberAssignments(assignments);
+      console.log('🔍 Loaded role assignments:', assignments);
     } catch (error) {
       console.error('Failed to load members:', error);
+    } finally {
+      setIsLoadingMembers(false);
     }
   };
 
@@ -272,6 +309,145 @@ const RoleManagementPanel: React.FC<RoleManagementPanelProps> = ({
     });
   };
 
+  // Helper function to get proper user display name
+  const getUserDisplayName = (member: any): string => {
+    // Try different possible fields for user name
+    if (member.user?.displayName) return member.user.displayName;
+    if (member.user?.username) return member.user.username;
+    if (member.userName) return member.userName;
+    if (member.username) return member.username;
+    if (member.displayName) return member.displayName;
+    if (member.user?.firstName && member.user?.lastName) {
+      return `${member.user.firstName} ${member.user.lastName}`;
+    }
+    if (member.firstName && member.lastName) {
+      return `${member.firstName} ${member.lastName}`;
+    }
+    return 'Unknown User';
+  };
+
+  // Helper function to get user role
+  const getUserRole = (member: any): string => {
+    return member.roleName || member.role || 'Member';
+  };
+
+  // Filter members based on search term
+  const filteredMembers = members.filter((member) => {
+    const displayName = getUserDisplayName(member).toLowerCase();
+    const searchTerm = memberSearchTerm.toLowerCase();
+    return displayName.includes(searchTerm);
+  });
+
+  // Get members assigned to a specific role
+  const getRoleMembers = (roleId: string): (GroupMemberResponse | GroupMember)[] => {
+    const assignedMemberIds = roleMemberAssignments[roleId] || [];
+    return members.filter(member => assignedMemberIds.includes(member.id));
+  };
+
+  // Get available members for a role (not already assigned to this role)
+  const getAvailableMembersForRole = (roleId: string): (GroupMemberResponse | GroupMember)[] => {
+    const assignedMemberIds = roleMemberAssignments[roleId] || [];
+    return members.filter(member => !assignedMemberIds.includes(member.id));
+  };
+
+  // Add member to role
+  const addMemberToRole = async (roleId: string, memberId: string) => {
+    console.log('🎯 addMemberToRole called:', { roleId, memberId });
+    
+    const currentAssignments = roleMemberAssignments[roleId] || [];
+    if (currentAssignments.length >= 3) {
+      alert('Maximum 3 members per role allowed');
+      return;
+    }
+    
+    try {
+      // Find the member to get their userId
+      const member = members.find(m => m.id === memberId);
+      if (!member) {
+        alert('❌ Member not found');
+        return;
+      }
+      
+      // Get userId from member (handle both GroupMemberResponse and GroupMember types)
+      const memberUserId = 'userId' in member ? member.userId : member.profile?.id || memberId;
+      console.log('🎯 Member details:', { member, memberUserId });
+      
+      // Call the API to assign the role
+      console.log('🎯 Calling assignRoleToMember API:', { groupId, memberId: memberUserId, roleId });
+      await groupsService.assignRoleToMember({
+        groupId,
+        memberId: memberUserId,
+        roleId
+      });
+      
+      console.log('✅ API call successful');
+      
+      // Update local state
+      setRoleMemberAssignments(prev => ({
+        ...prev,
+        [roleId]: [...currentAssignments, memberId]
+      }));
+      
+      // Show success notification
+      alert('✅ Role assigned successfully!');
+      
+      // Reload members to get updated data
+      await loadMembers();
+    } catch (error) {
+      console.error('❌ Failed to assign role to member:', error);
+      alert('❌ Failed to assign role. Please try again.');
+    }
+  };
+
+  // Remove member from role
+  const removeMemberFromRole = async (roleId: string, memberId: string) => {
+    console.log('🎯 removeMemberFromRole called:', { roleId, memberId });
+    
+    try {
+      // To remove a role, we need to find the member's userId
+      const member = members.find(m => m.id === memberId);
+      if (!member) {
+        alert('❌ Member not found');
+        return;
+      }
+      
+      // Get userId from member (handle both GroupMemberResponse and GroupMember types)
+      const memberUserId = 'userId' in member ? member.userId : member.profile?.id || memberId;
+      console.log('🎯 Member details for removal:', { member, memberUserId });
+      
+      // Assign null roleId to remove custom role
+      console.log('🎯 Calling assignRoleToMember API to remove role:', { groupId, memberId: memberUserId, roleId: '' });
+      await groupsService.assignRoleToMember({
+        groupId,
+        memberId: memberUserId,
+        roleId: '' // Empty string will be converted to null on backend
+      });
+      
+      console.log('✅ Role removal API call successful');
+      
+      // Update local state
+      setRoleMemberAssignments(prev => ({
+        ...prev,
+        [roleId]: (prev[roleId] || []).filter(id => id !== memberId)
+      }));
+      
+      // Show success notification
+      alert('✅ Role removed successfully!');
+      
+      // Reload members to get updated data
+      await loadMembers();
+    } catch (error) {
+      console.error('❌ Failed to remove role from member:', error);
+      alert('❌ Failed to remove role. Please try again.');
+    }
+  };
+
+  // Toggle role expansion
+  const toggleRoleExpansion = (roleId: string) => {
+    setExpandedRoleId(expandedRoleId === roleId ? null : roleId);
+  };
+
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -419,124 +595,173 @@ const RoleManagementPanel: React.FC<RoleManagementPanelProps> = ({
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {roles.map((role) => (
-              <div key={role.id} className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <ShieldCheckIcon className="h-8 w-8 text-purple-600" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {role.name}
-                          </h4>
-                          {role.alias && role.alias !== role.name && (
-                            <span className="text-xs text-gray-500">({role.alias})</span>
-                          )}
+            {roles.map((role) => {
+              const roleMembers = getRoleMembers(role.id);
+              const availableMembers = getAvailableMembersForRole(role.id);
+              const isExpanded = expandedRoleId === role.id;
+              
+              return (
+                <div key={role.id} className="px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <ShieldCheckIcon className="h-8 w-8 text-purple-600" />
                         </div>
-                        {role.description && (
-                          <p className="text-sm text-gray-500 truncate">
-                            {role.description}
-                          </p>
-                        )}
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {role.canCreateTopics && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                              Create Topics
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                              {role.name}
+                            </h4>
+                            {role.alias && role.alias !== role.name && (
+                              <span className="text-xs text-gray-500">({role.alias})</span>
+                            )}
+                            <span className="text-xs text-gray-500">
+                              ({roleMembers.length}/3 members)
                             </span>
+                          </div>
+                          {role.description && (
+                            <p className="text-sm text-gray-500 truncate">
+                              {role.description}
+                            </p>
                           )}
-                          {role.canManageMembers && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              Manage Members
-                            </span>
-                          )}
-                          {role.canModerateContent && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                              Moderate
-                            </span>
-                          )}
-                          {role.canUseGrokAI && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                              AI Access
-                            </span>
-                          )}
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {role.canCreateTopics && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                Create Topics
+                              </span>
+                            )}
+                            {role.canManageMembers && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                Manage Members
+                              </span>
+                            )}
+                            {role.canModerateContent && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                Moderate
+                              </span>
+                            )}
+                            {role.canUseGrokAI && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                AI Access
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleEditRole(role)}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                        title="Edit role"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRole(role.id)}
+                        className="p-2 text-gray-400 hover:text-red-600"
+                        title="Delete role"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  {/* Expandable Member Assignment */}
+                  <div className="mt-4">
                     <button
-                      onClick={() => handleEditRole(role)}
-                      className="p-2 text-gray-400 hover:text-gray-600"
-                      title="Edit role"
+                      onClick={() => toggleRoleExpansion(role.id)}
+                      className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 font-medium"
                     >
-                      <PencilIcon className="h-4 w-4" />
+                      {isExpanded ? (
+                        <ChevronUpIcon className="h-4 w-4" />
+                      ) : (
+                        <ChevronDownIcon className="h-4 w-4" />
+                      )}
+                      <span>
+                        {isExpanded ? 'Hide' : 'Manage'} Members ({roleMembers.length}/3)
+                      </span>
                     </button>
-                    <button
-                      onClick={() => handleDeleteRole(role.id)}
-                      className="p-2 text-gray-400 hover:text-red-600"
-                      title="Delete role"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
+                    
+                    {isExpanded && (
+                      <div className="mt-4 pl-6 border-l-2 border-gray-200">
+                        {/* Assigned Members */}
+                        {roleMembers.length > 0 && (
+                          <div className="mb-4">
+                            <h5 className="text-sm font-medium text-gray-900 mb-2">Assigned Members</h5>
+                            <div className="space-y-2">
+                              {roleMembers.map((member) => (
+                                <div key={member.id} className="flex items-center justify-between py-2 px-3 bg-green-50 rounded-lg">
+                                  <div className="flex items-center space-x-2">
+                                    <UserGroupIcon className="h-5 w-5 text-green-600" />
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {getUserDisplayName(member)}
+                                    </span>
+                                    <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                                      Assigned
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => removeMemberFromRole(role.id, member.id)}
+                                    className="text-red-600 hover:text-red-800 text-sm"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Available Members */}
+                        {availableMembers.length > 0 && roleMembers.length < 3 && (
+                          <div>
+                            <h5 className="text-sm font-medium text-gray-900 mb-2">Available Members</h5>
+                            <div className="space-y-2">
+                              {availableMembers.slice(0, 10).map((member) => (
+                                <div key={member.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                                  <div className="flex items-center space-x-2">
+                                    <UserGroupIcon className="h-5 w-5 text-gray-600" />
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {getUserDisplayName(member)}
+                                    </span>
+                                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                      Available
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => addMemberToRole(role.id, member.id)}
+                                    className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                                  >
+                                    Add to Role
+                                  </button>
+                                </div>
+                              ))}
+                              {availableMembers.length > 10 && (
+                                <p className="text-xs text-gray-500 text-center">
+                                  ... and {availableMembers.length - 10} more members
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {roleMembers.length >= 3 && (
+                          <p className="text-sm text-gray-500">Maximum 3 members reached for this role</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Member Role Assignment */}
-      {members.length > 0 && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Assign Roles to Members</h3>
-            <p className="text-sm text-gray-500">Assign specific roles to group members</p>
-          </div>
-          <div className="px-6 py-4">
-            <div className="space-y-4">
-              {members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <UserGroupIcon className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{(member as any).userName || (member as any).username || 'Unknown User'}</p>
-                      <p className="text-xs text-gray-500">
-                        Current role: {(member as any).roleName || (member as any).role || 'Member'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <select
-                      value={(member as any).roleId || ''}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          handleAssignRole(member.id, e.target.value);
-                        }
-                      }}
-                      className="text-sm border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
-                    >
-                      <option value="">No Role</option>
-                      {roles.map((role) => (
-                        <option key={role.id} value={role.id}>
-                          {role.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

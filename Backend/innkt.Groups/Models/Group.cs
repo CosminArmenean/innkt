@@ -141,11 +141,21 @@ public class GroupPost
     
     public bool IsPinned { get; set; } = false;
     
+    // Role-based posting fields
+    public Guid? PostedAsRoleId { get; set; } // Role used for posting
+    public string? PostedAsRoleName { get; set; } // Role name (e.g., "Math Teacher")
+    public string? PostedAsRoleAlias { get; set; } // Role alias for display
+    public bool ShowRealUsername { get; set; } = false; // Show real username under role
+    public string? RealUsername { get; set; } // Cached real username
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation properties
     [ForeignKey("GroupId")]
     public virtual Group Group { get; set; } = null!;
+    
+    [ForeignKey("PostedAsRoleId")]
+    public virtual GroupRole? PostedAsRole { get; set; }
 }
 
 public class GroupInvitation
@@ -311,8 +321,6 @@ public class GroupRole
     
     public bool CanManageSubgroups { get; set; } = false;
     
-    public bool CanPostAnnouncements { get; set; } = false;
-    
     public bool CanModerateContent { get; set; } = false;
     
     public bool CanAccessAllSubgroups { get; set; } = false;
@@ -324,6 +332,13 @@ public class GroupRole
     public bool CanUsePaperScanning { get; set; } = false;
     
     public bool CanManageFunds { get; set; } = false;
+    
+    // Role-based posting permissions
+    public bool CanPostText { get; set; } = true; // Allow text posts
+    public bool CanPostImages { get; set; } = true; // Allow image posts
+    public bool CanPostPolls { get; set; } = false; // Allow poll creation
+    public bool CanPostVideos { get; set; } = false; // Allow video posts
+    public bool CanPostAnnouncements { get; set; } = false; // Allow announcement posts
     
     // Additional properties for new services
     public string Permissions { get; set; } = "{}"; // JSON string for complex permissions
@@ -456,11 +471,21 @@ public class TopicPost
     
     public bool IsPinned { get; set; } = false;
     
+    // Role-based posting fields
+    public Guid? PostedAsRoleId { get; set; } // Role used for posting
+    public string? PostedAsRoleName { get; set; } // Role name (e.g., "Math Teacher")
+    public string? PostedAsRoleAlias { get; set; } // Role alias for display
+    public bool ShowRealUsername { get; set; } = false; // Show real username under role
+    public string? RealUsername { get; set; } // Cached real username
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation properties
     [ForeignKey("TopicId")]
     public virtual Topic Topic { get; set; } = null!;
+    
+    [ForeignKey("PostedAsRoleId")]
+    public virtual GroupRole? PostedAsRole { get; set; }
 }
 
 // Enhanced group member with parent/kid relationships - already defined above

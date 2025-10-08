@@ -259,6 +259,52 @@ public class GroupsController : ControllerBase
     }
 
     /// <summary>
+    /// Join a group with kid account
+    /// </summary>
+    [HttpPost("{id}/join-with-kid")]
+    public async Task<ActionResult> JoinGroupWithKid(Guid id, [FromBody] JoinGroupWithKidRequest request)
+    {
+        try
+        {
+            var parentUserId = GetCurrentUserId();
+            var success = await _groupService.JoinGroupWithKidAsync(id, parentUserId, request.KidAccountId);
+            
+            if (!success)
+                return BadRequest("Unable to join group with kid account");
+                
+            return Ok(new { message = "Successfully joined group with kid account" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error joining group {GroupId} with kid account {KidAccountId}", id, request.KidAccountId);
+            return StatusCode(500, "An error occurred while joining the group with kid account");
+        }
+    }
+
+    /// <summary>
+    /// Join a subgroup with kid account
+    /// </summary>
+    [HttpPost("{id}/subgroups/{subgroupId}/join-with-kid")]
+    public async Task<ActionResult> JoinSubgroupWithKid(Guid id, Guid subgroupId, [FromBody] JoinGroupWithKidRequest request)
+    {
+        try
+        {
+            var parentUserId = GetCurrentUserId();
+            var success = await _groupService.JoinSubgroupWithKidAsync(id, subgroupId, parentUserId, request.KidAccountId);
+            
+            if (!success)
+                return BadRequest("Unable to join subgroup with kid account");
+                
+            return Ok(new { message = "Successfully joined subgroup with kid account" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error joining subgroup {SubgroupId} in group {GroupId} with kid account {KidAccountId}", subgroupId, id, request.KidAccountId);
+            return StatusCode(500, "An error occurred while joining the subgroup with kid account");
+        }
+    }
+
+    /// <summary>
     /// Get group members
     /// </summary>
     [HttpGet("{id}/members")]
@@ -278,6 +324,30 @@ public class GroupsController : ControllerBase
         {
             _logger.LogError(ex, "Error getting members for group {GroupId}", id);
             return StatusCode(500, "An error occurred while retrieving group members");
+        }
+    }
+
+    /// <summary>
+    /// Get subgroup members
+    /// </summary>
+    [HttpGet("{id}/subgroups/{subgroupId}/members")]
+    public async Task<ActionResult<GroupMemberListResponse>> GetSubgroupMembers(
+        Guid id, 
+        Guid subgroupId,
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var members = await _groupService.GetSubgroupMembersAsync(id, subgroupId, page, pageSize, currentUserId);
+            _logger.LogInformation("Returning {Count} members for subgroup {SubgroupId} in group {GroupId}", members.Members.Count, subgroupId, id);
+            return Ok(members);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting members for subgroup {SubgroupId} in group {GroupId}", subgroupId, id);
+            return StatusCode(500, "An error occurred while retrieving subgroup members");
         }
     }
 
@@ -604,13 +674,12 @@ public class GroupsController : ControllerBase
     /// </summary>
     [HttpPost("{groupId}/roles")]
     [RequirePermission("manage_roles")]
-    public async Task<ActionResult<object>> CreateGroupRole(Guid groupId, [FromBody] CreateGroupRoleRequest request)
+    public async Task<ActionResult<object>> CreateGroupRole(Guid groupId, [FromBody] CreateRoleRequest request)
     {
         try
         {
             var userId = GetCurrentUserId();
-            request.GroupId = groupId;
-            var role = await _groupService.CreateGroupRoleAsync(userId, request);
+            var role = await _groupService.CreateGroupRoleAsync(userId, groupId, request);
             return CreatedAtAction(nameof(GetGroupRoles), new { groupId }, role);
         }
         catch (Exception ex)
@@ -632,7 +701,7 @@ public class GroupsController : ControllerBase
             var userId = GetCurrentUserId();
             request.GroupId = groupId;
             request.UserId = memberId; // Use UserId instead of MemberId
-            await _groupService.AssignRoleToMemberAsync(request.RoleId, userId, request);
+            await _groupService.AssignRoleToMemberAsync(request.RoleId ?? Guid.Empty, userId, request);
             return Ok();
         }
         catch (Exception ex)
@@ -852,6 +921,25 @@ public class GroupsController : ControllerBase
             {
                 _logger.LogError(ex, "Error sending group notification for group {GroupId}", id);
                 return StatusCode(500, "An error occurred while sending group notification");
+            }
+        }
+
+        /// <summary>
+        /// Get user's roles in a group for role-based posting
+        /// </summary>
+        [HttpGet("{groupId}/user-roles")]
+        public async Task<ActionResult<List<GroupRoleResponse>>> GetUserRolesInGroup(Guid groupId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var roles = await _groupService.GetUserRolesInGroupAsync(groupId, userId);
+                return Ok(roles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting user roles for group {GroupId}", groupId);
+                return StatusCode(500, "An error occurred while retrieving user roles");
             }
         }
 }

@@ -15,12 +15,15 @@ public interface IGroupService
     
     // Group membership
     Task<bool> JoinGroupAsync(Guid groupId, Guid userId, string? message = null);
+    Task<bool> JoinGroupWithKidAsync(Guid groupId, Guid parentUserId, string kidAccountId);
+    Task<bool> JoinSubgroupWithKidAsync(Guid groupId, Guid subgroupId, Guid parentUserId, string kidAccountId);
     Task<bool> LeaveGroupAsync(Guid groupId, Guid userId);
     Task<bool> IsUserMemberAsync(Guid groupId, Guid userId);
     Task<string?> GetUserRoleAsync(Guid groupId, Guid userId);
     
     // Group members
     Task<GroupMemberListResponse> GetGroupMembersAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null);
+    Task<GroupMemberListResponse> GetSubgroupMembersAsync(Guid groupId, Guid subgroupId, int page = 1, int pageSize = 20, Guid? currentUserId = null);
     Task<GroupMemberResponse?> GetGroupMemberAsync(Guid groupId, Guid userId);
     Task<bool> UpdateMemberRoleAsync(Guid groupId, Guid targetUserId, string newRole, Guid adminUserId);
     Task<bool> RemoveMemberAsync(Guid groupId, Guid targetUserId, Guid adminUserId);
@@ -63,10 +66,10 @@ public interface IGroupService
     Task<bool> RemoveSubgroupMemberAsync(Guid subgroupId, Guid memberId, Guid userId);
     
     // Roles
-    Task<GroupRoleResponse> CreateGroupRoleAsync(Guid userId, CreateGroupRoleRequest request);
+    Task<GroupRoleResponse> CreateGroupRoleAsync(Guid userId, Guid groupId, CreateRoleRequest request);
     Task<GroupRoleResponse?> GetGroupRoleByIdAsync(Guid roleId, Guid? currentUserId = null);
-    Task<List<GroupRoleResponse>> GetGroupRolesAsync(Guid groupId, Guid? currentUserId = null);
-    Task<GroupRoleResponse> UpdateGroupRoleAsync(Guid roleId, Guid userId, UpdateGroupRoleRequest request);
+    Task<List<GroupRoleResponse>> GetGroupRolesAsync(Guid groupId, Guid userId);
+    Task<GroupRoleResponse?> UpdateGroupRoleAsync(Guid roleId, Guid userId, UpdateRoleRequest request);
     Task<bool> DeleteGroupRoleAsync(Guid roleId, Guid userId);
     Task<bool> AssignRoleToMemberAsync(Guid roleId, Guid userId, AssignRoleRequest request);
     Task<bool> RemoveRoleFromMemberAsync(Guid roleId, Guid memberId, Guid userId);
@@ -117,4 +120,7 @@ public interface IGroupService
     Task<bool> IncrementFileDownloadCountAsync(Guid fileId);
     Task<FilePermissionResponse> SetFilePermissionAsync(Guid fileId, Guid userId, FilePermissionRequest request);
     Task<List<FilePermissionResponse>> GetFilePermissionsAsync(Guid fileId, Guid userId);
+    
+    // Role-based posting
+    Task<List<GroupRoleResponse>> GetUserRolesInGroupAsync(Guid groupId, Guid userId);
 }

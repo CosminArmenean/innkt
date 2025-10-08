@@ -104,17 +104,23 @@ export interface GroupRoleResponse {
   name: string;
   alias?: string;
   description?: string;
+  showRealUsername: boolean;
   canCreateTopics: boolean;
   canManageMembers: boolean;
   canManageRoles: boolean;
   canManageSubgroups: boolean;
-  canPostAnnouncements: boolean;
   canModerateContent: boolean;
   canAccessAllSubgroups: boolean;
   canUseGrokAI: boolean;
   canUsePerpetualPhotos: boolean;
   canUsePaperScanning: boolean;
   canManageFunds: boolean;
+  // Role-based posting permissions
+  canPostText: boolean;
+  canPostImages: boolean;
+  canPostPolls: boolean;
+  canPostVideos: boolean;
+  canPostAnnouncements: boolean;
   canSeeRealUsername: boolean;
   createdAt: string;
   updatedAt: string;
@@ -144,6 +150,7 @@ export interface GroupMemberResponse {
   groupId: string;
   userId: string;
   role: string;
+  assignedRoleId?: string; // Custom role assignment
   joinedAt: string;
   lastSeenAt?: string;
   isActive: boolean;
@@ -153,6 +160,12 @@ export interface GroupMemberResponse {
     displayName: string;
     avatarUrl?: string;
   };
+  
+  // Parent-Kid relationship fields
+  isParentAccount?: boolean;
+  parentId?: string;
+  kidId?: string;
+  kidAccountId?: string;
 }
 
 export interface AssignRoleRequest {
@@ -951,6 +964,49 @@ export class GroupsService extends BaseApiService {
       return response;
     } catch (error) {
       console.error('Failed to send group notification:', error);
+      throw error;
+    }
+  }
+
+  // Group invitation methods
+  async joinGroupWithKid(groupId: string, kidAccountId: string): Promise<void> {
+    try {
+      await this.post(`/api/groups/${groupId}/join-with-kid`, {
+        kidAccountId
+      });
+    } catch (error) {
+      console.error('Failed to join group with kid account:', error);
+      throw error;
+    }
+  }
+
+  async joinSubgroupWithKid(groupId: string, subgroupId: string, kidAccountId: string): Promise<void> {
+    try {
+      await this.post(`/api/groups/${groupId}/subgroups/${subgroupId}/join-with-kid`, {
+        kidAccountId
+      });
+    } catch (error) {
+      console.error('Failed to join subgroup with kid account:', error);
+      throw error;
+    }
+  }
+
+  async declineInvite(inviteId: string): Promise<void> {
+    try {
+      await this.post(`/api/groups/invites/${inviteId}/decline`);
+    } catch (error) {
+      console.error('Failed to decline invite:', error);
+      throw error;
+    }
+  }
+
+  // Get user's roles in a group for role-based posting
+  async getUserRolesInGroup(groupId: string): Promise<GroupRoleResponse[]> {
+    try {
+      const response = await this.get<GroupRoleResponse[]>(`/api/groups/${groupId}/user-roles`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get user roles in group:', error);
       throw error;
     }
   }

@@ -222,6 +222,165 @@ public class GroupService : IGroupService
         return true;
     }
 
+    public async Task<bool> JoinGroupWithKidAsync(Guid groupId, Guid parentUserId, string kidAccountId)
+    {
+        try
+        {
+            // Check if group exists
+            var group = await _context.Groups.FindAsync(groupId);
+            if (group == null)
+            {
+                _logger.LogWarning("Group {GroupId} not found", groupId);
+                return false;
+            }
+
+            // Check if parent is already a member
+            var existingParentMember = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == parentUserId);
+
+            if (existingParentMember != null)
+            {
+                _logger.LogWarning("Parent {ParentUserId} is already a member of group {GroupId}", parentUserId, groupId);
+                return false;
+            }
+
+            // Create parent membership
+            var parentMember = new GroupMember
+            {
+                GroupId = groupId,
+                UserId = parentUserId,
+                Role = "member", // Use valid role
+                ParentId = parentUserId, // Parent's own ID
+                IsParentAccount = true, // Mark as parent account
+                CanPost = true,
+                CanVote = true,
+                CanComment = true,
+                CanInvite = false,
+                IsActive = true,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            _context.GroupMembers.Add(parentMember);
+
+            // Create kid membership
+            var kidMember = new GroupMember
+            {
+                GroupId = groupId,
+                UserId = Guid.Parse(kidAccountId),
+                Role = "member", // Use valid role
+                KidId = Guid.Parse(kidAccountId),
+                ParentId = parentUserId,
+                KidAccountId = Guid.Parse(kidAccountId), // Store kid account ID
+                CanPost = true,
+                CanVote = true,
+                CanComment = true,
+                CanInvite = false,
+                IsActive = true,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            _context.GroupMembers.Add(kidMember);
+
+            // Update group member count
+            group.MembersCount += 2; // Both parent and kid
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Parent {ParentUserId} and kid {KidAccountId} joined group {GroupId}", parentUserId, kidAccountId, groupId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error joining group {GroupId} with kid account {KidAccountId}", groupId, kidAccountId);
+            return false;
+        }
+    }
+
+    public async Task<bool> JoinSubgroupWithKidAsync(Guid groupId, Guid subgroupId, Guid parentUserId, string kidAccountId)
+    {
+        try
+        {
+            // Check if group exists
+            var group = await _context.Groups.FindAsync(groupId);
+            if (group == null)
+            {
+                _logger.LogWarning("Group {GroupId} not found", groupId);
+                return false;
+            }
+
+            // Check if subgroup exists
+            var subgroup = await _context.Subgroups
+                .FirstOrDefaultAsync(s => s.Id == subgroupId && s.GroupId == groupId);
+            if (subgroup == null)
+            {
+                _logger.LogWarning("Subgroup {SubgroupId} not found in group {GroupId}", subgroupId, groupId);
+                return false;
+            }
+
+            // Check if parent is already a member of the subgroup
+            var existingParentMember = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.SubgroupId == subgroupId && gm.UserId == parentUserId);
+
+            if (existingParentMember != null)
+            {
+                _logger.LogWarning("Parent {ParentUserId} is already a member of subgroup {SubgroupId} in group {GroupId}", parentUserId, subgroupId, groupId);
+                return false;
+            }
+
+            // Create parent membership for the subgroup
+            var parentMember = new GroupMember
+            {
+                GroupId = groupId,
+                SubgroupId = subgroupId, // This is the key difference - assign to subgroup
+                UserId = parentUserId,
+                Role = "member", // Use valid role
+                ParentId = parentUserId, // Parent's own ID
+                IsParentAccount = true, // Mark as parent account
+                CanPost = true,
+                CanVote = true,
+                CanComment = true,
+                CanInvite = false,
+                IsActive = true,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            _context.GroupMembers.Add(parentMember);
+
+            // Create kid membership for the subgroup
+            var kidMember = new GroupMember
+            {
+                GroupId = groupId,
+                SubgroupId = subgroupId, // This is the key difference - assign to subgroup
+                UserId = Guid.Parse(kidAccountId),
+                Role = "member", // Use valid role
+                KidId = Guid.Parse(kidAccountId),
+                ParentId = parentUserId, // Link to parent
+                KidAccountId = Guid.Parse(kidAccountId), // Store kid account ID
+                CanPost = true,
+                CanVote = true,
+                CanComment = true,
+                CanInvite = false,
+                IsActive = true,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            _context.GroupMembers.Add(kidMember);
+
+            // Update subgroup member count
+            subgroup.MembersCount += 2; // Both parent and kid
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Parent {ParentUserId} and kid {KidAccountId} joined subgroup {SubgroupId} in group {GroupId}", parentUserId, kidAccountId, subgroupId, groupId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error joining subgroup {SubgroupId} with kid account {KidAccountId}", subgroupId, kidAccountId);
+            return false;
+        }
+    }
+
     public async Task<bool> LeaveGroupAsync(Guid groupId, Guid userId)
     {
         var member = await _context.GroupMembers
@@ -266,13 +425,13 @@ public class GroupService : IGroupService
     {
         try
         {
-            // Get total count
+            // Get total count for main group only (no subgroup members)
             var totalCount = await _context.GroupMembers
-                .CountAsync(gm => gm.GroupId == groupId && gm.IsActive);
+                .CountAsync(gm => gm.GroupId == groupId && gm.SubgroupId == null && gm.IsActive);
 
-            // Get members with pagination
+            // Get members with pagination for main group only
             var members = await _context.GroupMembers
-                .Where(gm => gm.GroupId == groupId && gm.IsActive)
+                .Where(gm => gm.GroupId == groupId && gm.SubgroupId == null && gm.IsActive)
                 .OrderBy(gm => gm.JoinedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -282,9 +441,16 @@ public class GroupService : IGroupService
             var memberResponses = new List<GroupMemberResponse>();
             _logger.LogInformation("Found {Count} members for group {GroupId}", members.Count, groupId);
             
+            // ✅ FIXED: Batch load all user info at once instead of N+1 queries
+            var userIds = members.Select(m => m.UserId).ToList();
+            var userBasicInfos = await _userService.GetUsersBasicInfoAsync(userIds);
+            var userInfoDict = userBasicInfos.ToDictionary(u => u.Id, u => u);
+            
+            _logger.LogInformation("Batch loaded {Count} user info records", userBasicInfos.Count);
+            
             foreach (var member in members)
             {
-                var userBasicInfo = await _userService.GetUserBasicInfoAsync(member.UserId);
+                var userBasicInfo = userInfoDict.GetValueOrDefault(member.UserId);
                 _logger.LogInformation("Processing member {UserId} with role {Role}", member.UserId, member.Role);
                 
                 memberResponses.Add(new GroupMemberResponse
@@ -293,10 +459,16 @@ public class GroupService : IGroupService
                     GroupId = member.GroupId,
                     UserId = member.UserId,
                     Role = member.Role ?? "member",
+                    AssignedRoleId = member.AssignedRoleId ?? member.RoleId, // Include custom role assignment
                     JoinedAt = member.JoinedAt,
                     LastSeenAt = member.LastSeenAt,
                     IsActive = member.IsActive,
-                    User = userBasicInfo
+                    User = userBasicInfo,
+                    // Parent-Kid relationship fields
+                    IsParentAccount = member.IsParentAccount,
+                    ParentId = member.ParentId,
+                    KidId = member.KidId,
+                    KidAccountId = member.KidAccountId
                 });
             }
             
@@ -315,6 +487,76 @@ public class GroupService : IGroupService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting members for group {GroupId}", groupId);
+            throw;
+        }
+    }
+
+    public async Task<GroupMemberListResponse> GetSubgroupMembersAsync(Guid groupId, Guid subgroupId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
+    {
+        try
+        {
+            // Get total count for the specific subgroup
+            var totalCount = await _context.GroupMembers
+                .CountAsync(gm => gm.GroupId == groupId && gm.SubgroupId == subgroupId && gm.IsActive);
+
+            // Get members with pagination for the specific subgroup
+            var members = await _context.GroupMembers
+                .Where(gm => gm.GroupId == groupId && gm.SubgroupId == subgroupId && gm.IsActive)
+                .OrderBy(gm => gm.JoinedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Map to response DTOs
+            var memberResponses = new List<GroupMemberResponse>();
+            _logger.LogInformation("Found {Count} members for subgroup {SubgroupId} in group {GroupId}", members.Count, subgroupId, groupId);
+            
+            // ✅ FIXED: Batch load all user info at once instead of N+1 queries
+            var userIds = members.Select(m => m.UserId).ToList();
+            var userBasicInfos = await _userService.GetUsersBasicInfoAsync(userIds);
+            var userInfoDict = userBasicInfos.ToDictionary(u => u.Id, u => u);
+            
+            _logger.LogInformation("Batch loaded {Count} user info records for subgroup", userBasicInfos.Count);
+            
+            foreach (var member in members)
+            {
+                var userBasicInfo = userInfoDict.GetValueOrDefault(member.UserId);
+                _logger.LogInformation("Processing subgroup member {UserId} with role {Role}", member.UserId, member.Role);
+                
+                memberResponses.Add(new GroupMemberResponse
+                {
+                    Id = member.Id,
+                    GroupId = member.GroupId,
+                    UserId = member.UserId,
+                    Role = member.Role ?? "member",
+                    AssignedRoleId = member.AssignedRoleId ?? member.RoleId, // Include custom role assignment
+                    JoinedAt = member.JoinedAt,
+                    LastSeenAt = member.LastSeenAt,
+                    IsActive = member.IsActive,
+                    User = userBasicInfo,
+                    // Parent-Kid relationship fields
+                    IsParentAccount = member.IsParentAccount,
+                    ParentId = member.ParentId,
+                    KidId = member.KidId,
+                    KidAccountId = member.KidAccountId
+                });
+            }
+            
+            _logger.LogInformation("Created {Count} subgroup member responses for subgroup {SubgroupId} in group {GroupId}", memberResponses.Count, subgroupId, groupId);
+
+            return new GroupMemberListResponse
+            {
+                Members = memberResponses,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                HasNextPage = (page * pageSize) < totalCount,
+                HasPreviousPage = page > 1
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting members for subgroup {SubgroupId} in group {GroupId}", subgroupId, groupId);
             throw;
         }
     }
@@ -851,12 +1093,18 @@ public class GroupService : IGroupService
     public async Task<bool> AssignRoleToMemberAsync(Guid roleId, Guid userId, AssignRoleRequest request)
     {
         var groupMember = await _context.GroupMembers
-            .FirstOrDefaultAsync(gm => gm.GroupId == request.GroupId && gm.UserId == userId);
+            .FirstOrDefaultAsync(gm => gm.GroupId == request.GroupId && gm.UserId == request.UserId);
 
         if (groupMember == null) return false;
 
+        // Assign or remove custom role (null removes the custom role)
         groupMember.AssignedRoleId = request.RoleId;
+        groupMember.RoleId = request.RoleId; // Also update RoleId field
+        groupMember.UpdatedAt = DateTime.UtcNow;
+        
         await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Assigned role {RoleId} to member {UserId} in group {GroupId}", request.RoleId, request.UserId, request.GroupId);
         return true;
     }
 
@@ -1755,4 +2003,110 @@ public class GroupService : IGroupService
         
         return _mapper.Map<List<GroupMemberResponse>>(moderators);
     }
+
+    public async Task<List<GroupRoleResponse>> GetUserRolesInGroupAsync(Guid groupId, Guid userId)
+    {
+        // Get all roles assigned to the user in this group
+        var userRoles = await _context.GroupMembers
+            .Where(m => m.GroupId == groupId && m.UserId == userId && m.AssignedRoleId != null)
+            .Include(m => m.AssignedRole)
+            .Select(m => m.AssignedRole!)
+            .ToListAsync();
+
+        return _mapper.Map<List<GroupRoleResponse>>(userRoles);
+    }
+
+    public async Task<List<GroupRoleResponse>> GetGroupRolesAsync(Guid groupId, Guid userId)
+    {
+        // Check if user has permission to view roles
+        var userRole = await GetUserRoleAsync(groupId, userId);
+        if (userRole != "admin" && userRole != "moderator")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to view group roles");
+        }
+
+        var roles = await _context.GroupRoles
+            .Where(r => r.GroupId == groupId)
+            .ToListAsync();
+
+        return _mapper.Map<List<GroupRoleResponse>>(roles);
+    }
+
+    public async Task<GroupRoleResponse> CreateGroupRoleAsync(Guid userId, Guid groupId, CreateRoleRequest request)
+    {
+        // Check if user has permission to create roles
+        var userRole = await GetUserRoleAsync(groupId, userId);
+        if (userRole != "admin")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to create roles");
+        }
+
+        var role = new GroupRole
+        {
+            GroupId = groupId,
+            Name = request.Name,
+            Alias = request.Alias,
+            Description = string.Empty, // No Description field in CreateRoleRequest
+            ShowRealUsername = request.CanSeeRealUsername,
+            CanCreateTopics = request.Permissions.CanCreateTopics,
+            CanManageMembers = request.Permissions.CanManageMembers,
+            CanManageRoles = request.Permissions.CanManageRoles,
+            CanManageSubgroups = request.Permissions.CanManageSubgroups,
+            CanModerateContent = request.Permissions.CanModerateContent,
+            CanAccessAllSubgroups = false, // Default value
+            CanUseGrokAI = true, // Default value
+            CanUsePerpetualPhotos = false, // Default value
+            CanUsePaperScanning = false, // Default value
+            CanManageFunds = false, // Default value
+            CanPostText = request.Permissions.CanPostText,
+            CanPostImages = request.Permissions.CanPostImages,
+            CanPostPolls = request.Permissions.CanPostPolls,
+            CanPostVideos = request.Permissions.CanPostVideos,
+            CanPostAnnouncements = request.Permissions.CanPostAnnouncements
+        };
+
+        _context.GroupRoles.Add(role);
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<GroupRoleResponse>(role);
+    }
+
+    public async Task<GroupRoleResponse?> UpdateGroupRoleAsync(Guid roleId, Guid userId, UpdateRoleRequest request)
+    {
+        var role = await _context.GroupRoles
+            .FirstOrDefaultAsync(r => r.Id == roleId);
+
+        if (role == null) return null;
+
+        // Check if user has permission to update roles
+        var userRole = await GetUserRoleAsync(role.GroupId, userId);
+        if (userRole != "admin")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to update roles");
+        }
+
+        // Update only provided fields
+        if (!string.IsNullOrEmpty(request.Name)) role.Name = request.Name;
+        if (request.Alias != null) role.Alias = request.Alias;
+        if (request.Permissions != null)
+        {
+            role.CanCreateTopics = request.Permissions.CanCreateTopics;
+            role.CanManageMembers = request.Permissions.CanManageMembers;
+            role.CanManageRoles = request.Permissions.CanManageRoles;
+            role.CanManageSubgroups = request.Permissions.CanManageSubgroups;
+            role.CanModerateContent = request.Permissions.CanModerateContent;
+            role.CanPostText = request.Permissions.CanPostText;
+            role.CanPostImages = request.Permissions.CanPostImages;
+            role.CanPostPolls = request.Permissions.CanPostPolls;
+            role.CanPostVideos = request.Permissions.CanPostVideos;
+            role.CanPostAnnouncements = request.Permissions.CanPostAnnouncements;
+        }
+        role.ShowRealUsername = request.CanSeeRealUsername;
+
+        role.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<GroupRoleResponse>(role);
+    }
+
 }

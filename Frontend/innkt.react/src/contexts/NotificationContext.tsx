@@ -41,6 +41,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       comment: 0,
       message: 0,
       group_invite: 0,
+      group_invitation: 0,
       post_mention: 0,
       system: 0,
       grok_response: 0,

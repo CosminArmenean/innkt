@@ -158,22 +158,30 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId, h
       // Create kid account via Officer service
       const createdKid = await officerService.createKidAccount(kidData);
       
-      // Generate QR code for the kid account
-      const qrData = {
-        type: 'kid_account',
-        kidId: createdKid.kidAccountId,
-        parentId: parentId,
-        username: newKidAccount.username.trim(),
-        independenceDate: newKidAccount.independenceDate,
-      };
+      // Generate QR code for the kid account (optional - handle errors gracefully)
+      let qrCode: QRCodeGenerationResult | undefined = undefined;
+      try {
+        const qrData = {
+          type: 'kid_account',
+          kidId: createdKid.kidAccountId,
+          parentId: parentId,
+          username: newKidAccount.username.trim(),
+          independenceDate: newKidAccount.independenceDate,
+        };
 
-      const qrCode = await qrCodeService.generateQRCode({
-        data: JSON.stringify(qrData),
-        type: 'custom',
-        size: 256,
-        format: 'png',
-        errorCorrection: 'H',
-      });
+        qrCode = await qrCodeService.generateQRCode({
+          data: JSON.stringify(qrData),
+          type: 'custom',
+          size: 256,
+          format: 'png',
+          errorCorrection: 'H',
+        });
+        
+        console.log('✅ QR code generated successfully for kid account');
+      } catch (qrError) {
+        console.warn('⚠️ QR code generation failed (non-critical):', qrError);
+        // Continue with kid account creation even if QR generation fails
+      }
 
       // Create a mock kid account object for the UI
       const kidWithQR: KidAccount = {
@@ -259,7 +267,8 @@ const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId, h
 
       return qrCode;
     } catch (error) {
-      console.error('Failed to generate QR code:', error);
+      console.warn('⚠️ QR code generation failed for kid account (non-critical):', error);
+      // Don't update the kid account if QR generation fails
       return null;
     }
   };

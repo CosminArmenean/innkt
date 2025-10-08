@@ -15,17 +15,20 @@ public class KidAccountService : IKidAccountService
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<KidAccountService> _logger;
+    private readonly IUsernameValidationService _usernameValidationService;
 
     public KidAccountService(
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext context,
         IConfiguration configuration,
-        ILogger<KidAccountService> logger)
+        ILogger<KidAccountService> logger,
+        IUsernameValidationService usernameValidationService)
     {
         _userManager = userManager;
         _context = context;
         _configuration = configuration;
         _logger = logger;
+        _usernameValidationService = usernameValidationService;
     }
 
     public async Task<string> CreateKidAccountAsync(string parentUserId, CreateKidAccountDto request)
@@ -43,14 +46,21 @@ public class KidAccountService : IKidAccountService
             throw new InvalidOperationException("Parent user must be verified to create kid accounts");
         }
 
+        // Validate username format and availability
+        var usernameValidation = await _usernameValidationService.ValidateUsernameAsync(request.Username);
+        if (!usernameValidation.IsValid)
+        {
+            throw new InvalidOperationException($"Invalid username: {usernameValidation.GetErrorMessage()}");
+        }
+
         // Create the kid account
         var kidUser = new ApplicationUser
         {
-            UserName = $"kid_{Guid.NewGuid():N}",
-            Email = $"kid_{Guid.NewGuid():N}@innkt.kid",
+            UserName = request.Username,
+            Email = $"{request.Username}@innkt.kid",
             FirstName = request.FirstName,
             LastName = request.LastName,
-            BirthDate = request.BirthDate,
+            BirthDate = EnsureUtcDateTime(request.BirthDate),
             Country = request.Country,
             Address = request.Address,
             City = request.City,
@@ -72,7 +82,17 @@ public class KidAccountService : IKidAccountService
         // Set independence date if provided
         if (request.IndependenceDate.HasValue)
         {
-            kidUser.KidIndependenceDate = request.IndependenceDate.Value;
+            // Ensure the DateTime is in UTC format for PostgreSQL
+            var independenceDate = request.IndependenceDate.Value;
+            if (independenceDate.Kind == DateTimeKind.Unspecified)
+            {
+                independenceDate = DateTime.SpecifyKind(independenceDate, DateTimeKind.Utc);
+            }
+            else if (independenceDate.Kind == DateTimeKind.Local)
+            {
+                independenceDate = independenceDate.ToUniversalTime();
+            }
+            kidUser.KidIndependenceDate = independenceDate;
         }
 
         // Generate QR code and pairing code
@@ -196,8 +216,8 @@ public class KidAccountService : IKidAccountService
             throw new InvalidOperationException("User is not a kid account");
         }
 
-        // Set the independence date
-        kidUser.KidIndependenceDate = independenceDate;
+        // Set the independence date (ensure UTC)
+        kidUser.KidIndependenceDate = EnsureUtcDateTime(independenceDate);
         kidUser.KidAccountStatus = "pending_independence";
 
         var result = await _userManager.UpdateAsync(kidUser);
@@ -452,6 +472,19 @@ public class KidAccountService : IKidAccountService
         // Generate a 6-digit pairing code
         var random = new Random();
         return random.Next(100000, 999999).ToString();
+    }
+
+    private static DateTime EnsureUtcDateTime(DateTime dateTime)
+    {
+        if (dateTime.Kind == DateTimeKind.Unspecified)
+        {
+            return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+        }
+        else if (dateTime.Kind == DateTimeKind.Local)
+        {
+            return dateTime.ToUniversalTime();
+        }
+        return dateTime; // Already UTC
     }
 }
 

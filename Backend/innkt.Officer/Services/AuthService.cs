@@ -18,37 +18,40 @@ public class AuthService : IAuthService
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthService> _logger;
+    private readonly IUsernameValidationService _usernameValidationService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext context,
         IConfiguration configuration,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IUsernameValidationService usernameValidationService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
         _configuration = configuration;
         _logger = logger;
+        _usernameValidationService = usernameValidationService;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(UserRegistrationDto registrationDto)
     {
         try
         {
-            // Check if user already exists
+            // Validate username format and availability
+            var usernameValidation = await _usernameValidationService.ValidateUsernameAsync(registrationDto.Username);
+            if (!usernameValidation.IsValid)
+            {
+                throw new InvalidOperationException($"Invalid username: {usernameValidation.GetErrorMessage()}");
+            }
+
+            // Check if user already exists by email
             var existingUser = await _userManager.FindByEmailAsync(registrationDto.Email);
             if (existingUser != null)
             {
                 throw new InvalidOperationException("User with this email already exists.");
-            }
-
-            // Check if username already exists
-            var existingUserByUsername = await _userManager.FindByNameAsync(registrationDto.Username);
-            if (existingUserByUsername != null)
-            {
-                throw new InvalidOperationException("User with this username already exists.");
             }
 
             // Create new user
@@ -765,7 +768,7 @@ public class AuthService : IAuthService
                     Email = $"{subaccount.Username}@kid.innkt.local", // Temporary email for kid accounts
                     FirstName = subaccount.FirstName,
                     LastName = subaccount.LastName,
-                    BirthDate = subaccount.BirthDate,
+                    BirthDate = subaccount.BirthDate.HasValue ? EnsureUtcDateTime(subaccount.BirthDate.Value) : DateTime.UtcNow,
                     Gender = subaccount.Gender,
                     IsKidAccount = true,
                     ParentUserId = parentUserId,
@@ -880,5 +883,18 @@ public class AuthService : IAuthService
             Console.WriteLine($"Error searching users with query: {query}. Error: {ex.Message}");
             return new List<ApplicationUser>();
         }
+    }
+
+    private static DateTime EnsureUtcDateTime(DateTime dateTime)
+    {
+        if (dateTime.Kind == DateTimeKind.Unspecified)
+        {
+            return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+        }
+        else if (dateTime.Kind == DateTimeKind.Local)
+        {
+            return dateTime.ToUniversalTime();
+        }
+        return dateTime; // Already UTC
     }
 }

@@ -40,30 +40,70 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
   const loadNestedMembers = async () => {
     setIsLoading(true);
     try {
-      // For now, treat all members as parents and try to load their kid accounts
-      // In a real implementation, you would have parent/kid account indicators
-      const nestedParents: ParentMember[] = [];
+      console.log('🔍 Loading nested members:', members);
+      
+      // Separate parents and kids based on database fields
+      const parentMembers: ParentMember[] = [];
+      const processedUserIds = new Set<string>();
 
+      // First pass: Find all parent accounts
       for (const member of members) {
-        // Load kid accounts for this member (assuming they might be a parent)
-        let kidAccounts: KidAccount[] = [];
-        try {
-          // This would need to be implemented in the backend to get kid accounts for a specific parent
-          // For now, we'll show empty kid accounts
-          kidAccounts = [];
-        } catch (error) {
-          console.error('Failed to load kid accounts for parent:', error);
-        }
+        if (processedUserIds.has(member.userId)) continue;
+        
+        // Check if this is a parent account
+        if (member.isParentAccount && member.parentId) {
+          console.log('👨‍👩‍👧‍👦 Found parent:', member.user?.displayName, 'with parentId:', member.parentId);
+          
+          // Find the kid account for this parent
+          const kidMember = members.find(kid => 
+            kid.userId === member.parentId && 
+            kid.kidAccountId === member.parentId &&
+            !processedUserIds.has(kid.userId)
+          );
+          
+          if (kidMember) {
+            console.log('👶 Found kid for parent:', kidMember.user?.displayName);
+            
+            const kidAccount: KidAccount = {
+              id: kidMember.id,
+              username: kidMember.user?.username || 'unknown',
+              displayName: kidMember.user?.displayName || 'Unknown Kid',
+              avatarUrl: kidMember.user?.avatarUrl,
+              age: undefined,
+              grade: undefined
+            };
 
-        nestedParents.push({
+            parentMembers.push({
+              ...member,
+              kidAccounts: [kidAccount],
+              isExpanded: false,
+              customRole: getCustomRole(member.role)
+            });
+            
+            // Mark both parent and kid as processed
+            processedUserIds.add(member.userId);
+            processedUserIds.add(kidMember.userId);
+          }
+        }
+      }
+
+      // Second pass: Handle any remaining members (regular members without parent-kid relationships)
+      for (const member of members) {
+        if (processedUserIds.has(member.userId)) continue;
+        
+        // This is a regular member (not part of parent-kid relationship)
+        parentMembers.push({
           ...member,
-          kidAccounts,
+          kidAccounts: [],
           isExpanded: false,
           customRole: getCustomRole(member.role)
         });
+        
+        processedUserIds.add(member.userId);
       }
 
-      setParentMembers(nestedParents);
+      console.log('✅ Final parent members:', parentMembers);
+      setParentMembers(parentMembers);
     } catch (error) {
       console.error('Failed to load nested members:', error);
     } finally {
