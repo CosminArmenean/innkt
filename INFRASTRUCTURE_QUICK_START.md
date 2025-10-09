@@ -18,8 +18,8 @@ This guide provides simple commands to manage the INNKT platform infrastructure.
 This will start all required infrastructure services:
 - PostgreSQL Database (port 5433)
 - Redis Cache (port 6379)
-- MongoDB Social (port 27018)
-- MongoDB Messaging (port 27017)
+- MongoDB Social - Replica Set (port 27018)
+- MongoDB Messaging - Standalone (port 27017)
 - Kafka Message Broker (port 9092)
 - Zookeeper (port 2181)
 - Kafka UI (port 8080)
@@ -56,15 +56,15 @@ docker logs innkt-kafka -f
 
 ## Infrastructure Services
 
-| Service | Port | Container Name | Health Check |
-|---------|------|----------------|--------------|
-| PostgreSQL | 5433 | innkt-postgres | ✓ |
-| Redis | 6379 | innkt-redis | ✓ |
-| MongoDB (Social) | 27018 | mongodb-social | ✓ |
-| MongoDB (Messaging) | 27017 | mongodb-messaging | ✓ |
-| Kafka | 9092 | innkt-kafka | ✓ |
-| Zookeeper | 2181 | innkt-zookeeper | ✓ |
-| Kafka UI | 8080 | innkt-kafka-ui | - |
+| Service | Port | Container Name | Type | Health Check |
+|---------|------|----------------|------|--------------|
+| PostgreSQL | 5433 | innkt-postgres | Database | ✓ |
+| Redis | 6379 | innkt-redis | Cache | ✓ |
+| MongoDB (Social) | 27018 | mongodb-social | Replica Set | ✓ |
+| MongoDB (Messaging) | 27017 | mongodb-messaging-standalone | Standalone | ✓ |
+| Kafka | 9092 | innkt-kafka | Message Broker | ✓ |
+| Zookeeper | 2181 | innkt-zookeeper | Coordination | ✓ |
+| Kafka UI | 8080 | innkt-kafka-ui | Monitoring | - |
 
 ## Next Steps
 

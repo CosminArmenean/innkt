@@ -1,5 +1,5 @@
 services:
-  # MongoDB for Social Service (Posts, Feeds) - Primary member
+  # MongoDB for Social Service (Posts, Feeds) - Replica Set for Change Streams
   mongodb-social:
     image: mongo:7
     container_name: mongodb-social
@@ -16,11 +16,11 @@ services:
       timeout: 5s
       retries: 3
 
-  # MongoDB for Messaging Service (Chat, Messages) - Secondary member
-  mongodb-messaging:
+  # MongoDB for Messaging Service (Chat, Messages) - Standalone
+  mongodb-messaging-standalone:
     image: mongo:7
-    container_name: mongodb-messaging
-    command: mongod --replSet rs0 --bind_ip_all
+    container_name: mongodb-messaging-standalone
+    command: mongod --bind_ip_all
     ports:
       - "27017:27017"
     volumes:
@@ -33,43 +33,38 @@ services:
       timeout: 5s
       retries: 3
 
-  # Combined replica set initialization - Both instances in same rs0
-  mongodb-replica-init:
+  # Replica set initialization for Social MongoDB only
+  mongodb-social-replica-init:
     image: mongo:7
     depends_on:
       mongodb-social:
-        condition: service_healthy
-      mongodb-messaging:
         condition: service_healthy
     networks:
       - innkt-network
     command: >
       sh -c "
-      echo '🔧 Initializing combined replica set rs0 with both MongoDB instances...';
-      sleep 15;
+      echo '🔧 Initializing replica set rs0 for Social MongoDB...';
+      sleep 10;
       mongosh --host mongodb-social:27017 --eval \"
       try {
         let status = rs.status();
-        print('✅ Replica set already initialized with ' + status.members.length + ' members');
-        status.members.forEach(m => print('  - ' + m.name + ': ' + m.stateStr));
+        print('✅ Replica set already initialized');
+        print('  - Primary: ' + status.members[0].name + ' (' + status.members[0].stateStr + ')');
       } catch (e) {
         if (e.message.includes('no replset config')) {
-          print('🚀 Initializing combined replica set with both instances...');
+          print('🚀 Initializing single-member replica set...');
           rs.initiate({
             _id: 'rs0',
             members: [
-              { _id: 0, host: 'mongodb-social:27017', priority: 2 },
-              { _id: 1, host: 'mongodb-messaging:27017', priority: 1 }
+              { _id: 0, host: 'mongodb-social:27017', priority: 1 }
             ]
           });
           print('⏳ Waiting for replica set to stabilize...');
-          sleep(10000);
+          sleep(5000);
           
           let finalStatus = rs.status();
-          print('✅ Combined replica set initialized with ' + finalStatus.members.length + ' members:');
-          finalStatus.members.forEach(m => {
-            print('  - ' + m.name + ': ' + m.stateStr + ' (health: ' + m.health + ')');
-          });
+          print('✅ Replica set initialized successfully');
+          print('  - Primary: ' + finalStatus.members[0].name + ' (' + finalStatus.members[0].stateStr + ')');
         } else {
           print('❌ Error: ' + e.message);
         }

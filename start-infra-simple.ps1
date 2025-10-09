@@ -30,13 +30,13 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Running Services:" -ForegroundColor Cyan
-    Write-Host "- PostgreSQL:        localhost:5433" -ForegroundColor White
-    Write-Host "- Redis:             localhost:6379" -ForegroundColor White
-    Write-Host "- MongoDB Social:    localhost:27018" -ForegroundColor White
-    Write-Host "- MongoDB Messaging: localhost:27017" -ForegroundColor White
-    Write-Host "- Kafka:             localhost:9092" -ForegroundColor White
-    Write-Host "- Zookeeper:         localhost:2181" -ForegroundColor White
-    Write-Host "- Kafka UI:          http://localhost:8080" -ForegroundColor White
+    Write-Host "- PostgreSQL:                localhost:5433" -ForegroundColor White
+    Write-Host "- Redis:                     localhost:6379" -ForegroundColor White
+    Write-Host "- MongoDB Social (Replica):  localhost:27018" -ForegroundColor White
+    Write-Host "- MongoDB Messaging (Solo):  localhost:27017" -ForegroundColor White
+    Write-Host "- Kafka:                     localhost:9092" -ForegroundColor White
+    Write-Host "- Zookeeper:                 localhost:2181" -ForegroundColor White
+    Write-Host "- Kafka UI:                  http://localhost:8080" -ForegroundColor White
     Write-Host ""
     Write-Host "Next Steps:" -ForegroundColor Yellow
     Write-Host "- Start backend: .\start-services.ps1" -ForegroundColor White
