@@ -70,6 +70,24 @@ public class GroupResponse
     public List<GroupRuleResponse> rules { get; set; } = new();
     public List<GroupMemberResponse> admins { get; set; } = new();
     public List<GroupMemberResponse> moderators { get; set; } = new();
+    
+    // User permissions in this group
+    public bool canCreateTopics { get; set; } = false;
+    public bool canManageMembers { get; set; } = false;
+    public bool canManageRoles { get; set; } = false;
+    public bool canManageSubgroups { get; set; } = false;
+    public bool canModerateContent { get; set; } = false;
+    public bool canPostText { get; set; } = true;
+    public bool canPostImages { get; set; } = true;
+    public bool canPostPolls { get; set; } = false;
+    public bool canPostVideos { get; set; } = false;
+    public bool canPostAnnouncements { get; set; } = false;
+    public bool canAccessAllSubgroups { get; set; } = false;
+    public bool canUseGrokAI { get; set; } = false;
+    public bool canUsePerpetualPhotos { get; set; } = false;
+    public bool canUsePaperScanning { get; set; } = false;
+    public bool canManageFunds { get; set; } = false;
+    public bool canSeeRealUsername { get; set; } = false;
 }
 
 public class GroupListResponse
@@ -112,6 +130,13 @@ public class InviteUserRequest
     public string? Message { get; set; }
     
     public Guid? SubgroupId { get; set; }
+    
+    // Role-based invitation fields
+    public Guid? InvitedByRoleId { get; set; }
+    public string? InvitedByRoleName { get; set; }
+    public string? InvitedByRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; } = false;
+    public string? RealUsername { get; set; }
 }
 
 public class RespondToInvitationRequest
@@ -165,6 +190,17 @@ public class GroupInvitationResponse
     public DateTime ExpiresAt { get; set; }
     public GroupBasicInfo? Group { get; set; }
     public UserBasicInfo? InvitedBy { get; set; }
+    
+    // Role-based invitation fields
+    public Guid? InvitedByRoleId { get; set; }
+    public string? InvitedByRoleName { get; set; }
+    public string? InvitedByRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; } = false;
+    public string? RealUsername { get; set; }
+    
+    // Subgroup invitation support
+    public Guid? SubgroupId { get; set; }
+    public string? SubgroupName { get; set; }
 }
 
 public class GroupInvitationListResponse
@@ -219,6 +255,13 @@ public class GroupPostResponse
     public bool IsLikedByCurrentUser { get; set; }
     public UserBasicInfo? Author { get; set; }
     public GroupBasicInfo? Group { get; set; }
+    
+    // Role-based posting fields
+    public Guid? PostedAsRoleId { get; set; }
+    public string? PostedAsRoleName { get; set; }
+    public string? PostedAsRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; }
+    public string? RealUsername { get; set; }
 }
 
 public class GroupPostListResponse
@@ -518,6 +561,12 @@ public class CreateTopicPostRequest
     public bool IsAnnouncement { get; set; } = false;
     
     public Guid? KidId { get; set; } // If parent posting for kid
+    
+    // Role-based posting
+    public Guid? PostedAsRoleId { get; set; }
+    public string? PostedAsRoleName { get; set; }
+    public string? PostedAsRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; } = false;
 }
 
 
@@ -542,6 +591,13 @@ public class TopicPostResponse
     public DateTime CreatedAt { get; set; }
     public UserBasicInfo? Author { get; set; }
     public TopicResponse? Topic { get; set; }
+    
+    // Role-based posting fields
+    public Guid? PostedAsRoleId { get; set; }
+    public string? PostedAsRoleName { get; set; }
+    public string? PostedAsRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; }
+    public string? RealUsername { get; set; }
 }
 
 public class UpdatePollRequest
@@ -1234,9 +1290,25 @@ public class UpdateRoleRequest
     [StringLength(100)]
     public string? Alias { get; set; }
 
-    [Required]
-    public RolePermissions Permissions { get; set; } = new();
+    [StringLength(500)]
+    public string? Description { get; set; }
 
+    // Permission fields (frontend sends these directly)
+    public bool CanCreateTopics { get; set; } = false;
+    public bool CanManageMembers { get; set; } = false;
+    public bool CanManageRoles { get; set; } = false;
+    public bool CanManageSubgroups { get; set; } = false;
+    public bool CanModerateContent { get; set; } = false;
+    public bool CanPostText { get; set; } = true;
+    public bool CanPostImages { get; set; } = true;
+    public bool CanPostPolls { get; set; } = false;
+    public bool CanPostVideos { get; set; } = false;
+    public bool CanPostAnnouncements { get; set; } = false;
+    public bool CanAccessAllSubgroups { get; set; } = false;
+    public bool CanUseGrokAI { get; set; } = false;
+    public bool CanUsePerpetualPhotos { get; set; } = false;
+    public bool CanUsePaperScanning { get; set; } = false;
+    public bool CanManageFunds { get; set; } = false;
     public bool CanSeeRealUsername { get; set; } = false;
 }
 
@@ -1729,6 +1801,102 @@ public class HomeworkAnalytics
     public List<string> CommonAreasForImprovement { get; set; } = new();
     public Dictionary<string, int> ScoreDistribution { get; set; } = new();
     public Dictionary<string, int> SubmissionTimeline { get; set; } = new();
+}
+
+// Subgroup-Role Assignment DTOs
+public class AssignRoleToSubgroupRequest
+{
+    [Required]
+    public Guid SubgroupId { get; set; }
+    
+    [Required]
+    public Guid RoleId { get; set; }
+    
+    public DateTime? ExpiresAt { get; set; }
+    
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+}
+
+public class RemoveRoleFromSubgroupRequest
+{
+    [Required]
+    public Guid SubgroupId { get; set; }
+    
+    [Required]
+    public Guid RoleId { get; set; }
+}
+
+public class UpdateSubgroupRoleAssignmentRequest
+{
+    public DateTime? ExpiresAt { get; set; }
+    public bool? IsActive { get; set; }
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+}
+
+public class SubgroupRoleAssignmentResponse
+{
+    public Guid Id { get; set; }
+    public Guid SubgroupId { get; set; }
+    public Guid RoleId { get; set; }
+    public Guid AssignedByUserId { get; set; }
+    public DateTime AssignedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public bool IsActive { get; set; }
+    public string? Notes { get; set; }
+    
+    // Role details
+    public string RoleName { get; set; } = string.Empty;
+    public string? RoleAlias { get; set; }
+    public string? RoleDescription { get; set; }
+    
+    // Assigned by user details
+    public string AssignedByUserName { get; set; } = string.Empty;
+    public string? AssignedByUserAvatar { get; set; }
+}
+
+public class SubgroupWithRolesResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int MembersCount { get; set; }
+    
+    // Assigned roles
+    public List<SubgroupRoleAssignmentResponse> AssignedRoles { get; set; } = new();
+    
+    // Quick stats
+    public int ActiveRolesCount { get; set; }
+    public int TotalMembersCount { get; set; }
+    public DateTime? LastActivityAt { get; set; }
+}
+
+public class RoleWithSubgroupsResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Alias { get; set; }
+    public string? Description { get; set; }
+    public bool ShowRealUsername { get; set; }
+    
+    // Role permissions
+    public bool CanPostText { get; set; }
+    public bool CanPostImages { get; set; }
+    public bool CanPostPolls { get; set; }
+    public bool CanPostVideos { get; set; }
+    public bool CanPostAnnouncements { get; set; }
+    
+    // Assigned to subgroups
+    public List<Guid> AssignedToSubgroups { get; set; } = new();
+    public int AssignmentCount { get; set; }
+    
+    // Quick stats
+    public bool IsAvailable { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
 }
 
 

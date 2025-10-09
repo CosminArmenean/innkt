@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Group, GroupMember } from '../../services/social.service';
 import { groupsService, SubgroupResponse, GroupMemberResponse, GroupInvitationResponse } from '../../services/groups.service';
+import { convertToFullAvatarUrl, getUserDisplayName, getUserInitial } from '../../utils/avatarUtils';
 import CreateSubgroupModal from './CreateSubgroupModal';
 import GroupRulesManagement from './GroupRulesManagement';
 import InviteUserModal from './InviteUserModal';
@@ -28,13 +29,16 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   const [showCreateSubgroup, setShowCreateSubgroup] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [showEnhancedInvite, setShowEnhancedInvite] = useState(false);
-  const [useNestedView, setUseNestedView] = useState(false);
+  const [useNestedView, setUseNestedView] = useState(true); // Default to nested view
   const [activeTab, setActiveTab] = useState<'overview' | 'subgroups' | 'members' | 'rules' | 'settings'>('overview');
+  const [memberListTab, setMemberListTab] = useState<'users' | 'roles'>('users');
+  const [roles, setRoles] = useState<any[]>([]);
 
   useEffect(() => {
     loadSubgroups();
     loadMembers();
     loadInvitations();
+    loadRoles();
   }, [group.id]);
 
   const loadSubgroups = async () => {
@@ -65,6 +69,15 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
       setInvitations(invitationsData.invitations);
     } catch (error) {
       console.error('Failed to load invitations:', error);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const rolesData = await groupsService.getGroupRoles(group.id);
+      setRoles(rolesData);
+    } catch (error) {
+      console.error('Failed to load roles:', error);
     }
   };
 
@@ -208,27 +221,19 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
 
   const renderMembers = () => (
     <div className="space-y-6">
-      {/* Header with Invite Button and View Toggle */}
+      {/* Header with Invite Button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h3 className="text-lg font-semibold text-gray-900">Members</h3>
           {group.category?.toLowerCase() === 'education' && (
             <div className="flex items-center space-x-2">
-              <label className="text-sm text-gray-600">View:</label>
-              <button
-                onClick={() => setUseNestedView(!useNestedView)}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  useNestedView 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {useNestedView ? 'Nested (Parent-Kid)' : 'Standard'}
-              </button>
+              <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                Nested (Parent-Kid) View
+              </span>
             </div>
           )}
         </div>
-        {isAdmin && (
+        {(isAdmin || group.canManageMembers) && (
           <button
             onClick={() => {
               if (group.category?.toLowerCase() === 'education') {
@@ -245,10 +250,37 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
         )}
       </div>
 
+      {/* Member List Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setMemberListTab('users')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              memberListTab === 'users'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Members ({members.length})
+          </button>
+          <button
+            onClick={() => setMemberListTab('roles')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              memberListTab === 'roles'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Roles Members ({roles.length})
+          </button>
+        </nav>
+      </div>
+
       {/* Current Members */}
       {isLoading ? (
         <div className="text-center py-8 text-gray-500">Loading members...</div>
-      ) : useNestedView && group.category?.toLowerCase() === 'education' ? (
+      ) : memberListTab === 'users' ? (
+        group.category?.toLowerCase() === 'education' ? (
           <NestedMemberDisplay
             members={members}
             currentUserId={currentUserId}
@@ -264,11 +296,19 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       {member.user?.avatarUrl ? (
-                        <img className="h-10 w-10 rounded-full" src={member.user.avatarUrl} alt={member.user.displayName} />
+                        <img 
+                          className="h-10 w-10 rounded-full" 
+                          src={convertToFullAvatarUrl(member.user.avatarUrl)} 
+                          alt={getUserDisplayName(member.user)}
+                          onError={(e) => {
+                            console.log('Member avatar image failed to load:', member.user?.avatarUrl);
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                           <span className="text-purple-600 font-medium text-sm">
-                            {member.user?.displayName?.charAt(0).toUpperCase() || 'U'}
+                            {getUserInitial(member.user)}
                           </span>
                         </div>
                       )}
@@ -295,7 +335,70 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
               ))}
             </div>
           </div>
-        )}
+        )
+      ) : (
+        // Roles Tab Content
+        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h4 className="text-sm font-medium text-gray-900">Roles Members ({roles.length})</h4>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {roles.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                <p>No roles defined yet.</p>
+              </div>
+            ) : (
+              roles.map((role) => (
+                <div key={role.id} className="p-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {role.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <div className="flex items-center">
+                        <p className="text-sm font-medium text-gray-900">{role.name}</p>
+                        {role.alias && (
+                          <span className="ml-2 text-sm text-gray-500">({role.alias})</span>
+                        )}
+                      </div>
+                      {role.description && (
+                        <p className="text-sm text-gray-500">{role.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      Role
+                    </span>
+                    <div className="flex space-x-1">
+                      {role.canCreateTopics && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-800">
+                          Create Topics
+                        </span>
+                      )}
+                      {role.canManageMembers && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                          Manage Members
+                        </span>
+                      )}
+                      {role.canManageRoles && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">
+                          Manage Roles
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Pending Invitations */}
       {invitations.length > 0 && (

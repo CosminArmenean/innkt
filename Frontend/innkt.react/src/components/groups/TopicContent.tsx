@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Group, Post } from '../../services/social.service';
 import { groupsService, TopicResponse } from '../../services/groups.service';
+import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 import PostCard from '../social/PostCard';
 import GroupPostCreation from './GroupPostCreation';
 import CompactFilters from './CompactFilters';
@@ -53,10 +54,16 @@ const TopicContent: React.FC<TopicContentProps> = ({
           id: groupPost.author.id,
           username: groupPost.author.username,
           displayName: groupPost.author.displayName,
-          avatarUrl: groupPost.author.avatarUrl || null,
+          avatarUrl: convertToFullAvatarUrl(groupPost.author.avatarUrl) || undefined,
           isVerified: groupPost.author.isVerified || false,
-          isKidAccount: false // Default to false for now
+          isKidAccount: false, // Default to false for now
         } : null,
+        // Role posting information (moved to post level)
+        postedAsRoleId: groupPost.postedAsRoleId,
+        postedAsRoleName: groupPost.postedAsRoleName,
+        postedAsRoleAlias: groupPost.postedAsRoleAlias,
+        showRealUsername: groupPost.showRealUsername,
+        realUsername: groupPost.realUsername,
         content: groupPost.content,
         mediaUrls: groupPost.mediaUrls || [],
         postType: 'text' as const,
@@ -91,7 +98,7 @@ const TopicContent: React.FC<TopicContentProps> = ({
         id: newPost.author.id,
         username: newPost.author.username,
         displayName: newPost.author.displayName,
-        avatarUrl: newPost.author.avatarUrl || null,
+        avatarUrl: convertToFullAvatarUrl(newPost.author.avatarUrl) || undefined,
         isVerified: newPost.author.isVerified || false,
         isKidAccount: false // Default to false for now
       } : null,
@@ -105,14 +112,22 @@ const TopicContent: React.FC<TopicContentProps> = ({
       likesCount: newPost.likesCount || 0,
       commentsCount: newPost.commentsCount || 0,
       sharesCount: 0,
-      createdAt: newPost.createdAt,
-      updatedAt: newPost.createdAt,
+      createdAt: newPost.createdAt || new Date().toISOString(),
+      updatedAt: newPost.createdAt || new Date().toISOString(),
       isPinned: newPost.isPinned || false,
       isLiked: newPost.isLikedByCurrentUser || false,
       isShared: false
     };
     
-    setPosts(prev => [convertedPost, ...prev]);
+    setPosts(prev => {
+      // Check if post already exists to avoid duplicates
+      const exists = prev.some(p => p.id === convertedPost.id);
+      if (exists) {
+        console.log('Post already exists, not adding duplicate:', convertedPost.id);
+        return prev;
+      }
+      return [convertedPost, ...prev];
+    });
     if (onPostCreated) {
       onPostCreated(convertedPost);
     }
@@ -215,7 +230,12 @@ const TopicContent: React.FC<TopicContentProps> = ({
         <div className="space-y-4">
           {sortedPosts.map((post) => (
             <div key={post.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <PostCard post={post} currentUserId={currentUserId} />
+              <PostCard 
+                post={post} 
+                currentUserId={currentUserId}
+                canSeeRealUsername={group.canSeeRealUsername || false}
+                userRole={group.memberRole || 'member'}
+              />
             </div>
           ))}
         </div>

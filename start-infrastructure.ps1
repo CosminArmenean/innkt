@@ -233,5 +233,5 @@ if ($allRunning) {
     Write-Host "Troubleshooting:" -ForegroundColor Yellow
     Write-Host "- Check logs: docker-compose -f docker-compose-infrastructure.yml logs" -ForegroundColor White
     Write-Host "- Check MongoDB: docker-compose -f docker-compose-mongodb.yml logs" -ForegroundColor White
-    Write-Host "- Force restart: start-infrastructure.ps1 -Force" -ForegroundColor White
+    Write-Host "- Force restart: .\start-infrastructure.ps1 -Force" -ForegroundColor White
 }

@@ -51,7 +51,13 @@ public class TopicMappingProfile : Profile
             .ForMember(dest => dest.IsAnnouncement, opt => opt.MapFrom(src => src.IsAnnouncement))
             .ForMember(dest => dest.IsPinned, opt => opt.MapFrom(src => false))
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.Topic, opt => opt.Ignore());
+            .ForMember(dest => dest.Topic, opt => opt.Ignore())
+            .ForMember(dest => dest.PostedAsRoleId, opt => opt.MapFrom(src => src.PostedAsRoleId))
+            .ForMember(dest => dest.PostedAsRoleName, opt => opt.MapFrom(src => src.PostedAsRoleName))
+            .ForMember(dest => dest.PostedAsRoleAlias, opt => opt.MapFrom(src => src.PostedAsRoleAlias))
+            .ForMember(dest => dest.ShowRealUsername, opt => opt.MapFrom(src => src.ShowRealUsername))
+            .ForMember(dest => dest.RealUsername, opt => opt.Ignore()) // This is set manually in the service
+            .ForMember(dest => dest.PostedAsRole, opt => opt.Ignore());
 
         // GroupRole mappings
         CreateMap<GroupRole, GroupRoleResponse>()

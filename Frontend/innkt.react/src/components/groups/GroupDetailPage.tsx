@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { socialService, Group } from '../../services/social.service';
 import { groupsService } from '../../services/groups.service';
 import GroupSettingsPanel from './GroupSettingsPanel';
 import SubgroupManagementPanel from './SubgroupManagementPanel';
 import GroupManagementPanel from './GroupManagementPanel';
+import InvitesManagementPanel from './InvitesManagementPanel';
 import TopicsList from './TopicsList';
 import EnhancedInviteUserModal from './EnhancedInviteUserModal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,7 +28,7 @@ const GroupDetailPage: React.FC = () => {
   
   console.log('GroupDetailPage rendered for group ID:', id);
   const [group, setGroup] = useState<Group | null>(null);
-  const [activeTab, setActiveTab] = useState<'topics' | 'members' | 'rules' | 'subgroups' | 'settings'>('topics');
+  const [activeTab, setActiveTab] = useState<'topics' | 'members' | 'rules' | 'subgroups' | 'settings' | 'invites'>('topics');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -35,12 +36,28 @@ const GroupDetailPage: React.FC = () => {
   const [subgroupsCount, setSubgroupsCount] = useState(0);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [subgroups, setSubgroups] = useState<any[]>([]);
+  const [currentSubgroup, setCurrentSubgroup] = useState<any>(null);
+  const [subgroupTopicsCount, setSubgroupTopicsCount] = useState(0);
+  const [subgroupMembersCount, setSubgroupMembersCount] = useState(0);
+  const [subgroupMemberListTab, setSubgroupMemberListTab] = useState<'users' | 'roles'>('users');
+  const [subgroupRoles, setSubgroupRoles] = useState<any[]>([]);
+  const subgroupChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isLoadingSubgroupDataRef = useRef(false);
 
   useEffect(() => {
     if (id) {
       loadGroup();
     }
   }, [id]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (subgroupChangeTimeoutRef.current) {
+        clearTimeout(subgroupChangeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadGroup = async () => {
     if (!id) return;
@@ -90,6 +107,61 @@ const GroupDetailPage: React.FC = () => {
       loadCounts(id);
     }
   };
+
+  const handleSubgroupViewChange = useCallback(async (subgroup: any) => {
+    // Clear any existing timeout
+    if (subgroupChangeTimeoutRef.current) {
+      clearTimeout(subgroupChangeTimeoutRef.current);
+    }
+    
+    // Debounce the API calls by 300ms
+    subgroupChangeTimeoutRef.current = setTimeout(async () => {
+      // Prevent unnecessary calls if subgroup hasn't changed or if already loading
+      if (currentSubgroup?.id === subgroup?.id || isLoadingSubgroupDataRef.current) {
+        return;
+      }
+      
+      isLoadingSubgroupDataRef.current = true;
+      setCurrentSubgroup(subgroup);
+      
+      if (subgroup) {
+        // Load subgroup-specific data
+        try {
+          const [subgroupTopics, subgroupMembers] = await Promise.all([
+            groupsService.getGroupTopics(id!, { subgroupId: subgroup.id }),
+            groupsService.getSubgroupMembers(id!, subgroup.id)
+          ]);
+          
+          setSubgroupTopicsCount(subgroupTopics?.length || 0);
+          setSubgroupMembersCount(subgroupMembers?.length || 0);
+          
+          // Only try to load roles if user has permission (avoid the 500 error)
+          try {
+            const subgroupRolesData = await groupsService.getRolesWithSubgroups(id!);
+            const rolesWithSubgroupAccess = subgroupRolesData.filter(role => 
+              role.assignedToSubgroups.includes(subgroup.id)
+            );
+            setSubgroupRoles(rolesWithSubgroupAccess);
+          } catch (roleError) {
+            console.warn('Failed to load roles (permission issue):', roleError);
+            setSubgroupRoles([]);
+          }
+        } catch (error) {
+          console.error('Failed to load subgroup data:', error);
+          setSubgroupTopicsCount(0);
+          setSubgroupMembersCount(0);
+          setSubgroupRoles([]);
+        }
+      } else {
+        // Reset to main group data
+        setSubgroupTopicsCount(0);
+        setSubgroupMembersCount(0);
+        setSubgroupRoles([]);
+      }
+      
+      isLoadingSubgroupDataRef.current = false;
+    }, 300);
+  }, [currentSubgroup?.id, id]);
 
 
   const handleJoin = async () => {
@@ -390,36 +462,108 @@ const GroupDetailPage: React.FC = () => {
       <div className="bg-white border border-gray-200 rounded-lg">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8 px-6">
-            {[
-              { id: 'topics', label: 'Topics', count: topicsCount },
-              { id: 'members', label: 'Members', count: group.memberCount || 0 },
-              { id: 'rules', label: 'Rules', count: group.rules?.length || 0 },
-              { id: 'subgroups', label: 'Subgroups', count: subgroupsCount }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-purple-600 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label} ({tab.count})
-              </button>
-            ))}
-            
-            {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'settings'
-                    ? 'border-purple-600 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Settings
-              </button>
+            {currentSubgroup ? (
+              // Subgroup navbar - show Main Group button first, then subgroup-specific tabs
+              <>
+                <button
+                  onClick={() => {
+                    setCurrentSubgroup(null);
+                    setActiveTab('topics'); // Reset to topics tab when returning to main group
+                  }}
+                  className="py-2 px-1 border-b-2 font-medium text-sm border-transparent text-purple-600 hover:text-purple-700 hover:border-purple-300"
+                >
+                  ← Main Group
+                </button>
+                {[
+                  { id: 'topics', label: 'Topics', count: subgroupTopicsCount },
+                  { id: 'members', label: 'Members', count: subgroupMembersCount },
+                  { id: 'rules', label: 'Rules', count: 0 } // Subgroups don't have rules
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab.id
+                        ? 'border-purple-600 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
+                {/* Invites tab - only visible to users with manage members access */}
+                {(group.canManageMembers || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  <button
+                    onClick={() => setActiveTab('invites')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'invites'
+                        ? 'border-purple-600 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    Invites
+                  </button>
+                )}
+                {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'settings'
+                        ? 'border-purple-600 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    Settings
+                  </button>
+                )}
+              </>
+            ) : (
+              // Main group navbar - normal tabs
+              <>
+                {[
+                  { id: 'topics', label: 'Topics', count: topicsCount },
+                  { id: 'members', label: 'Members', count: group.memberCount || 0 },
+                  { id: 'rules', label: 'Rules', count: group.rules?.length || 0 },
+                  { id: 'subgroups', label: 'Subgroups', count: subgroupsCount }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab.id
+                        ? 'border-purple-600 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
+                {/* Invites tab - only visible to users with manage members access */}
+                {(group.canManageMembers || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  <button
+                    onClick={() => setActiveTab('invites')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'invites'
+                        ? 'border-purple-600 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    Invites
+                  </button>
+                )}
+                {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'settings'
+                        ? 'border-purple-600 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    Settings
+                  </button>
+                )}
+              </>
             )}
           </nav>
         </div>
@@ -431,16 +575,140 @@ const GroupDetailPage: React.FC = () => {
               group={group}
               currentUserId={currentUserId}
               onTopicCreated={handleTopicCreated}
+              onSubgroupViewChange={handleSubgroupViewChange}
+              currentSubgroup={currentSubgroup}
             />
           )}
 
           {activeTab === 'members' && (
-            <GroupManagementPanel
-              group={group}
-              currentUserId={currentUserId}
-              onSubgroupCreated={handleSubgroupCreated}
-              showOnlyTab="members"
-            />
+            currentSubgroup ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {currentSubgroup.name} - Members
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {subgroupMemberListTab === 'users' 
+                        ? `${subgroupMembersCount} member${subgroupMembersCount !== 1 ? 's' : ''} in this subgroup`
+                        : `${subgroupRoles.length} role${subgroupRoles.length !== 1 ? 's' : ''} with access to this subgroup`
+                      }
+                    </p>
+                  </div>
+                  {(group.canManageMembers || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                    <button
+                      onClick={() => setShowInviteModal(true)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    >
+                      <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" />
+                      Invite Members
+                    </button>
+                  )}
+                </div>
+
+                {/* Subgroup Member List Tabs */}
+                <div className="border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-8">
+                    <button
+                      onClick={() => setSubgroupMemberListTab('users')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        subgroupMemberListTab === 'users'
+                          ? 'border-purple-600 text-purple-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Members ({subgroupMembersCount})
+                    </button>
+                    <button
+                      onClick={() => setSubgroupMemberListTab('roles')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        subgroupMemberListTab === 'roles'
+                          ? 'border-purple-600 text-purple-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Roles Members ({subgroupRoles.length})
+                    </button>
+                  </nav>
+                </div>
+
+                {/* Subgroup Member Content */}
+                {subgroupMemberListTab === 'users' ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                    <p>Subgroup member management coming soon...</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-900">Roles Members with Access to {currentSubgroup.name} ({subgroupRoles.length})</h4>
+                    </div>
+                    <div className="divide-y divide-gray-200">
+                      {subgroupRoles.length === 0 ? (
+                        <div className="p-6 text-center text-gray-500">
+                          <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                          <p>No roles have access to this subgroup yet.</p>
+                        </div>
+                      ) : (
+                        subgroupRoles.map((role) => (
+                          <div key={role.id} className="p-4 flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0">
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                                  <span className="text-white font-semibold text-sm">
+                                    {role.name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-4">
+                                <div className="flex items-center">
+                                  <p className="text-sm font-medium text-gray-900">{role.name}</p>
+                                  {role.alias && (
+                                    <span className="ml-2 text-sm text-gray-500">({role.alias})</span>
+                                  )}
+                                </div>
+                                {role.description && (
+                                  <p className="text-sm text-gray-500">{role.description}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                Role
+                              </span>
+                              <div className="flex space-x-1">
+                                {role.canCreateTopics && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-800">
+                                    Create Topics
+                                  </span>
+                                )}
+                                {role.canManageMembers && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                                    Manage Members
+                                  </span>
+                                )}
+                                {role.canManageRoles && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">
+                                    Manage Roles
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <GroupManagementPanel
+                group={group}
+                currentUserId={currentUserId}
+                onSubgroupCreated={handleSubgroupCreated}
+                showOnlyTab="members"
+              />
+            )
           )}
 
           {activeTab === 'rules' && (
@@ -468,6 +736,13 @@ const GroupDetailPage: React.FC = () => {
             />
           )}
 
+          {activeTab === 'invites' && (
+            <InvitesManagementPanel
+              groupId={id || ''}
+              currentUserId={currentUserId || ''}
+              currentSubgroup={currentSubgroup}
+            />
+          )}
 
           {activeTab === 'settings' && (
             <GroupSettingsPanel

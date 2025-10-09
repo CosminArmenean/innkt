@@ -54,17 +54,20 @@ public class TopicService : ITopicService
     private readonly IPermissionService _permissionService;
     private readonly IMapper _mapper;
     private readonly ILogger<TopicService> _logger;
+    private readonly IUserService _userService;
 
     public TopicService(
         GroupsDbContext context,
         IPermissionService permissionService,
         IMapper mapper,
-        ILogger<TopicService> logger)
+        ILogger<TopicService> logger,
+        IUserService userService)
     {
         _context = context;
         _permissionService = permissionService;
         _mapper = mapper;
         _logger = logger;
+        _userService = userService;
     }
 
     public async Task<TopicResponse> CreateTopicAsync(Guid userId, CreateTopicRequest request)
@@ -435,6 +438,14 @@ public class TopicService : ITopicService
             // For now, we'll create a mock post ID
             var postId = Guid.NewGuid();
 
+            // Get user's real username for role posting
+            string? realUsername = null;
+            if (request.PostedAsRoleId.HasValue && request.ShowRealUsername)
+            {
+                var userProfile = await _userService.GetUserBasicInfoAsync(userId);
+                realUsername = userProfile?.Username;
+            }
+
             var topicPost = new TopicPost
             {
                 TopicId = topicId,
@@ -448,6 +459,12 @@ public class TopicService : ITopicService
                 Mentions = request.Mentions?.ToArray() ?? Array.Empty<string>(),
                 Location = request.Location,
                 IsAnnouncement = request.IsAnnouncement,
+                // Role-based posting fields
+                PostedAsRoleId = request.PostedAsRoleId,
+                PostedAsRoleName = request.PostedAsRoleName,
+                PostedAsRoleAlias = request.PostedAsRoleAlias,
+                ShowRealUsername = request.ShowRealUsername,
+                RealUsername = realUsername,
                 CreatedAt = DateTime.UtcNow
             };
 

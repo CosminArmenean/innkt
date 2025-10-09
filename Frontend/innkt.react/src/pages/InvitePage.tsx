@@ -51,26 +51,37 @@ const InvitePage: React.FC = () => {
       setIsLoading(true);
       setError('');
       
-      // TODO: Implement real invite fetching from backend
-      // For now, we'll use a mock with an existing group ID from the database
-      const mockInvite: GroupInvite = {
-        id: inviteId || '',
-        groupId: '550e8400-e29b-41d4-a716-446655440000', // Existing test group ID
-        subgroupId: '550e8400-e29b-41d4-a716-446655440001', // Mock subgroup ID for testing
-        groupName: 'Scoala Testoasa',
-        groupDescription: 'Educational group for students and teachers',
-        groupType: 'educational',
-        inviterName: 'testy',
-        inviterId: 'user-123',
-        message: 'Join our educational subgroup!',
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        isEducational: true
+      if (!inviteId) {
+        setError('Invalid invitation ID');
+        return;
+      }
+      
+      // Fetch real invitation data from backend
+      const invitation = await groupsService.getInvitation(inviteId);
+      
+      if (!invitation) {
+        setError('Invitation not found or expired');
+        return;
+      }
+      
+      const invite: GroupInvite = {
+        id: invitation.id,
+        groupId: invitation.groupId,
+        subgroupId: invitation.subgroupId,
+        groupName: invitation.group?.name || 'Unknown Group',
+        groupDescription: invitation.group?.description || '',
+        groupType: invitation.group?.groupType || 'general',
+        inviterName: invitation.invitedByRoleName || invitation.invitedBy?.displayName || 'Unknown User',
+        inviterId: invitation.invitedByUserId,
+        message: invitation.message,
+        expiresAt: invitation.expiresAt,
+        isEducational: invitation.group?.groupType === 'educational'
       };
       
-      setInvite(mockInvite);
+      setInvite(invite);
       
       // Load kid accounts if this is an educational group
-      if (mockInvite.isEducational) {
+      if (invite.isEducational) {
         await loadKidAccounts();
       }
     } catch (err) {

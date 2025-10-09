@@ -34,6 +34,8 @@ public interface IGroupService
     Task<GroupInvitationListResponse> GetUserInvitationsAsync(Guid userId, int page = 1, int pageSize = 20);
     Task<bool> RespondToInvitationAsync(Guid invitationId, Guid userId, string action);
     Task<bool> CancelInvitationAsync(Guid invitationId, Guid userId);
+    Task<GroupInvitationResponse?> GetInvitationByIdAsync(Guid invitationId);
+    Task<bool> RevokeInvitationAsync(Guid invitationId, Guid userId);
     
     // Group posts
     Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request);
@@ -123,4 +125,12 @@ public interface IGroupService
     
     // Role-based posting
     Task<List<GroupRoleResponse>> GetUserRolesInGroupAsync(Guid groupId, Guid userId);
+    
+    // Subgroup-Role Assignment Management
+    Task<SubgroupRoleAssignmentResponse> AssignRoleToSubgroupAsync(Guid userId, AssignRoleToSubgroupRequest request);
+    Task<bool> RemoveRoleFromSubgroupAsync(Guid userId, RemoveRoleFromSubgroupRequest request);
+    Task<List<SubgroupWithRolesResponse>> GetSubgroupsWithRolesAsync(Guid groupId, Guid userId);
+    Task<List<RoleWithSubgroupsResponse>> GetRolesWithSubgroupsAsync(Guid groupId, Guid userId);
+    Task<List<SubgroupRoleAssignmentResponse>> GetSubgroupRoleAssignmentsAsync(Guid subgroupId, Guid userId);
+    Task<bool> UpdateSubgroupRoleAssignmentAsync(Guid userId, Guid assignmentId, UpdateSubgroupRoleAssignmentRequest request);
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Post } from '../../services/social.service';
+import { Post, Group } from '../../services/social.service';
 import { groupsService, TopicResponse } from '../../services/groups.service';
 import PostCard from '../social/PostCard';
 import GroupPostCreation from './GroupPostCreation';
@@ -25,15 +25,26 @@ const PostDetail: React.FC<PostDetailProps> = ({
   onPostCreated
 }) => {
   const [topic, setTopic] = useState<TopicResponse | null>(null);
+  const [group, setGroup] = useState<Group | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    loadGroup();
     if ((post as any).topicId) {
       loadTopic();
     } else {
       setIsLoading(false);
     }
-  }, [(post as any).topicId]);
+  }, [(post as any).topicId, groupId]);
+
+  const loadGroup = async () => {
+    try {
+      const groupData = await groupsService.getGroup(groupId);
+      setGroup(groupData);
+    } catch (error) {
+      console.error('Failed to load group:', error);
+    }
+  };
 
   const loadTopic = async () => {
     try {
@@ -81,7 +92,12 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
       {/* Original Post */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <PostCard post={post} currentUserId={currentUserId} />
+        <PostCard 
+          post={post} 
+          currentUserId={currentUserId}
+          canSeeRealUsername={group?.canSeeRealUsername || false}
+          userRole={group?.memberRole || 'member'}
+        />
       </div>
 
       {/* Post Creation */}

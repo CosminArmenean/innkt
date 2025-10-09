@@ -26,12 +26,16 @@ interface TopicsListProps {
   group: Group;
   currentUserId?: string;
   onTopicCreated?: () => void;
+  onSubgroupViewChange?: (subgroup: SubgroupResponse | null) => void;
+  currentSubgroup?: SubgroupResponse | null;
 }
 
 const TopicsList: React.FC<TopicsListProps> = ({
   group,
   currentUserId,
-  onTopicCreated
+  onTopicCreated,
+  onSubgroupViewChange,
+  currentSubgroup
 }) => {
   const [topics, setTopics] = useState<TopicResponse[]>([]);
   const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);
@@ -44,22 +48,47 @@ const TopicsList: React.FC<TopicsListProps> = ({
   const [showCreateTopic, setShowCreateTopic] = useState(false);
   const [expandedSubgroups, setExpandedSubgroups] = useState<Set<string>>(new Set());
 
+  // Sync internal selectedSubgroup with external currentSubgroup prop
+  useEffect(() => {
+    setSelectedSubgroup(currentSubgroup || null);
+  }, [currentSubgroup]);
+
   useEffect(() => {
     loadData();
-  }, [group.id]);
+  }, [group.id, selectedSubgroup]);
+
+  // Notify parent when subgroup view changes
+  useEffect(() => {
+    if (onSubgroupViewChange) {
+      onSubgroupViewChange(selectedSubgroup);
+    }
+  }, [selectedSubgroup, onSubgroupViewChange]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [topicsData, subgroupsData] = await Promise.all([
-        groupsService.getGroupTopics(group.id),
-        groupsService.getGroupSubgroups(group.id)
-      ]);
-      setTopics(topicsData);
-      setSubgroups(subgroupsData);
+      console.log('🔍 TopicsList loadData called with selectedSubgroup:', selectedSubgroup);
       
-      // Load topic counts for all subgroups
-      await loadSubgroupTopicCounts(subgroupsData);
+      if (selectedSubgroup) {
+        // Load only subgroup topics when a subgroup is selected
+        console.log('📚 Loading subgroup topics for:', selectedSubgroup.name, selectedSubgroup.id);
+        const subgroupTopicsData = await groupsService.getGroupTopics(group.id, { subgroupId: selectedSubgroup.id });
+        console.log('📚 Subgroup topics loaded:', subgroupTopicsData);
+        setTopics(subgroupTopicsData);
+      } else {
+        // Load main group topics and subgroups when no subgroup is selected
+        console.log('🏠 Loading main group topics');
+        const [topicsData, subgroupsData] = await Promise.all([
+          groupsService.getGroupTopics(group.id),
+          groupsService.getGroupSubgroups(group.id)
+        ]);
+        console.log('🏠 Main group topics loaded:', topicsData);
+        setTopics(topicsData);
+        setSubgroups(subgroupsData);
+        
+        // Load topic counts for all subgroups
+        await loadSubgroupTopicCounts(subgroupsData);
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -274,7 +303,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                   </div>
                 </div>
               </div>
-              {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+              {(group.memberRole === 'admin' || group.memberRole === 'moderator' || group.canCreateTopics) && (
                 <button
                   onClick={() => setShowCreateTopic(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -290,8 +319,8 @@ const TopicsList: React.FC<TopicsListProps> = ({
               {topics.length === 0 ? (
                 <div className="text-center py-12">
                   <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No topics in this subgroup</h3>
-                  <p className="text-gray-500">Topics will appear here when created</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Subgroup Topics in this subgroup</h3>
+                  <p className="text-gray-500">Subgroup Topics will appear here when created</p>
                 </div>
               ) : (
                 topics.map((topic) => (
@@ -503,7 +532,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                       <UserGroupIcon className="w-4 h-4 text-blue-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Subgroups</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Subgroup Topics</h3>
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                       {subgroups.length}
                     </span>
@@ -618,9 +647,9 @@ const TopicsList: React.FC<TopicsListProps> = ({
                   <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No topics or subgroups yet</h3>
                   <p className="text-gray-500 mb-6">Create topics and subgroups to organize group discussions</p>
-                  {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  {(group.memberRole === 'admin' || group.memberRole === 'moderator' || group.canCreateTopics) && (
                     <button
-                      onClick={() => setShowCreateAnnouncement(true)}
+                      onClick={() => setShowCreateTopic(true)}
                       className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
                       Create First Topic

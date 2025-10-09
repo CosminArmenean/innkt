@@ -1,301 +1,232 @@
 import React, { useState, useEffect } from 'react';
-import { groupsService, SubgroupResponse, GroupRoleResponse } from '../../services/groups.service';
-import DirectSubgroupInviteModal from './DirectSubgroupInviteModal';
-import {
-  PlusIcon,
+import { groupsService, GroupRoleResponse, SubgroupWithRolesResponse, RoleWithSubgroupsResponse } from '../../services/groups.service';
+import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DroppableStateSnapshot, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
+import EnhancedInviteUserModal from './EnhancedInviteUserModal';
+import { 
+  PlusIcon, 
+  EyeIcon, 
+  UserGroupIcon, 
+  Cog6ToothIcon, 
+  ChartBarIcon,
+  XMarkIcon,
   PencilIcon,
   TrashIcon,
-  UserGroupIcon,
-  UsersIcon,
-  CogIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  ShieldCheckIcon,
-  CheckIcon,
-  XMarkIcon,
-  UserPlusIcon,
-  ChevronDownIcon,
-  ChevronRightIcon
+  UserPlusIcon
 } from '@heroicons/react/24/outline';
 
 interface SubgroupManagementPanelProps {
   groupId: string;
-  currentUserId: string;
-  onSubgroupCreated?: (subgroup: SubgroupResponse) => void;
-  onSubgroupUpdated?: (subgroup: SubgroupResponse) => void;
-  onSubgroupDeleted?: (subgroupId: string) => void;
-}
-
-interface CreateSubgroupFormData {
-  name: string;
-  description: string;
-  settings: {
-    allowMemberPosts: boolean;
-    allowKidPosts: boolean;
-    allowParentPosts: boolean;
-    requireApproval: boolean;
-  };
-}
-
-interface SubgroupRoleAssignment {
-  subgroupId: string;
-  roleId: string;
-  userId: string;
-}
-
-interface SubgroupMember {
-  id: string;
-  username: string;
-  displayName: string;
-  avatarUrl?: string;
-  role?: string;
+  groupName?: string;
+  currentUserId?: string;
+  onSubgroupCreated?: () => void;
+  onClose?: () => void;
 }
 
 const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
   groupId,
+  groupName,
   currentUserId,
   onSubgroupCreated,
-  onSubgroupUpdated,
-  onSubgroupDeleted
+  onClose
 }) => {
-  const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);
-  const [roles, setRoles] = useState<GroupRoleResponse[]>([]);
-  const [subgroupMembers, setSubgroupMembers] = useState<Map<string, SubgroupMember[]>>(new Map());
-  const [subgroupRoleAssignments, setSubgroupRoleAssignments] = useState<Map<string, SubgroupRoleAssignment[]>>(new Map());
+  const [roles, setRoles] = useState<RoleWithSubgroupsResponse[]>([]);
+  const [subgroups, setSubgroups] = useState<SubgroupWithRolesResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingSubgroup, setEditingSubgroup] = useState<SubgroupResponse | null>(null);
-  const [expandedSubgroups, setExpandedSubgroups] = useState<Set<string>>(new Set());
-  const [showRoleAssignment, setShowRoleAssignment] = useState<string | null>(null);
-  const [showDirectInvite, setShowDirectInvite] = useState<{ subgroupId: string; subgroupName: string } | null>(null);
-  const [formData, setFormData] = useState<CreateSubgroupFormData>({
-    name: '',
-    description: '',
-    settings: {
-      allowMemberPosts: true,
-      allowKidPosts: false,
-      allowParentPosts: true,
-      requireApproval: false
-    }
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [selectedSubgroupForMembers, setSelectedSubgroupForMembers] = useState<SubgroupWithRolesResponse | null>(null);
+  const [subgroupMembers, setSubgroupMembers] = useState<any[]>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [userPermissions, setUserPermissions] = useState<any>(null);
+  const [editingSubgroup, setEditingSubgroup] = useState<SubgroupWithRolesResponse | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({ name: '', description: '' });
+  const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [subgroupToDelete, setSubgroupToDelete] = useState<SubgroupWithRolesResponse | null>(null);
+  const [viewingSubgroup, setViewingSubgroup] = useState<SubgroupWithRolesResponse | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
   useEffect(() => {
-    loadSubgroups();
-    loadRoles();
+    loadData();
   }, [groupId]);
 
-  const loadSubgroups = async () => {
+  const loadData = async () => {
     try {
       setIsLoading(true);
-      const response = await groupsService.getGroupSubgroups(groupId);
-      setSubgroups(response);
-    } catch (error) {
-      console.error('Failed to load subgroups:', error);
+      setError(null);
+      
+      const [rolesData, subgroupsData, groupData] = await Promise.all([
+        groupsService.getRolesWithSubgroups(groupId),
+        groupsService.getSubgroupsWithRoles(groupId),
+        groupsService.getGroup(groupId)
+      ]);
+      
+      setRoles(rolesData);
+      setSubgroups(subgroupsData);
+      setUserPermissions(groupData);
+    } catch (err) {
+      console.error('Failed to load subgroup management data:', err);
+      setError('Failed to load data. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadRoles = async () => {
-    try {
-      const response = await groupsService.getGroupRoles(groupId);
-      setRoles(response);
-    } catch (error) {
-      console.error('Failed to load roles:', error);
-    }
-  };
-
-  const loadSubgroupMembers = async (subgroupId: string) => {
-    try {
-      // Mock data for now - in real implementation, this would call the API
-      const mockMembers: SubgroupMember[] = [
-        {
-          id: '1',
-          username: 'patrick.jane',
-          displayName: 'Patrick Jane',
-          avatarUrl: '/avatars/patrick.jpg',
-          role: 'admin'
-        },
-        {
-          id: '2',
-          username: 'teacher1',
-          displayName: 'Math Teacher',
-          avatarUrl: '/avatars/teacher1.jpg',
-          role: 'Math_Teacher_1'
-        }
-      ];
-      setSubgroupMembers(prev => new Map(prev).set(subgroupId, mockMembers));
-    } catch (error) {
-      console.error('Failed to load subgroup members:', error);
-    }
-  };
-
-  const handleAssignRole = async (subgroupId: string, userId: string, roleId: string) => {
-    try {
-      // Mock implementation - in real app, this would call the API
-      const newAssignment: SubgroupRoleAssignment = {
-        subgroupId,
-        roleId,
-        userId
-      };
-      
-      setSubgroupRoleAssignments(prev => {
-        const current = prev.get(subgroupId) || [];
-        const updated = [...current.filter(a => a.userId !== userId), newAssignment];
-        return new Map(prev).set(subgroupId, updated);
-      });
-      
-      // Update member role in the UI
-      setSubgroupMembers(prev => {
-        const members = prev.get(subgroupId) || [];
-        const updated = members.map(member => 
-          member.id === userId ? { ...member, role: roles.find(r => r.id === roleId)?.name } : member
-        );
-        return new Map(prev).set(subgroupId, updated);
-      });
-    } catch (error) {
-      console.error('Failed to assign role:', error);
-    }
-  };
-
-  const handleRemoveRole = async (subgroupId: string, userId: string) => {
-    try {
-      setSubgroupRoleAssignments(prev => {
-        const current = prev.get(subgroupId) || [];
-        const updated = current.filter(a => a.userId !== userId);
-        return new Map(prev).set(subgroupId, updated);
-      });
-      
-      // Update member role in the UI
-      setSubgroupMembers(prev => {
-        const members = prev.get(subgroupId) || [];
-        const updated = members.map(member => 
-          member.id === userId ? { ...member, role: undefined } : member
-        );
-        return new Map(prev).set(subgroupId, updated);
-      });
-    } catch (error) {
-      console.error('Failed to remove role:', error);
-    }
-  };
-
-  const toggleSubgroupExpansion = (subgroupId: string) => {
-    const newExpanded = new Set(expandedSubgroups);
-    if (newExpanded.has(subgroupId)) {
-      newExpanded.delete(subgroupId);
-    } else {
-      newExpanded.add(subgroupId);
-      // Load members when expanding
-      if (!subgroupMembers.has(subgroupId)) {
-        loadSubgroupMembers(subgroupId);
-      }
-    }
-    setExpandedSubgroups(newExpanded);
-  };
-
-  const handleCreateSubgroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const newSubgroup = await groupsService.createSubgroup({
-        groupId,
-        name: formData.name,
-        description: formData.description,
-        settings: {
-          allowMemberPosts: formData.settings.allowMemberPosts,
-          allowKidPosts: formData.settings.allowKidPosts,
-          allowParentPosts: formData.settings.allowParentPosts,
-          requireApproval: formData.settings.requireApproval
-        }
-      });
-      
-      setSubgroups(prev => [...prev, newSubgroup]);
-      onSubgroupCreated?.(newSubgroup);
-      
-      // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        settings: {
-          allowMemberPosts: true,
-          allowKidPosts: false,
-          allowParentPosts: true,
-          requireApproval: false
-        }
-      });
-      setShowCreateForm(false);
-    } catch (error) {
-      console.error('Failed to create subgroup:', error);
-    }
-  };
-
-  const handleUpdateSubgroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSubgroup) return;
-
-    try {
-      const updatedSubgroup = await groupsService.updateSubgroup(editingSubgroup.id, {
-        name: formData.name,
-        description: formData.description,
-        settings: {
-          allowMemberPosts: formData.settings.allowMemberPosts,
-          allowKidPosts: formData.settings.allowKidPosts,
-          allowParentPosts: formData.settings.allowParentPosts,
-          requireApproval: formData.settings.requireApproval
-        }
-      });
-      
-      setSubgroups(prev => prev.map(sg => sg.id === editingSubgroup.id ? updatedSubgroup : sg));
-      onSubgroupUpdated?.(updatedSubgroup);
-      
-      setEditingSubgroup(null);
-      setShowCreateForm(false);
-    } catch (error) {
-      console.error('Failed to update subgroup:', error);
-    }
-  };
-
-  const handleDeleteSubgroup = async (subgroupId: string) => {
-    if (!window.confirm('Are you sure you want to delete this subgroup? This action cannot be undone.')) {
+  const handleDragEnd = async (result: DropResult) => {
+    console.log('🎯 Drag ended:', result);
+    
+    if (!result.destination) {
+      console.log('❌ No destination, dropping outside');
       return;
     }
 
+    const { source, destination, draggableId } = result;
+    console.log('📍 Source:', source.droppableId, 'Destination:', destination.droppableId, 'DraggableId:', draggableId);
+    
+    // Only handle drag from roles to subgroups
+    if (source.droppableId !== 'roles' || !destination.droppableId.startsWith('subgroup-')) {
+      console.log('❌ Invalid drag operation - not from roles to subgroup');
+      return;
+    }
+
+    const roleId = draggableId;
+    const subgroupId = destination.droppableId.replace('subgroup-', ''); // Extract subgroup ID from "subgroup-{id}"
+    console.log('🎯 Assigning role', roleId, 'to subgroup', subgroupId);
+
     try {
-      await groupsService.deleteSubgroup(subgroupId);
-      setSubgroups(prev => prev.filter(sg => sg.id !== subgroupId));
-      onSubgroupDeleted?.(subgroupId);
-    } catch (error) {
-      console.error('Failed to delete subgroup:', error);
+      setIsAssigning(true);
+      
+      // Assign role to subgroup
+      await groupsService.assignRoleToSubgroup(groupId, subgroupId, roleId, {
+        subgroupId: subgroupId,
+        roleId: roleId,
+        expiresAt: null,
+        notes: null
+      });
+
+      console.log('✅ Role assigned successfully');
+      // Reload data to reflect changes
+      await loadData();
+    } catch (err) {
+      console.error('❌ Failed to assign role to subgroup:', err);
+      setError('Failed to assign role. Please try again.');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
-  const handleEditSubgroup = (subgroup: SubgroupResponse) => {
-    setEditingSubgroup(subgroup);
-    setFormData({
-      name: subgroup.name,
-      description: subgroup.description || '',
-      settings: subgroup.settings || {
-        allowMemberPosts: true,
-        allowKidPosts: false,
-        allowParentPosts: true,
-        requireApproval: false
-      }
-    });
-    setShowCreateForm(true);
+  const handleRemoveRole = async (subgroupId: string, roleId: string) => {
+    try {
+      await groupsService.removeRoleFromSubgroup(groupId, subgroupId, roleId);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to remove role from subgroup:', err);
+      setError('Failed to remove role. Please try again.');
+    }
   };
 
-  const cancelEdit = () => {
-    setEditingSubgroup(null);
-    setShowCreateForm(false);
-    setFormData({
-      name: '',
-      description: '',
-      settings: {
-        allowMemberPosts: true,
-        allowKidPosts: false,
-        allowParentPosts: true,
-        requireApproval: false
-      }
+  const handleViewMembers = async (subgroup: SubgroupWithRolesResponse) => {
+    setSelectedSubgroupForMembers(subgroup);
+    setIsLoadingMembers(true);
+    try {
+      const members = await groupsService.getSubgroupMembers(groupId, subgroup.id);
+      setSubgroupMembers(members);
+    } catch (error) {
+      console.error('Failed to load subgroup members:', error);
+      setError('Failed to load members. Please try again.');
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  };
+
+  const handleCloseMembersModal = () => {
+    setSelectedSubgroupForMembers(null);
+    setSubgroupMembers([]);
+  };
+
+  // Edit subgroup handler
+  const handleEditSubgroup = (subgroup: SubgroupWithRolesResponse) => {
+    setEditingSubgroup(subgroup);
+    setEditFormData({
+      name: subgroup.name,
+      description: subgroup.description || ''
     });
+    setShowEditModal(true);
+  };
+
+  // Delete subgroup handler
+  const handleDeleteSubgroup = (subgroup: SubgroupWithRolesResponse) => {
+    setSubgroupToDelete(subgroup);
+    setShowDeleteConfirm(true);
+  };
+
+  // Confirm delete subgroup
+  const confirmDeleteSubgroup = async () => {
+    if (!subgroupToDelete) return;
+    
+    try {
+      await groupsService.deleteSubgroup(groupId, subgroupToDelete.id);
+      setShowDeleteConfirm(false);
+      setSubgroupToDelete(null);
+      loadData(); // Refresh the list
+      if (onSubgroupCreated) onSubgroupCreated();
+    } catch (error) {
+      console.error('Failed to delete subgroup:', error);
+      setError('Failed to delete subgroup');
+    }
+  };
+
+  // View subgroup handler
+  const handleViewSubgroup = (subgroup: SubgroupWithRolesResponse) => {
+    setViewingSubgroup(subgroup);
+    setShowViewModal(true);
+  };
+
+  // Settings subgroup handler
+  const handleSettingsSubgroup = (subgroup: SubgroupWithRolesResponse) => {
+    setViewingSubgroup(subgroup);
+    setShowSettingsModal(true);
+  };
+
+  // Analytics subgroup handler
+  const handleAnalyticsSubgroup = (subgroup: SubgroupWithRolesResponse) => {
+    setViewingSubgroup(subgroup);
+    setShowAnalyticsModal(true);
+  };
+
+  // Save subgroup changes
+  const handleSaveSubgroup = async () => {
+    if (!editingSubgroup) return;
+    
+    try {
+      setIsSaving(true);
+      await groupsService.updateSubgroup(groupId, editingSubgroup.id, {
+        name: editFormData.name,
+        description: editFormData.description
+      });
+      
+      setShowEditModal(false);
+      setEditingSubgroup(null);
+      loadData(); // Refresh the list
+      if (onSubgroupCreated) onSubgroupCreated();
+    } catch (error) {
+      console.error('Failed to update subgroup:', error);
+      setError('Failed to update subgroup');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle form input changes
+  const handleFormChange = (field: 'name' | 'description', value: string) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   if (isLoading) {
@@ -306,525 +237,572 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Subgroups Management</h2>
-          <p className="text-gray-600">Create and manage subgroups within this group</p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-600">{error}</p>
+        <button 
+          onClick={loadData}
+          className="mt-2 text-red-600 hover:text-red-800 underline"
         >
-          <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
-          Create Subgroup
+          Try again
         </button>
       </div>
+    );
+  }
 
-      {/* Create Form */}
-      {showCreateForm && !editingSubgroup && (
-        <div className="bg-white shadow-lg border-2 border-purple-200 rounded-xl p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <PlusIcon className="h-6 w-6 text-purple-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Create New Subgroup</h3>
+  return (
+    <div className="bg-white rounded-lg shadow-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Subgroup Management</h2>
+          <p className="text-gray-600">Manage roles and subgroups for {groupName}</p>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex h-[600px] overflow-hidden">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          {/* Left Panel - Roles (1/3) */}
+          <div className="w-1/3 border-r border-gray-200 flex flex-col">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">📋 Available Roles</h3>
+                <button className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors">
+                  <PlusIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4">
+              <Droppable droppableId="roles">
+                {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`p-4 space-y-3 ${snapshot.isDraggingOver ? 'bg-purple-50' : ''}`}
+                  >
+                    {roles.map((role, index) => (
+                      <Draggable key={role.id} draggableId={role.id} index={index}>
+                        {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`p-3 bg-white border border-gray-200 rounded-lg cursor-move transition-all ${
+                              snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                <span className="text-sm font-medium text-purple-600">
+                                  {role.alias ? role.alias.charAt(0).toUpperCase() : role.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-gray-900 truncate">
+                                  {role.alias || role.name}
+                                </h4>
+                                <p className="text-sm text-gray-500 truncate">{role.name}</p>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <span className="text-xs text-gray-400">
+                                    {role.assignmentCount} assignment{role.assignmentCount !== 1 ? 's' : ''}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Role Permissions Preview */}
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {role.canPostText && (
+                                <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Text</span>
+                              )}
+                              {role.canPostImages && (
+                                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">Images</span>
+                              )}
+                              {role.canPostPolls && (
+                                <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">Polls</span>
+                              )}
+                              {role.canPostVideos && (
+                                <span className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">Videos</span>
+                              )}
+                              {role.canPostAnnouncements && (
+                                <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">Announcements</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
           </div>
-          
-          <form onSubmit={handleCreateSubgroup} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Subgroup Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                placeholder="Enter subgroup name"
-              />
+
+          {/* Right Panel - Subgroups (2/3) */}
+          <div className="w-2/3 flex flex-col">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">🏫 Subgroups</h3>
+                <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  <PlusIcon className="w-4 h-4 inline mr-2" />
+                  Create Subgroup
+                </button>
+              </div>
             </div>
+            
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-4">
+                {subgroups.map((subgroup) => (
+                  <div key={subgroup.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                    {/* Subgroup Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-lg">🏫</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{subgroup.name}</h4>
+                          <p className="text-sm text-gray-500">{subgroup.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => handleEditSubgroup(subgroup)}
+                          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                          title="Edit subgroup"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteSubgroup(subgroup)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                          title="Delete subgroup"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
 
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                id="description"
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                placeholder="Enter subgroup description"
-              />
+                    {/* Subgroup Stats */}
+                    <div className="flex items-center space-x-4 mb-3 text-sm text-gray-500">
+                      <span>👥 {subgroup.membersCount} members</span>
+                      <span>🎭 {subgroup.activeRolesCount} roles</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        subgroup.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {subgroup.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+
+                    {/* Drop Zone for Roles */}
+                    <Droppable droppableId={`subgroup-${subgroup.id}`}>
+                      {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className={`min-h-[100px] border-2 border-dashed rounded-lg p-4 transition-colors ${
+                            snapshot.isDraggingOver 
+                              ? 'border-purple-400 bg-purple-50' 
+                              : 'border-gray-300 bg-gray-50'
+                          }`}
+                        >
+                          <div className="text-center text-gray-500 mb-3">
+                            {snapshot.isDraggingOver ? 'Drop role here' : 'Drag roles here to assign'}
+                          </div>
+                          
+                          {/* Assigned Roles */}
+                          <div className="space-y-2">
+                            {subgroup.assignedRoles.map((assignment: any) => (
+                              <div key={assignment.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-medium text-purple-600">
+                                      {assignment.roleAlias ? assignment.roleAlias.charAt(0).toUpperCase() : assignment.roleName.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-900">
+                                      {assignment.roleAlias || assignment.roleName}
+                                    </span>
+                                    {assignment.notes && (
+                                      <p className="text-xs text-gray-500">{assignment.notes}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleRemoveRole(subgroup.id, assignment.roleId)}
+                                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                >
+                                  <XMarkIcon className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+
+                    {/* Quick Actions */}
+                    <div className="mt-4 flex items-center space-x-2">
+                      <button 
+                        onClick={() => handleViewSubgroup(subgroup)}
+                        className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+                        title="View subgroup details"
+                      >
+                        <EyeIcon className="w-4 h-4" />
+                        <span>View</span>
+                      </button>
+                      <button 
+                        onClick={() => handleViewMembers(subgroup)}
+                        className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+                        title="View subgroup members"
+                      >
+                        <UserGroupIcon className="w-4 h-4" />
+                        <span>Members ({subgroup.membersCount})</span>
+                      </button>
+                      <button 
+                        onClick={() => handleSettingsSubgroup(subgroup)}
+                        className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+                        title="Subgroup settings"
+                      >
+                        <Cog6ToothIcon className="w-4 h-4" />
+                        <span>Settings</span>
+                      </button>
+                      <button 
+                        onClick={() => handleAnalyticsSubgroup(subgroup)}
+                        className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+                        title="Subgroup analytics"
+                      >
+                        <ChartBarIcon className="w-4 h-4" />
+                        <span>Analytics</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
+        </DragDropContext>
+      </div>
 
-            {/* Settings */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-900">Permissions</h4>
-              
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.settings.allowMemberPosts}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: { ...prev.settings, allowMemberPosts: e.target.checked }
-                    }))}
-                    className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Allow members to post</span>
-                </label>
+      {/* Loading Overlay */}
+      {isAssigning && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            <span className="text-gray-700">Assigning role...</span>
+          </div>
+        </div>
+      )}
 
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.settings.allowKidPosts}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: { ...prev.settings, allowKidPosts: e.target.checked }
-                    }))}
-                    className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Allow kid accounts to post</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.settings.allowParentPosts}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: { ...prev.settings, allowParentPosts: e.target.checked }
-                    }))}
-                    className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Allow parent accounts to post</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.settings.requireApproval}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: { ...prev.settings, requireApproval: e.target.checked }
-                    }))}
-                    className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Require approval for new posts</span>
-                </label>
+      {/* Members Modal */}
+      {selectedSubgroupForMembers && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">Subgroup</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {selectedSubgroupForMembers.name} - Members
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  {subgroupMembers.length} member{subgroupMembers.length !== 1 ? 's' : ''} in this subgroup
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                {/* Invite Button - Show if user has manage members permission */}
+                {(userPermissions?.canManageMembers || userPermissions?.memberRole === 'admin' || userPermissions?.memberRole === 'moderator') && (
+                  <button
+                    onClick={() => setShowInviteModal(true)}
+                    className="flex items-center space-x-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                  >
+                    <UserPlusIcon className="w-4 h-4" />
+                    <span>Invite</span>
+                  </button>
+                )}
+                <button
+                  onClick={handleCloseMembersModal}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-3">
+            {/* Members List */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
+              {isLoadingMembers ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                </div>
+              ) : subgroupMembers.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                  <p>No members in this subgroup yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {subgroupMembers.map((member: any) => (
+                    <div
+                      key={member.userId || member.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {/* Avatar */}
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-purple-600">
+                            {(member.username || member.displayName || 'U')[0].toUpperCase()}
+                          </span>
+                        </div>
+                        {/* Member Info */}
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {member.username || member.displayName || 'Unknown User'}
+                          </p>
+                          <p className="text-sm text-gray-500 capitalize">
+                            {member.role || 'Member'}
+                            {member.isParentAccount && ' (Parent)'}
+                            {member.kidAccountId && ' (Managing Kid Account)'}
+                          </p>
+                        </div>
+                      </div>
+                      {/* Role Badge */}
+                      {member.assignedRoleId && member.roleName && (
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                          {member.roleName}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end p-6 border-t border-gray-200 bg-gray-50">
               <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                onClick={handleCloseMembersModal}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Modal */}
+      {showInviteModal && userPermissions && (
+        <EnhancedInviteUserModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          groupId={groupId}
+          groupName={userPermissions.name || groupName || 'Group'}
+          groupCategory={userPermissions.category || ''}
+          subgroups={subgroups.map(subgroup => ({
+            id: subgroup.id,
+            groupId: groupId,
+            name: subgroup.name,
+            description: subgroup.description,
+            level: 1, // Default level for subgroups
+            membersCount: subgroup.membersCount,
+            isActive: subgroup.isActive,
+            createdAt: subgroup.createdAt,
+            updatedAt: subgroup.createdAt // Use createdAt as fallback
+          }))}
+          onInviteSent={() => {
+            setShowInviteModal(false);
+            // Optionally refresh the member list
+            if (selectedSubgroupForMembers) {
+              handleViewMembers(selectedSubgroupForMembers);
+            }
+          }}
+        />
+      )}
+
+      {/* Edit Subgroup Modal */}
+      {showEditModal && editingSubgroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Edit Subgroup</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => handleFormChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter subgroup name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) => handleFormChange('description', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter subgroup description"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                disabled={isSaving}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                type="submit"
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                onClick={handleSaveSubgroup}
+                disabled={isSaving || !editFormData.name.trim()}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
-                Create Subgroup
+                {isSaving && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+                <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
-      {/* Subgroups List */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Existing Subgroups</h3>
-        </div>
-        
-        {subgroups.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No subgroups</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by creating a new subgroup.
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && subgroupToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-red-600">Delete Subgroup</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{subgroupToDelete.name}"? This action cannot be undone.
             </p>
-            <div className="mt-6">
+            <div className="flex justify-end space-x-3">
               <button
-                onClick={() => setShowCreateForm(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
-                <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
-                Create Subgroup
+                Cancel
               </button>
-            </div>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {subgroups.map((subgroup) => (
-              <div key={subgroup.id} className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <UserGroupIcon className="h-8 w-8 text-purple-600" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-sm font-medium text-gray-900 truncate">
-                          {subgroup.name}
-                        </h4>
-                        {subgroup.description && (
-                          <p className="text-sm text-gray-500 truncate">
-                            {subgroup.description}
-                          </p>
-                        )}
-                        <div className="mt-1 flex items-center space-x-4 text-xs text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <UsersIcon className="h-3 w-3" />
-                            <span>{subgroup.membersCount} members</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            {subgroup.isActive ? (
-                              <>
-                                <CheckIcon className="h-3 w-3 text-green-500" />
-                                <span>Active</span>
-                              </>
-                            ) : (
-                              <>
-                                <XMarkIcon className="h-3 w-3 text-red-500" />
-                                <span>Inactive</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => toggleSubgroupExpansion(subgroup.id)}
-                      className="p-2 text-gray-400 hover:text-gray-600"
-                      title="Toggle details"
-                    >
-                      {expandedSubgroups.has(subgroup.id) ? (
-                        <ChevronDownIcon className="h-4 w-4" />
-                      ) : (
-                        <ChevronRightIcon className="h-4 w-4" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setShowDirectInvite({ subgroupId: subgroup.id, subgroupName: subgroup.name })}
-                      className="p-2 text-gray-400 hover:text-green-600"
-                      title="Invite to subgroup"
-                    >
-                      <UserPlusIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleEditSubgroup(subgroup)}
-                      className="p-2 text-gray-400 hover:text-blue-600"
-                      title="Edit subgroup"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSubgroup(subgroup.id)}
-                      className="p-2 text-gray-400 hover:text-red-600"
-                      title="Delete subgroup"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Expanded Subgroup Details */}
-                {expandedSubgroups.has(subgroup.id) && (
-                  <div className="mt-4 pl-11 space-y-4">
-                    {/* Members and Role Management */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-sm font-medium text-gray-900">Members & Roles</h5>
-                        <button
-                          onClick={() => setShowRoleAssignment(showRoleAssignment === subgroup.id ? null : subgroup.id)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200"
-                        >
-                          <UserPlusIcon className="h-3 w-3 mr-1" />
-                          Assign Roles
-                        </button>
-                      </div>
-                      
-                      {/* Members List */}
-                      <div className="space-y-2">
-                        {(subgroupMembers.get(subgroup.id) || []).map((member) => (
-                          <div key={member.id} className="flex items-center justify-between bg-white rounded-lg p-3">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                {member.avatarUrl ? (
-                                  <img src={member.avatarUrl} alt={member.displayName} className="w-8 h-8 rounded-full" />
-                                ) : (
-                                  <UsersIcon className="w-4 h-4 text-purple-600" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">{member.displayName}</p>
-                                <p className="text-xs text-gray-500">@{member.username}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {member.role && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  {member.role}
-                                </span>
-                              )}
-                              <button
-                                onClick={() => setShowRoleAssignment(showRoleAssignment === subgroup.id ? null : subgroup.id)}
-                                className="text-xs text-purple-600 hover:text-purple-800"
-                              >
-                                {member.role ? 'Change Role' : 'Assign Role'}
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Role Assignment Modal */}
-                      {showRoleAssignment === subgroup.id && (
-                        <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
-                          <h6 className="text-sm font-medium text-gray-900 mb-3">Assign Role to Member</h6>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">Select Member</label>
-                              <select className="w-full text-sm border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                                <option>Select a member...</option>
-                                {(subgroupMembers.get(subgroup.id) || []).map((member) => (
-                                  <option key={member.id} value={member.id}>
-                                    {member.displayName} (@{member.username})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">Select Role</label>
-                              <select className="w-full text-sm border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                                <option>Select a role...</option>
-                                {roles.map((role) => (
-                                  <option key={role.id} value={role.id}>
-                                    {role.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => setShowRoleAssignment(null)}
-                                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={() => {
-                                  // Handle role assignment
-                                  setShowRoleAssignment(null);
-                                }}
-                                className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
-                              >
-                                Assign Role
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Edit Subgroup Form - Appears below the subgroup when editing */}
-                {editingSubgroup && editingSubgroup.id === subgroup.id && (
-                  <div className="mt-4 pl-11 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-6">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <PencilIcon className="h-5 w-5 text-blue-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">Edit Subgroup</h3>
-                    </div>
-                    
-                    <form onSubmit={handleUpdateSubgroup} className="space-y-4">
-                      <div>
-                        <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700">
-                          Subgroup Name
-                        </label>
-                        <input
-                          type="text"
-                          id="edit-name"
-                          required
-                          value={formData.name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                          placeholder="Enter subgroup name"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700">
-                          Description
-                        </label>
-                        <textarea
-                          id="edit-description"
-                          rows={3}
-                          value={formData.description}
-                          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                          placeholder="Enter subgroup description"
-                        />
-                      </div>
-
-                      {/* Settings */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-gray-900">Permissions</h4>
-                        
-                        <div className="space-y-2">
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={formData.settings.allowMemberPosts}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                settings: { ...prev.settings, allowMemberPosts: e.target.checked }
-                              }))}
-                              className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                            />
-                            <span className="ml-2 text-sm text-gray-700">Allow members to post</span>
-                          </label>
-
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={formData.settings.allowKidPosts}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                settings: { ...prev.settings, allowKidPosts: e.target.checked }
-                              }))}
-                              className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                            />
-                            <span className="ml-2 text-sm text-gray-700">Allow kid accounts to post</span>
-                          </label>
-
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={formData.settings.allowParentPosts}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                settings: { ...prev.settings, allowParentPosts: e.target.checked }
-                              }))}
-                              className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                            />
-                            <span className="ml-2 text-sm text-gray-700">Allow parent accounts to post</span>
-                          </label>
-
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={formData.settings.requireApproval}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                settings: { ...prev.settings, requireApproval: e.target.checked }
-                              }))}
-                              className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                            />
-                            <span className="ml-2 text-sm text-gray-700">Require approval for new posts</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Form Actions */}
-                      <div className="flex justify-end space-x-3">
-                        <button
-                          type="button"
-                          onClick={cancelEdit}
-                          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                        >
-                          Update Subgroup
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Available Roles */}
-      {roles.length > 0 && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Available Roles</h3>
-            <p className="text-sm text-gray-500">Roles that can be assigned to subgroup members</p>
-          </div>
-          <div className="px-6 py-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {roles.map((role) => (
-                <div key={role.id} className="border rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <ShieldCheckIcon className="h-5 w-5 text-blue-600" />
-                    <h4 className="text-sm font-medium text-gray-900">{role.name}</h4>
-                  </div>
-                  {role.description && (
-                    <p className="mt-1 text-xs text-gray-500">{role.description}</p>
-                  )}
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {role.canCreateTopics && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                        Create Topics
-                      </span>
-                    )}
-                    {role.canManageMembers && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        Manage Members
-                      </span>
-                    )}
-                    {role.canModerateContent && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                        Moderate
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+              <button
+                onClick={confirmDeleteSubgroup}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Direct Subgroup Invite Modal */}
-      {showDirectInvite && (
-        <DirectSubgroupInviteModal
-          isOpen={!!showDirectInvite}
-          onClose={() => setShowDirectInvite(null)}
-          groupId={groupId}
-          subgroupId={showDirectInvite.subgroupId}
-          subgroupName={showDirectInvite.subgroupName}
-          onInviteSent={() => {
-            // Refresh subgroups or show success message
-            loadSubgroups();
-            setShowDirectInvite(null);
-          }}
-        />
+      {/* View Subgroup Modal */}
+      {showViewModal && viewingSubgroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Subgroup Details</h3>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900">{viewingSubgroup.name}</h4>
+                <p className="text-gray-600">{viewingSubgroup.description}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">Members</div>
+                  <div className="text-2xl font-semibold">{viewingSubgroup.membersCount}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">Active Roles</div>
+                  <div className="text-2xl font-semibold">{viewingSubgroup.activeRolesCount}</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  viewingSubgroup.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {viewingSubgroup.isActive ? 'Active' : 'Inactive'}
+                </span>
+                <span className="text-sm text-gray-500">
+                  Created {new Date(viewingSubgroup.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && viewingSubgroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Subgroup Settings</h3>
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="text-center py-8 text-gray-500">
+                <Cog6ToothIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Subgroup settings coming soon...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Modal */}
+      {showAnalyticsModal && viewingSubgroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Subgroup Analytics</h3>
+              <button
+                onClick={() => setShowAnalyticsModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="text-center py-8 text-gray-500">
+                <ChartBarIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Analytics for "{viewingSubgroup.name}" coming soon...</p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
 export default SubgroupManagementPanel;
-
-

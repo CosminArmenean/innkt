@@ -86,6 +86,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMfaService, MfaService>();
 builder.Services.AddScoped<IKidAccountService, KidAccountService>();
 builder.Services.AddScoped<IUserVerificationService, UserVerificationService>();
+builder.Services.AddScoped<IUsernameValidationService, UsernameValidationService>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>

@@ -326,6 +326,15 @@ namespace innkt.Groups.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("InvitedByRoleAlias")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("InvitedByRoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("InvitedByRoleName")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("InvitedByUserId")
                         .HasColumnType("uuid");
 
@@ -336,13 +345,22 @@ namespace innkt.Groups.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("RealUsername")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("RespondedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("ShowRealUsername")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("SubgroupId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -994,6 +1012,50 @@ namespace innkt.Groups.Migrations
                     b.ToTable("SubgroupRoles");
                 });
 
+            modelBuilder.Entity("innkt.Groups.Models.SubgroupRoleAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AssignedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubgroupId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedByUserId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("SubgroupId");
+
+                    b.HasIndex("SubgroupId", "RoleId")
+                        .IsUnique();
+
+                    b.ToTable("SubgroupRoleAssignments");
+                });
+
             modelBuilder.Entity("innkt.Groups.Models.Topic", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1357,6 +1419,25 @@ namespace innkt.Groups.Migrations
                 {
                     b.HasOne("innkt.Groups.Models.GroupRole", "Role")
                         .WithMany("SubgroupRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("innkt.Groups.Models.Subgroup", "Subgroup")
+                        .WithMany()
+                        .HasForeignKey("SubgroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("Subgroup");
+                });
+
+            modelBuilder.Entity("innkt.Groups.Models.SubgroupRoleAssignment", b =>
+                {
+                    b.HasOne("innkt.Groups.Models.GroupRole", "Role")
+                        .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

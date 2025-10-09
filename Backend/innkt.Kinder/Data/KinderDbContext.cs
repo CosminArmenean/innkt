@@ -23,6 +23,11 @@ public class KinderDbContext : DbContext
     public DbSet<IndependenceTransition> IndependenceTransitions { get; set; }
     public DbSet<ContentSafetyRule> ContentSafetyRules { get; set; }
 
+    // New tables for QR code login and maturity system
+    public DbSet<KidLoginCode> KidLoginCodes { get; set; }
+    public DbSet<KidPasswordSettings> KidPasswordSettings { get; set; }
+    public DbSet<MaturityScore> MaturityScores { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -35,6 +40,11 @@ public class KinderDbContext : DbContext
         ConfigureEducationalProfiles(modelBuilder);
         ConfigureIndependenceTransitions(modelBuilder);
         ConfigureContentSafetyRules(modelBuilder);
+        
+        // Configure new tables
+        ConfigureKidLoginCodes(modelBuilder);
+        ConfigureKidPasswordSettings(modelBuilder);
+        ConfigureMaturityScores(modelBuilder);
     }
 
     private void ConfigureKidAccounts(ModelBuilder modelBuilder)
@@ -184,6 +194,54 @@ public class KinderDbContext : DbContext
                 .HasConversion(
                     v => string.Join(',', v),
                     v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+        });
+    }
+
+    private void ConfigureKidLoginCodes(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<KidLoginCode>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => new { e.KidAccountId, e.IsRevoked, e.IsUsed });
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => new { e.ParentId, e.CreatedAt });
+
+            entity.HasOne(e => e.KidAccount)
+                .WithMany()
+                .HasForeignKey(e => e.KidAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private void ConfigureKidPasswordSettings(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<KidPasswordSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.KidAccountId).IsUnique();
+            entity.HasIndex(e => e.IndependenceDay);
+
+            entity.HasOne(e => e.KidAccount)
+                .WithOne()
+                .HasForeignKey<KidPasswordSettings>(e => e.KidAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private void ConfigureMaturityScores(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MaturityScore>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.KidAccountId);
+            entity.HasIndex(e => new { e.Level, e.LastUpdated });
+            entity.HasIndex(e => e.TotalScore);
+
+            entity.HasOne(e => e.KidAccount)
+                .WithMany()
+                .HasForeignKey(e => e.KidAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

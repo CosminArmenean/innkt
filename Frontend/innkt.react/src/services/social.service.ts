@@ -129,6 +129,13 @@ export interface Post {
   updatedAt: string;
   blockchainHash?: string; // For verified users
   
+  // Role-based posting fields
+  postedAsRoleId?: string;
+  postedAsRoleName?: string;
+  postedAsRoleAlias?: string;
+  showRealUsername?: boolean;
+  realUsername?: string;
+  
   // Poll fields
   pollOptions?: string[];
   pollDuration?: number;
@@ -235,6 +242,24 @@ export interface Group {
   rules: GroupRule[];
   admins: GroupMember[];
   moderators: GroupMember[];
+  
+  // User permissions in this group
+  canCreateTopics?: boolean;
+  canManageMembers?: boolean;
+  canManageRoles?: boolean;
+  canManageSubgroups?: boolean;
+  canModerateContent?: boolean;
+  canPostText?: boolean;
+  canPostImages?: boolean;
+  canPostPolls?: boolean;
+  canPostVideos?: boolean;
+  canPostAnnouncements?: boolean;
+  canAccessAllSubgroups?: boolean;
+  canUseGrokAI?: boolean;
+  canUsePerpetualPhotos?: boolean;
+  canUsePaperScanning?: boolean;
+  canManageFunds?: boolean;
+  canSeeRealUsername?: boolean;
 }
 
 export interface GroupRule {

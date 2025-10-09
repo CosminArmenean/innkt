@@ -64,7 +64,7 @@ export interface GroupInvitationResponse {
   invitedUserId: string;
   invitedByUserId: string;
   message?: string;
-  status: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'expired';
   createdAt: string;
   respondedAt?: string;
   expiresAt: string;
@@ -72,13 +72,28 @@ export interface GroupInvitationResponse {
     id: string;
     name: string;
     description?: string;
+    avatarUrl?: string;
+    isPublic: boolean;
+    isVerified: boolean;
+    membersCount: number;
+    groupType?: string;
   };
   invitedBy?: {
     id: string;
     username: string;
     displayName: string;
     avatarUrl?: string;
+    isVerified?: boolean;
   };
+  // Role-based invitation fields
+  invitedByRoleId?: string;
+  invitedByRoleName?: string;
+  invitedByRoleAlias?: string;
+  showRealUsername?: boolean;
+  realUsername?: string;
+  // Subgroup invitation support
+  subgroupId?: string;
+  subgroupName?: string;
 }
 
 export interface InviteUserRequest {
@@ -706,9 +721,9 @@ export class GroupsService extends BaseApiService {
     }
   }
 
-  async updateSubgroup(subgroupId: string, updates: Partial<SubgroupResponse>): Promise<SubgroupResponse> {
+  async updateSubgroup(groupId: string, subgroupId: string, updates: Partial<SubgroupResponse>): Promise<SubgroupResponse> {
     try {
-      const response = await this.put<SubgroupResponse>(`/api/subgroups/${subgroupId}`, updates);
+      const response = await this.put<SubgroupResponse>(`/api/groups/${groupId}/subgroups/${subgroupId}`, updates);
       return response;
     } catch (error) {
       console.error('Failed to update subgroup:', error);
@@ -716,9 +731,9 @@ export class GroupsService extends BaseApiService {
     }
   }
 
-  async deleteSubgroup(subgroupId: string): Promise<void> {
+  async deleteSubgroup(groupId: string, subgroupId: string): Promise<void> {
     try {
-      await this.delete(`/api/subgroups/${subgroupId}`);
+      await this.delete(`/api/groups/${groupId}/subgroups/${subgroupId}`);
     } catch (error) {
       console.error('Failed to delete subgroup:', error);
       throw error;
@@ -789,7 +804,7 @@ export class GroupsService extends BaseApiService {
 
   async updateGroupRole(roleId: string, updates: Partial<GroupRoleResponse>): Promise<GroupRoleResponse> {
     try {
-      const response = await this.put<GroupRoleResponse>(`/api/roles/${roleId}`, updates);
+      const response = await this.put<GroupRoleResponse>(`/api/groups/roles/${roleId}`, updates);
       return response;
     } catch (error) {
       console.error('Failed to update group role:', error);
@@ -814,6 +829,18 @@ export class GroupsService extends BaseApiService {
       return result;
     } catch (error) {
       console.error('Failed to get group members:', error);
+      throw error;
+    }
+  }
+
+  async getSubgroupMembers(groupId: string, subgroupId: string, page: number = 1, pageSize: number = 20): Promise<GroupMemberResponse[]> {
+    try {
+      const response = await this.get<any>(`/api/groups/${groupId}/subgroups/${subgroupId}/members?page=${page}&pageSize=${pageSize}`);
+      // Handle both array response and object with members property (lowercase from backend)
+      const result = Array.isArray(response) ? response : response.members || [];
+      return result;
+    } catch (error) {
+      console.error('Failed to get subgroup members:', error);
       throw error;
     }
   }
@@ -1000,6 +1027,25 @@ export class GroupsService extends BaseApiService {
     }
   }
 
+  async getInvitation(inviteId: string): Promise<GroupInvitationResponse> {
+    try {
+      const response = await this.get<GroupInvitationResponse>(`/api/groups/invitations/${inviteId}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get invitation:', error);
+      throw error;
+    }
+  }
+
+  async revokeInvite(groupId: string, inviteId: string): Promise<void> {
+    try {
+      await this.delete(`/api/groups/${groupId}/invitations/${inviteId}`);
+    } catch (error) {
+      console.error('Failed to revoke invite:', error);
+      throw error;
+    }
+  }
+
   // Get user's roles in a group for role-based posting
   async getUserRolesInGroup(groupId: string): Promise<GroupRoleResponse[]> {
     try {
@@ -1010,6 +1056,131 @@ export class GroupsService extends BaseApiService {
       throw error;
     }
   }
+
+  // Subgroup-Role Assignment Management
+  async assignRoleToSubgroup(groupId: string, subgroupId: string, roleId: string, request: AssignRoleToSubgroupRequest): Promise<SubgroupRoleAssignmentResponse> {
+    try {
+      const response = await this.post<SubgroupRoleAssignmentResponse>(`/api/groups/${groupId}/subgroups/${subgroupId}/roles/${roleId}`, request);
+      return response;
+    } catch (error) {
+      console.error('Failed to assign role to subgroup:', error);
+      throw error;
+    }
+  }
+
+  async removeRoleFromSubgroup(groupId: string, subgroupId: string, roleId: string): Promise<void> {
+    try {
+      await this.delete(`/api/groups/${groupId}/subgroups/${subgroupId}/roles/${roleId}`);
+    } catch (error) {
+      console.error('Failed to remove role from subgroup:', error);
+      throw error;
+    }
+  }
+
+  async getSubgroupsWithRoles(groupId: string): Promise<SubgroupWithRolesResponse[]> {
+    try {
+      const response = await this.get<SubgroupWithRolesResponse[]>(`/api/groups/${groupId}/subgroups-with-roles`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get subgroups with roles:', error);
+      throw error;
+    }
+  }
+
+  async getRolesWithSubgroups(groupId: string): Promise<RoleWithSubgroupsResponse[]> {
+    try {
+      const response = await this.get<RoleWithSubgroupsResponse[]>(`/api/groups/${groupId}/roles-with-subgroups`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get roles with subgroups:', error);
+      throw error;
+    }
+  }
+
+  async getSubgroupRoleAssignments(groupId: string, subgroupId: string): Promise<SubgroupRoleAssignmentResponse[]> {
+    try {
+      const response = await this.get<SubgroupRoleAssignmentResponse[]>(`/api/groups/${groupId}/subgroups/${subgroupId}/role-assignments`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get subgroup role assignments:', error);
+      throw error;
+    }
+  }
+
+  async updateSubgroupRoleAssignment(groupId: string, subgroupId: string, assignmentId: string, request: UpdateSubgroupRoleAssignmentRequest): Promise<void> {
+    try {
+      await this.put(`/api/groups/${groupId}/subgroups/${subgroupId}/role-assignments/${assignmentId}`, request);
+    } catch (error) {
+      console.error('Failed to update subgroup role assignment:', error);
+      throw error;
+    }
+  }
+}
+
+// Subgroup-Role Assignment Interfaces
+export interface AssignRoleToSubgroupRequest {
+  subgroupId: string;
+  roleId: string;
+  expiresAt?: string | null;
+  notes?: string | null;
+}
+
+export interface RemoveRoleFromSubgroupRequest {
+  subgroupId: string;
+  roleId: string;
+}
+
+export interface UpdateSubgroupRoleAssignmentRequest {
+  expiresAt?: string | null;
+  isActive?: boolean;
+  notes?: string | null;
+}
+
+export interface SubgroupRoleAssignmentResponse {
+  id: string;
+  subgroupId: string;
+  roleId: string;
+  assignedByUserId: string;
+  assignedAt: string;
+  expiresAt?: string | null;
+  isActive: boolean;
+  notes?: string | null;
+  roleName: string;
+  roleAlias?: string;
+  roleDescription?: string;
+  assignedByUserName: string;
+  assignedByUserAvatar?: string;
+}
+
+export interface SubgroupWithRolesResponse {
+  id: string;
+  name: string;
+  description?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  membersCount: number;
+  assignedRoles: SubgroupRoleAssignmentResponse[];
+  activeRolesCount: number;
+  totalMembersCount: number;
+  lastActivityAt?: string;
+}
+
+export interface RoleWithSubgroupsResponse {
+  id: string;
+  name: string;
+  alias?: string;
+  description?: string;
+  showRealUsername: boolean;
+  canPostText: boolean;
+  canPostImages: boolean;
+  canPostPolls: boolean;
+  canPostVideos: boolean;
+  canPostAnnouncements: boolean;
+  assignedToSubgroups: string[];
+  assignmentCount: number;
+  isAvailable: boolean;
+  createdAt: string;
 }
 
 export const groupsService = new GroupsService();

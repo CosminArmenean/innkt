@@ -5,6 +5,10 @@ namespace innkt.Officer.Models.DTOs;
 public class CreateKidAccountDto
 {
     [Required]
+    [StringLength(30, MinimumLength = 3)]
+    public string Username { get; set; } = string.Empty;
+    
+    [Required]
     [StringLength(100)]
     public string FirstName { get; set; } = string.Empty;
     

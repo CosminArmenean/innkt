@@ -96,7 +96,24 @@ namespace innkt.Groups.Services
 
                 role.Name = request.Name;
                 role.Alias = request.Alias;
-                role.Permissions = System.Text.Json.JsonSerializer.Serialize(request.Permissions);
+                role.Description = request.Description;
+                
+                // Update permission fields directly
+                role.CanCreateTopics = request.CanCreateTopics;
+                role.CanManageMembers = request.CanManageMembers;
+                role.CanManageRoles = request.CanManageRoles;
+                role.CanManageSubgroups = request.CanManageSubgroups;
+                role.CanModerateContent = request.CanModerateContent;
+                role.CanPostText = request.CanPostText;
+                role.CanPostImages = request.CanPostImages;
+                role.CanPostPolls = request.CanPostPolls;
+                role.CanPostVideos = request.CanPostVideos;
+                role.CanPostAnnouncements = request.CanPostAnnouncements;
+                role.CanAccessAllSubgroups = request.CanAccessAllSubgroups;
+                role.CanUseGrokAI = request.CanUseGrokAI;
+                role.CanUsePerpetualPhotos = request.CanUsePerpetualPhotos;
+                role.CanUsePaperScanning = request.CanUsePaperScanning;
+                role.CanManageFunds = request.CanManageFunds;
                 role.CanSeeRealUsername = request.CanSeeRealUsername;
                 role.UpdatedAt = DateTime.UtcNow;
 

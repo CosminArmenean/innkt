@@ -31,6 +31,9 @@ public class GroupsDbContext : DbContext
     // File management
     public DbSet<GroupFile> GroupFiles { get; set; }
     public DbSet<GroupFilePermission> GroupFilePermissions { get; set; }
+    
+    // Subgroup role assignments
+    public DbSet<SubgroupRoleAssignment> SubgroupRoleAssignments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -463,6 +466,36 @@ public class GroupsDbContext : DbContext
             entity.HasIndex(e => e.FileId);
             entity.HasIndex(e => e.Role);
             entity.HasIndex(e => new { e.FileId, e.Role }).IsUnique();
+        });
+
+        // SubgroupRoleAssignment configuration
+        modelBuilder.Entity<SubgroupRoleAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.AssignedAt).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired();
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            
+            // Foreign key relationships
+            entity.HasOne(e => e.Subgroup)
+                  .WithMany()
+                  .HasForeignKey(e => e.SubgroupId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Role)
+                  .WithMany()
+                  .HasForeignKey(e => e.RoleId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Note: AssignedByUserId is stored as Guid, UserBasicInfo is fetched separately when needed
+            
+            // Indexes
+            entity.HasIndex(e => e.SubgroupId);
+            entity.HasIndex(e => e.RoleId);
+            entity.HasIndex(e => e.AssignedByUserId);
+            entity.HasIndex(e => new { e.SubgroupId, e.RoleId }).IsUnique();
+            entity.HasIndex(e => e.IsActive);
         });
     }
 }

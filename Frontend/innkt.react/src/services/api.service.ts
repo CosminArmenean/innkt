@@ -5,7 +5,7 @@ import { environment } from '../config/environment';
 export const createApiInstance = (baseURL: string) => {
   const instance = axios.create({
     baseURL,
-    timeout: 10000,
+    timeout: 30000, // Increased to 30 seconds to handle slow user service calls
     headers: {
       'Content-Type': 'application/json',
     },

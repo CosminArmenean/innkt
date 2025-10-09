@@ -607,6 +607,9 @@ public class PermissionService : IPermissionService
         if (role.CanUsePaperScanning) permissions.Add("use_paper_scanning");
         if (role.CanManageFunds) permissions.Add("manage_funds");
         
+        // Add invite_members permission if the role can manage members
+        if (role.CanManageMembers) permissions.Add("invite_members");
+        
         return permissions;
     }
 

@@ -68,6 +68,7 @@ builder.Services.AddCors(options =>
 
 // Add Kinder services
 builder.Services.AddScoped<IKidSafetyService, KidSafetyService>();
+builder.Services.AddScoped<IKinderAuthService, KinderAuthService>();
 
 // Add HTTP Clients for inter-service communication
 builder.Services.AddHttpClient("NotificationService", client =>
@@ -77,6 +78,17 @@ builder.Services.AddHttpClient("NotificationService", client =>
 builder.Services.AddHttpClient("NeuroSparkService", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5005/");
+});
+
+// Add Kafka Producer
+builder.Services.AddSingleton<Confluent.Kafka.IProducer<string, string>>(sp =>
+{
+    var config = new Confluent.Kafka.ProducerConfig
+    {
+        BootstrapServers = "localhost:9092",
+        ClientId = "kinder-service"
+    };
+    return new Confluent.Kafka.ProducerBuilder<string, string>(config).Build();
 });
 
 var app = builder.Build();

@@ -16,6 +16,53 @@
 
 ## 🎯 **Recent Features**
 
+### 🏗️ Kafka-Based Microservices Architecture - 2025-10-07
+**Status**: 100% Complete ✅
+**Priority**: Critical
+**Impact**: True microservices with event-driven communication
+
+#### 📋 **Overview**
+Removed direct service dependencies and implemented proper event-driven architecture using Kafka. Groups and Notifications services now communicate asynchronously via Kafka topics, enabling independent deployment, scaling, and fault tolerance.
+
+#### ✨ **Key Features**
+- **Event-Driven Communication**: Services communicate via Kafka topics instead of direct API calls
+- **Zero Direct Dependencies**: Removed Groups → Notifications project reference
+- **Independent Build Process**: Services build without file locking conflicts
+- **Group Invitation Events**: Invitations sent as Kafka events to `group-invitations` topic
+- **Group Notification Events**: Broadcasts sent to `group-notifications` topic
+- **Proper DTO Validation**: Fixed PascalCase/camelCase JSON serialization issues
+- **Kafka Producer Integration**: Groups service publishes events with metadata
+- **Event Replay Capability**: Failed notifications can be replayed from Kafka
+
+#### 🔧 **Technical Implementation**
+- **Removed Project References**: `innkt.Groups.csproj` no longer references `innkt.Notifications`
+- **Kafka Producer Configuration**: Groups service configured with Kafka producer
+- **Event Models**: Created `GroupNotificationModels.cs` with specific event types
+- **Frontend DTO Fix**: Corrected request body property names (UserId vs userId)
+- **Independent Deployment**: Each service can be deployed without affecting others
+- **MongoDB for Notifications**: Notifications persist independently in MongoDB
+- **Event Metadata**: Events include timestamp, sender, recipient, and context
+
+#### 🎯 **User Experience**
+- **No Service Downtime**: Can update Groups service without restarting Notifications
+- **Reliable Invitations**: Invitations delivered even if Notifications temporarily unavailable
+- **Faster Responses**: Non-blocking event publishing improves response times
+- **Better Error Handling**: Failed notifications can be retried automatically
+
+#### 📊 **Performance Impact**
+- ✅ **Build Time**: Services build independently (no file locking)
+- ✅ **Deployment**: Zero-downtime deployments possible
+- ✅ **Scalability**: Can scale notification processing separately
+- ✅ **Fault Tolerance**: Service failures isolated, no cascading failures
+
+#### 🔒 **Architecture Benefits**
+- **Loose Coupling**: Services don't know about each other's implementation
+- **Independent Evolution**: Can change one service without affecting others
+- **Event Sourcing**: Full event history in Kafka for auditing/debugging
+- **Horizontal Scaling**: Can add more consumers to handle increased load
+
+---
+
 ### 🔔 Complete Notification System with MongoDB Persistence - 2025-09-23
 **Status**: 100% Complete ✅
 **Priority**: High

@@ -40,8 +40,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add HttpClient for external API calls
 builder.Services.AddHttpClient();
 
-// Add Memory Cache
-builder.Services.AddMemoryCache();
+// Add Memory Cache with size limit
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 500; // Cache up to 500 user profiles in memory
+    options.CompactionPercentage = 0.25; // Compact 25% when size limit reached
+    options.ExpirationScanFrequency = TimeSpan.FromMinutes(1); // Check for expired items every minute
+});
+
+// Add Redis Distributed Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    options.InstanceName = "InNKT:Groups:"; // Prefix for all keys
+});
 
 // Add Kafka producer
 builder.Services.AddSingleton<IProducer<string, string>>(provider =>
@@ -66,8 +78,12 @@ builder.Services.AddSingleton<IProducer<string, string>>(provider =>
         .Build();
 });
 
-// Add other services
-builder.Services.AddScoped<innkt.Groups.Services.IUserService, innkt.Groups.Services.UserService>();
+// Add caching services
+builder.Services.AddScoped<innkt.Groups.Services.IUserProfileCacheService, innkt.Groups.Services.UserProfileCacheService>();
+
+// Add UserService - register both the inner service and the cached wrapper
+builder.Services.AddScoped<innkt.Groups.Services.UserService>(); // Concrete implementation
+builder.Services.AddScoped<innkt.Groups.Services.IUserService, innkt.Groups.Services.CachedUserService>(); // Cached wrapper
 builder.Services.AddScoped<innkt.Groups.Services.IGroupService, innkt.Groups.Services.GroupService>();
 builder.Services.AddScoped<innkt.Groups.Services.IPermissionService, innkt.Groups.Services.PermissionService>();
 builder.Services.AddScoped<innkt.Groups.Services.IRoleManagementService, innkt.Groups.Services.RoleManagementService>();

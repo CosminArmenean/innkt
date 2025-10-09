@@ -315,6 +315,8 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
             <PostCard
               key={post.id}
               post={post}
+              canSeeRealUsername={group.canSeeRealUsername || false}
+              userRole={group.memberRole || 'member'}
               onEcho={() => {
                 // Handle echo/like
                 const updatedPost = { ...post, isLiked: !post.isLiked, likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1 };

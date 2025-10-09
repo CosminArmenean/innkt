@@ -14,12 +14,14 @@ namespace innkt.Groups.Controllers;
 public class GroupsController : ControllerBase
 {
     private readonly IGroupService _groupService;
+    private readonly ITopicService _topicService;
     private readonly ILogger<GroupsController> _logger;
     private readonly IProducer<string, string> _kafkaProducer;
 
-    public GroupsController(IGroupService groupService, ILogger<GroupsController> logger, IProducer<string, string> kafkaProducer)
+    public GroupsController(IGroupService groupService, ITopicService topicService, ILogger<GroupsController> logger, IProducer<string, string> kafkaProducer)
     {
         _groupService = groupService;
+        _topicService = topicService;
         _logger = logger;
         _kafkaProducer = kafkaProducer;
     }
@@ -651,6 +653,57 @@ public class GroupsController : ControllerBase
     }
 
     /// <summary>
+    /// Update a subgroup
+    /// </summary>
+    [HttpPut("{groupId}/subgroups/{subgroupId}")]
+    [RequirePermission("manage_subgroups")]
+    public async Task<ActionResult<object>> UpdateSubgroup(Guid groupId, Guid subgroupId, [FromBody] UpdateSubgroupRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            // Convert UpdateSubgroupRequest to CreateSubgroupRequest for the service method
+            var createRequest = new CreateSubgroupRequest
+            {
+                GroupId = groupId,
+                Name = request.Name,
+                Description = request.Description
+            };
+            var subgroup = await _groupService.UpdateSubgroupAsync(subgroupId, userId, createRequest);
+            return Ok(subgroup);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating subgroup {SubgroupId} in group {GroupId}", subgroupId, groupId);
+            return StatusCode(500, "An error occurred while updating the subgroup");
+        }
+    }
+
+    /// <summary>
+    /// Delete a subgroup
+    /// </summary>
+    [HttpDelete("{groupId}/subgroups/{subgroupId}")]
+    [RequirePermission("manage_subgroups")]
+    public async Task<ActionResult> DeleteSubgroup(Guid groupId, Guid subgroupId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var success = await _groupService.DeleteSubgroupAsync(subgroupId, userId);
+            if (!success)
+            {
+                return NotFound("Subgroup not found or you don't have permission to delete it");
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting subgroup {SubgroupId} from group {GroupId}", subgroupId, groupId);
+            return StatusCode(500, "An error occurred while deleting the subgroup");
+        }
+    }
+
+    /// <summary>
     /// Get roles for a specific group
     /// </summary>
     [HttpGet("{groupId}/roles")]
@@ -690,6 +743,30 @@ public class GroupsController : ControllerBase
     }
 
     /// <summary>
+    /// Update an existing role
+    /// </summary>
+    [HttpPut("roles/{roleId}")]
+    [RequirePermission("manage_roles")]
+    public async Task<ActionResult<GroupRoleResponse>> UpdateGroupRole(Guid roleId, [FromBody] UpdateRoleRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var role = await _groupService.UpdateGroupRoleAsync(roleId, userId, request);
+            if (role == null)
+            {
+                return NotFound("Role not found");
+            }
+            return Ok(role);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating role {RoleId}", roleId);
+            return StatusCode(500, "An error occurred while updating the role");
+        }
+    }
+
+    /// <summary>
     /// Assign role to a group member
     /// </summary>
     [HttpPut("{groupId}/members/{memberId}/role")]
@@ -720,7 +797,7 @@ public class GroupsController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            var post = await _groupService.CreateTopicPostAsync(topicId, userId, request);
+            var post = await _topicService.CreateTopicPostAsync(topicId, userId, request);
             return CreatedAtAction(nameof(GetGroupPosts), new { groupId }, post);
         }
         catch (Exception ex)
@@ -804,7 +881,8 @@ public class GroupsController : ControllerBase
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                _logger.LogWarning(ex, "User {UserId} attempted to invite user {InvitedUserId} to group {GroupId} without permission", GetCurrentUserId(), request.UserId, groupId);
+                return Forbid();
             }
             catch (Exception ex)
             {
@@ -856,12 +934,64 @@ public class GroupsController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Forbid(ex.Message);
+            _logger.LogWarning(ex, "User {UserId} attempted to cancel invitation {InvitationId} for group {GroupId} without permission", GetCurrentUserId(), invitationId, groupId);
+            return Forbid();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error canceling invitation {InvitationId} for group {GroupId}", invitationId, groupId);
             return StatusCode(500, "An error occurred while canceling the invitation");
+        }
+    }
+
+    /// <summary>
+    /// Get a specific invitation by ID
+    /// </summary>
+    [HttpGet("invitations/{invitationId}")]
+    public async Task<ActionResult<GroupInvitationResponse>> GetInvitation(Guid invitationId)
+    {
+        try
+        {
+            var invitation = await _groupService.GetInvitationByIdAsync(invitationId);
+            if (invitation == null)
+            {
+                return NotFound("Invitation not found");
+            }
+            return Ok(invitation);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting invitation {InvitationId}", invitationId);
+            return StatusCode(500, "An error occurred while getting invitation");
+        }
+    }
+
+    /// <summary>
+    /// Revoke a pending invitation
+    /// </summary>
+    [HttpDelete("{groupId}/invitations/{invitationId}")]
+    [RequirePermission("invite_members")]
+    public async Task<ActionResult> RevokeInvitation(Guid groupId, Guid invitationId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var success = await _groupService.RevokeInvitationAsync(invitationId, userId);
+            if (!success)
+            {
+                return NotFound("Invitation not found or already processed");
+            }
+            return NoContent();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "User {UserId} attempted to revoke invitation {InvitationId} without permission", GetCurrentUserId(), invitationId);
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error revoking invitation {InvitationId} for group {GroupId}", invitationId, groupId);
+            return StatusCode(500, "An error occurred while revoking the invitation");
         }
     }
 
@@ -940,8 +1070,134 @@ public class GroupsController : ControllerBase
             {
                 _logger.LogError(ex, "Error getting user roles for group {GroupId}", groupId);
                 return StatusCode(500, "An error occurred while retrieving user roles");
-            }
         }
+    }
+
+    // Subgroup-Role Assignment Endpoints
+    /// <summary>
+    /// Assign a role to a subgroup
+    /// </summary>
+    [HttpPost("{groupId}/subgroups/{subgroupId}/roles/{roleId}")]
+    [RequirePermission("manage_roles")]
+    public async Task<ActionResult<SubgroupRoleAssignmentResponse>> AssignRoleToSubgroup(Guid groupId, Guid subgroupId, Guid roleId, [FromBody] AssignRoleToSubgroupRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            request.SubgroupId = subgroupId;
+            request.RoleId = roleId;
+            var assignment = await _groupService.AssignRoleToSubgroupAsync(userId, request);
+            return Ok(assignment);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning role {RoleId} to subgroup {SubgroupId} in group {GroupId}", roleId, subgroupId, groupId);
+            return StatusCode(500, "An error occurred while assigning the role");
+        }
+    }
+
+    /// <summary>
+    /// Remove a role from a subgroup
+    /// </summary>
+    [HttpDelete("{groupId}/subgroups/{subgroupId}/roles/{roleId}")]
+    [RequirePermission("manage_roles")]
+    public async Task<ActionResult> RemoveRoleFromSubgroup(Guid groupId, Guid subgroupId, Guid roleId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var request = new RemoveRoleFromSubgroupRequest
+            {
+                SubgroupId = subgroupId,
+                RoleId = roleId
+            };
+            var success = await _groupService.RemoveRoleFromSubgroupAsync(userId, request);
+            return success ? Ok() : NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing role {RoleId} from subgroup {SubgroupId} in group {GroupId}", roleId, subgroupId, groupId);
+            return StatusCode(500, "An error occurred while removing the role");
+        }
+    }
+
+    /// <summary>
+    /// Get subgroups with their assigned roles
+    /// </summary>
+    [HttpGet("{groupId}/subgroups-with-roles")]
+    public async Task<ActionResult<List<SubgroupWithRolesResponse>>> GetSubgroupsWithRoles(Guid groupId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var subgroups = await _groupService.GetSubgroupsWithRolesAsync(groupId, userId);
+            return Ok(subgroups);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting subgroups with roles for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while retrieving subgroups");
+        }
+    }
+
+    /// <summary>
+    /// Get roles with their subgroup assignments
+    /// </summary>
+    [HttpGet("{groupId}/roles-with-subgroups")]
+    [RequirePermission("manage_roles")]
+    public async Task<ActionResult<List<RoleWithSubgroupsResponse>>> GetRolesWithSubgroups(Guid groupId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var roles = await _groupService.GetRolesWithSubgroupsAsync(groupId, userId);
+            return Ok(roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting roles with subgroups for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while retrieving roles");
+        }
+    }
+
+    /// <summary>
+    /// Get role assignments for a specific subgroup
+    /// </summary>
+    [HttpGet("{groupId}/subgroups/{subgroupId}/role-assignments")]
+    public async Task<ActionResult<List<SubgroupRoleAssignmentResponse>>> GetSubgroupRoleAssignments(Guid groupId, Guid subgroupId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var assignments = await _groupService.GetSubgroupRoleAssignmentsAsync(subgroupId, userId);
+            return Ok(assignments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting role assignments for subgroup {SubgroupId} in group {GroupId}", subgroupId, groupId);
+            return StatusCode(500, "An error occurred while retrieving role assignments");
+        }
+    }
+
+    /// <summary>
+    /// Update a subgroup role assignment
+    /// </summary>
+    [HttpPut("{groupId}/subgroups/{subgroupId}/role-assignments/{assignmentId}")]
+    [RequirePermission("manage_roles")]
+    public async Task<ActionResult> UpdateSubgroupRoleAssignment(Guid groupId, Guid subgroupId, Guid assignmentId, [FromBody] UpdateSubgroupRoleAssignmentRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var success = await _groupService.UpdateSubgroupRoleAssignmentAsync(userId, assignmentId, request);
+            return success ? Ok() : NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating role assignment {AssignmentId} for subgroup {SubgroupId} in group {GroupId}", assignmentId, subgroupId, groupId);
+            return StatusCode(500, "An error occurred while updating the role assignment");
+        }
+    }
 }
 
 public class SendGroupNotificationRequest

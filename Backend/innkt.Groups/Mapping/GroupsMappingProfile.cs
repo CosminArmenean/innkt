@@ -27,6 +27,9 @@ public class GroupsMappingProfile : Profile
         CreateMap<CreateGroupRoleRequest, GroupRole>();
         CreateMap<UpdateGroupRoleRequest, GroupRole>();
 
+        // SubgroupRoleAssignment mappings
+        CreateMap<SubgroupRoleAssignment, SubgroupRoleAssignmentResponse>();
+
         // Topic mappings
         CreateMap<Topic, TopicResponse>();
         CreateMap<CreateTopicRequest, Topic>();

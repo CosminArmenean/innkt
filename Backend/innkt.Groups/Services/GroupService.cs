@@ -12,13 +12,15 @@ public class GroupService : IGroupService
     private readonly ILogger<GroupService> _logger;
     private readonly IMapper _mapper;
     private readonly IUserService _userService;
+    private readonly IPermissionService _permissionService;
 
-    public GroupService(GroupsDbContext context, ILogger<GroupService> logger, IMapper mapper, IUserService userService)
+    public GroupService(GroupsDbContext context, ILogger<GroupService> logger, IMapper mapper, IUserService userService, IPermissionService permissionService)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
         _userService = userService;
+        _permissionService = permissionService;
     }
 
     public async Task<GroupResponse> CreateGroupAsync(Guid userId, CreateGroupRequest request)
@@ -75,9 +77,92 @@ public class GroupService : IGroupService
         {
             response.CurrentUserRole = await GetUserRoleAsync(groupId, currentUserId.Value);
             response.IsCurrentUserMember = await IsUserMemberAsync(groupId, currentUserId.Value);
+            
+            // Load user permissions based on their role
+            await LoadUserPermissionsAsync(response, groupId, currentUserId.Value);
         }
 
         return response;
+    }
+
+    private async Task LoadUserPermissionsAsync(GroupResponse response, Guid groupId, Guid userId)
+    {
+        // Get user's role in the group
+        var userRole = response.CurrentUserRole;
+        
+        if (userRole == "admin")
+        {
+            // Admins have all permissions
+            response.canCreateTopics = true;
+            response.canManageMembers = true;
+            response.canManageRoles = true;
+            response.canManageSubgroups = true;
+            response.canModerateContent = true;
+            response.canPostText = true;
+            response.canPostImages = true;
+            response.canPostPolls = true;
+            response.canPostVideos = true;
+            response.canPostAnnouncements = true;
+            response.canAccessAllSubgroups = true;
+            response.canUseGrokAI = true;
+            response.canUsePerpetualPhotos = true;
+            response.canUsePaperScanning = true;
+            response.canManageFunds = true;
+            response.canSeeRealUsername = true;
+        }
+        else if (userRole == "moderator")
+        {
+            // Moderators have most permissions except admin-only ones
+            response.canCreateTopics = true;
+            response.canManageMembers = true;
+            response.canModerateContent = true;
+            response.canPostText = true;
+            response.canPostImages = true;
+            response.canPostPolls = true;
+            response.canPostVideos = true;
+            response.canPostAnnouncements = true;
+            response.canAccessAllSubgroups = true;
+            response.canUseGrokAI = true;
+            response.canUsePerpetualPhotos = true;
+            response.canUsePaperScanning = true;
+            response.canSeeRealUsername = true;
+            // Moderators don't have: canManageRoles, canManageSubgroups, canManageFunds
+        }
+        else
+        {
+            // For members, check if they have an assigned role with specific permissions
+            var member = await _context.GroupMembers
+                .Include(gm => gm.AssignedRole)
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId && gm.IsActive);
+
+            if (member?.AssignedRole != null)
+            {
+                var role = member.AssignedRole;
+                response.canCreateTopics = role.CanCreateTopics;
+                response.canManageMembers = role.CanManageMembers;
+                response.canManageRoles = role.CanManageRoles;
+                response.canManageSubgroups = role.CanManageSubgroups;
+                response.canModerateContent = role.CanModerateContent;
+                response.canPostText = role.CanPostText;
+                response.canPostImages = role.CanPostImages;
+                response.canPostPolls = role.CanPostPolls;
+                response.canPostVideos = role.CanPostVideos;
+                response.canPostAnnouncements = role.CanPostAnnouncements;
+                response.canAccessAllSubgroups = role.CanAccessAllSubgroups;
+                response.canUseGrokAI = role.CanUseGrokAI;
+                response.canUsePerpetualPhotos = role.CanUsePerpetualPhotos;
+                response.canUsePaperScanning = role.CanUsePaperScanning;
+                response.canManageFunds = role.CanManageFunds;
+                response.canSeeRealUsername = role.CanSeeRealUsername;
+            }
+            else
+            {
+                // Default member permissions
+                response.canPostText = true;
+                response.canPostImages = true;
+                // All other permissions default to false
+            }
+        }
     }
 
     public async Task<GroupListResponse> GetUserGroupsAsync(Guid userId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
@@ -608,14 +693,173 @@ public class GroupService : IGroupService
 
     public async Task<GroupInvitationResponse> InviteUserAsync(Guid groupId, Guid userId, Guid invitedUserId, string? message = null)
     {
-        // Implementation would go here
-        return new GroupInvitationResponse();
+        // Check if user has permission to invite members
+        var hasPermission = await _permissionService.HasPermissionAsync(userId, groupId, "invite_members");
+        if (!hasPermission)
+        {
+            throw new UnauthorizedAccessException("You don't have permission to invite users to this group");
+        }
+
+        // Check if user is already a member
+        var existingMember = await _context.GroupMembers
+            .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == invitedUserId && gm.IsActive);
+        
+        if (existingMember != null)
+        {
+            throw new InvalidOperationException("User is already a member of this group");
+        }
+
+        // Check if there's already a pending invitation
+        var existingInvitation = await _context.GroupInvitations
+            .FirstOrDefaultAsync(gi => gi.GroupId == groupId && gi.InvitedUserId == invitedUserId && gi.Status == "pending");
+        
+        if (existingInvitation != null)
+        {
+            throw new InvalidOperationException("User already has a pending invitation to this group");
+        }
+
+        // Get user's role information if they have an assigned role
+        var userMember = await _context.GroupMembers
+            .Include(gm => gm.AssignedRole)
+            .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId && gm.IsActive);
+
+        // Batch load user information (2 users at once instead of sequential)
+        var userIds = new List<Guid> { userId, invitedUserId };
+        var users = await _userService.GetUsersBasicInfoAsync(userIds);
+        var userDict = users.ToDictionary(u => u.Id);
+        
+        // Create invitation
+        var invitation = new GroupInvitation
+        {
+            GroupId = groupId,
+            InvitedUserId = invitedUserId,
+            InvitedByUserId = userId,
+            Message = message,
+            Status = "pending",
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            // Role information
+            InvitedByRoleId = userMember?.AssignedRoleId,
+            InvitedByRoleName = userMember?.AssignedRole?.Name,
+            InvitedByRoleAlias = userMember?.AssignedRole?.Alias,
+            ShowRealUsername = userMember?.AssignedRole?.ShowRealUsername ?? false,
+            RealUsername = userMember?.AssignedRole?.ShowRealUsername == true && userDict.ContainsKey(userId)
+                ? userDict[userId].Username : null
+        };
+
+        _context.GroupInvitations.Add(invitation);
+        await _context.SaveChangesAsync();
+
+        // Get group and user information for response (users already loaded above)
+        var group = await _context.Groups.FindAsync(groupId);
+        var invitedByUser = userDict.GetValueOrDefault(userId);
+        var invitedUser = userDict.GetValueOrDefault(invitedUserId);
+
+        return new GroupInvitationResponse
+        {
+            Id = invitation.Id,
+            GroupId = invitation.GroupId,
+            InvitedUserId = invitation.InvitedUserId,
+            InvitedByUserId = invitation.InvitedByUserId,
+            Message = invitation.Message,
+            Status = invitation.Status,
+            CreatedAt = invitation.CreatedAt,
+            RespondedAt = invitation.RespondedAt,
+            ExpiresAt = invitation.ExpiresAt,
+            Group = group != null ? new GroupBasicInfo
+            {
+                Id = group.Id,
+                Name = group.Name,
+                AvatarUrl = group.AvatarUrl,
+                IsPublic = group.IsPublic,
+                IsVerified = group.IsVerified,
+                MembersCount = group.MembersCount
+            } : null,
+            InvitedBy = invitedByUser != null ? new UserBasicInfo
+            {
+                Id = invitedByUser.Id,
+                Username = invitedByUser.Username,
+                DisplayName = invitedByUser.DisplayName,
+                AvatarUrl = invitedByUser.AvatarUrl,
+                IsVerified = invitedByUser.IsVerified
+            } : null,
+            // Role information
+            InvitedByRoleId = invitation.InvitedByRoleId,
+            InvitedByRoleName = invitation.InvitedByRoleName,
+            InvitedByRoleAlias = invitation.InvitedByRoleAlias,
+            ShowRealUsername = invitation.ShowRealUsername,
+            RealUsername = invitation.RealUsername,
+            // Subgroup information
+            SubgroupId = invitation.SubgroupId
+        };
     }
 
     public async Task<GroupInvitationListResponse> GetGroupInvitationsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
     {
-        // Implementation would go here
-        return new GroupInvitationListResponse();
+        var invitations = await _context.GroupInvitations
+            .Include(gi => gi.Group)
+            .Where(gi => gi.GroupId == groupId)
+            .OrderByDescending(gi => gi.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalCount = await _context.GroupInvitations
+            .CountAsync(gi => gi.GroupId == groupId);
+
+        var invitationResponses = new List<GroupInvitationResponse>();
+        
+        foreach (var invitation in invitations)
+        {
+            var invitedByUser = await _userService.GetUserBasicInfoAsync(invitation.InvitedByUserId);
+            
+            invitationResponses.Add(new GroupInvitationResponse
+            {
+                Id = invitation.Id,
+                GroupId = invitation.GroupId,
+                InvitedUserId = invitation.InvitedUserId,
+                InvitedByUserId = invitation.InvitedByUserId,
+                Message = invitation.Message,
+                Status = invitation.Status,
+                CreatedAt = invitation.CreatedAt,
+                RespondedAt = invitation.RespondedAt,
+                ExpiresAt = invitation.ExpiresAt,
+                Group = invitation.Group != null ? new GroupBasicInfo
+                {
+                    Id = invitation.Group.Id,
+                    Name = invitation.Group.Name,
+                    AvatarUrl = invitation.Group.AvatarUrl,
+                    IsPublic = invitation.Group.IsPublic,
+                    IsVerified = invitation.Group.IsVerified,
+                    MembersCount = invitation.Group.MembersCount
+                } : null,
+                InvitedBy = invitedByUser != null ? new UserBasicInfo
+                {
+                    Id = invitedByUser.Id,
+                    Username = invitedByUser.Username,
+                    DisplayName = invitedByUser.DisplayName,
+                    AvatarUrl = invitedByUser.AvatarUrl,
+                    IsVerified = invitedByUser.IsVerified
+                } : null,
+                // Role information
+                InvitedByRoleId = invitation.InvitedByRoleId,
+                InvitedByRoleName = invitation.InvitedByRoleName,
+                InvitedByRoleAlias = invitation.InvitedByRoleAlias,
+                ShowRealUsername = invitation.ShowRealUsername,
+                RealUsername = invitation.RealUsername,
+                // Subgroup information
+                SubgroupId = invitation.SubgroupId
+            });
+        }
+
+        return new GroupInvitationListResponse
+        {
+            Invitations = invitationResponses,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            HasNextPage = (page * pageSize) < totalCount,
+            HasPreviousPage = page > 1
+        };
     }
 
     public async Task<GroupInvitationListResponse> GetUserInvitationsAsync(Guid userId, int page = 1, int pageSize = 20)
@@ -667,6 +911,105 @@ public class GroupService : IGroupService
             _logger.LogError(ex, "Error canceling invitation {InvitationId} by user {UserId}", invitationId, userId);
             return false;
         }
+    }
+
+    public async Task<bool> RevokeInvitationAsync(Guid invitationId, Guid userId)
+    {
+        try
+        {
+            var invitation = await _context.GroupInvitations
+                .FirstOrDefaultAsync(i => i.Id == invitationId);
+
+            if (invitation == null)
+            {
+                return false;
+            }
+
+            // Check if user has permission to revoke this invitation
+            var group = await _context.Groups
+                .Include(g => g.Members)
+                .FirstOrDefaultAsync(g => g.Id == invitation.GroupId);
+
+            if (group == null)
+            {
+                return false;
+            }
+
+            var userMember = group.Members.FirstOrDefault(m => m.UserId == userId);
+            if (userMember == null || (userMember.Role != "admin" && userMember.Role != "moderator"))
+            {
+                throw new UnauthorizedAccessException("You don't have permission to revoke this invitation");
+            }
+
+            // Only allow revoking pending invitations
+            if (invitation.Status != "pending")
+            {
+                return false;
+            }
+
+            // Remove the invitation
+            _context.GroupInvitations.Remove(invitation);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Invitation {InvitationId} revoked by user {UserId}", invitationId, userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error revoking invitation {InvitationId} by user {UserId}", invitationId, userId);
+            return false;
+        }
+    }
+
+    public async Task<GroupInvitationResponse?> GetInvitationByIdAsync(Guid invitationId)
+    {
+        var invitation = await _context.GroupInvitations
+            .Include(gi => gi.Group)
+            .FirstOrDefaultAsync(gi => gi.Id == invitationId);
+
+        if (invitation == null)
+            return null;
+
+        // Get inviter information
+        var invitedByUser = await _userService.GetUserBasicInfoAsync(invitation.InvitedByUserId);
+
+        return new GroupInvitationResponse
+        {
+            Id = invitation.Id,
+            GroupId = invitation.GroupId,
+            InvitedUserId = invitation.InvitedUserId,
+            InvitedByUserId = invitation.InvitedByUserId,
+            Message = invitation.Message,
+            Status = invitation.Status,
+            CreatedAt = invitation.CreatedAt,
+            RespondedAt = invitation.RespondedAt,
+            ExpiresAt = invitation.ExpiresAt,
+            Group = invitation.Group != null ? new GroupBasicInfo
+            {
+                Id = invitation.Group.Id,
+                Name = invitation.Group.Name,
+                AvatarUrl = invitation.Group.AvatarUrl,
+                IsPublic = invitation.Group.IsPublic,
+                IsVerified = invitation.Group.IsVerified,
+                MembersCount = invitation.Group.MembersCount
+            } : null,
+            InvitedBy = invitedByUser != null ? new UserBasicInfo
+            {
+                Id = invitedByUser.Id,
+                Username = invitedByUser.Username,
+                DisplayName = invitedByUser.DisplayName,
+                AvatarUrl = invitedByUser.AvatarUrl,
+                IsVerified = invitedByUser.IsVerified
+            } : null,
+            // Role information
+            InvitedByRoleId = invitation.InvitedByRoleId,
+            InvitedByRoleName = invitation.InvitedByRoleName,
+            InvitedByRoleAlias = invitation.InvitedByRoleAlias,
+            ShowRealUsername = invitation.ShowRealUsername,
+            RealUsername = invitation.RealUsername,
+            // Subgroup information
+            SubgroupId = invitation.SubgroupId
+        };
     }
 
     public async Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request)
@@ -728,7 +1071,13 @@ public class GroupService : IGroupService
                         UpdatedAt = tp.CreatedAt, // Use CreatedAt as fallback
                         IsLikedByCurrentUser = isLikedByCurrentUser,
                         Author = author,
-                        Group = null // TODO: Get group info
+                        Group = null, // TODO: Get group info
+                        // Role-based posting fields
+                        PostedAsRoleId = tp.PostedAsRoleId,
+                        PostedAsRoleName = tp.PostedAsRoleName,
+                        PostedAsRoleAlias = tp.PostedAsRoleAlias,
+                        ShowRealUsername = tp.ShowRealUsername,
+                        RealUsername = tp.RealUsername
                     });
                 }
 
@@ -2088,25 +2437,305 @@ public class GroupService : IGroupService
         // Update only provided fields
         if (!string.IsNullOrEmpty(request.Name)) role.Name = request.Name;
         if (request.Alias != null) role.Alias = request.Alias;
-        if (request.Permissions != null)
-        {
-            role.CanCreateTopics = request.Permissions.CanCreateTopics;
-            role.CanManageMembers = request.Permissions.CanManageMembers;
-            role.CanManageRoles = request.Permissions.CanManageRoles;
-            role.CanManageSubgroups = request.Permissions.CanManageSubgroups;
-            role.CanModerateContent = request.Permissions.CanModerateContent;
-            role.CanPostText = request.Permissions.CanPostText;
-            role.CanPostImages = request.Permissions.CanPostImages;
-            role.CanPostPolls = request.Permissions.CanPostPolls;
-            role.CanPostVideos = request.Permissions.CanPostVideos;
-            role.CanPostAnnouncements = request.Permissions.CanPostAnnouncements;
-        }
+        if (request.Description != null) role.Description = request.Description;
+        
+        // Update permission fields directly from request (frontend sends them directly)
+        role.CanCreateTopics = request.CanCreateTopics;
+        role.CanManageMembers = request.CanManageMembers;
+        role.CanManageRoles = request.CanManageRoles;
+        role.CanManageSubgroups = request.CanManageSubgroups;
+        role.CanModerateContent = request.CanModerateContent;
+        role.CanPostText = request.CanPostText;
+        role.CanPostImages = request.CanPostImages;
+        role.CanPostPolls = request.CanPostPolls;
+        role.CanPostVideos = request.CanPostVideos;
+        role.CanPostAnnouncements = request.CanPostAnnouncements;
+        role.CanAccessAllSubgroups = request.CanAccessAllSubgroups;
+        role.CanUseGrokAI = request.CanUseGrokAI;
+        role.CanUsePerpetualPhotos = request.CanUsePerpetualPhotos;
+        role.CanUsePaperScanning = request.CanUsePaperScanning;
+        role.CanManageFunds = request.CanManageFunds;
+        role.CanSeeRealUsername = request.CanSeeRealUsername;
         role.ShowRealUsername = request.CanSeeRealUsername;
 
         role.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         return _mapper.Map<GroupRoleResponse>(role);
+    }
+
+    // Subgroup-Role Assignment Management
+    public async Task<SubgroupRoleAssignmentResponse> AssignRoleToSubgroupAsync(Guid userId, AssignRoleToSubgroupRequest request)
+    {
+        // Check if user has permission to manage roles in the main group
+        // First get the subgroup to find its parent group
+        var subgroup = await _context.Subgroups
+            .FirstOrDefaultAsync(s => s.Id == request.SubgroupId);
+        
+        if (subgroup == null)
+        {
+            throw new ArgumentException("Subgroup not found");
+        }
+
+        var userRole = await GetUserRoleAsync(subgroup.GroupId, userId);
+        if (userRole != "admin" && userRole != "moderator")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to assign roles to subgroups");
+        }
+
+        // Check if assignment already exists
+        var existingAssignment = await _context.SubgroupRoleAssignments
+            .FirstOrDefaultAsync(sra => sra.SubgroupId == request.SubgroupId && sra.RoleId == request.RoleId);
+
+        if (existingAssignment != null)
+        {
+            if (existingAssignment.IsActive)
+            {
+                throw new InvalidOperationException("This role is already assigned to the subgroup");
+            }
+            else
+            {
+                // Reactivate existing assignment
+                existingAssignment.IsActive = true;
+                existingAssignment.AssignedByUserId = userId;
+                existingAssignment.AssignedAt = DateTime.UtcNow;
+                existingAssignment.ExpiresAt = request.ExpiresAt;
+                existingAssignment.Notes = request.Notes;
+            }
+        }
+        else
+        {
+            // Create new assignment
+            var assignment = new SubgroupRoleAssignment
+            {
+                SubgroupId = request.SubgroupId,
+                RoleId = request.RoleId,
+                AssignedByUserId = userId,
+                AssignedAt = DateTime.UtcNow,
+                ExpiresAt = request.ExpiresAt,
+                Notes = request.Notes,
+                IsActive = true
+            };
+
+            _context.SubgroupRoleAssignments.Add(assignment);
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Return the assignment with role details
+        var assignmentWithDetails = await _context.SubgroupRoleAssignments
+            .Include(sra => sra.Role)
+            .FirstOrDefaultAsync(sra => sra.SubgroupId == request.SubgroupId && sra.RoleId == request.RoleId);
+
+        return _mapper.Map<SubgroupRoleAssignmentResponse>(assignmentWithDetails);
+    }
+
+    public async Task<bool> RemoveRoleFromSubgroupAsync(Guid userId, RemoveRoleFromSubgroupRequest request)
+    {
+        // Check if user has permission to manage roles in the main group
+        // First get the subgroup to find its parent group
+        var subgroup = await _context.Subgroups
+            .FirstOrDefaultAsync(s => s.Id == request.SubgroupId);
+        
+        if (subgroup == null)
+        {
+            throw new ArgumentException("Subgroup not found");
+        }
+
+        var userRole = await GetUserRoleAsync(subgroup.GroupId, userId);
+        if (userRole != "admin" && userRole != "moderator")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to remove roles from subgroups");
+        }
+
+        var assignment = await _context.SubgroupRoleAssignments
+            .FirstOrDefaultAsync(sra => sra.SubgroupId == request.SubgroupId && sra.RoleId == request.RoleId);
+
+        if (assignment == null)
+        {
+            return false;
+        }
+
+        assignment.IsActive = false;
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<List<SubgroupWithRolesResponse>> GetSubgroupsWithRolesAsync(Guid groupId, Guid userId)
+    {
+        // Check if user has permission to view subgroups
+        var userRole = await GetUserRoleAsync(groupId, userId);
+        if (userRole != "admin" && userRole != "moderator" && userRole != "member")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to view subgroups");
+        }
+
+        var subgroups = await _context.Subgroups
+            .Where(s => s.GroupId == groupId)
+            .ToListAsync();
+
+        var result = new List<SubgroupWithRolesResponse>();
+
+        foreach (var subgroup in subgroups)
+        {
+            // Get role assignments for this subgroup
+            var roleAssignments = await _context.SubgroupRoleAssignments
+                .Where(sra => sra.SubgroupId == subgroup.Id && sra.IsActive)
+                .Include(sra => sra.Role)
+                .ToListAsync();
+
+            var assignedRoles = roleAssignments
+                .Select(sra => new SubgroupRoleAssignmentResponse
+                {
+                    Id = sra.Id,
+                    SubgroupId = sra.SubgroupId,
+                    RoleId = sra.RoleId,
+                    AssignedByUserId = sra.AssignedByUserId,
+                    AssignedAt = sra.AssignedAt,
+                    ExpiresAt = sra.ExpiresAt,
+                    IsActive = sra.IsActive,
+                    Notes = sra.Notes,
+                    RoleName = sra.Role.Name,
+                    RoleAlias = sra.Role.Alias,
+                    RoleDescription = sra.Role.Description,
+                    AssignedByUserName = "Unknown", // Will be populated separately if needed
+                    AssignedByUserAvatar = null
+                })
+                .ToList();
+
+            // Get member count for this subgroup
+            var memberCount = await _context.SubgroupMembers
+                .CountAsync(sm => sm.SubgroupId == subgroup.Id && sm.IsActive);
+
+            result.Add(new SubgroupWithRolesResponse
+            {
+                Id = subgroup.Id,
+                Name = subgroup.Name,
+                Description = subgroup.Description,
+                AvatarUrl = null, // Subgroup doesn't have AvatarUrl property
+                IsActive = subgroup.IsActive,
+                CreatedAt = subgroup.CreatedAt,
+                MembersCount = memberCount,
+                AssignedRoles = assignedRoles,
+                ActiveRolesCount = assignedRoles.Count,
+                TotalMembersCount = memberCount
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<List<RoleWithSubgroupsResponse>> GetRolesWithSubgroupsAsync(Guid groupId, Guid userId)
+    {
+        // Check if user is a member of the group (any member can view roles)
+        var userRole = await GetUserRoleAsync(groupId, userId);
+        if (userRole == null)
+        {
+            throw new UnauthorizedAccessException("You must be a member of the group to view roles");
+        }
+
+        var roles = await _context.GroupRoles
+            .Where(r => r.GroupId == groupId)
+            .ToListAsync();
+
+        var result = new List<RoleWithSubgroupsResponse>();
+
+        foreach (var role in roles)
+        {
+            // Get subgroup assignments for this role
+            var roleAssignments = await _context.SubgroupRoleAssignments
+                .Where(sra => sra.RoleId == role.Id && sra.IsActive)
+                .ToListAsync();
+
+            var assignedSubgroups = roleAssignments
+                .Select(sra => sra.SubgroupId)
+                .ToList();
+
+            result.Add(new RoleWithSubgroupsResponse
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Alias = role.Alias,
+                Description = role.Description,
+                ShowRealUsername = role.ShowRealUsername,
+                CanPostText = role.CanPostText,
+                CanPostImages = role.CanPostImages,
+                CanPostPolls = role.CanPostPolls,
+                CanPostVideos = role.CanPostVideos,
+                CanPostAnnouncements = role.CanPostAnnouncements,
+                AssignedToSubgroups = assignedSubgroups,
+                AssignmentCount = assignedSubgroups.Count(),
+                IsAvailable = true,
+                CreatedAt = role.CreatedAt
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<List<SubgroupRoleAssignmentResponse>> GetSubgroupRoleAssignmentsAsync(Guid subgroupId, Guid userId)
+    {
+        // Check if user has permission to view assignments
+        var subgroup = await _context.Subgroups
+            .FirstOrDefaultAsync(s => s.Id == subgroupId);
+
+        if (subgroup == null)
+        {
+            throw new ArgumentException("Subgroup not found");
+        }
+
+        var userRole = await GetUserRoleAsync(subgroup.GroupId, userId);
+        if (userRole != "admin" && userRole != "moderator")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to view role assignments");
+        }
+
+        var assignments = await _context.SubgroupRoleAssignments
+            .Where(sra => sra.SubgroupId == subgroupId && sra.IsActive)
+            .Include(sra => sra.Role)
+            .ToListAsync();
+
+        return _mapper.Map<List<SubgroupRoleAssignmentResponse>>(assignments);
+    }
+
+    public async Task<bool> UpdateSubgroupRoleAssignmentAsync(Guid userId, Guid assignmentId, UpdateSubgroupRoleAssignmentRequest request)
+    {
+        var assignment = await _context.SubgroupRoleAssignments
+            .FirstOrDefaultAsync(sra => sra.Id == assignmentId);
+
+        if (assignment == null)
+        {
+            return false;
+        }
+
+        // Check if user has permission to update assignments
+        var subgroup = await _context.Subgroups
+            .FirstOrDefaultAsync(s => s.Id == assignment.SubgroupId);
+
+        if (subgroup == null)
+        {
+            return false;
+        }
+
+        var userRole = await GetUserRoleAsync(subgroup.GroupId, userId);
+        if (userRole != "admin" && userRole != "moderator")
+        {
+            throw new UnauthorizedAccessException("You don't have permission to update role assignments");
+        }
+
+        // Update assignment
+        if (request.ExpiresAt.HasValue)
+            assignment.ExpiresAt = request.ExpiresAt.Value;
+
+        if (request.IsActive.HasValue)
+            assignment.IsActive = request.IsActive.Value;
+
+        if (request.Notes != null)
+            assignment.Notes = request.Notes;
+
+        await _context.SaveChangesAsync();
+        return true;
     }
 
 }

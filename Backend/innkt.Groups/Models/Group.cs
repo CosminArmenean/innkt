@@ -183,6 +183,16 @@ public class GroupInvitation
     
     public DateTime? RespondedAt { get; set; }
     
+    // Role-based invitation fields
+    public Guid? InvitedByRoleId { get; set; } // Role used for invitation
+    public string? InvitedByRoleName { get; set; } // Role name (e.g., "Math Teacher")
+    public string? InvitedByRoleAlias { get; set; } // Role alias for display
+    public bool ShowRealUsername { get; set; } = false; // Show real username under role
+    public string? RealUsername { get; set; } // Cached real username
+    
+    // Subgroup invitation support
+    public Guid? SubgroupId { get; set; } // If invitation is for a specific subgroup
+    
     public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddDays(7);
     
     // Navigation properties
@@ -738,4 +748,40 @@ public class GroupFilePermission
     // Navigation properties
     [ForeignKey("FileId")]
     public virtual GroupFile File { get; set; } = null!;
+}
+
+/// <summary>
+/// Links roles to specific subgroups, enabling role-based posting within subgroups
+/// </summary>
+public class SubgroupRoleAssignment
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    
+    [Required]
+    public Guid SubgroupId { get; set; }
+    
+    [Required]
+    public Guid RoleId { get; set; }
+    
+    [Required]
+    public Guid AssignedByUserId { get; set; }
+    
+    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+    
+    public DateTime? ExpiresAt { get; set; } // Optional expiration
+    
+    public bool IsActive { get; set; } = true;
+    
+    [MaxLength(500)]
+    public string? Notes { get; set; } // Optional notes about the assignment
+    
+    // Navigation properties
+    [ForeignKey("SubgroupId")]
+    public virtual Subgroup Subgroup { get; set; } = null!;
+    
+    [ForeignKey("RoleId")]
+    public virtual GroupRole Role { get; set; } = null!;
+    
+    // Note: AssignedByUserId is stored as Guid, UserBasicInfo is fetched separately when needed
 }

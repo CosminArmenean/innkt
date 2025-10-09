@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon, ChevronRightIcon, UserIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import { groupsService, GroupMemberResponse } from '../../services/groups.service';
+import { convertToFullAvatarUrl, getUserDisplayName, getUserInitial } from '../../utils/avatarUtils';
 
 interface NestedMemberDisplayProps {
   members: GroupMemberResponse[];
@@ -194,8 +195,12 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
                 {parent.user?.avatarUrl ? (
                   <img
                     className="h-10 w-10 rounded-full"
-                    src={parent.user.avatarUrl}
-                    alt={parent.user.displayName}
+                    src={convertToFullAvatarUrl(parent.user.avatarUrl)}
+                    alt={getUserDisplayName(parent.user)}
+                    onError={(e) => {
+                      console.log('Parent avatar image failed to load:', parent.user?.avatarUrl);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -241,8 +246,12 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
                         {kid.avatarUrl ? (
                           <img
                             className="h-8 w-8 rounded-full"
-                            src={kid.avatarUrl}
-                            alt={kid.displayName}
+                            src={convertToFullAvatarUrl(kid.avatarUrl)}
+                            alt={getUserDisplayName(kid)}
+                            onError={(e) => {
+                              console.log('Kid avatar image failed to load:', kid.avatarUrl);
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">

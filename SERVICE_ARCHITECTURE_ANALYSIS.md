@@ -19,9 +19,19 @@
 
 ### 🗄️ **Database Distribution**
 - **PostgreSQL**: Officer, Social, Groups, Follow services
-- **MongoDB**: Social (posts/reposts), Messaging
+- **MongoDB**: Social (posts/reposts), Messaging, Notifications
 - **Redis**: Caching across all services
-- **Kafka**: Event streaming (notifications)
+- **Kafka**: Event streaming (notifications, group invitations, real-time updates)
+
+### 📡 **Service Communication**
+- **Event-Driven Architecture**: Services communicate via Kafka topics
+- **No Direct Dependencies**: Groups ↛ Notifications (via Kafka instead)
+- **Loose Coupling**: Each service can deploy independently
+- **Kafka Topics**: 
+  - `group-invitations` - Group invitation events
+  - `group-notifications` - Group-wide notifications
+  - `post-events` - Post creation/update events
+  - `notification-events` - General notification events
 
 ---
 
@@ -260,6 +270,39 @@ dotnet new webapi -n innkt.FeedEngine
 - **Instant Emergency Response** (dedicated service)
 - **Regulatory Compliance** (auditable kid safety service)
 - **Industry Leading Protection** (specialized team focus)
+
+---
+
+## ✅ **RECENT ARCHITECTURE IMPROVEMENTS** (October 2025)
+
+### 🎯 **Kafka-Based Event-Driven Architecture Implemented**
+
+**✅ COMPLETED:**
+1. **Removed Direct Service Dependencies**
+   - Groups Service no longer directly references Notifications Service
+   - Eliminated tight coupling and build dependencies
+   - Fixed file locking issues during compilation
+
+2. **Event-Driven Communication**
+   - Groups Service sends events to Kafka topics
+   - Notifications Service consumes events independently
+   - Each service can be deployed/scaled separately
+
+3. **Group Invitation System**
+   - Invitations now use Kafka events (`group-invitations` topic)
+   - Group notifications via `group-notifications` topic
+   - Proper DTO validation and PascalCase/camelCase handling
+
+4. **Build Process Improvements**
+   - Services build independently without stopping others
+   - No more DLL file locking conflicts
+   - True microservices deployment capability
+
+**📊 IMPACT:**
+- ✅ **Zero Downtime Updates**: Can update Groups without touching Notifications
+- ✅ **Independent Scaling**: Scale notification processing separately from groups
+- ✅ **Fault Tolerance**: If Notifications is down, Groups still works
+- ✅ **Event Replay**: Can replay Kafka events for failed notifications
 
 ---
 

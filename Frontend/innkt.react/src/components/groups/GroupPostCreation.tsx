@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { socialService, Post, PostLocation } from '../../services/social.service';
 import { groupsService, PollResponse, TopicResponse, GroupRoleResponse } from '../../services/groups.service';
-import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon, PlusIcon, UserGroupIcon, UserIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import GroupPoll from './GroupPoll';
 
 interface GroupPostCreationProps {
@@ -50,6 +50,23 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
     loadUserRoles();
   }, [groupId]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showRoleSelector) {
+        const target = event.target as Element;
+        if (!target.closest('.role-selector-dropdown')) {
+          setShowRoleSelector(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRoleSelector]);
+
   const loadTopics = async () => {
     try {
       const topics = await groupsService.getGroupTopics(groupId);
@@ -65,6 +82,12 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
       const roles = await groupsService.getUserRolesInGroup(groupId);
       console.log('📋 Available roles:', roles);
       setAvailableRoles(roles);
+      
+      // Auto-select first role if user has roles and none selected
+      if (roles.length > 0 && !selectedRole) {
+        console.log('🎯 Auto-selecting first available role:', roles[0].name);
+        setSelectedRole(roles[0].id);
+      }
     } catch (error) {
       console.error('❌ Failed to load user roles:', error);
     }
@@ -171,6 +194,11 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
           hashtags: tags,
           location: location?.name,
           mediaUrls: [], // Will be updated after media upload
+          // Role posting context
+          postedAsRoleId: selectedRoleInfo?.id,
+          postedAsRoleName: selectedRoleInfo?.name,
+          postedAsRoleAlias: selectedRoleInfo?.alias,
+          showRealUsername: selectedRoleInfo?.showRealUsername || false,
         });
       } else {
         // Create regular group post using Social service
@@ -208,7 +236,39 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
       setShowAdvancedOptions(false);
 
       if (onPostCreated) {
-        onPostCreated(newPost);
+        // Enhance the post with role information for immediate UI display
+        const enhancedPost = {
+          ...newPost,
+          // Ensure we have a unique ID for React key prop
+          id: newPost.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          // Ensure we have valid dates
+          createdAt: newPost.createdAt || new Date().toISOString(),
+          updatedAt: newPost.updatedAt || new Date().toISOString(),
+          // Ensure role information is at the post level for immediate display
+          postedAsRoleId: selectedRoleInfo?.id,
+          postedAsRoleName: selectedRoleInfo?.name,
+          postedAsRoleAlias: selectedRoleInfo?.alias,
+          showRealUsername: selectedRoleInfo?.showRealUsername || false,
+          // If posting as role, modify the author display
+          author: selectedRoleInfo ? {
+            ...newPost.author,
+            // Override author display when posting as role
+            displayName: selectedRoleInfo.alias || selectedRoleInfo.name,
+            username: selectedRoleInfo.name,
+            // Keep original user info for real username display if needed
+            originalDisplayName: newPost.author?.displayName,
+            originalUsername: newPost.author?.username,
+          } : newPost.author
+        };
+        
+        // Debug: Enhanced post for immediate display
+        console.log('🎭 Enhanced post for immediate display:', {
+          originalPost: newPost,
+          selectedRoleInfo,
+          enhancedPost
+        });
+        
+        onPostCreated(enhancedPost);
       }
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -275,22 +335,98 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
       {isExpanded && (
         <>
           {/* Header */}
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-              <span className="text-purple-600 font-semibold">👥</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                <span className="text-purple-600 font-semibold">👥</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">
+                  {currentTopic ? `Post to ${currentTopic.name}` : `Post to ${groupName}`}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {currentTopic ? `Share your thoughts in this topic` : `Share something with the group`}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium text-gray-900">
-                {currentTopic ? `Post to ${currentTopic.name}` : `Post to ${groupName}`}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {currentTopic ? `Share your thoughts in this topic` : `Share something with the group`}
-              </p>
+            
+            {/* Role Selector - Moved to header */}
+            <div className="relative">
+              <button
+                onClick={() => setShowRoleSelector(!showRoleSelector)}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors ${
+                  selectedRole 
+                    ? 'border-purple-300 bg-purple-50 text-purple-700' 
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300 hover:bg-purple-50'
+                }`}
+                title="Select posting identity"
+              >
+                <UserGroupIcon className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {selectedRole 
+                    ? availableRoles.find(r => r.id === selectedRole)?.name || 'Select Role'
+                    : 'Post as yourself'
+                  }
+                </span>
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              
+              {/* Role Dropdown */}
+              {showRoleSelector && (
+                <div className="role-selector-dropdown absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="p-2">
+                    <button
+                      onClick={() => {
+                        setSelectedRole(null);
+                        setShowRoleSelector(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        !selectedRole 
+                          ? 'bg-purple-100 text-purple-700' 
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <UserIcon className="w-4 h-4" />
+                        <div>
+                          <div className="font-medium">Post as yourself</div>
+                          <div className="text-xs text-gray-500">Your personal account</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    {availableRoles.map((role) => (
+                      <button
+                        key={role.id}
+                        onClick={() => {
+                          setSelectedRole(role.id);
+                          setShowRoleSelector(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                          selectedRole === role.id 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                            {role.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-medium">{role.name}</div>
+                            <div className="text-xs text-gray-500">{role.alias || role.name}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
       {/* Content Input */}
-      <div className="mb-4">
+      <div className="mb-4 relative">
         <textarea
           ref={textareaRef}
           value={content}
@@ -300,9 +436,20 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
           }}
           onInput={autoResizeTextarea}
           placeholder="What's happening in the group?"
-          className="w-full border-0 resize-none focus:ring-0 text-lg placeholder-gray-400 min-h-[100px]"
+          className="w-full border-0 resize-none focus:ring-0 text-lg placeholder-gray-400 min-h-[100px] pr-20"
           rows={3}
         />
+        
+        {/* Post Button - Inside text area */}
+        <div className="absolute bottom-2 right-2">
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || (!content.trim() && selectedFiles.length === 0)}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+          >
+            {isLoading ? 'Posting...' : 'Post'}
+          </button>
+        </div>
       </div>
 
       {/* Media Preview */}
@@ -453,18 +600,6 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
             <ChartBarIcon className="w-5 h-5" />
           </button>
 
-          {/* Role Selector */}
-          <button
-            onClick={() => setShowRoleSelector(!showRoleSelector)}
-            className={`p-2 rounded-full transition-colors ${
-              selectedRole 
-                ? 'text-purple-600 bg-purple-50' 
-                : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'
-            }`}
-            title="Post as role"
-          >
-            <UserGroupIcon className="w-5 h-5" />
-          </button>
 
           {/* Advanced Options */}
           <button
@@ -480,14 +615,6 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
           </button>
         </div>
 
-        {/* Post Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading || (!content.trim() && selectedFiles.length === 0)}
-          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLoading ? 'Posting...' : 'Post to Group'}
-        </button>
       </div>
 
       {/* Hidden File Input */}
@@ -571,62 +698,6 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
         </div>
       )}
 
-      {/* Role Selector */}
-      {showRoleSelector && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Post as Role</h4>
-          <div className="space-y-2">
-            <button
-              onClick={() => setSelectedRole(null)}
-              className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                !selectedRole 
-                  ? 'bg-purple-100 text-purple-700' 
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium">👤</span>
-                </div>
-                <div>
-                  <div className="font-medium">Post as yourself</div>
-                  <div className="text-xs text-gray-500">Your personal account</div>
-                </div>
-              </div>
-            </button>
-            
-            {availableRoles.length > 0 ? (
-              availableRoles.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => setSelectedRole(role.id)}
-                  className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                    selectedRole === role.id 
-                      ? 'bg-purple-100 text-purple-700' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium">
-                        {role.alias ? role.alias.charAt(0).toUpperCase() : role.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="font-medium">{role.alias || role.name}</div>
-                      <div className="text-xs text-gray-500">{role.name}</div>
-                    </div>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <div className="px-3 py-2 text-sm text-gray-500">
-                No roles assigned. Contact group admin to get a role.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
         </>
       )}
     </div>
