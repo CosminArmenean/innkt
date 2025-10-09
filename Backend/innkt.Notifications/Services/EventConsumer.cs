@@ -49,7 +49,13 @@ public class EventConsumer : IEventConsumer
                 "kid.safety",
                 "kid.accounts",
                 "user.actions",
-                "system.alerts"
+                "system.alerts",
+                "group-invitations",          // Group invitation events
+                "group-notifications",        // Group notification broadcasts
+                "kid-login-code-generated",   // Kid login code events
+                "kid-maturity-updated",       // Kid maturity level changes
+                "kid-password-changed",       // Kid password events
+                "kid-activity-tracked"        // Kid behavioral tracking
             };
 
             _kafkaConsumer.Subscribe(topics);
@@ -78,12 +84,26 @@ public class EventConsumer : IEventConsumer
                     _logger.LogError(ex, "❌ Error consuming message: {Error}", ex.Error.Reason);
                     await Task.Delay(1000, _cancellationTokenSource.Token); // Wait 1 second before retrying
                 }
+                catch (OperationCanceledException)
+                {
+                    // Normal shutdown, don't log as error
+                    _logger.LogInformation("🛑 Event consumer is stopping (cancellation requested)");
+                    break;
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal shutdown during startup, don't throw
+            _logger.LogInformation("🛑 Event consumer startup cancelled");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Failed to start event consumer");
-            throw;
+            // Log the error but don't throw - let the hosted service handle retries
+            _logger.LogError(ex, "❌ Error in event consumer (will retry)");
+            
+            // Re-throw only if it's a critical startup failure that can't be recovered
+            // For now, we'll let the hosted service retry instead of crashing
         }
     }
 
@@ -128,6 +148,24 @@ public class EventConsumer : IEventConsumer
                     break;
                 case "system.alerts":
                     await ProcessSystemAlertEventAsync(consumeResult);
+                    break;
+                case "group-invitations":
+                    await ProcessGroupInvitationEventAsync(consumeResult);
+                    break;
+                case "group-notifications":
+                    await ProcessGroupNotificationEventAsync(consumeResult);
+                    break;
+                case "kid-login-code-generated":
+                    await ProcessKidLoginCodeGeneratedEventAsync(consumeResult);
+                    break;
+                case "kid-maturity-updated":
+                    await ProcessKidMaturityUpdatedEventAsync(consumeResult);
+                    break;
+                case "kid-password-changed":
+                    await ProcessKidPasswordChangedEventAsync(consumeResult);
+                    break;
+                case "kid-activity-tracked":
+                    await ProcessKidActivityTrackedEventAsync(consumeResult);
                     break;
                 default:
                     _logger.LogWarning("⚠️ Unknown topic: {Topic}", consumeResult.Topic);
@@ -411,6 +449,288 @@ public class EventConsumer : IEventConsumer
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Failed to process kid account event");
+        }
+    }
+
+    private async Task ProcessGroupInvitationEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("📧 Processing group invitation event");
+            
+            var invitationEvent = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
+            if (invitationEvent.ValueKind == JsonValueKind.Undefined) return;
+
+            var recipientId = Guid.Parse(invitationEvent.GetProperty("RecipientId").GetString() ?? "");
+            var senderId = Guid.Parse(invitationEvent.GetProperty("SenderId").GetString() ?? "");
+            var groupName = invitationEvent.GetProperty("GroupName").GetString() ?? "";
+            var groupId = Guid.Parse(invitationEvent.GetProperty("GroupId").GetString() ?? "");
+            var message = invitationEvent.GetProperty("InvitationMessage").GetString() ?? "";
+            var isEducational = invitationEvent.GetProperty("IsEducationalGroup").GetBoolean();
+
+            // Create notification for the invited user
+            var notification = new GroupInvitationNotification
+            {
+                RecipientId = recipientId,
+                SenderId = senderId,
+                GroupId = groupId,
+                GroupName = groupName,
+                InvitationMessage = message,
+                IsEducationalGroup = isEducational,
+                Title = $"Group Invitation: {groupName}",
+                Message = !string.IsNullOrEmpty(message) ? message : $"You've been invited to join {groupName}",
+                Priority = isEducational ? "high" : "medium",
+                Channel = isEducational ? "in_app,email" : "in_app"
+            };
+
+            // Send the notification
+            await _notificationService.SendGroupInvitationNotificationAsync(notification);
+            
+            // Send real-time notification via SignalR
+            await _hubContext.Clients.User(recipientId.ToString())
+                .SendAsync("ReceiveNotification", notification);
+
+            _logger.LogInformation("✅ Group invitation notification sent to user {RecipientId} for group {GroupName}", recipientId, groupName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process group invitation event");
+        }
+    }
+
+    private async Task ProcessGroupNotificationEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("📢 Processing group notification event");
+            
+            var notificationEvent = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
+            if (notificationEvent.ValueKind == JsonValueKind.Undefined) return;
+
+            var recipientId = Guid.Parse(notificationEvent.GetProperty("RecipientId").GetString() ?? "");
+            var senderId = Guid.Parse(notificationEvent.GetProperty("SenderId").GetString() ?? "");
+            var groupName = notificationEvent.GetProperty("GroupName").GetString() ?? "";
+            var groupId = Guid.Parse(notificationEvent.GetProperty("GroupId").GetString() ?? "");
+            var title = notificationEvent.GetProperty("Title").GetString() ?? "";
+            var message = notificationEvent.GetProperty("Message").GetString() ?? "";
+            var isUrgent = notificationEvent.GetProperty("IsUrgent").GetBoolean();
+
+            // Create notification for the group member
+            var notification = new GroupNotification
+            {
+                RecipientId = recipientId,
+                SenderId = senderId,
+                GroupId = groupId,
+                GroupName = groupName,
+                Title = title,
+                Message = message,
+                IsUrgent = isUrgent,
+                Priority = isUrgent ? "urgent" : "medium",
+                Channel = isUrgent ? "in_app,email,push" : "in_app"
+            };
+
+            // Send the notification
+            await _notificationService.SendGroupNotificationAsync(notification);
+            
+            // Send real-time notification via SignalR
+            await _hubContext.Clients.User(recipientId.ToString())
+                .SendAsync("ReceiveNotification", notification);
+
+            _logger.LogInformation("✅ Group notification sent to user {RecipientId} from group {GroupName}", recipientId, groupName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process group notification event");
+        }
+    }
+
+    private async Task ProcessKidLoginCodeGeneratedEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("🔑 Processing kid login code generated event");
+
+            var eventData = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
+            if (eventData.ValueKind == JsonValueKind.Undefined) return;
+
+            var parentId = Guid.Parse(eventData.GetProperty("ParentId").GetString() ?? "");
+            var kidAccountId = Guid.Parse(eventData.GetProperty("KidAccountId").GetString() ?? "");
+            var expiresAt = DateTime.Parse(eventData.GetProperty("ExpiresAt").GetString() ?? "");
+            var maturityLevel = eventData.GetProperty("MaturityLevel").GetString() ?? "low";
+
+            // Create notification for parent
+            var notification = new EventNotification
+            {
+                Type = "kid_login_code_generated",
+                RecipientId = parentId,
+                Title = "🔑 Kid Login Code Generated",
+                Message = $"A new login code has been generated for your kid. Expires on {expiresAt:MMM dd, yyyy}. Maturity level: {maturityLevel.ToUpper()}",
+                Priority = "medium",
+                Channel = "in_app",
+                Metadata = new Dictionary<string, object>
+                {
+                    { "kidAccountId", kidAccountId.ToString() },
+                    { "expiresAt", expiresAt.ToString("o") },
+                    { "maturityLevel", maturityLevel }
+                }
+            };
+
+            await _notificationService.SendNotificationAsync(notification);
+            await _hubContext.Clients.User(parentId.ToString()).SendAsync("ReceiveNotification", notification);
+
+            _logger.LogInformation("✅ Kid login code notification sent to parent {ParentId}", parentId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process kid login code event");
+        }
+    }
+
+    private async Task ProcessKidMaturityUpdatedEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("📊 Processing kid maturity updated event");
+
+            var eventData = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
+            if (eventData.ValueKind == JsonValueKind.Undefined) return;
+
+            var kidAccountId = Guid.Parse(eventData.GetProperty("KidAccountId").GetString() ?? "");
+            var totalScore = eventData.GetProperty("TotalScore").GetInt32();
+            var level = eventData.GetProperty("Level").GetString() ?? "low";
+            var previousLevel = eventData.TryGetProperty("PreviousLevel", out var prev) ? prev.GetString() : null;
+
+            // Get parent ID from kid account (would need to query Officer service or cache)
+            // For now, we'll publish to kid account topic and parents subscribe
+            
+            var notification = new EventNotification
+            {
+                Type = "kid_maturity_updated",
+                RecipientId = kidAccountId, // Will be forwarded to parent
+                Title = level != previousLevel && !string.IsNullOrEmpty(previousLevel)
+                    ? $"🎉 Maturity Level Increased!"
+                    : "📊 Maturity Score Updated",
+                Message = level != previousLevel && !string.IsNullOrEmpty(previousLevel)
+                    ? $"Great progress! Maturity level changed from {previousLevel?.ToUpper()} to {level.ToUpper()}. Total score: {totalScore}/100"
+                    : $"Maturity score updated to {totalScore}/100 ({level.ToUpper()} level)",
+                Priority = level != previousLevel ? "high" : "medium",
+                Channel = level != previousLevel ? "in_app,email" : "in_app",
+                Metadata = new Dictionary<string, object>
+                {
+                    { "kidAccountId", kidAccountId.ToString() },
+                    { "totalScore", totalScore },
+                    { "level", level },
+                    { "previousLevel", previousLevel ?? "" }
+                }
+            };
+
+            await _notificationService.SendNotificationAsync(notification);
+
+            _logger.LogInformation("✅ Kid maturity update notification sent for kid {KidAccountId}", kidAccountId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process kid maturity event");
+        }
+    }
+
+    private async Task ProcessKidPasswordChangedEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("🔐 Processing kid password changed event");
+
+            var eventData = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
+            if (eventData.ValueKind == JsonValueKind.Undefined) return;
+
+            var kidAccountId = Guid.Parse(eventData.GetProperty("KidAccountId").GetString() ?? "");
+            var eventType = eventData.GetProperty("EventType").GetString() ?? "";
+            var changedByParent = eventData.TryGetProperty("ChangedByParent", out var byParent) && byParent.GetBoolean();
+            var isFirstTime = eventData.TryGetProperty("IsFirstTime", out var first) && first.GetBoolean();
+
+            string title = eventType switch
+            {
+                "kid-password-set" => isFirstTime ? "🔐 Password Set for Kid Account" : "🔐 Password Updated",
+                "kid-password-revoked" => "⚠️ Password Access Revoked",
+                _ => "🔐 Password Changed"
+            };
+
+            string message = eventType switch
+            {
+                "kid-password-set" when isFirstTime => "You've successfully set a password for your kid's account. They can now use password authentication.",
+                "kid-password-set" => "Kid account password has been updated.",
+                "kid-password-revoked" => "Password access has been revoked. Kid must use QR code login only.",
+                _ when !changedByParent => "Your kid has changed their account password. You're receiving this notification for security.",
+                _ => "Password has been changed for kid account."
+            };
+
+            var notification = new EventNotification
+            {
+                Type = "kid_password_changed",
+                RecipientId = kidAccountId, // Will forward to parent
+                Title = title,
+                Message = message,
+                Priority = eventType == "kid-password-revoked" || !changedByParent ? "high" : "medium",
+                Channel = !changedByParent ? "in_app,email" : "in_app",
+                Metadata = new Dictionary<string, object>
+                {
+                    { "kidAccountId", kidAccountId.ToString() },
+                    { "changedByParent", changedByParent },
+                    { "eventType", eventType }
+                }
+            };
+
+            await _notificationService.SendNotificationAsync(notification);
+
+            _logger.LogInformation("✅ Kid password change notification sent for kid {KidAccountId}", kidAccountId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process kid password event");
+        }
+    }
+
+    private async Task ProcessKidActivityTrackedEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            _logger.LogInformation("📱 Processing kid activity tracked event");
+
+            var eventData = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
+            if (eventData.ValueKind == JsonValueKind.Undefined) return;
+
+            var kidAccountId = Guid.Parse(eventData.GetProperty("KidAccountId").GetString() ?? "");
+            var activityType = eventData.GetProperty("ActivityType").GetString() ?? "";
+            var contentType = eventData.TryGetProperty("ContentType", out var ct) ? ct.GetString() : "general";
+
+            // Only notify parent for significant activities or safety concerns
+            if (activityType == "safety_concern" || activityType == "inappropriate_content_attempt")
+            {
+                var notification = new EventNotification
+                {
+                    Type = "kid_activity_alert",
+                    RecipientId = kidAccountId, // Will forward to parent
+                    Title = "⚠️ Kid Safety Alert",
+                    Message = activityType == "safety_concern"
+                        ? "A safety concern was detected in your kid's activity. Please review."
+                        : "Your kid attempted to access inappropriate content. Content was blocked.",
+                    Priority = "urgent",
+                    Channel = "in_app,email,push",
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "kidAccountId", kidAccountId.ToString() },
+                        { "activityType", activityType },
+                        { "contentType", contentType ?? "" }
+                    }
+                };
+
+                await _notificationService.SendNotificationAsync(notification);
+                _logger.LogInformation("⚠️ Safety alert notification sent for kid {KidAccountId}", kidAccountId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to process kid activity event");
         }
     }
 

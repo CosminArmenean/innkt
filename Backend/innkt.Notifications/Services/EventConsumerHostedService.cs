@@ -23,6 +23,10 @@ public class EventConsumerHostedService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("🚀 Starting Event Consumer Hosted Service...");
+        
+        // Add a startup delay to ensure Kafka is ready
+        _logger.LogInformation("⏳ Waiting 5 seconds for Kafka to be ready...");
+        await Task.Delay(5000, stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -44,10 +48,18 @@ public class EventConsumerHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error in Event Consumer Hosted Service");
+                _logger.LogError(ex, "❌ Error in Event Consumer Hosted Service - will retry in 10 seconds");
                 
-                // Wait before retrying
-                await Task.Delay(5000, stoppingToken);
+                // Wait longer before retrying (10 seconds) to give Kafka time to stabilize
+                try
+                {
+                    await Task.Delay(10000, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("🛑 Retry cancelled, service is stopping...");
+                    break;
+                }
             }
         }
 
