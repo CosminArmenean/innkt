@@ -1,74 +1,51 @@
-# Simple Infrastructure Startup Script
-Write-Host "🚀 Starting INNKT Infrastructure" -ForegroundColor Green
-Write-Host "=================================" -ForegroundColor Green
+# INNKT Infrastructure Startup Script
+# Simple and reliable way to start all infrastructure services
 
-# Check Docker
-Write-Host "`n🐳 Checking Docker..." -ForegroundColor Yellow
-try {
-    docker --version | Out-Null
-    Write-Host "✅ Docker is running" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Docker not available!" -ForegroundColor Red
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  INNKT Infrastructure Startup" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Check if Docker is running
+Write-Host "Checking Docker status..." -ForegroundColor Yellow
+$dockerRunning = docker info 2>&1 | Select-String "Server Version"
+if (-not $dockerRunning) {
+    Write-Host "ERROR: Docker is not running!" -ForegroundColor Red
+    Write-Host "Please start Docker Desktop and try again." -ForegroundColor Yellow
     exit 1
 }
+Write-Host "Docker is running" -ForegroundColor Green
+Write-Host ""
 
-# Stop existing containers
-Write-Host "`n🛑 Stopping existing containers..." -ForegroundColor Yellow
-docker-compose down 2>$null
+# Start infrastructure services
+Write-Host "Starting infrastructure services..." -ForegroundColor Yellow
+Write-Host ""
 
-# Start infrastructure
-Write-Host "`n🗄️ Starting infrastructure services..." -ForegroundColor Cyan
-docker-compose up -d
+docker-compose -f docker-compose-infrastructure.yml -f docker-compose-mongodb.yml up -d
 
-# Wait a bit for services to start
-Write-Host "`n⏳ Waiting for services to start..." -ForegroundColor Yellow
-Start-Sleep -Seconds 10
-
-# Initialize MongoDB replica set for Change Streams
-Write-Host "`n🔧 Setting up MongoDB replica set..." -ForegroundColor Cyan
-Write-Host "This is required for real-time Change Streams..." -ForegroundColor Yellow
-
-try {
-    # Wait for MongoDB to be ready first
-    Start-Sleep -Seconds 5
-    
-    # Initialize replica set
-    docker exec innkt-mongodb mongosh --eval "
-    try {
-      rs.status();
-      print('✅ Replica set already initialized');
-    } catch (e) {
-      print('🚀 Initializing replica set...');
-      rs.initiate({
-        _id: 'rs0',
-        members: [{ _id: 0, host: 'localhost:27017' }]
-      });
-      print('✅ Replica set initialized - Change Streams ready!');
-    }
-    "
-    Write-Host "✅ MongoDB replica set configured" -ForegroundColor Green
-} catch {
-    Write-Host "⚠️ MongoDB replica set setup failed (will try manual setup)" -ForegroundColor Yellow
+if ($LASTEXITCODE -eq 0) {
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "  Infrastructure Started Successfully!" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Running Services:" -ForegroundColor Cyan
+    Write-Host "- PostgreSQL:        localhost:5433" -ForegroundColor White
+    Write-Host "- Redis:             localhost:6379" -ForegroundColor White
+    Write-Host "- MongoDB Social:    localhost:27018" -ForegroundColor White
+    Write-Host "- MongoDB Messaging: localhost:27017" -ForegroundColor White
+    Write-Host "- Kafka:             localhost:9092" -ForegroundColor White
+    Write-Host "- Zookeeper:         localhost:2181" -ForegroundColor White
+    Write-Host "- Kafka UI:          http://localhost:8080" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Next Steps:" -ForegroundColor Yellow
+    Write-Host "- Start backend: .\start-services.ps1" -ForegroundColor White
+    Write-Host "- View status:   docker ps" -ForegroundColor White
+    Write-Host ""
+} else {
+    Write-Host ""
+    Write-Host "ERROR: Failed to start infrastructure" -ForegroundColor Red
+    Write-Host "Check logs: docker-compose -f docker-compose-infrastructure.yml logs" -ForegroundColor Yellow
+    Write-Host ""
+    exit 1
 }
-
-# Check what's running
-Write-Host "`n📊 Checking services..." -ForegroundColor Cyan
-$ports = @(5433, 6379, 27017, 9092, 2181)
-$services = @("PostgreSQL", "Redis", "MongoDB", "Kafka", "Zookeeper")
-
-for ($i = 0; $i -lt $ports.Count; $i++) {
-    $port = $ports[$i]
-    $service = $services[$i]
-    
-    try {
-        $tcpClient = New-Object System.Net.Sockets.TcpClient
-        $tcpClient.Connect("localhost", $port)
-        $tcpClient.Close()
-        Write-Host "✅ $service (port $port) - Ready" -ForegroundColor Green
-    } catch {
-        Write-Host "❌ $service (port $port) - Not ready" -ForegroundColor Red
-    }
-}
-
-Write-Host "`n🎉 Infrastructure startup complete!" -ForegroundColor Green
-Write-Host "You can now run: .\start-services.ps1" -ForegroundColor Yellow
