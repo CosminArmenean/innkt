@@ -163,6 +163,10 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       return;
     }
 
+    console.log('🔌 MessagingContext: WebSocket TEMPORARILY DISABLED for debugging invite button');
+    setConnectionStatus('disconnected');
+    return; // TEMPORARY: Disable WebSocket to debug invite button
+    
     setConnectionStatus('connecting');
     
     const newSocket = io('http://localhost:3000', {

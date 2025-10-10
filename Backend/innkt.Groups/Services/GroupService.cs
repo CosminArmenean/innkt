@@ -90,9 +90,9 @@ public class GroupService : IGroupService
         // Get user's role in the group
         var userRole = response.CurrentUserRole;
         
-        if (userRole == "admin")
+        if (userRole == "owner" || userRole == "admin")
         {
-            // Admins have all permissions
+            // Owners and admins have all permissions
             response.canCreateTopics = true;
             response.canManageMembers = true;
             response.canManageRoles = true;
@@ -499,6 +499,14 @@ public class GroupService : IGroupService
 
     public async Task<string?> GetUserRoleAsync(Guid groupId, Guid userId)
     {
+        // First check if the user is the group owner
+        var group = await _context.Groups.FindAsync(groupId);
+        if (group != null && group.OwnerId == userId)
+        {
+            return "owner";
+        }
+
+        // Then check their role in GroupMembers table
         var member = await _context.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId && gm.IsActive);
 
@@ -693,11 +701,18 @@ public class GroupService : IGroupService
 
     public async Task<GroupInvitationResponse> InviteUserAsync(Guid groupId, Guid userId, Guid invitedUserId, string? message = null)
     {
-        // Check if user has permission to invite members
-        var hasPermission = await _permissionService.HasPermissionAsync(userId, groupId, "invite_members");
-        if (!hasPermission)
+        // Check if user is group owner or admin - they have absolute power
+        var userRole = await GetUserRoleAsync(groupId, userId);
+        var isOwnerOrAdmin = userRole == "owner" || userRole == "admin";
+        
+        if (!isOwnerOrAdmin)
         {
-            throw new UnauthorizedAccessException("You don't have permission to invite users to this group");
+            // For non-owners/admins, check role-based permissions
+            var hasPermission = await _permissionService.HasPermissionAsync(userId, groupId, "invite_members");
+            if (!hasPermission)
+            {
+                throw new UnauthorizedAccessException("You don't have permission to invite users to this group. Only group owners, admins, or users with 'invite_members' permission can invite users.");
+            }
         }
 
         // Check if user is already a member
@@ -958,6 +973,93 @@ public class GroupService : IGroupService
         {
             _logger.LogError(ex, "Error revoking invitation {InvitationId} by user {UserId}", invitationId, userId);
             return false;
+        }
+    }
+
+    public async Task<GroupInvitationResponse> UpdateInvitationAsync(Guid invitationId, Guid userId, UpdateInvitationRequest request)
+    {
+        try
+        {
+            // First, get the existing invitation
+            var existingInvitation = await _context.GroupInvitations
+                .Include(gi => gi.Group)
+                .FirstOrDefaultAsync(i => i.Id == invitationId);
+
+            if (existingInvitation == null)
+            {
+                throw new KeyNotFoundException("Invitation not found");
+            }
+
+            // Check permissions
+            var userRole = await GetUserRoleAsync(existingInvitation.GroupId, userId);
+            if (userRole != "owner" && userRole != "admin" && userRole != "moderator")
+            {
+                throw new UnauthorizedAccessException("You don't have permission to update this invitation");
+            }
+
+            // Only allow updating pending invitations
+            if (existingInvitation.Status != "pending")
+            {
+                throw new InvalidOperationException("Can only update pending invitations");
+            }
+
+            // Revoke the old invitation
+            _context.GroupInvitations.Remove(existingInvitation);
+
+            // Create a new invitation with updated details
+            var newInvitation = new GroupInvitation
+            {
+                Id = Guid.NewGuid(),
+                GroupId = existingInvitation.GroupId,
+                InvitedUserId = request.UserId,
+                InvitedByUserId = userId,
+                Message = request.Message,
+                SubgroupId = request.SubgroupId,
+                Status = "pending",
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = request.ExpiresAt ?? DateTime.UtcNow.AddDays(7),
+                InvitedByRoleId = request.InvitedByRoleId,
+                InvitedByRoleName = request.InvitedByRoleName,
+                InvitedByRoleAlias = request.InvitedByRoleAlias,
+                ShowRealUsername = request.ShowRealUsername,
+                RealUsername = request.RealUsername
+            };
+
+            _context.GroupInvitations.Add(newInvitation);
+            await _context.SaveChangesAsync();
+
+            // Return the new invitation response
+            return new GroupInvitationResponse
+            {
+                Id = newInvitation.Id,
+                GroupId = newInvitation.GroupId,
+                InvitedUserId = newInvitation.InvitedUserId,
+                InvitedByUserId = newInvitation.InvitedByUserId,
+                Message = newInvitation.Message,
+                SubgroupId = newInvitation.SubgroupId,
+                Status = newInvitation.Status,
+                CreatedAt = newInvitation.CreatedAt,
+                ExpiresAt = newInvitation.ExpiresAt,
+                InvitedByRoleId = newInvitation.InvitedByRoleId,
+                InvitedByRoleName = newInvitation.InvitedByRoleName,
+                InvitedByRoleAlias = newInvitation.InvitedByRoleAlias,
+                ShowRealUsername = newInvitation.ShowRealUsername,
+                RealUsername = newInvitation.RealUsername,
+                Group = new GroupBasicInfo
+                {
+                    Id = existingInvitation.Group.Id,
+                    Name = existingInvitation.Group.Name,
+                    AvatarUrl = existingInvitation.Group.AvatarUrl,
+                    IsPublic = existingInvitation.Group.IsPublic,
+                    IsVerified = existingInvitation.Group.IsVerified,
+                    MembersCount = existingInvitation.Group.MembersCount
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating invitation {InvitationId} by user {UserId}", invitationId, userId);
+            throw;
         }
     }
 
@@ -1543,6 +1645,52 @@ public class GroupService : IGroupService
         topic.Status = status;
         if (status == "paused") topic.PausedAt = DateTime.UtcNow;
         if (status == "archived") topic.ArchivedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return _mapper.Map<TopicResponse>(topic);
+    }
+
+    public async Task<TopicResponse> UpdateTopicAsync(Guid topicId, Guid userId, UpdateTopicRequest request)
+    {
+        var topic = await _context.Topics
+            .FirstOrDefaultAsync(t => t.Id == topicId);
+
+        if (topic == null) throw new KeyNotFoundException("Topic not found");
+
+        // Update only provided fields
+        if (request.Name != null) topic.Name = request.Name;
+        if (request.Description != null) topic.Description = request.Description;
+        if (request.Status != null) 
+        {
+            topic.Status = request.Status;
+            if (request.Status == "paused") topic.PausedAt = DateTime.UtcNow;
+            if (request.Status == "archived") topic.ArchivedAt = DateTime.UtcNow;
+        }
+        
+        // Update posting permissions
+        if (request.IsAnnouncementOnly.HasValue) topic.IsAnnouncementOnly = request.IsAnnouncementOnly.Value;
+        if (request.AllowMemberPosts.HasValue) topic.AllowMemberPosts = request.AllowMemberPosts.Value;
+        if (request.AllowKidPosts.HasValue) topic.AllowKidPosts = request.AllowKidPosts.Value;
+        if (request.AllowParentPosts.HasValue) topic.AllowParentPosts = request.AllowParentPosts.Value;
+        if (request.AllowRolePosts.HasValue) topic.AllowRolePosts = request.AllowRolePosts.Value;
+        if (request.IsGlobalAudience.HasValue) topic.IsGlobalAudience = request.IsGlobalAudience.Value;
+        
+        // Update additional settings
+        if (request.AllowComments.HasValue) topic.AllowComments = request.AllowComments.Value;
+        if (request.AllowReactions.HasValue) topic.AllowReactions = request.AllowReactions.Value;
+        if (request.AllowPolls.HasValue) topic.AllowPolls = request.AllowPolls.Value;
+        if (request.AllowMedia.HasValue) topic.AllowMedia = request.AllowMedia.Value;
+        if (request.RequireApproval.HasValue) topic.RequireApproval = request.RequireApproval.Value;
+        if (request.IsPinned.HasValue) topic.IsPinned = request.IsPinned.Value;
+        if (request.IsLocked.HasValue) topic.IsLocked = request.IsLocked.Value;
+        if (request.AllowAnonymous.HasValue) topic.AllowAnonymous = request.AllowAnonymous.Value;
+        if (request.AutoArchive.HasValue) topic.AutoArchive = request.AutoArchive.Value;
+        if (request.AllowScheduling.HasValue) topic.AllowScheduling = request.AllowScheduling.Value;
+        if (request.TimeRestricted.HasValue) topic.TimeRestricted = request.TimeRestricted.Value;
+        if (request.MuteNotifications.HasValue) topic.MuteNotifications = request.MuteNotifications.Value;
+        if (request.DocumentationMode.HasValue) topic.DocumentationMode = request.DocumentationMode.Value;
+
+        topic.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return _mapper.Map<TopicResponse>(topic);
@@ -2369,7 +2517,7 @@ public class GroupService : IGroupService
     {
         // Check if user has permission to view roles
         var userRole = await GetUserRoleAsync(groupId, userId);
-        if (userRole != "admin" && userRole != "moderator")
+        if (userRole != "owner" && userRole != "admin" && userRole != "moderator")
         {
             throw new UnauthorizedAccessException("You don't have permission to view group roles");
         }

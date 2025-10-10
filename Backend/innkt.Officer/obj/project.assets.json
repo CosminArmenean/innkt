@@ -71,6 +71,24 @@
           }
         }
       },
+      "AspNetCoreRateLimit/5.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Caching.Abstractions": "6.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "6.0.3",
+          "Microsoft.Extensions.Options": "6.0.0",
+          "Newtonsoft.Json": "13.0.2"
+        },
+        "compile": {
+          "lib/net6.0/AspNetCoreRateLimit.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/AspNetCoreRateLimit.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "AutoMapper/12.0.1": {
         "type": "package",
         "dependencies": {
@@ -2948,6 +2966,18 @@
         "icon.png",
         "lib/net8.0/HealthChecks.UI.Core.dll",
         "lib/net8.0/HealthChecks.UI.Core.xml"
+      ]
+    },
+    "AspNetCoreRateLimit/5.0.0": {
+      "sha512": "6fq9+o1maGADUmpK/PvcF0DtXW2+7bSkIL7MDIo/agbIHKN8XkMQF4oze60DO731WaQmHmK260hB30FwPzCmEg==",
+      "type": "package",
+      "path": "aspnetcoreratelimit/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "aspnetcoreratelimit.5.0.0.nupkg.sha512",
+        "aspnetcoreratelimit.nuspec",
+        "lib/net6.0/AspNetCoreRateLimit.dll"
       ]
     },
     "AutoMapper/12.0.1": {
@@ -7542,6 +7572,7 @@
       "AspNetCore.HealthChecks.NpgSql >= 9.0.0",
       "AspNetCore.HealthChecks.Redis >= 9.0.0",
       "AspNetCore.HealthChecks.UI.Client >= 9.0.0",
+      "AspNetCoreRateLimit >= 5.0.0",
       "Confluent.Kafka >= 2.11.1",
       "Dapper >= 2.1.35",
       "Duende.IdentityServer >= 7.0.0",
@@ -7646,6 +7677,10 @@
           "AspNetCore.HealthChecks.UI.Client": {
             "target": "Package",
             "version": "[9.0.0, )"
+          },
+          "AspNetCoreRateLimit": {
+            "target": "Package",
+            "version": "[5.0.0, )"
           },
           "Confluent.Kafka": {
             "target": "Package",

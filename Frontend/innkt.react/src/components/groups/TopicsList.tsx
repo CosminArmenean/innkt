@@ -70,11 +70,27 @@ const TopicsList: React.FC<TopicsListProps> = ({
       console.log('🔍 TopicsList loadData called with selectedSubgroup:', selectedSubgroup);
       
       if (selectedSubgroup) {
-        // Load only subgroup topics when a subgroup is selected
+        // Load subgroup topics + global audience topics when a subgroup is selected
         console.log('📚 Loading subgroup topics for:', selectedSubgroup.name, selectedSubgroup.id);
-        const subgroupTopicsData = await groupsService.getGroupTopics(group.id, { subgroupId: selectedSubgroup.id });
+        const [subgroupTopicsData, mainGroupTopics] = await Promise.all([
+          groupsService.getGroupTopics(group.id, { subgroupId: selectedSubgroup.id }),
+          groupsService.getGroupTopics(group.id)
+        ]);
+        
+        // Get global audience topics from main group
+        const globalAudienceTopics = mainGroupTopics.filter(topic => 
+          !topic.subgroupId && topic.isGlobalAudience
+        );
+        
+        // Combine subgroup topics with global audience topics
+        const allTopics = [...subgroupTopicsData, ...globalAudienceTopics];
         console.log('📚 Subgroup topics loaded:', subgroupTopicsData);
-        setTopics(subgroupTopicsData);
+        console.log('🌍 Global audience topics loaded:', globalAudienceTopics);
+        setTopics(allTopics);
+        // Clear main group data when viewing subgroup
+        setSubgroups([]);
+        setSubgroupTopics(new Map());
+        setSubgroupTopicCounts(new Map());
       } else {
         // Load main group topics and subgroups when no subgroup is selected
         console.log('🏠 Loading main group topics');
@@ -133,7 +149,9 @@ const TopicsList: React.FC<TopicsListProps> = ({
 
   const loadSubgroupTopics = async (subgroupId: string) => {
     try {
+      console.log('📚 Loading subgroup topics for subgroupId:', subgroupId);
       const topics = await groupsService.getGroupTopics(group.id, { subgroupId });
+      console.log('📚 Subgroup topics loaded:', topics);
       setTopics(topics);
     } catch (error) {
       console.error('Failed to load subgroup topics:', error);
@@ -148,6 +166,11 @@ const TopicsList: React.FC<TopicsListProps> = ({
   const handleSubgroupSelect = (subgroup: SubgroupResponse) => {
     setSelectedSubgroup(subgroup);
     setSelectedTopic(null);
+    // Clear main group data when selecting subgroup
+    setTopics([]);
+    setSubgroups([]);
+    setSubgroupTopics(new Map());
+    setSubgroupTopicCounts(new Map());
     loadSubgroupTopics(subgroup.id);
   };
 
@@ -174,7 +197,10 @@ const TopicsList: React.FC<TopicsListProps> = ({
     setSelectedSubgroup(null);
     setSelectedTopic(null);
     setTopics([]); // Clear current topics first
-    loadTopics(); // Reload main group topics
+    setSubgroups([]); // Clear subgroups
+    setSubgroupTopics(new Map()); // Clear subgroup topics
+    setSubgroupTopicCounts(new Map()); // Clear subgroup topic counts
+    loadData(); // Reload main group data
   };
 
   const handleAnnouncementCreated = () => {
@@ -303,7 +329,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                   </div>
                 </div>
               </div>
-              {(group.memberRole === 'admin' || group.memberRole === 'moderator' || group.canCreateTopics) && (
+              {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator' || group.canCreateTopics) && (
                 <button
                   onClick={() => setShowCreateTopic(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -368,7 +394,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Group Topics</h2>
               </div>
-              {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+              {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                 <button
                   onClick={() => setShowCreateAnnouncement(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -380,7 +406,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
             </div>
 
             {/* Create Announcement Row */}
-            {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+            {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
               <div 
                 onClick={() => setShowCreateAnnouncement(true)}
                 className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6 cursor-pointer hover:from-purple-100 hover:to-blue-100 transition-all group"
@@ -471,7 +497,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                           </div>
                           
                           {/* Management Actions */}
-                          {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                          {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                             <div className="flex items-center space-x-2">
                               {topic.status === 'active' ? (
                                 <button
@@ -647,7 +673,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                   <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No topics or subgroups yet</h3>
                   <p className="text-gray-500 mb-6">Create topics and subgroups to organize group discussions</p>
-                  {(group.memberRole === 'admin' || group.memberRole === 'moderator' || group.canCreateTopics) && (
+                  {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator' || group.canCreateTopics) && (
                     <button
                       onClick={() => setShowCreateTopic(true)}
                       className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"

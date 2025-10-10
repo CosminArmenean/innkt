@@ -26,6 +26,13 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isRevoking, setIsRevoking] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [editingInvite, setEditingInvite] = useState<GroupInvitationResponse | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    message: '',
+    expiresAt: '',
+    subgroupId: ''
+  });
 
   useEffect(() => {
     loadInvites();
@@ -60,15 +67,42 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
     }
   };
 
-  const handleEditInvite = async (inviteId: string) => {
+  const handleEditInvite = (invite: GroupInvitationResponse) => {
+    setEditingInvite(invite);
+    setEditFormData({
+      message: invite.message || '',
+      expiresAt: invite.expiresAt ? new Date(invite.expiresAt).toISOString().slice(0, 16) : '',
+      subgroupId: invite.subgroupId || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingInvite) return;
+
     try {
-      setIsEditing(inviteId);
-      // TODO: Implement edit invite functionality
-      // This would open a modal to change the subgroup or message
-      console.log('Edit invite:', inviteId);
+      setIsEditing(editingInvite.id);
+      setError(null);
+
+      const updates = {
+        userId: editingInvite.invitedUserId,
+        message: editFormData.message,
+        subgroupId: editFormData.subgroupId || null,
+        expiresAt: editFormData.expiresAt ? new Date(editFormData.expiresAt).toISOString() : null,
+        invitedByRoleId: editingInvite.invitedByRoleId,
+        invitedByRoleName: editingInvite.invitedByRoleName,
+        invitedByRoleAlias: editingInvite.invitedByRoleAlias,
+        showRealUsername: editingInvite.showRealUsername,
+        realUsername: editingInvite.realUsername
+      };
+
+      await groupsService.updateInvite(groupId, editingInvite.id, updates);
+      await loadInvites(); // Refresh the list
+      setShowEditModal(false);
+      setEditingInvite(null);
     } catch (err) {
-      console.error('Failed to edit invite:', err);
-      setError('Failed to edit invitation. Please try again.');
+      console.error('Failed to update invite:', err);
+      setError('Failed to update invitation. Please try again.');
     } finally {
       setIsEditing(null);
     }
@@ -216,7 +250,7 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
                   {invite.status === 'pending' && !isExpired(invite.expiresAt) && (
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleEditInvite(invite.id)}
+                        onClick={() => handleEditInvite(invite)}
                         disabled={isEditing === invite.id}
                         className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                         title="Edit invitation"
@@ -241,6 +275,75 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Invitation Modal */}
+      {showEditModal && editingInvite && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Invitation</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message
+                </label>
+                <textarea
+                  value={editFormData.message}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, message: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  rows={3}
+                  placeholder="Enter invitation message..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Expiration Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={editFormData.expiresAt}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subgroup (optional)
+                </label>
+                <select
+                  value={editFormData.subgroupId}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, subgroupId: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Main Group</option>
+                  {/* TODO: Load subgroups and populate options */}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingInvite(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={isEditing === editingInvite.id}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors"
+              >
+                {isEditing === editingInvite.id ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

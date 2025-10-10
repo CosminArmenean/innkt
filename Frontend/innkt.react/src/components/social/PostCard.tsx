@@ -13,14 +13,31 @@ interface PostCardProps {
   formatDate?: (date: any) => string;
   getPostVisibilityIcon?: () => string;
   getPostTypeIcon?: (type: any) => string;
+  // User permissions for real username visibility
+  canSeeRealUsername?: boolean;
+  userRole?: string; // 'admin', 'moderator', 'member'
   currentUserId?: string;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare }) => {
+const PostCard: React.FC<PostCardProps> = ({ 
+  post, 
+  onLike, 
+  onComment, 
+  onShare, 
+  canSeeRealUsername = false, 
+  userRole = 'member' 
+}) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-start space-x-3">
-        {post.author?.avatarUrl ? (
+        {post.postedAsRoleName ? (
+          // Role-based avatar
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-semibold text-sm">
+              {(post.postedAsRoleAlias || post.postedAsRoleName).charAt(0).toUpperCase()}
+            </span>
+          </div>
+        ) : post.author?.avatarUrl ? (
           <img
             src={post.author.avatarUrl}
             alt={post.author.displayName || post.author.username}
@@ -35,13 +52,36 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
         )}
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold text-gray-900">
-              {post.author?.displayName || post.author?.username || 'Unknown User'}
-            </h3>
-            {post.author?.username && (
-              <span className="text-gray-500 text-sm">
-                @{post.author.username}
-              </span>
+            {/* Show role name if posting as role, otherwise show user name */}
+            {post.postedAsRoleName ? (
+              <div className="flex items-center space-x-2">
+                <h3 className="font-semibold text-gray-900">
+                  {post.postedAsRoleAlias || post.postedAsRoleName}
+                </h3>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  {post.postedAsRoleName}
+                </span>
+                {/* Show real username if: 
+                    1. The role has showRealUsername enabled, OR
+                    2. The current user has permission to see real usernames (admin/moderator/canSeeRealUsername) */}
+                {((post.showRealUsername && (post.realUsername || post.author?.username)) || 
+                  (canSeeRealUsername && (post.realUsername || post.author?.username))) && (
+                  <span className="text-gray-500 text-sm">
+                    @{post.realUsername || post.author?.username}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <>
+                <h3 className="font-semibold text-gray-900">
+                  {post.author?.displayName || post.author?.username || 'Unknown User'}
+                </h3>
+                {post.author?.username && (
+                  <span className="text-gray-500 text-sm">
+                    @{post.author.username}
+                  </span>
+                )}
+              </>
             )}
             <span className="text-gray-500 text-sm">
               {new Date(post.createdAt).toLocaleDateString()}

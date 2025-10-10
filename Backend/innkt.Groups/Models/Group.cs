@@ -426,6 +426,23 @@ public class Topic
     
     public bool AllowRolePosts { get; set; } = true; // For role-based posting
     
+    public bool IsGlobalAudience { get; set; } = false; // For main group topics - visible across all subgroups
+    
+    // Additional topic settings
+    public bool AllowComments { get; set; } = true;
+    public bool AllowReactions { get; set; } = true;
+    public bool AllowPolls { get; set; } = true;
+    public bool AllowMedia { get; set; } = true;
+    public bool RequireApproval { get; set; } = false;
+    public bool IsPinned { get; set; } = false;
+    public bool IsLocked { get; set; } = false;
+    public bool AllowAnonymous { get; set; } = false;
+    public bool AutoArchive { get; set; } = false;
+    public bool AllowScheduling { get; set; } = false;
+    public bool TimeRestricted { get; set; } = false;
+    public bool MuteNotifications { get; set; } = false;
+    public bool DocumentationMode { get; set; } = false;
+    
     public int PostsCount { get; set; } = 0;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

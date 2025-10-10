@@ -1062,7 +1062,16 @@ namespace innkt.Groups.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("AllowAnonymous")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowComments")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("AllowKidPosts")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowMedia")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("AllowMemberPosts")
@@ -1071,11 +1080,23 @@ namespace innkt.Groups.Migrations
                     b.Property<bool>("AllowParentPosts")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("AllowPolls")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowReactions")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("AllowRolePosts")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowScheduling")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("AutoArchive")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1086,10 +1107,25 @@ namespace innkt.Groups.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<bool>("DocumentationMode")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
                     b.Property<bool>("IsAnnouncementOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsGlobalAudience")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("MuteNotifications")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
@@ -1103,6 +1139,9 @@ namespace innkt.Groups.Migrations
                     b.Property<int>("PostsCount")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("RequireApproval")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1110,6 +1149,9 @@ namespace innkt.Groups.Migrations
 
                     b.Property<Guid?>("SubgroupId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("TimeRestricted")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()

@@ -236,7 +236,7 @@ export interface Group {
   memberCount: number;
   postCount: number;
   isMember: boolean;
-  memberRole: 'admin' | 'moderator' | 'member' | 'guest';
+  memberRole: 'owner' | 'admin' | 'moderator' | 'member' | 'guest';
   createdAt: string;
   updatedAt: string;
   rules: GroupRule[];
@@ -272,7 +272,7 @@ export interface GroupRule {
 export interface GroupMember {
   id: string;
   profile: UserProfile;
-  role: 'admin' | 'moderator' | 'member' | 'guest';
+  role: 'owner' | 'admin' | 'moderator' | 'member' | 'guest';
   joinedAt: string;
   isActive: boolean;
 }

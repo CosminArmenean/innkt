@@ -1,0 +1,1 @@
+ALTER TABLE "Topics" ADD COLUMN "IsGlobalAudience" boolean NOT NULL DEFAULT false;

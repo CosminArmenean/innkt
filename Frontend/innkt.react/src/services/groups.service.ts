@@ -40,6 +40,21 @@ export interface TopicResponse {
   allowKidPosts: boolean;
   allowParentPosts: boolean;
   allowRolePosts: boolean;
+  isGlobalAudience?: boolean;
+  // Additional settings
+  allowComments?: boolean;
+  allowReactions?: boolean;
+  allowPolls?: boolean;
+  allowMedia?: boolean;
+  requireApproval?: boolean;
+  isPinned?: boolean;
+  isLocked?: boolean;
+  allowAnonymous?: boolean;
+  autoArchive?: boolean;
+  allowScheduling?: boolean;
+  timeRestricted?: boolean;
+  muteNotifications?: boolean;
+  documentationMode?: boolean;
   postsCount: number;
   createdAt: string;
   updatedAt: string;
@@ -762,10 +777,17 @@ export class GroupsService extends BaseApiService {
     }
   }
 
-  async updateTopic(topicId: string, updates: Partial<TopicResponse>): Promise<TopicResponse> {
+  async updateTopic(topicId: string, updates: Partial<TopicResponse>, groupId?: string): Promise<TopicResponse> {
     try {
-      const response = await this.put<TopicResponse>(`/api/topics/${topicId}`, updates);
-      return response;
+      // If groupId is provided, use the correct endpoint
+      if (groupId) {
+        const response = await this.put<TopicResponse>(`/api/groups/${groupId}/topics/${topicId}`, updates);
+        return response;
+      } else {
+        // Fallback to the old endpoint for backward compatibility
+        const response = await this.put<TopicResponse>(`/api/topics/${topicId}`, updates);
+        return response;
+      }
     } catch (error) {
       console.error('Failed to update topic:', error);
       throw error;
@@ -1042,6 +1064,16 @@ export class GroupsService extends BaseApiService {
       await this.delete(`/api/groups/${groupId}/invitations/${inviteId}`);
     } catch (error) {
       console.error('Failed to revoke invite:', error);
+      throw error;
+    }
+  }
+
+  async updateInvite(groupId: string, inviteId: string, updates: any): Promise<GroupInvitationResponse> {
+    try {
+      const response = await this.put<GroupInvitationResponse>(`/api/groups/${groupId}/invitations/${inviteId}`, updates);
+      return response;
+    } catch (error) {
+      console.error('Failed to update invite:', error);
       throw error;
     }
   }

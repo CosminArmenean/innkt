@@ -9,7 +9,7 @@ export interface GroupChat {
   avatar?: string;
   participants: Array<{
     userId: string;
-    role: 'admin' | 'moderator' | 'member';
+    role: 'owner' | 'admin' | 'moderator' | 'member';
     joinedAt: string;
     lastSeen: string;
   }>;
@@ -53,7 +53,7 @@ export interface AddParticipantsRequest {
 }
 
 export interface UpdateParticipantRoleRequest {
-  role: 'admin' | 'moderator' | 'member';
+  role: 'owner' | 'admin' | 'moderator' | 'member';
 }
 
 class GroupChatService extends BaseApiService {
@@ -191,24 +191,24 @@ class GroupChatService extends BaseApiService {
   }
 
   // Utility methods
-  getUserRole(groupChat: GroupChat, userId: string): 'admin' | 'moderator' | 'member' | null {
+  getUserRole(groupChat: GroupChat, userId: string): 'owner' | 'admin' | 'moderator' | 'member' | null {
     const participant = groupChat.participants.find(p => p.userId === userId);
     return participant ? participant.role : null;
   }
 
   canManageParticipants(groupChat: GroupChat, userId: string): boolean {
     const role = this.getUserRole(groupChat, userId);
-    return role === 'admin' || role === 'moderator';
+    return role === 'owner' || role === 'admin' || role === 'moderator';
   }
 
   canUpdateSettings(groupChat: GroupChat, userId: string): boolean {
     const role = this.getUserRole(groupChat, userId);
-    return role === 'admin';
+    return role === 'owner' || role === 'admin';
   }
 
   canDeleteGroup(groupChat: GroupChat, userId: string): boolean {
     const role = this.getUserRole(groupChat, userId);
-    return role === 'admin';
+    return role === 'owner' || role === 'admin';
   }
 
   getParticipantCount(groupChat: GroupChat): number {
@@ -216,12 +216,12 @@ class GroupChatService extends BaseApiService {
   }
 
   getAdminCount(groupChat: GroupChat): number {
-    return groupChat.participants.filter(p => p.role === 'admin').length;
+    return groupChat.participants.filter(p => p.role === 'owner' || p.role === 'admin').length;
   }
 
   isOnlyAdmin(groupChat: GroupChat, userId: string): boolean {
     const userRole = this.getUserRole(groupChat, userId);
-    if (userRole !== 'admin') return false;
+    if (userRole !== 'owner' && userRole !== 'admin') return false;
     
     const adminCount = this.getAdminCount(groupChat);
     return adminCount === 1;

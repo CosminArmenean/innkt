@@ -11,6 +11,7 @@ interface EnhancedInviteUserModalProps {
   groupCategory: string;
   subgroups: SubgroupResponse[];
   onInviteSent: (invitation?: any) => void;
+  currentSubgroup?: SubgroupResponse | null; // Current context - null means main group
 }
 
 interface UserSearchResult {
@@ -27,7 +28,8 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
   groupName,
   groupCategory,
   subgroups,
-  onInviteSent
+  onInviteSent,
+  currentSubgroup
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
@@ -38,17 +40,24 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Reset form when modal opens/closes
+  // Reset form when modal opens/closes and auto-determine invitation target
   useEffect(() => {
     if (isOpen) {
       setSearchQuery('');
       setSearchResults([]);
       setSelectedUser(null);
       setInviteMessage('');
-      setInviteTarget('main');
-      setSelectedSubgroup('');
+      
+      // Auto-determine invitation target based on current context
+      if (currentSubgroup) {
+        setInviteTarget('subgroup');
+        setSelectedSubgroup(currentSubgroup.id);
+      } else {
+        setInviteTarget('main');
+        setSelectedSubgroup('');
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, currentSubgroup]);
 
   const handleSearch = async (query: string) => {
     if (query.length < 2) {
@@ -93,16 +102,27 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
       await groupsService.inviteUser(inviteData);
       onInviteSent();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send invite:', error);
       console.error('Invite data that failed:', inviteData);
-      alert('Failed to send invitation. Please try again.');
+      
+      // Extract error message from the response
+      let errorMessage = 'Failed to send invitation. Please try again.';
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const isEducationalGroup = groupCategory?.toLowerCase() === 'education';
+
+  console.log('🔍 EnhancedInviteUserModal render:', { isOpen, groupId, groupName, groupCategory });
 
   if (!isOpen) return null;
 
@@ -135,60 +155,37 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
                 <h3 className="font-medium text-blue-900">Educational Group Invitation</h3>
               </div>
               <p className="text-sm text-blue-800 mb-4">
-                This is an educational group. You can invite users to the main group or to specific subgroups.
+                This is an educational group. The invitation will be sent to the location you're currently viewing.
               </p>
               
-              {/* Target Selection */}
+              {/* Invitation Target Display */}
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Invite to:
+                  Inviting to:
                 </label>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="inviteTarget"
-                      value="main"
-                      checked={inviteTarget === 'main'}
-                      onChange={(e) => setInviteTarget(e.target.value as 'main' | 'subgroup')}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Main Group</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="inviteTarget"
-                      value="subgroup"
-                      checked={inviteTarget === 'subgroup'}
-                      onChange={(e) => setInviteTarget(e.target.value as 'main' | 'subgroup')}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">Specific Subgroup</span>
-                  </label>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      {currentSubgroup ? (
+                        <UserGroupIcon className="w-6 h-6 text-blue-600" />
+                      ) : (
+                        <AcademicCapIcon className="w-6 h-6 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-blue-900">
+                        {currentSubgroup ? currentSubgroup.name : groupName}
+                      </div>
+                      <div className="text-xs text-blue-700">
+                        {currentSubgroup ? 'Subgroup' : 'Main Group'}
+                        {currentSubgroup && currentSubgroup.description && (
+                          <span> • {currentSubgroup.description}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Subgroup Selection */}
-              {inviteTarget === 'subgroup' && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Subgroup:
-                  </label>
-                  <select
-                    value={selectedSubgroup}
-                    onChange={(e) => setSelectedSubgroup(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Choose a subgroup...</option>
-                    {subgroups.map((subgroup) => (
-                      <option key={subgroup.id} value={subgroup.id}>
-                        {subgroup.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
             </div>
           )}
 

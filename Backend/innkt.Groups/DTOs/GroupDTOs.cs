@@ -58,6 +58,11 @@ public class GroupResponse
     public List<string> Tags { get; set; } = new();
     public string? Category { get; set; }
     public string GroupType { get; set; } = "general";
+    public string? InstitutionName { get; set; }
+    public string? GradeLevel { get; set; }
+    public bool IsKidFriendly { get; set; }
+    public bool AllowParentParticipation { get; set; }
+    public bool RequireParentApproval { get; set; }
     
     // Frontend-compatible properties
     public int memberCount => MembersCount;
@@ -130,6 +135,26 @@ public class InviteUserRequest
     public string? Message { get; set; }
     
     public Guid? SubgroupId { get; set; }
+    
+    // Role-based invitation fields
+    public Guid? InvitedByRoleId { get; set; }
+    public string? InvitedByRoleName { get; set; }
+    public string? InvitedByRoleAlias { get; set; }
+    public bool ShowRealUsername { get; set; } = false;
+    public string? RealUsername { get; set; }
+}
+
+public class UpdateInvitationRequest
+{
+    [Required]
+    public Guid UserId { get; set; }
+    
+    [MaxLength(500)]
+    public string? Message { get; set; }
+    
+    public Guid? SubgroupId { get; set; }
+    
+    public DateTime? ExpiresAt { get; set; }
     
     // Role-based invitation fields
     public Guid? InvitedByRoleId { get; set; }
@@ -777,6 +802,25 @@ public class UpdateTopicRequest
     public bool? AllowParentPosts { get; set; }
     
     public bool? AllowRolePosts { get; set; }
+    
+    public string? Status { get; set; }
+    
+    public bool? IsGlobalAudience { get; set; }
+    
+    // Additional topic settings
+    public bool? AllowComments { get; set; }
+    public bool? AllowReactions { get; set; }
+    public bool? AllowPolls { get; set; }
+    public bool? AllowMedia { get; set; }
+    public bool? RequireApproval { get; set; }
+    public bool? IsPinned { get; set; }
+    public bool? IsLocked { get; set; }
+    public bool? AllowAnonymous { get; set; }
+    public bool? AutoArchive { get; set; }
+    public bool? AllowScheduling { get; set; }
+    public bool? TimeRestricted { get; set; }
+    public bool? MuteNotifications { get; set; }
+    public bool? DocumentationMode { get; set; }
 }
 
 public class GroupAnalyticsResponse
@@ -963,6 +1007,8 @@ public class CreateTopicRequest
     public bool AllowParentPosts { get; set; } = true;
     
     public bool AllowRolePosts { get; set; } = true;
+    
+    public bool IsGlobalAudience { get; set; } = false;
 }
 
 public class TopicResponse
@@ -978,6 +1024,23 @@ public class TopicResponse
     public bool AllowKidPosts { get; set; }
     public bool AllowParentPosts { get; set; }
     public bool AllowRolePosts { get; set; }
+    public bool IsGlobalAudience { get; set; }
+    
+    // Additional topic settings
+    public bool AllowComments { get; set; } = true;
+    public bool AllowReactions { get; set; } = true;
+    public bool AllowPolls { get; set; } = true;
+    public bool AllowMedia { get; set; } = true;
+    public bool RequireApproval { get; set; } = false;
+    public bool IsPinned { get; set; } = false;
+    public bool IsLocked { get; set; } = false;
+    public bool AllowAnonymous { get; set; } = false;
+    public bool AutoArchive { get; set; } = false;
+    public bool AllowScheduling { get; set; } = false;
+    public bool TimeRestricted { get; set; } = false;
+    public bool MuteNotifications { get; set; } = false;
+    public bool DocumentationMode { get; set; } = false;
+    
     public int PostsCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

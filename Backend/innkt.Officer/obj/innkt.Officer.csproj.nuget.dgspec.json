@@ -471,6 +471,10 @@
               "target": "Package",
               "version": "[9.0.0, )"
             },
+            "AspNetCoreRateLimit": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
             "Confluent.Kafka": {
               "target": "Package",
               "version": "[2.11.1, )"

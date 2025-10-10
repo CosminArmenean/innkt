@@ -6,7 +6,7 @@ interface GroupAnnouncementProps {
   groupId: string;
   groupName: string;
   currentUserId?: string;
-  userRole?: 'admin' | 'moderator' | 'member' | 'guest';
+  userRole?: 'owner' | 'admin' | 'moderator' | 'member' | 'guest';
   onAnnouncementCreated?: (post: Post) => void;
   className?: string;
 }
@@ -23,7 +23,7 @@ const GroupAnnouncement: React.FC<GroupAnnouncementProps> = ({
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const canCreateAnnouncements = userRole === 'admin' || userRole === 'moderator';
+  const canCreateAnnouncements = userRole === 'owner' || userRole === 'admin' || userRole === 'moderator';
 
   const handleSubmit = async () => {
     if (!content.trim()) {

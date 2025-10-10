@@ -831,6 +831,34 @@ public class GroupsController : ControllerBase
     }
 
     /// <summary>
+    /// Update topic settings and properties
+    /// </summary>
+    [HttpPut("{groupId}/topics/{topicId}")]
+    [RequirePermission("manage_topics")]
+    public async Task<ActionResult<TopicResponse>> UpdateTopic(Guid groupId, Guid topicId, [FromBody] UpdateTopicRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var updatedTopic = await _groupService.UpdateTopicAsync(topicId, userId, request);
+            return Ok(updatedTopic);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating topic {TopicId} in group {GroupId}", topicId, groupId);
+            return StatusCode(500, "An error occurred while updating topic");
+        }
+    }
+
+    /// <summary>
     /// Invite a user to join the group
     /// </summary>
         [HttpPost("{groupId}/invite")]
@@ -894,7 +922,7 @@ public class GroupsController : ControllerBase
     /// <summary>
     /// Get pending invitations for a group
     /// </summary>
-    [HttpGet("{groupId}/invitations")]
+    [HttpGet("{groupId:guid}/invitations")]
     [RequirePermission("view_group")]
     public async Task<ActionResult<GroupInvitationListResponse>> GetGroupInvitations(Guid groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -918,7 +946,7 @@ public class GroupsController : ControllerBase
     /// <summary>
     /// Cancel a pending invitation
     /// </summary>
-    [HttpDelete("{groupId}/invitations/{invitationId}")]
+    [HttpDelete("{groupId:guid}/invitations/{invitationId:guid}/cancel")]
     [RequirePermission("invite_members")]
     public async Task<ActionResult> CancelInvitation(Guid groupId, Guid invitationId)
     {
@@ -945,10 +973,10 @@ public class GroupsController : ControllerBase
     }
 
     /// <summary>
-    /// Get a specific invitation by ID
+    /// Get a specific invitation by ID (no groupId required)
     /// </summary>
     [HttpGet("invitations/{invitationId}")]
-    public async Task<ActionResult<GroupInvitationResponse>> GetInvitation(Guid invitationId)
+    public async Task<ActionResult<GroupInvitationResponse>> GetInvitationById(Guid invitationId)
     {
         try
         {
@@ -969,7 +997,7 @@ public class GroupsController : ControllerBase
     /// <summary>
     /// Revoke a pending invitation
     /// </summary>
-    [HttpDelete("{groupId}/invitations/{invitationId}")]
+    [HttpDelete("{groupId:guid}/invitations/{invitationId:guid}")]
     [RequirePermission("invite_members")]
     public async Task<ActionResult> RevokeInvitation(Guid groupId, Guid invitationId)
     {
@@ -992,6 +1020,35 @@ public class GroupsController : ControllerBase
         {
             _logger.LogError(ex, "Error revoking invitation {InvitationId} for group {GroupId}", invitationId, groupId);
             return StatusCode(500, "An error occurred while revoking the invitation");
+        }
+    }
+
+    /// <summary>
+    /// Update a pending invitation (revoke old and create new)
+    /// </summary>
+    [HttpPut("{groupId:guid}/invitations/{invitationId:guid}")]
+    [RequirePermission("invite_members")]
+    public async Task<ActionResult<GroupInvitationResponse>> UpdateInvitation(Guid groupId, Guid invitationId, UpdateInvitationRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var updatedInvitation = await _groupService.UpdateInvitationAsync(invitationId, userId, request);
+            return Ok(updatedInvitation);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "User {UserId} attempted to update invitation {InvitationId} without permission", GetCurrentUserId(), invitationId);
+            return Forbid();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating invitation {InvitationId} for group {GroupId}", invitationId, groupId);
+            return StatusCode(500, "An error occurred while updating the invitation");
         }
     }
 

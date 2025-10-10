@@ -10,7 +10,7 @@ export const convertToFullAvatarUrl = (avatarUrl?: string): string | undefined =
   
   if (avatarUrl.startsWith('/')) {
     const fullUrl = `http://localhost:5001${avatarUrl}`;
-    console.log(`🔗 Converting avatar URL: ${avatarUrl} → ${fullUrl}`);
+    // console.log(`🔗 Converting avatar URL: ${avatarUrl} → ${fullUrl}`); // Commented out to reduce console noise
     return fullUrl;
   }
   

@@ -24,13 +24,17 @@ class UsernameValidationService extends BaseApiService {
   /**
    * Check if username is available and valid
    */
-  async checkUsername(username: string): Promise<UsernameValidationResult> {
+  async checkUsername(username: string, signal?: AbortSignal): Promise<UsernameValidationResult> {
     try {
       const response = await this.api.get(`${this.OFFICER_API_URL}/api/auth/username/check`, {
-        params: { username }
+        params: { username },
+        signal
       });
       return response.data;
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw error; // Re-throw abort errors
+      }
       console.error('Error checking username:', error);
       return {
         isValid: false,

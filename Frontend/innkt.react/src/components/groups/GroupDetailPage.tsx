@@ -50,6 +50,19 @@ const GroupDetailPage: React.FC = () => {
     }
   }, [id]);
 
+  // Debug logging for group data
+  useEffect(() => {
+    if (group) {
+      console.log('🔍 Group data loaded:', {
+        id: group.id,
+        name: group.name,
+        memberRole: group.memberRole,
+        canManageMembers: group.canManageMembers,
+        isMember: group.isMember
+      });
+    }
+  }, [group]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -222,9 +235,9 @@ const GroupDetailPage: React.FC = () => {
     if (!group) return;
     
     // Check if user is the only admin
-    if (group.memberRole === 'admin') {
+    if (group.memberRole === 'owner' || group.memberRole === 'admin') {
       const members = await groupsService.getGroupMembers(group.id);
-      const adminCount = members.filter(member => member.role === 'admin').length;
+      const adminCount = members.filter(member => member.role === 'owner' || member.role === 'admin').length;
       
       if (adminCount <= 1) {
         const confirmTransfer = window.confirm(
@@ -329,7 +342,7 @@ const GroupDetailPage: React.FC = () => {
           </div>
           
           {/* Cover Photo Button - Admin Only */}
-          {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+          {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
             <div className="absolute bottom-4 right-4">
               <button className="flex items-center space-x-2 px-3 py-2 bg-black bg-opacity-50 text-white rounded-lg hover:bg-opacity-70 transition-colors">
                 <PhotoIcon className="w-4 h-4" />
@@ -411,9 +424,12 @@ const GroupDetailPage: React.FC = () => {
                     <BellIcon className="w-3 h-3" />
                     <span>Notify</span>
                   </button>
-                  {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                     <button 
-                      onClick={() => setShowInviteModal(true)}
+                      onClick={() => {
+                        console.log('🔍 Patrick Jane invite button clicked - memberRole:', group.memberRole);
+                        setShowInviteModal(true);
+                      }}
                       className="flex items-center space-x-1 px-2 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                     >
                       <UserPlusIcon className="w-3 h-3" />
@@ -427,7 +443,7 @@ const GroupDetailPage: React.FC = () => {
                     <ShareIcon className="w-3 h-3" />
                     <span>Share</span>
                   </button>
-                  {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                     <button 
                       onClick={() => setActiveTab('settings')}
                       className="flex items-center space-x-1 px-2 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
@@ -492,7 +508,7 @@ const GroupDetailPage: React.FC = () => {
                   </button>
                 ))}
                 {/* Invites tab - only visible to users with manage members access */}
-                {(group.canManageMembers || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                {(group.canManageMembers || group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                   <button
                     onClick={() => setActiveTab('invites')}
                     className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -504,7 +520,7 @@ const GroupDetailPage: React.FC = () => {
                     Invites
                   </button>
                 )}
-                {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                   <button
                     onClick={() => setActiveTab('settings')}
                     className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -539,7 +555,7 @@ const GroupDetailPage: React.FC = () => {
                   </button>
                 ))}
                 {/* Invites tab - only visible to users with manage members access */}
-                {(group.canManageMembers || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                {(group.canManageMembers || group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                   <button
                     onClick={() => setActiveTab('invites')}
                     className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -551,7 +567,7 @@ const GroupDetailPage: React.FC = () => {
                     Invites
                   </button>
                 )}
-                {(group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                   <button
                     onClick={() => setActiveTab('settings')}
                     className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -595,9 +611,12 @@ const GroupDetailPage: React.FC = () => {
                       }
                     </p>
                   </div>
-                  {(group.canManageMembers || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  {(group.canManageMembers || group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                     <button
-                      onClick={() => setShowInviteModal(true)}
+                      onClick={() => {
+                        console.log('🔍 Members section invite button clicked - memberRole:', group.memberRole, 'canManageMembers:', group.canManageMembers);
+                        setShowInviteModal(true);
+                      }}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                     >
                       <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" />
@@ -748,6 +767,7 @@ const GroupDetailPage: React.FC = () => {
             <GroupSettingsPanel
               groupId={id || ''}
               currentUserId={currentUserId}
+              group={group}
             />
           )}
         </div>
@@ -762,6 +782,7 @@ const GroupDetailPage: React.FC = () => {
           groupName={group.name}
           groupCategory={group.category || ''}
           subgroups={subgroups}
+          currentSubgroup={currentSubgroup} // Pass current subgroup context
           onInviteSent={() => {
             setShowInviteModal(false);
             // Optionally refresh group data

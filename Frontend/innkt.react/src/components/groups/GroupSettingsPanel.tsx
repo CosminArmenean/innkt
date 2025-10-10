@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Group } from '../../services/social.service';
 import SubgroupManagementPanel from './SubgroupManagementPanel';
-import TopicManagementPanel from './TopicManagementPanel';
+import EnhancedTopicManagementPanel from './EnhancedTopicManagementPanel';
 import RoleManagementPanel from './RoleManagementPanel';
 import { 
   Cog6ToothIcon,
@@ -16,9 +16,10 @@ import {
 interface GroupSettingsPanelProps {
   groupId: string;
   currentUserId?: string;
+  group?: Group;
 }
 
-const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, currentUserId }) => {
+const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, currentUserId, group }) => {
   const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'roles' | 'subgroups' | 'topics' | 'permissions'>('general');
 
   const settingsTabs = [
@@ -107,8 +108,9 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, curren
   );
 
   const renderTopicManagement = () => (
-    <TopicManagementPanel
+    <EnhancedTopicManagementPanel
       groupId={groupId}
+      groupName={group?.name || 'Group'}
       currentUserId={currentUserId || ''}
     />
   );

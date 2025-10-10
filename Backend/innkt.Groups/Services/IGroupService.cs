@@ -36,6 +36,7 @@ public interface IGroupService
     Task<bool> CancelInvitationAsync(Guid invitationId, Guid userId);
     Task<GroupInvitationResponse?> GetInvitationByIdAsync(Guid invitationId);
     Task<bool> RevokeInvitationAsync(Guid invitationId, Guid userId);
+    Task<GroupInvitationResponse> UpdateInvitationAsync(Guid invitationId, Guid userId, UpdateInvitationRequest request);
     
     // Group posts
     Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request);
@@ -82,6 +83,7 @@ public interface IGroupService
     Task<TopicResponse?> GetTopicByIdAsync(Guid topicId, Guid? currentUserId = null);
     Task<List<TopicResponse>> GetGroupTopicsAsync(Guid groupId, Guid? currentUserId = null, Guid? subgroupId = null, string? status = null);
     Task<TopicResponse> UpdateTopicStatusAsync(Guid topicId, Guid userId, string status);
+    Task<TopicResponse> UpdateTopicAsync(Guid topicId, Guid userId, UpdateTopicRequest request);
     Task<bool> DeleteTopicAsync(Guid topicId, Guid userId);
     Task<TopicPostListResponse> GetTopicPostsAsync(Guid topicId, Guid? currentUserId = null, int page = 1, int pageSize = 20);
     Task<TopicPostResponse> CreateTopicPostAsync(Guid topicId, Guid userId, CreateTopicPostRequest request);

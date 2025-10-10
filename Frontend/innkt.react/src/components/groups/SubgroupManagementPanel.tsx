@@ -528,7 +528,7 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
               </div>
               <div className="flex items-center space-x-2">
                 {/* Invite Button - Show if user has manage members permission */}
-                {(userPermissions?.canManageMembers || userPermissions?.memberRole === 'admin' || userPermissions?.memberRole === 'moderator') && (
+                {(userPermissions?.canManageMembers || userPermissions?.memberRole === 'owner' || userPermissions?.memberRole === 'admin' || userPermissions?.memberRole === 'moderator') && (
                   <button
                     onClick={() => setShowInviteModal(true)}
                     className="flex items-center space-x-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
@@ -627,6 +627,17 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
             createdAt: subgroup.createdAt,
             updatedAt: subgroup.createdAt // Use createdAt as fallback
           }))}
+          currentSubgroup={selectedSubgroupForMembers ? {
+            id: selectedSubgroupForMembers.id,
+            groupId: groupId,
+            name: selectedSubgroupForMembers.name,
+            description: selectedSubgroupForMembers.description,
+            level: 1,
+            membersCount: selectedSubgroupForMembers.membersCount,
+            isActive: selectedSubgroupForMembers.isActive,
+            createdAt: selectedSubgroupForMembers.createdAt,
+            updatedAt: selectedSubgroupForMembers.createdAt
+          } : null}
           onInviteSent={() => {
             setShowInviteModal(false);
             // Optionally refresh the member list

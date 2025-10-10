@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NIIsxR87A5o=",
+  "dgSpecHash": "NGuwz4oFYSo=",
   "success": true,
-  "projectFilePath": "C:\\Users\\cosmi\\source\\repos\\innkt\\backend\\innkt.Common\\innkt.Common.csproj",
+  "projectFilePath": "C:\\Users\\cosmi\\source\\repos\\innkt\\Backend\\innkt.Common\\innkt.Common.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cosmi\\.nuget\\packages\\confluent.kafka\\2.11.1\\confluent.kafka.2.11.1.nupkg.sha512",
     "C:\\Users\\cosmi\\.nuget\\packages\\librdkafka.redist\\2.11.1\\librdkafka.redist.2.11.1.nupkg.sha512",

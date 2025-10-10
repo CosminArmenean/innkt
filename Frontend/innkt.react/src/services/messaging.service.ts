@@ -54,7 +54,7 @@ export interface ConversationParticipant {
   username?: string;
   displayName?: string;
   avatar?: string;
-  role: 'admin' | 'moderator' | 'member';
+  role: 'owner' | 'admin' | 'moderator' | 'member';
   joinedAt: string;
   lastSeen: string;
   isOnline: boolean;

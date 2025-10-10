@@ -522,3 +522,4 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\obj\Debug\net9.0\innkt.O
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\innkt.Officer.staticwebassets.runtime.json
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\runtimes\linux-x64\native\centos8-librdkafka.so
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\AspNetCoreRateLimit.dll
