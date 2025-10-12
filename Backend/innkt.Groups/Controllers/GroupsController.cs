@@ -1288,13 +1288,24 @@ public class GroupsController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
+            if (userId == Guid.Empty)
+            {
+                _logger.LogWarning("Unauthorized access attempt to get subgroups with roles for group {GroupId}", groupId);
+                return Unauthorized(new { message = "Authentication required" });
+            }
+
             var subgroups = await _groupService.GetSubgroupsWithRolesAsync(groupId, userId);
             return Ok(subgroups);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "User {UserId} unauthorized to access subgroups with roles for group {GroupId}", GetCurrentUserId(), groupId);
+            return StatusCode(403, new { message = ex.Message });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subgroups with roles for group {GroupId}", groupId);
-            return StatusCode(500, "An error occurred while retrieving subgroups");
+            return StatusCode(500, new { message = "An error occurred while retrieving subgroups", details = ex.Message });
         }
     }
 

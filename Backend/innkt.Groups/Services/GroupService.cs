@@ -2959,8 +2959,11 @@ public class GroupService : IGroupService
     {
         // Check if user has permission to view subgroups
         var userRole = await GetUserRoleAsync(groupId, userId);
-        if (userRole != "admin" && userRole != "moderator" && userRole != "member")
+        _logger.LogInformation("User {UserId} has role '{Role}' in group {GroupId}", userId, userRole, groupId);
+        
+        if (userRole != "owner" && userRole != "admin" && userRole != "moderator" && userRole != "member")
         {
+            _logger.LogWarning("User {UserId} with role '{Role}' denied access to view subgroups in group {GroupId}", userId, userRole, groupId);
             throw new UnauthorizedAccessException("You don't have permission to view subgroups");
         }
 

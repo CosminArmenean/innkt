@@ -461,24 +461,33 @@ public class EventConsumer : IEventConsumer
             var invitationEvent = JsonSerializer.Deserialize<JsonElement>(consumeResult.Message.Value);
             if (invitationEvent.ValueKind == JsonValueKind.Undefined) return;
 
-            var recipientId = Guid.Parse(invitationEvent.GetProperty("RecipientId").GetString() ?? "");
-            var senderId = Guid.Parse(invitationEvent.GetProperty("SenderId").GetString() ?? "");
+            var invitationId = Guid.Parse(invitationEvent.GetProperty("InvitationId").GetString() ?? "");
+            _logger.LogInformation("📧 Processing invitation ID: {InvitationId}", invitationId);
+            var recipientId = Guid.Parse(invitationEvent.GetProperty("InvitedUserId").GetString() ?? "");
+            var senderId = Guid.Parse(invitationEvent.GetProperty("InvitedByUserId").GetString() ?? "");
             var groupName = invitationEvent.GetProperty("GroupName").GetString() ?? "";
             var groupId = Guid.Parse(invitationEvent.GetProperty("GroupId").GetString() ?? "");
             var message = invitationEvent.GetProperty("InvitationMessage").GetString() ?? "";
             var isEducational = invitationEvent.GetProperty("IsEducationalGroup").GetBoolean();
+            var subgroupId = invitationEvent.TryGetProperty("SubgroupId", out var subGroupProp) && subGroupProp.ValueKind != JsonValueKind.Null ? Guid.Parse(subGroupProp.GetString() ?? "") : (Guid?)null;
+            var subgroupName = invitationEvent.TryGetProperty("SubgroupName", out var subGroupNameProp) ? subGroupNameProp.GetString() : null;
 
             // Create notification for the invited user
             var notification = new GroupInvitationNotification
             {
+                Id = invitationId, // This is crucial for the notification URL
                 RecipientId = recipientId,
                 SenderId = senderId,
                 GroupId = groupId,
                 GroupName = groupName,
+                SubgroupId = subgroupId,
+                SubgroupName = subgroupName,
                 InvitationMessage = message,
                 IsEducationalGroup = isEducational,
-                Title = $"Group Invitation: {groupName}",
-                Message = !string.IsNullOrEmpty(message) ? message : $"You've been invited to join {groupName}",
+                Title = subgroupId.HasValue ? $"Subgroup Invitation: {subgroupName}" : $"Group Invitation: {groupName}",
+                Message = subgroupId.HasValue 
+                    ? $"You've been invited to join the subgroup \"{subgroupName}\" in {groupName}"
+                    : $"You've been invited to join {groupName}",
                 Priority = isEducational ? "high" : "medium",
                 Channel = isEducational ? "in_app,email" : "in_app"
             };
