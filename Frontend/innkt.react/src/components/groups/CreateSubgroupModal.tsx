@@ -24,7 +24,6 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
     requireParentApproval: true,
     allowMemberPosts: true,
     allowKidPosts: true,
-    allowParentPosts: true,
     requireApprovalForPosts: true,
     allowFileUploads: true,
     allowPolls: true,
@@ -33,7 +32,15 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
     profanityFilter: true,
     imageModeration: true,
     autoApproveParents: false,
-    autoApproveKids: false
+    autoApproveKids: false,
+    // Enhanced parent-kid permission settings
+    parentAccessLevel: 'participant' as 'read_only' | 'participant' | 'full_access',
+    allowParentVoting: true,
+    allowParentComments: true,
+    allowParentPosts: true,
+    requireParentApprovalForKidActions: true,
+    allowParentToManageKid: true,
+    kidIndependenceLevel: 'supervised' as 'supervised' | 'semi_independent' | 'independent'
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -92,7 +99,6 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
           requireParentApproval: formData.requireParentApproval,
           allowMemberPosts: formData.allowMemberPosts,
           allowKidPosts: formData.allowKidPosts,
-          allowParentPosts: formData.allowParentPosts,
           requireApprovalForPosts: formData.requireApprovalForPosts,
           allowFileUploads: formData.allowFileUploads,
           allowPolls: formData.allowPolls,
@@ -101,7 +107,15 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
           profanityFilter: formData.profanityFilter,
           imageModeration: formData.imageModeration,
           autoApproveParents: formData.autoApproveParents,
-          autoApproveKids: formData.autoApproveKids
+          autoApproveKids: formData.autoApproveKids,
+          // Enhanced parent-kid permission settings
+          parentAccessLevel: formData.parentAccessLevel,
+          allowParentVoting: formData.allowParentVoting,
+          allowParentComments: formData.allowParentComments,
+          allowParentPosts: formData.allowParentPosts,
+          requireParentApprovalForKidActions: formData.requireParentApprovalForKidActions,
+          allowParentToManageKid: formData.allowParentToManageKid,
+          kidIndependenceLevel: formData.kidIndependenceLevel
         }
       };
       

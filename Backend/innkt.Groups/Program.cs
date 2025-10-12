@@ -91,7 +91,7 @@ builder.Services.AddScoped<innkt.Groups.Services.ISubgroupService, innkt.Groups.
 builder.Services.AddScoped<innkt.Groups.Services.ITopicService, innkt.Groups.Services.TopicService>();
 builder.Services.AddScoped<innkt.Groups.Services.IAIIntegrationService, innkt.Groups.Services.AIIntegrationService>();
 
-// Notification service removed - using Kafka events instead
+// Notification service removed - using Kafka events instead for microservices independence
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -114,6 +114,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+
+// Enable static file serving for uploaded files
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

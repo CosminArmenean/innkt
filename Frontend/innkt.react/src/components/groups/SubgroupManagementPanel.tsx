@@ -37,6 +37,7 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
   const [selectedSubgroupForMembers, setSelectedSubgroupForMembers] = useState<SubgroupWithRolesResponse | null>(null);
   const [subgroupMembers, setSubgroupMembers] = useState<any[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [subgroupInvitations, setSubgroupInvitations] = useState<any[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [userPermissions, setUserPermissions] = useState<any>(null);
   const [editingSubgroup, setEditingSubgroup] = useState<SubgroupWithRolesResponse | null>(null);
@@ -133,10 +134,14 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
     setSelectedSubgroupForMembers(subgroup);
     setIsLoadingMembers(true);
     try {
-      const members = await groupsService.getSubgroupMembers(groupId, subgroup.id);
+      const [members, invitations] = await Promise.all([
+        groupsService.getSubgroupMembers(groupId, subgroup.id),
+        groupsService.getGroupInvitations(groupId, 1, 20, subgroup.id)
+      ]);
       setSubgroupMembers(members);
+      setSubgroupInvitations(invitations.invitations);
     } catch (error) {
-      console.error('Failed to load subgroup members:', error);
+      console.error('Failed to load subgroup data:', error);
       setError('Failed to load members. Please try again.');
     } finally {
       setIsLoadingMembers(false);
@@ -146,6 +151,21 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
   const handleCloseMembersModal = () => {
     setSelectedSubgroupForMembers(null);
     setSubgroupMembers([]);
+    setSubgroupInvitations([]);
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    try {
+      await groupsService.cancelInvitation(groupId, invitationId);
+      // Refresh the subgroup invitations
+      if (selectedSubgroupForMembers) {
+        const invitations = await groupsService.getGroupInvitations(groupId, 1, 20, selectedSubgroupForMembers.id);
+        setSubgroupInvitations(invitations.invitations);
+      }
+    } catch (error) {
+      console.error('Failed to cancel invitation:', error);
+      setError('Failed to cancel invitation. Please try again.');
+    }
   };
 
   // Edit subgroup handler
@@ -591,6 +611,59 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
                       )}
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Pending Invitations */}
+              {subgroupInvitations.length > 0 && (
+                <div className="p-6 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-4">Pending Invitations ({subgroupInvitations.length})</h4>
+                  <div className="space-y-3">
+                    {subgroupInvitations.map((invitation) => (
+                      <div key={invitation.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                              <UserPlusIcon className="h-4 w-4 text-orange-600" />
+                            </div>
+                          </div>
+                          <div className="ml-3">
+                            <div className="flex items-center">
+                              <p className="text-sm font-medium text-gray-900">
+                                {invitation?.invitedUser?.displayName || 'Unknown User'}
+                              </p>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Invited by @{invitation?.invitedBy?.username || 'unknown'}
+                            </p>
+                            {invitation?.message && (
+                              <p className="text-xs text-gray-400 mt-1">"{invitation.message}"</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            Pending
+                          </span>
+                          {/* Show cancel button for users who can manage invitations */}
+                          {(userPermissions?.canManageMembers || userPermissions?.memberRole === 'owner' || userPermissions?.memberRole === 'admin' || userPermissions?.memberRole === 'moderator') && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to cancel this invitation?')) {
+                                  handleCancelInvitation(invitation.id);
+                                }
+                              }}
+                              className="inline-flex items-center px-2 py-1 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              title="Cancel invitation"
+                            >
+                              <XMarkIcon className="w-3 h-3 mr-1" />
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

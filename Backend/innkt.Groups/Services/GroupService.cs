@@ -3,6 +3,8 @@ using innkt.Groups.Data;
 using innkt.Groups.DTOs;
 using innkt.Groups.Models;
 using AutoMapper;
+using Confluent.Kafka;
+using System.Text.Json;
 
 namespace innkt.Groups.Services;
 
@@ -13,14 +15,16 @@ public class GroupService : IGroupService
     private readonly IMapper _mapper;
     private readonly IUserService _userService;
     private readonly IPermissionService _permissionService;
+    private readonly IProducer<string, string> _kafkaProducer;
 
-    public GroupService(GroupsDbContext context, ILogger<GroupService> logger, IMapper mapper, IUserService userService, IPermissionService permissionService)
+    public GroupService(GroupsDbContext context, ILogger<GroupService> logger, IMapper mapper, IUserService userService, IPermissionService permissionService, IProducer<string, string> kafkaProducer)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
         _userService = userService;
         _permissionService = permissionService;
+        _kafkaProducer = kafkaProducer;
     }
 
     public async Task<GroupResponse> CreateGroupAsync(Guid userId, CreateGroupRequest request)
@@ -609,20 +613,48 @@ public class GroupService : IGroupService
             var userBasicInfos = await _userService.GetUsersBasicInfoAsync(userIds);
             var userInfoDict = userBasicInfos.ToDictionary(u => u.Id, u => u);
             
-            _logger.LogInformation("Batch loaded {Count} user info records for subgroup", userBasicInfos.Count);
+            // Load role assignments for subgroup members
+            var assignedRoleIds = members.Where(m => m.AssignedRoleId.HasValue || m.RoleId.HasValue)
+                                         .Select(m => m.AssignedRoleId ?? m.RoleId)
+                                         .Where(id => id.HasValue)
+                                         .Select(id => id!.Value)
+                                         .Distinct()
+                                         .ToList();
+            
+            var roles = new Dictionary<Guid, string>();
+            if (assignedRoleIds.Any())
+            {
+                var roleInfos = await _context.GroupRoles
+                    .Where(r => assignedRoleIds.Contains(r.Id))
+                    .Select(r => new { r.Id, r.Name, r.Alias })
+                    .ToListAsync();
+                
+                foreach (var role in roleInfos)
+                {
+                    roles[role.Id] = !string.IsNullOrEmpty(role.Alias) ? role.Alias : role.Name;
+                }
+            }
+            
+            _logger.LogInformation("Batch loaded {Count} user info records and {RoleCount} role info records for subgroup", userBasicInfos.Count, roles.Count);
             
             foreach (var member in members)
             {
                 var userBasicInfo = userInfoDict.GetValueOrDefault(member.UserId);
                 _logger.LogInformation("Processing subgroup member {UserId} with role {Role}", member.UserId, member.Role);
                 
+                var assignedRoleId = member.AssignedRoleId ?? member.RoleId;
+                var roleName = assignedRoleId.HasValue && roles.ContainsKey(assignedRoleId.Value) 
+                    ? roles[assignedRoleId.Value] 
+                    : null;
+
                 memberResponses.Add(new GroupMemberResponse
                 {
                     Id = member.Id,
                     GroupId = member.GroupId,
                     UserId = member.UserId,
                     Role = member.Role ?? "member",
-                    AssignedRoleId = member.AssignedRoleId ?? member.RoleId, // Include custom role assignment
+                    AssignedRoleId = assignedRoleId, // Include custom role assignment
+                    RoleName = roleName, // Role name or alias for display
                     JoinedAt = member.JoinedAt,
                     LastSeenAt = member.LastSeenAt,
                     IsActive = member.IsActive,
@@ -699,7 +731,7 @@ public class GroupService : IGroupService
         return false;
     }
 
-    public async Task<GroupInvitationResponse> InviteUserAsync(Guid groupId, Guid userId, Guid invitedUserId, string? message = null)
+    public async Task<GroupInvitationResponse> InviteUserAsync(Guid groupId, Guid userId, Guid invitedUserId, string? message = null, Guid? subgroupId = null)
     {
         // Check if user is group owner or admin - they have absolute power
         var userRole = await GetUserRoleAsync(groupId, userId);
@@ -752,6 +784,7 @@ public class GroupService : IGroupService
             Message = message,
             Status = "pending",
             ExpiresAt = DateTime.UtcNow.AddDays(7),
+            SubgroupId = subgroupId, // Set the subgroup ID if this is a subgroup invitation
             // Role information
             InvitedByRoleId = userMember?.AssignedRoleId,
             InvitedByRoleName = userMember?.AssignedRole?.Name,
@@ -768,6 +801,51 @@ public class GroupService : IGroupService
         var group = await _context.Groups.FindAsync(groupId);
         var invitedByUser = userDict.GetValueOrDefault(userId);
         var invitedUser = userDict.GetValueOrDefault(invitedUserId);
+        
+        // Load subgroup information if this is a subgroup invitation
+        string? subgroupName = null;
+        if (subgroupId.HasValue)
+        {
+            var subgroup = await _context.Subgroups.FindAsync(subgroupId.Value);
+            subgroupName = subgroup?.Name;
+        }
+
+        // Publish invitation event to Kafka for other microservices to consume
+        try
+        {
+            var invitationEvent = new
+            {
+                EventType = "group_invitation_created",
+                InvitationId = invitation.Id,
+                GroupId = groupId,
+                GroupName = group?.Name ?? "Unknown Group",
+                GroupType = group?.GroupType,
+                InvitedUserId = invitedUserId,
+                InvitedByUserId = userId,
+                InvitedByDisplayName = invitedByUser?.DisplayName ?? invitedByUser?.Username ?? "Unknown User",
+                SubgroupId = subgroupId,
+                SubgroupName = subgroupName,
+                InvitationMessage = message ?? "",
+                IsEducationalGroup = group?.GroupType?.ToLower() == "educational",
+                ExpiresAt = invitation.ExpiresAt,
+                CreatedAt = invitation.CreatedAt,
+                Timestamp = DateTime.UtcNow
+            };
+
+            var eventJson = System.Text.Json.JsonSerializer.Serialize(invitationEvent);
+            await _kafkaProducer.ProduceAsync("group-invitations", new Message<string, string>
+            {
+                Key = invitation.Id.ToString(),
+                Value = eventJson
+            });
+
+            _logger.LogInformation("📤 Published group invitation event for invitation {InvitationId} to user {UserId}", invitation.Id, invitedUserId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to publish invitation event for invitation {InvitationId} to user {UserId}", invitation.Id, invitedUserId);
+            // Don't fail the invitation creation if event publishing fails
+        }
 
         return new GroupInvitationResponse
         {
@@ -780,6 +858,7 @@ public class GroupService : IGroupService
             CreatedAt = invitation.CreatedAt,
             RespondedAt = invitation.RespondedAt,
             ExpiresAt = invitation.ExpiresAt,
+            SubgroupId = invitation.SubgroupId,
             Group = group != null ? new GroupBasicInfo
             {
                 Id = group.Id,
@@ -804,28 +883,41 @@ public class GroupService : IGroupService
             ShowRealUsername = invitation.ShowRealUsername,
             RealUsername = invitation.RealUsername,
             // Subgroup information
-            SubgroupId = invitation.SubgroupId
+            SubgroupName = subgroupName
         };
     }
 
-    public async Task<GroupInvitationListResponse> GetGroupInvitationsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null)
+    public async Task<GroupInvitationListResponse> GetGroupInvitationsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null, Guid? subgroupId = null)
     {
-        var invitations = await _context.GroupInvitations
+        var query = _context.GroupInvitations
             .Include(gi => gi.Group)
-            .Where(gi => gi.GroupId == groupId)
+            .Where(gi => gi.GroupId == groupId);
+
+        // Filter by subgroup if specified
+        if (subgroupId.HasValue)
+        {
+            query = query.Where(gi => gi.SubgroupId == subgroupId.Value);
+        }
+        else
+        {
+            // If no subgroup specified, only show main group invitations (SubgroupId is null)
+            query = query.Where(gi => gi.SubgroupId == null);
+        }
+
+        var invitations = await query
             .OrderByDescending(gi => gi.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        var totalCount = await _context.GroupInvitations
-            .CountAsync(gi => gi.GroupId == groupId);
+        var totalCount = await query.CountAsync();
 
         var invitationResponses = new List<GroupInvitationResponse>();
         
         foreach (var invitation in invitations)
         {
             var invitedByUser = await _userService.GetUserBasicInfoAsync(invitation.InvitedByUserId);
+            var invitedUser = await _userService.GetUserBasicInfoAsync(invitation.InvitedUserId);
             
             invitationResponses.Add(new GroupInvitationResponse
             {
@@ -854,6 +946,14 @@ public class GroupService : IGroupService
                     DisplayName = invitedByUser.DisplayName,
                     AvatarUrl = invitedByUser.AvatarUrl,
                     IsVerified = invitedByUser.IsVerified
+                } : null,
+                InvitedUser = invitedUser != null ? new UserBasicInfo
+                {
+                    Id = invitedUser.Id,
+                    Username = invitedUser.Username,
+                    DisplayName = invitedUser.DisplayName,
+                    AvatarUrl = invitedUser.AvatarUrl,
+                    IsVerified = invitedUser.IsVerified
                 } : null,
                 // Role information
                 InvitedByRoleId = invitation.InvitedByRoleId,
@@ -911,10 +1011,34 @@ public class GroupService : IGroupService
                 return false;
             }
 
-            var userMembership = group.Members.FirstOrDefault(m => m.UserId == userId);
-            if (userMembership == null || (userMembership.Role != "admin" && userMembership.Role != "owner" && invitation.InvitedByUserId != userId))
+            // Check if user is the group owner
+            if (group.OwnerId == userId)
             {
-                return false;
+                // Group owner can cancel any invitation
+            }
+            // Check if user created this invitation
+            else if (invitation.InvitedByUserId == userId)
+            {
+                // User can cancel their own invitations
+            }
+            // Check if user is admin
+            else
+            {
+                var userMembership = group.Members.FirstOrDefault(m => m.UserId == userId);
+                if (userMembership == null || userMembership.Role != "admin")
+                {
+                    // Check if user has role-based permission to manage invitations
+                    var userRole = await GetUserRoleAsync(group.Id, userId);
+                    if (userRole != "owner" && userRole != "admin" && userRole != "moderator")
+                    {
+                        // Check if user has permission through custom roles
+                        var hasPermission = await _permissionService.HasPermissionAsync(userId, group.Id, "invite_members");
+                        if (!hasPermission)
+                        {
+                            return false;
+                        }
+                    }
+                }
             }
 
             _context.GroupInvitations.Remove(invitation);
@@ -950,10 +1074,34 @@ public class GroupService : IGroupService
                 return false;
             }
 
-            var userMember = group.Members.FirstOrDefault(m => m.UserId == userId);
-            if (userMember == null || (userMember.Role != "admin" && userMember.Role != "moderator"))
+            // Check if user is the group owner
+            if (group.OwnerId == userId)
             {
-                throw new UnauthorizedAccessException("You don't have permission to revoke this invitation");
+                // Group owner can revoke any invitation
+            }
+            // Check if user created this invitation
+            else if (invitation.InvitedByUserId == userId)
+            {
+                // User can revoke their own invitations
+            }
+            // Check if user is admin or moderator
+            else
+            {
+                var userMember = group.Members.FirstOrDefault(m => m.UserId == userId);
+                if (userMember == null || (userMember.Role != "admin" && userMember.Role != "moderator"))
+                {
+                    // Check if user has role-based permission to manage invitations
+                    var userRole = await GetUserRoleAsync(group.Id, userId);
+                    if (userRole != "owner" && userRole != "admin" && userRole != "moderator")
+                    {
+                        // Check if user has permission through custom roles
+                        var hasPermission = await _permissionService.HasPermissionAsync(userId, group.Id, "invite_members");
+                        if (!hasPermission)
+                        {
+                            throw new UnauthorizedAccessException("You don't have permission to revoke this invitation");
+                        }
+                    }
+                }
             }
 
             // Only allow revoking pending invitations
@@ -1112,6 +1260,103 @@ public class GroupService : IGroupService
             // Subgroup information
             SubgroupId = invitation.SubgroupId
         };
+    }
+
+    public async Task<object> GetUserSubgroupRestrictionsAsync(Guid groupId, Guid userId)
+    {
+        try
+        {
+            // Check if user is a kid account by looking for kid-specific membership
+            var kidMembership = await _context.GroupMembers
+                .Include(gm => gm.Group)
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && 
+                                         gm.UserId == userId && 
+                                         gm.IsActive &&
+                                         gm.SubgroupId.HasValue);
+
+            if (kidMembership == null)
+            {
+                return new { isKidAccount = false, isParentShadowAccount = false };
+            }
+
+            // If user has subgroup-specific membership, they are restricted to that subgroup
+            if (kidMembership.SubgroupId.HasValue)
+            {
+                var subgroup = await _context.Subgroups
+                    .FirstOrDefaultAsync(s => s.Id == kidMembership.SubgroupId.Value);
+
+                // Check if this is a parent shadow account (parent acting for kid)
+                var isParentShadowAccount = kidMembership.IsParentAccount && kidMembership.ParentId.HasValue;
+                
+                // Parse subgroup settings to get parent-kid permission rules
+                var subgroupSettings = new Dictionary<string, object>();
+                if (!string.IsNullOrEmpty(subgroup?.Settings))
+                {
+                    try
+                    {
+                        subgroupSettings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(subgroup.Settings) ?? new Dictionary<string, object>();
+                    }
+                    catch
+                    {
+                        subgroupSettings = new Dictionary<string, object>();
+                    }
+                }
+
+                return new 
+                { 
+                    isKidAccount = !isParentShadowAccount,
+                    isParentShadowAccount = isParentShadowAccount,
+                    restrictedToSubgroupId = kidMembership.SubgroupId.Value.ToString(),
+                    subgroupName = subgroup?.Name ?? "Unknown Subgroup",
+                    subgroupSettings = subgroupSettings,
+                    parentPermissions = isParentShadowAccount ? GetParentShadowPermissions(subgroupSettings) : null
+                };
+            }
+
+            return new { isKidAccount = false, isParentShadowAccount = false };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user subgroup restrictions for user {UserId} in group {GroupId}", userId, groupId);
+            return new { isKidAccount = false, isParentShadowAccount = false };
+        }
+    }
+
+    private object GetParentShadowPermissions(Dictionary<string, object> subgroupSettings)
+    {
+        // Extract parent-kid permission settings from subgroup settings
+        var allowKidPosts = GetSettingValue(subgroupSettings, "allowKidPosts", false);
+        var allowParentPosts = GetSettingValue(subgroupSettings, "allowParentPosts", true);
+        var allowParentParticipation = GetSettingValue(subgroupSettings, "allowParentParticipation", true);
+        var requireParentApproval = GetSettingValue(subgroupSettings, "requireParentApproval", true);
+
+        // Determine parent shadow account permissions based on settings
+        var permissions = new
+        {
+            canPost = allowParentPosts,
+            canVote = !allowKidPosts, // If kid has full voting power, parent loses voting rights
+            canComment = allowParentParticipation,
+            canViewAnnouncements = true, // Parents can always see announcements
+            canViewTopics = true, // Parents can always see topics
+            canViewMembers = true, // Parents can see subgroup members
+            canManageKid = requireParentApproval, // Can manage kid's activities if approval required
+            accessLevel = allowKidPosts ? "read_only" : "participant" // Read-only if kid has full power
+        };
+
+        return permissions;
+    }
+
+    private bool GetSettingValue(Dictionary<string, object> settings, string key, bool defaultValue)
+    {
+        if (settings.TryGetValue(key, out var value))
+        {
+            if (value is JsonElement jsonElement)
+            {
+                return jsonElement.GetBoolean();
+            }
+            return Convert.ToBoolean(value);
+        }
+        return defaultValue;
     }
 
     public async Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request)
@@ -2884,6 +3129,90 @@ public class GroupService : IGroupService
 
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<string> UploadGroupAvatarAsync(Guid groupId, IFormFile file)
+    {
+        try
+        {
+            // Create uploads directory if it doesn't exist
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "groups", groupId.ToString());
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            // Generate unique filename
+            var fileName = $"avatar_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N")[..8]}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+
+            // Save file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Generate relative URL
+            var relativeUrl = $"/uploads/groups/{groupId}/{fileName}";
+
+            // Update group in database
+            var group = await _context.Groups.FindAsync(groupId);
+            if (group != null)
+            {
+                group.AvatarUrl = relativeUrl;
+                group.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
+            return relativeUrl;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading group avatar for group {GroupId}", groupId);
+            throw;
+        }
+    }
+
+    public async Task<string> UploadGroupCoverAsync(Guid groupId, IFormFile file)
+    {
+        try
+        {
+            // Create uploads directory if it doesn't exist
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "groups", groupId.ToString());
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            // Generate unique filename
+            var fileName = $"cover_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N")[..8]}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+
+            // Save file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Generate relative URL
+            var relativeUrl = $"/uploads/groups/{groupId}/{fileName}";
+
+            // Update group in database
+            var group = await _context.Groups.FindAsync(groupId);
+            if (group != null)
+            {
+                group.CoverImageUrl = relativeUrl;
+                group.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
+            return relativeUrl;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading group cover for group {GroupId}", groupId);
+            throw;
+        }
     }
 
 }

@@ -75,8 +75,17 @@ const InvitePage: React.FC = () => {
         inviterId: invitation.invitedByUserId,
         message: invitation.message,
         expiresAt: invitation.expiresAt,
-        isEducational: invitation.group?.groupType === 'educational'
+        isEducational: invitation.group?.groupType === 'educational' || invitation.subgroupId !== null
       };
+      
+      console.log('📧 Invite data loaded:', {
+        id: invite.id,
+        groupName: invite.groupName,
+        subgroupId: invite.subgroupId,
+        groupType: invite.groupType,
+        isEducational: invite.isEducational,
+        inviterName: invite.inviterName
+      });
       
       setInvite(invite);
       
@@ -123,7 +132,21 @@ const InvitePage: React.FC = () => {
       
       // Join the group or subgroup
       if (invite.isEducational && selectedKidId) {
-        // Join with kid account
+        // Handle creating a new kid account for subgroup invitations
+        if (selectedKidId === 'create-new') {
+          if (invite.subgroupId) {
+            // Create a one-off kid and join subgroup
+            console.log('🎯 Creating one-off kid for subgroup:', invite.groupId, invite.subgroupId);
+            // TODO: Implement createOneOffKidAndJoinSubgroup method
+            setError('Creating one-off kid accounts is not yet implemented. Please use an existing kid account.');
+            return;
+          } else {
+            setError('One-off kid accounts are only available for subgroup invitations');
+            return;
+          }
+        }
+        
+        // Join with existing kid account
         if (invite.subgroupId) {
           // Join subgroup with kid account
           console.log('🎯 Calling joinSubgroupWithKid with:', invite.groupId, invite.subgroupId, selectedKidId);
@@ -195,14 +218,35 @@ const InvitePage: React.FC = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">👥</span>
+              <span className="text-2xl">{invite.subgroupId ? '🎓' : '👥'}</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Group Invitation</h1>
-            <p className="text-gray-600">You've been invited to join a group</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {invite.subgroupId ? 'Subgroup Invitation' : 'Group Invitation'}
+            </h1>
+            <p className="text-gray-600">
+              {invite.subgroupId 
+                ? 'You\'ve been invited to join a subgroup in an educational group' 
+                : 'You\'ve been invited to join a group'
+              }
+            </p>
           </div>
 
           {/* Group Details */}
           <div className="bg-gray-50 rounded-lg p-6 mb-6">
+            {/* Subgroup Information */}
+            {invite.subgroupId && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-blue-600">🎓</span>
+                  <h3 className="text-lg font-semibold text-blue-900">Subgroup Invitation</h3>
+                </div>
+                <p className="text-sm text-blue-800">
+                  You're being invited to join a specific subgroup within this educational group.
+                  Your parent account will be added as a shadow account to monitor your activity.
+                </p>
+              </div>
+            )}
+            
             <h2 className="text-xl font-semibold text-gray-900 mb-2">{invite.groupName}</h2>
             <p className="text-gray-600 mb-4">{invite.groupDescription}</p>
             
@@ -228,59 +272,92 @@ const InvitePage: React.FC = () => {
           {invite.isEducational && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Select Kid Account
+                {invite.subgroupId ? 'Select Kid Account for Subgroup' : 'Select Kid Account'}
               </h3>
               <p className="text-gray-600 mb-4">
-                This is an educational group. Please select which kid account should join.
+                {invite.subgroupId 
+                  ? 'This is a subgroup invitation for an educational group. Please select which kid account should join this subgroup. Your parent account will automatically be added as a shadow account.'
+                  : 'This is an educational group. Please select which kid account should join.'
+                }
               </p>
               
-              {kidAccounts.length > 0 ? (
-                <div className="space-y-3">
-                  {kidAccounts.map((kid) => (
-                    <label
-                      key={kid.id}
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedKidId === kid.id
-                          ? 'border-purple-500 bg-purple-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="kidAccount"
-                        value={kid.id}
-                        checked={selectedKidId === kid.id}
-                        onChange={(e) => setSelectedKidId(e.target.value)}
-                        className="sr-only"
-                      />
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-4 h-4 rounded-full border-2 ${
-                          selectedKidId === kid.id
-                            ? 'border-purple-500 bg-purple-500'
-                            : 'border-gray-300'
-                        }`}>
-                          {selectedKidId === kid.id && (
-                            <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{kid.fullName}</p>
-                          {kid.username && <p className="text-sm text-gray-500">@{kid.username}</p>}
-                        </div>
-                        <div className="ml-auto">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            kid.isActive
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {kid.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
-                    </label>
-                  ))}
+              {/* Option to create a one-off kid for subgroup invitations */}
+              {invite.subgroupId && (
+                <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-orange-600">👶</span>
+                    <h4 className="text-md font-semibold text-orange-900">Create One-Off Kid</h4>
+                  </div>
+                  <p className="text-sm text-orange-800 mb-3">
+                    Don't have a kid account? You can create a temporary kid account specifically for this subgroup invitation.
+                  </p>
+                  <button
+                    onClick={() => setSelectedKidId('create-new')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedKidId === 'create-new'
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
+                    }`}
+                  >
+                    {selectedKidId === 'create-new' ? '✓ Selected' : 'Create New Kid Account'}
+                  </button>
                 </div>
-              ) : (
+              )}
+              
+              {/* Existing kid accounts */}
+              {kidAccounts.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-md font-medium text-gray-700 mb-3">Or select existing kid account:</h4>
+                  <div className="space-y-3">
+                    {kidAccounts.map((kid) => (
+                      <label
+                        key={kid.id}
+                        className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedKidId === kid.id
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="kidAccount"
+                          value={kid.id}
+                          checked={selectedKidId === kid.id}
+                          onChange={(e) => setSelectedKidId(e.target.value)}
+                          className="sr-only"
+                        />
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-4 h-4 rounded-full border-2 ${
+                            selectedKidId === kid.id
+                              ? 'border-purple-500 bg-purple-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedKidId === kid.id && (
+                              <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{kid.fullName}</p>
+                            {kid.username && <p className="text-sm text-gray-500">@{kid.username}</p>}
+                          </div>
+                          <div className="ml-auto">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              kid.isActive
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {kid.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* No existing kid accounts */}
+              {kidAccounts.length === 0 && !invite.subgroupId && (
                 <div className="text-center py-8 text-gray-500">
                   <p>No kid accounts found.</p>
                   <p className="text-sm">You may need to create a kid account first.</p>
@@ -303,7 +380,7 @@ const InvitePage: React.FC = () => {
               disabled={isJoining || (invite.isEducational && !selectedKidId)}
               className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isJoining ? 'Joining...' : 'Accept Invitation'}
+              {isJoining ? 'Joining...' : (invite.isEducational && selectedKidId === 'create-new') ? 'Create Kid & Accept' : 'Accept Invitation'}
             </button>
             
             <button

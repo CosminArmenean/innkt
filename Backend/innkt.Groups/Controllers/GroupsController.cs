@@ -868,7 +868,7 @@ public class GroupsController : ControllerBase
             try
             {
                 var userId = GetCurrentUserId();
-                var invitation = await _groupService.InviteUserAsync(groupId, userId, request.UserId, request.Message);
+                var invitation = await _groupService.InviteUserAsync(groupId, userId, request.UserId, request.Message, request.SubgroupId);
                 
                 // Get group information for Kafka event
                 var group = await _groupService.GetGroupByIdAsync(groupId);
@@ -912,6 +912,11 @@ public class GroupsController : ControllerBase
                 _logger.LogWarning(ex, "User {UserId} attempted to invite user {InvitedUserId} to group {GroupId} without permission", GetCurrentUserId(), request.UserId, groupId);
                 return Forbid();
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid operation when inviting user {UserId} to group {GroupId}: {Message}", request.UserId, groupId, ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error inviting user {UserId} to group {GroupId}", request.UserId, groupId);
@@ -924,12 +929,12 @@ public class GroupsController : ControllerBase
     /// </summary>
     [HttpGet("{groupId:guid}/invitations")]
     [RequirePermission("view_group")]
-    public async Task<ActionResult<GroupInvitationListResponse>> GetGroupInvitations(Guid groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult<GroupInvitationListResponse>> GetGroupInvitations(Guid groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Guid? subgroupId = null)
     {
         try
         {
             var userId = GetCurrentUserId();
-            var invitations = await _groupService.GetGroupInvitationsAsync(groupId, page, pageSize, userId);
+            var invitations = await _groupService.GetGroupInvitationsAsync(groupId, page, pageSize, userId, subgroupId);
             return Ok(invitations);
         }
         catch (KeyNotFoundException ex)
@@ -975,7 +980,7 @@ public class GroupsController : ControllerBase
     /// <summary>
     /// Get a specific invitation by ID (no groupId required)
     /// </summary>
-    [HttpGet("invitations/{invitationId}")]
+    [HttpGet("invitations/{invitationId:guid}")]
     public async Task<ActionResult<GroupInvitationResponse>> GetInvitationById(Guid invitationId)
     {
         try
@@ -991,6 +996,102 @@ public class GroupsController : ControllerBase
         {
             _logger.LogError(ex, "Error getting invitation {InvitationId}", invitationId);
             return StatusCode(500, "An error occurred while getting invitation");
+        }
+    }
+
+    /// <summary>
+    /// Get user subgroup restrictions (for kid accounts)
+    /// </summary>
+    [HttpGet("{groupId:guid}/user-restrictions/{userId:guid}")]
+    public async Task<ActionResult<object>> GetUserSubgroupRestrictions(Guid groupId, Guid userId)
+    {
+        try
+        {
+            var restrictions = await _groupService.GetUserSubgroupRestrictionsAsync(groupId, userId);
+            return Ok(restrictions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user subgroup restrictions for user {UserId} in group {GroupId}", userId, groupId);
+            return StatusCode(500, "An error occurred while getting user restrictions");
+        }
+    }
+
+    /// <summary>
+    /// Upload group profile picture
+    /// </summary>
+    [HttpPost("{groupId:guid}/upload-avatar")]
+    public async Task<ActionResult<string>> UploadGroupAvatar(Guid groupId, IFormFile file)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized();
+
+            // Check if user has permission to upload avatar (owner, admin, or moderator)
+            var userRole = await _groupService.GetUserRoleAsync(groupId, userId);
+            if (userRole != "owner" && userRole != "admin" && userRole != "moderator")
+                return Forbid();
+
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            // Validate file type
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                return BadRequest("Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed");
+
+            // Validate file size (max 5MB)
+            if (file.Length > 5 * 1024 * 1024)
+                return BadRequest("File size too large. Maximum size is 5MB");
+
+            var avatarUrl = await _groupService.UploadGroupAvatarAsync(groupId, file);
+            return Ok(new { avatarUrl });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading group avatar for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while uploading avatar");
+        }
+    }
+
+    /// <summary>
+    /// Upload group cover photo
+    /// </summary>
+    [HttpPost("{groupId:guid}/upload-cover")]
+    public async Task<ActionResult<string>> UploadGroupCover(Guid groupId, IFormFile file)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized();
+
+            // Check if user has permission to upload cover (owner, admin, or moderator)
+            var userRole = await _groupService.GetUserRoleAsync(groupId, userId);
+            if (userRole != "owner" && userRole != "admin" && userRole != "moderator")
+                return Forbid();
+
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            // Validate file type
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                return BadRequest("Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed");
+
+            // Validate file size (max 10MB for cover photos)
+            if (file.Length > 10 * 1024 * 1024)
+                return BadRequest("File size too large. Maximum size is 10MB");
+
+            var coverUrl = await _groupService.UploadGroupCoverAsync(groupId, file);
+            return Ok(new { coverUrl });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading group cover for group {GroupId}", groupId);
+            return StatusCode(500, "An error occurred while uploading cover photo");
         }
     }
 

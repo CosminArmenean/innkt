@@ -29,14 +29,19 @@ public interface IGroupService
     Task<bool> RemoveMemberAsync(Guid groupId, Guid targetUserId, Guid adminUserId);
     
     // Group invitations
-    Task<GroupInvitationResponse> InviteUserAsync(Guid groupId, Guid userId, Guid invitedUserId, string? message = null);
-    Task<GroupInvitationListResponse> GetGroupInvitationsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null);
+    Task<GroupInvitationResponse> InviteUserAsync(Guid groupId, Guid userId, Guid invitedUserId, string? message = null, Guid? subgroupId = null);
+    Task<GroupInvitationListResponse> GetGroupInvitationsAsync(Guid groupId, int page = 1, int pageSize = 20, Guid? currentUserId = null, Guid? subgroupId = null);
     Task<GroupInvitationListResponse> GetUserInvitationsAsync(Guid userId, int page = 1, int pageSize = 20);
     Task<bool> RespondToInvitationAsync(Guid invitationId, Guid userId, string action);
     Task<bool> CancelInvitationAsync(Guid invitationId, Guid userId);
     Task<GroupInvitationResponse?> GetInvitationByIdAsync(Guid invitationId);
     Task<bool> RevokeInvitationAsync(Guid invitationId, Guid userId);
     Task<GroupInvitationResponse> UpdateInvitationAsync(Guid invitationId, Guid userId, UpdateInvitationRequest request);
+    
+    // User restrictions for kid accounts
+    Task<object> GetUserSubgroupRestrictionsAsync(Guid groupId, Guid userId);
+    Task<string> UploadGroupAvatarAsync(Guid groupId, IFormFile file);
+    Task<string> UploadGroupCoverAsync(Guid groupId, IFormFile file);
     
     // Group posts
     Task<GroupPostResponse> CreateGroupPostAsync(Guid groupId, Guid userId, GroupPostRequest request);

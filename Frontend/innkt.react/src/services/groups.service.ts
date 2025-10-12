@@ -100,6 +100,13 @@ export interface GroupInvitationResponse {
     avatarUrl?: string;
     isVerified?: boolean;
   };
+  invitedUser?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string;
+    isVerified?: boolean;
+  };
   // Role-based invitation fields
   invitedByRoleId?: string;
   invitedByRoleName?: string;
@@ -181,6 +188,7 @@ export interface GroupMemberResponse {
   userId: string;
   role: string;
   assignedRoleId?: string; // Custom role assignment
+  roleName?: string; // Role name or alias for display
   joinedAt: string;
   lastSeenAt?: string;
   isActive: boolean;
@@ -926,9 +934,10 @@ export class GroupsService extends BaseApiService {
     }
   }
 
-  async getGroupInvitations(groupId: string, page: number = 1, pageSize: number = 20): Promise<GroupInvitationListResponse> {
+  async getGroupInvitations(groupId: string, page: number = 1, pageSize: number = 20, subgroupId?: string): Promise<GroupInvitationListResponse> {
     try {
-      const response = await this.get<GroupInvitationListResponse>(`/api/groups/${groupId}/invitations?page=${page}&pageSize=${pageSize}`);
+      const subgroupParam = subgroupId ? `&subgroupId=${subgroupId}` : '';
+      const response = await this.get<GroupInvitationListResponse>(`/api/groups/${groupId}/invitations?page=${page}&pageSize=${pageSize}${subgroupParam}`);
       return response;
     } catch (error) {
       console.error('Failed to get group invitations:', error);
@@ -942,6 +951,39 @@ export class GroupsService extends BaseApiService {
     } catch (error) {
       console.error('Failed to cancel invitation:', error);
       throw error;
+    }
+  }
+
+  async getUserSubgroupRestrictions(groupId: string, userId: string): Promise<{ 
+    isKidAccount: boolean; 
+    isParentShadowAccount: boolean;
+    restrictedToSubgroupId?: string; 
+    subgroupName?: string;
+    subgroupSettings?: any;
+    parentPermissions?: {
+      canPost: boolean;
+      canVote: boolean;
+      canComment: boolean;
+      canViewAnnouncements: boolean;
+      canViewTopics: boolean;
+      canViewMembers: boolean;
+      canManageKid: boolean;
+      accessLevel: 'read_only' | 'participant';
+    };
+  }> {
+    try {
+      const response = await this.get<{ 
+        isKidAccount: boolean; 
+        isParentShadowAccount: boolean;
+        restrictedToSubgroupId?: string; 
+        subgroupName?: string;
+        subgroupSettings?: any;
+        parentPermissions?: any;
+      }>(`/api/groups/${groupId}/user-restrictions/${userId}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to get user subgroup restrictions:', error);
+      return { isKidAccount: false, isParentShadowAccount: false };
     }
   }
 
@@ -1144,6 +1186,44 @@ export class GroupsService extends BaseApiService {
       await this.put(`/api/groups/${groupId}/subgroups/${subgroupId}/role-assignments/${assignmentId}`, request);
     } catch (error) {
       console.error('Failed to update subgroup role assignment:', error);
+      throw error;
+    }
+  }
+
+  async uploadGroupAvatar(groupId: string, file: File): Promise<string> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Use direct axios call for file uploads to avoid Content-Type issues
+      const response = await (this.api as any).post(`/api/groups/${groupId}/upload-avatar`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data.avatarUrl;
+    } catch (error) {
+      console.error('Failed to upload group avatar:', error);
+      throw error;
+    }
+  }
+
+  async uploadGroupCover(groupId: string, file: File): Promise<string> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Use direct axios call for file uploads to avoid Content-Type issues
+      const response = await (this.api as any).post(`/api/groups/${groupId}/upload-cover`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data.coverUrl;
+    } catch (error) {
+      console.error('Failed to upload group cover:', error);
       throw error;
     }
   }

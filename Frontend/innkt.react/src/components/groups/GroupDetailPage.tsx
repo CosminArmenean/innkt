@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { socialService, Group } from '../../services/social.service';
 import { groupsService } from '../../services/groups.service';
+import { convertToFullAvatarUrl, convertToFullGroupImageUrl, getUserInitial } from '../../utils/avatarUtils';
 import GroupSettingsPanel from './GroupSettingsPanel';
 import SubgroupManagementPanel from './SubgroupManagementPanel';
 import GroupManagementPanel from './GroupManagementPanel';
@@ -18,6 +19,7 @@ import {
   BellIcon,
   PhotoIcon,
   UserPlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 const GroupDetailPage: React.FC = () => {
@@ -41,6 +43,27 @@ const GroupDetailPage: React.FC = () => {
   const [subgroupMembersCount, setSubgroupMembersCount] = useState(0);
   const [subgroupMemberListTab, setSubgroupMemberListTab] = useState<'users' | 'roles'>('users');
   const [subgroupRoles, setSubgroupRoles] = useState<any[]>([]);
+  const [subgroupMembers, setSubgroupMembers] = useState<any[]>([]);
+  const [subgroupInvitations, setSubgroupInvitations] = useState<any[]>([]);
+  const [userRestrictions, setUserRestrictions] = useState<{ 
+    isKidAccount: boolean; 
+    isParentShadowAccount: boolean;
+    restrictedToSubgroupId?: string; 
+    subgroupName?: string;
+    subgroupSettings?: any;
+    parentPermissions?: {
+      canPost: boolean;
+      canVote: boolean;
+      canComment: boolean;
+      canViewAnnouncements: boolean;
+      canViewTopics: boolean;
+      canViewMembers: boolean;
+      canManageKid: boolean;
+      accessLevel: 'read_only' | 'participant';
+    };
+  } | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const subgroupChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLoadingSubgroupDataRef = useRef(false);
 
@@ -73,12 +96,29 @@ const GroupDetailPage: React.FC = () => {
   }, []);
 
   const loadGroup = async () => {
-    if (!id) return;
+    if (!id || !currentUserId) return;
     
     try {
       setIsLoading(true);
       const groupData = await socialService.getGroup(id);
       setGroup(groupData);
+      
+      // Load user restrictions (for kid accounts)
+      const restrictions = await groupsService.getUserSubgroupRestrictions(id, currentUserId);
+      setUserRestrictions(restrictions);
+      
+      console.log('🔍 User restrictions loaded:', restrictions);
+      
+      // If user is restricted to a specific subgroup, automatically select it
+      if ((restrictions.isKidAccount || restrictions.isParentShadowAccount) && restrictions.restrictedToSubgroupId) {
+        console.log('🎯 Restricted account detected, auto-selecting subgroup:', restrictions.restrictedToSubgroupId);
+        console.log('🔍 Account type:', restrictions.isKidAccount ? 'Kid Account' : 'Parent Shadow Account');
+        if (restrictions.isParentShadowAccount) {
+          console.log('👨‍👩‍👧‍👦 Parent permissions:', restrictions.parentPermissions);
+        }
+        setCurrentSubgroup({ id: restrictions.restrictedToSubgroupId, name: restrictions.subgroupName });
+        setActiveTab('topics'); // Switch to topics tab to show subgroup content
+      }
       
       // Load topics and subgroups counts
       await loadCounts(id);
@@ -140,13 +180,16 @@ const GroupDetailPage: React.FC = () => {
       if (subgroup) {
         // Load subgroup-specific data
         try {
-          const [subgroupTopics, subgroupMembers] = await Promise.all([
+          const [subgroupTopics, subgroupMembers, subgroupInvitations] = await Promise.all([
             groupsService.getGroupTopics(id!, { subgroupId: subgroup.id }),
-            groupsService.getSubgroupMembers(id!, subgroup.id)
+            groupsService.getSubgroupMembers(id!, subgroup.id),
+            groupsService.getGroupInvitations(id!, 1, 20, subgroup.id)
           ]);
           
           setSubgroupTopicsCount(subgroupTopics?.length || 0);
           setSubgroupMembersCount(subgroupMembers?.length || 0);
+          setSubgroupMembers(subgroupMembers || []);
+          setSubgroupInvitations(subgroupInvitations.invitations || []);
           
           // Only try to load roles if user has permission (avoid the 500 error)
           try {
@@ -228,6 +271,102 @@ const GroupDetailPage: React.FC = () => {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
       alert('Group link copied to clipboard!');
+    }
+  };
+
+  const refreshSubgroupData = async () => {
+    if (!currentSubgroup || !id) return;
+    
+    try {
+      const [subgroupMembers, subgroupInvitations] = await Promise.all([
+        groupsService.getSubgroupMembers(id, currentSubgroup.id),
+        groupsService.getGroupInvitations(id, 1, 20, currentSubgroup.id)
+      ]);
+      
+      setSubgroupMembers(subgroupMembers || []);
+      setSubgroupMembersCount(subgroupMembers?.length || 0);
+      setSubgroupInvitations(subgroupInvitations.invitations || []);
+    } catch (error) {
+      console.error('Failed to refresh subgroup data:', error);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size too large. Maximum size is 5MB.');
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      const avatarUrl = await groupsService.uploadGroupAvatar(id, file);
+      
+      // Reload group data to get the updated avatar URL from the API
+      await loadGroup();
+    } catch (error) {
+      console.error('Failed to upload avatar:', error);
+      alert('Failed to upload avatar. Please try again.');
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
+  const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size too large. Maximum size is 10MB.');
+      return;
+    }
+
+    try {
+      setIsUploadingCover(true);
+      const coverUrl = await groupsService.uploadGroupCover(id, file);
+      
+      // Reload group data to get the updated cover URL from the API
+      await loadGroup();
+    } catch (error) {
+      console.error('Failed to upload cover:', error);
+      alert('Failed to upload cover photo. Please try again.');
+    } finally {
+      setIsUploadingCover(false);
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    if (!id) return;
+    
+    try {
+      await groupsService.cancelInvitation(id, invitationId);
+      // Refresh the subgroup data to remove the canceled invitation
+      await refreshSubgroupData();
+    } catch (error) {
+      console.error('Failed to cancel invitation:', error);
+      alert('Failed to cancel invitation. Please try again.');
     }
   };
 
@@ -328,7 +467,7 @@ const GroupDetailPage: React.FC = () => {
         <div className="h-48 bg-gradient-to-r from-purple-500 to-blue-500 relative">
           {group.coverImage && (
             <img 
-              src={group.coverImage} 
+              src={convertToFullGroupImageUrl(group.coverImage)} 
               alt={group.name}
               className="w-full h-full object-cover"
             />
@@ -344,10 +483,19 @@ const GroupDetailPage: React.FC = () => {
           {/* Cover Photo Button - Admin Only */}
           {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
             <div className="absolute bottom-4 right-4">
-              <button className="flex items-center space-x-2 px-3 py-2 bg-black bg-opacity-50 text-white rounded-lg hover:bg-opacity-70 transition-colors">
+              <label className="flex items-center space-x-2 px-3 py-2 bg-black bg-opacity-50 text-white rounded-lg hover:bg-opacity-70 transition-colors cursor-pointer">
                 <PhotoIcon className="w-4 h-4" />
-                <span className="text-sm">Add Cover</span>
-              </button>
+                <span className="text-sm">
+                  {isUploadingCover ? 'Uploading...' : 'Add Cover'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  disabled={isUploadingCover}
+                  className="hidden"
+                />
+              </label>
             </div>
           )}
         </div>
@@ -357,16 +505,40 @@ const GroupDetailPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {/* Avatar */}
-              <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0 -mt-8 border-4 border-white">
+              <div className="relative w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0 -mt-8 border-4 border-white">
                 {group.avatar ? (
                   <img 
-                    src={group.avatar} 
+                    src={convertToFullGroupImageUrl(group.avatar)} 
                     alt={group.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-300 flex items-center justify-center">
                     <UserGroupIcon className="w-8 h-8 text-gray-600" />
+                  </div>
+                )}
+                
+                {/* Add Profile Picture Button - Admin Only */}
+                {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
+                    <label className="cursor-pointer flex flex-col items-center justify-center text-white text-xs">
+                      <PhotoIcon className="w-4 h-4 mb-1" />
+                      <span className="text-center leading-tight">Add Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        disabled={isUploadingAvatar}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                )}
+                
+                {/* Loading indicator */}
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 )}
               </div>
@@ -376,6 +548,16 @@ const GroupDetailPage: React.FC = () => {
                 <div className="flex items-center space-x-2 mb-1">
                   <h1 className="text-xl font-bold text-gray-900">{group.name}</h1>
                   <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">{group.category}</span>
+                  {userRestrictions?.isParentShadowAccount && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      👨‍👩‍👧‍👦 Parent Shadow
+                    </span>
+                  )}
+                  {userRestrictions?.isKidAccount && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      👶 Kid Account
+                    </span>
+                  )}
                 </div>
                 <p className="text-gray-600 text-sm mb-2 line-clamp-1">{group.description}</p>
                 
@@ -484,6 +666,9 @@ const GroupDetailPage: React.FC = () => {
                 <button
                   onClick={() => {
                     setCurrentSubgroup(null);
+                    setSubgroupMembers([]);
+                    setSubgroupInvitations([]);
+                    setSubgroupMembersCount(0);
                     setActiveTab('topics'); // Reset to topics tab when returning to main group
                   }}
                   className="py-2 px-1 border-b-2 font-medium text-sm border-transparent text-purple-600 hover:text-purple-700 hover:border-purple-300"
@@ -537,10 +722,32 @@ const GroupDetailPage: React.FC = () => {
               // Main group navbar - normal tabs
               <>
                 {[
-                  { id: 'topics', label: 'Topics', count: topicsCount },
-                  { id: 'members', label: 'Members', count: group.memberCount || 0 },
-                  { id: 'rules', label: 'Rules', count: group.rules?.length || 0 },
-                  { id: 'subgroups', label: 'Subgroups', count: subgroupsCount }
+                  { 
+                    id: 'topics', 
+                    label: userRestrictions?.isKidAccount 
+                      ? 'My Topics' 
+                      : userRestrictions?.isParentShadowAccount 
+                        ? 'Subgroup Topics' 
+                        : 'Topics', 
+                    count: topicsCount 
+                  },
+                  ...(userRestrictions?.isKidAccount ? [] : [
+                    { 
+                      id: 'members', 
+                      label: 'Members', 
+                      count: group.memberCount || 0,
+                      disabled: userRestrictions?.isParentShadowAccount && userRestrictions?.parentPermissions?.accessLevel === 'read_only'
+                    },
+                    { 
+                      id: 'rules', 
+                      label: 'Rules', 
+                      count: group.rules?.length || 0,
+                      disabled: userRestrictions?.isParentShadowAccount && userRestrictions?.parentPermissions?.accessLevel === 'read_only'
+                    },
+                    ...(userRestrictions?.isParentShadowAccount ? [] : [
+                      { id: 'subgroups', label: 'Subgroups', count: subgroupsCount }
+                    ])
+                  ])
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -653,9 +860,113 @@ const GroupDetailPage: React.FC = () => {
 
                 {/* Subgroup Member Content */}
                 {subgroupMemberListTab === 'users' ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                    <p>Subgroup member management coming soon...</p>
+                  <div className="space-y-6">
+                    {/* Members List */}
+                    <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h4 className="text-sm font-medium text-gray-900">Members ({subgroupMembers.length})</h4>
+                      </div>
+                      <div className="divide-y divide-gray-200">
+                        {subgroupMembers.length === 0 ? (
+                          <div className="p-6 text-center text-gray-500">
+                            <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                            <p>No members in this subgroup yet.</p>
+                          </div>
+                        ) : (
+                          subgroupMembers.map((member) => (
+                            <div key={member.id} className="p-4 flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                  {member.user?.avatarUrl ? (
+                                    <img
+                                      src={convertToFullAvatarUrl(member.user.avatarUrl)}
+                                      alt={member.user.username}
+                                      className="h-10 w-10 rounded-full"
+                                    />
+                                  ) : (
+                                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                      <span className="text-purple-600 font-medium">
+                                        {getUserInitial(member.user?.username || member.user?.displayName)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="ml-4">
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {member.user?.username || member.user?.displayName || 'Unknown User'}
+                                  </p>
+                                  <p className="text-sm text-gray-500 capitalize">
+                                    {member.role || 'Member'}
+                                    {member.isParentAccount && ' (Parent)'}
+                                    {member.kidAccountId && ' (Managing Kid Account)'}
+                                  </p>
+                                </div>
+                              </div>
+                              {member.assignedRoleId && member.roleName && (
+                                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                                  {member.roleName}
+                                </span>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pending Invitations */}
+                    {subgroupInvitations.length > 0 && (
+                      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900">Pending Invitations ({subgroupInvitations.length})</h4>
+                        </div>
+                        <div className="divide-y divide-gray-200">
+                          {subgroupInvitations.map((invitation) => (
+                            <div key={invitation.id} className="p-4 flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                    <UserPlusIcon className="h-5 w-5 text-orange-600" />
+                                  </div>
+                                </div>
+                                <div className="ml-4">
+                                  <div className="flex items-center">
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {invitation?.invitedUser?.displayName || 'Unknown User'}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm text-gray-500">
+                                    Invited by @{invitation?.invitedBy?.username || 'unknown'}
+                                  </p>
+                                  {invitation?.message && (
+                                    <p className="text-xs text-gray-400 mt-1">"{invitation.message}"</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                  Pending
+                                </span>
+                                {/* Show cancel button for users who can manage invitations */}
+                                {(group.canManageMembers || group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm('Are you sure you want to cancel this invitation?')) {
+                                        handleCancelInvitation(invitation.id);
+                                      }
+                                    }}
+                                    className="inline-flex items-center px-2 py-1 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    title="Cancel invitation"
+                                  >
+                                    <XMarkIcon className="w-3 h-3 mr-1" />
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -785,7 +1096,8 @@ const GroupDetailPage: React.FC = () => {
           currentSubgroup={currentSubgroup} // Pass current subgroup context
           onInviteSent={() => {
             setShowInviteModal(false);
-            // Optionally refresh group data
+            // Refresh subgroup data to show the new invitation
+            refreshSubgroupData();
           }}
         />
       )}

@@ -180,6 +180,7 @@ public class GroupMemberResponse
     public Guid UserId { get; set; }
     public string Role { get; set; } = string.Empty;
     public Guid? AssignedRoleId { get; set; } // Custom role assignment
+    public string? RoleName { get; set; } // Role name or alias for display
     public DateTime JoinedAt { get; set; }
     public DateTime? LastSeenAt { get; set; }
     public bool IsActive { get; set; }
@@ -215,6 +216,7 @@ public class GroupInvitationResponse
     public DateTime ExpiresAt { get; set; }
     public GroupBasicInfo? Group { get; set; }
     public UserBasicInfo? InvitedBy { get; set; }
+    public UserBasicInfo? InvitedUser { get; set; }
     
     // Role-based invitation fields
     public Guid? InvitedByRoleId { get; set; }

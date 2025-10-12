@@ -29,23 +29,6 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   const [showCreateSubgroup, setShowCreateSubgroup] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [showEnhancedInvite, setShowEnhancedInvite] = useState(false);
-
-
-  // Debug logging for modal rendering
-  console.log('🔍 About to render EnhancedInviteUserModal:', { 
-    showEnhancedInvite, 
-    groupId: group.id, 
-    groupName: group.name,
-    willRender: showEnhancedInvite && true
-  });
-
-  // Debug the actual state values
-  console.log('🔍 State debugging:', {
-    showEnhancedInvite,
-    typeof_showEnhancedInvite: typeof showEnhancedInvite,
-    showEnhancedInvite_truthy: !!showEnhancedInvite,
-    showEnhancedInvite_strict_true: showEnhancedInvite === true
-  });
   const [useNestedView, setUseNestedView] = useState(true); // Default to nested view
   const [activeTab, setActiveTab] = useState<'overview' | 'subgroups' | 'members' | 'rules' | 'settings'>('overview');
   const [memberListTab, setMemberListTab] = useState<'users' | 'roles'>('users');
@@ -132,6 +115,13 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
     isAdmin: !!isAdmin,
     canManageMembers: group.canManageMembers,
     shouldShowInviteButton: !!(isAdmin || group.canManageMembers)
+  });
+
+  // Debug modal states
+  console.log('🔍 Modal states:', { 
+    showEnhancedInvite, 
+    showInviteUser,
+    groupCategory: group.category 
   });
 
   const renderOverview = () => (
@@ -262,12 +252,17 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
         {(isAdmin || group.canManageMembers) && (
           <button
             onClick={() => {
-              console.log('🔍 Invite Members button clicked!');
+              console.log('🚀 INVITE BUTTON CLICKED!', { 
+                groupCategory: group.category,
+                isEducation: group.category?.toLowerCase() === 'education',
+                showEnhancedInvite,
+                showInviteUser
+              });
               if (group.category?.toLowerCase() === 'education') {
-                console.log('🔍 Opening Enhanced Invite Modal');
+                console.log('📚 Setting showEnhancedInvite to true');
                 setShowEnhancedInvite(true);
               } else {
-                console.log('🔍 Opening Regular Invite Modal');
+                console.log('👤 Setting showInviteUser to true');
                 setShowInviteUser(true);
               }
             }}
@@ -437,7 +432,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
             <h4 className="text-sm font-medium text-gray-900">Pending Invitations ({invitations.length})</h4>
           </div>
           <div className="divide-y divide-gray-200">
-            {invitations.map((invitation) => (
+            {invitations.filter(invitation => invitation != null).map((invitation) => (
               <div key={invitation.id} className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -448,13 +443,13 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
                   <div className="ml-4">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-gray-900">
-                        {invitation.invitedBy?.displayName || 'Unknown User'}
+                        {invitation?.invitedUser?.displayName || 'Unknown User'}
                       </p>
                     </div>
                     <p className="text-sm text-gray-500">
-                      Invited by @{invitation.invitedBy?.username || 'unknown'}
+                      Invited by @{invitation?.invitedBy?.username || 'unknown'}
                     </p>
-                    {invitation.message && (
+                    {invitation?.message && (
                       <p className="text-xs text-gray-400 mt-1">"{invitation.message}"</p>
                     )}
                   </div>
@@ -520,6 +515,33 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
                 onInvitationSent={handleInvitationSent}
               />
             )}
+            {/* Enhanced Invite User Modal for Educational Groups */}
+            {(() => {
+              console.log('🔍 Checking modal render condition (showOnlyTab):', { 
+                showEnhancedInvite, 
+                willRender: !!showEnhancedInvite 
+              });
+              
+              if (showEnhancedInvite) {
+                console.log('✅ RENDERING EnhancedInviteUserModal NOW (showOnlyTab)!');
+                return (
+                  <EnhancedInviteUserModal
+                    isOpen={showEnhancedInvite}
+                    onClose={() => {
+                      console.log('🚪 Closing EnhancedInviteUserModal');
+                      setShowEnhancedInvite(false);
+                    }}
+                    groupId={group.id}
+                    groupName={group.name}
+                    groupCategory={group.category}
+                    subgroups={subgroups}
+                    onInviteSent={handleInvitationSent}
+                    currentSubgroup={null} // Main group context
+                  />
+                );
+              }
+              return null;
+            })()}
           </div>
         );
       case 'subgroups':
@@ -632,16 +654,32 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
       )}
 
       {/* Enhanced Invite User Modal for Educational Groups */}
-      {showEnhancedInvite && (
-        <EnhancedInviteUserModal
-          isOpen={showEnhancedInvite}
-          onClose={() => setShowEnhancedInvite(false)}
-          groupId={group.id}
-          groupName={group.name}
-          groupCategory={group.category}
-          currentSubgroup={null} // Main group context
-        />
-      )}
+      {(() => {
+        console.log('🔍 Checking modal render condition:', { 
+          showEnhancedInvite, 
+          willRender: !!showEnhancedInvite 
+        });
+        
+        if (showEnhancedInvite) {
+          console.log('✅ RENDERING EnhancedInviteUserModal NOW!');
+          return (
+            <EnhancedInviteUserModal
+              isOpen={showEnhancedInvite}
+              onClose={() => {
+                console.log('🚪 Closing EnhancedInviteUserModal');
+                setShowEnhancedInvite(false);
+              }}
+              groupId={group.id}
+              groupName={group.name}
+              groupCategory={group.category}
+              subgroups={subgroups}
+              onInviteSent={handleInvitationSent}
+              currentSubgroup={null} // Main group context
+            />
+          );
+        }
+        return null;
+      })()}
     </div>
   );
 };
