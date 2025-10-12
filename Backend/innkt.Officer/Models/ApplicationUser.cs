@@ -25,6 +25,9 @@ public class ApplicationUser : IdentityUser
     public string Language { get; set; } = "en";
     
     [MaxLength(10)]
+    public string? PreferredLanguage { get; set; } = "en";
+    
+    [MaxLength(10)]
     public string Theme { get; set; } = "light";
     
     [MaxLength(500)]

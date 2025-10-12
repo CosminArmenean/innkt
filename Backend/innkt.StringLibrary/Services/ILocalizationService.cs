@@ -39,6 +39,31 @@ public interface ILocalizationService
     Task<Dictionary<string, string>> GetStringsByCategoryAsync(string category, string languageCode);
     
     /// <summary>
+    /// Gets frontend UI translations for a specific category
+    /// </summary>
+    Task<Dictionary<string, string>> GetFrontendTranslationsAsync(string languageCode, string category = "ui");
+    
+    /// <summary>
+    /// Gets all frontend translations for a language
+    /// </summary>
+    Task<Dictionary<string, string>> GetAllFrontendTranslationsAsync(string languageCode);
+    
+    /// <summary>
+    /// Gets translations for multiple categories at once
+    /// </summary>
+    Task<Dictionary<string, Dictionary<string, string>>> GetMultiCategoryTranslationsAsync(string languageCode, string[] categories);
+    
+    /// <summary>
+    /// Gets mobile-specific translations
+    /// </summary>
+    Task<Dictionary<string, string>> GetMobileTranslationsAsync(string languageCode, string platform = "react-native");
+    
+    /// <summary>
+    /// Gets translations for a specific microservice
+    /// </summary>
+    Task<Dictionary<string, string>> GetMicroserviceTranslationsAsync(string languageCode, string microservice);
+    
+    /// <summary>
     /// Adds or updates a localized string
     /// </summary>
     /// <param name="key">The string key</param>

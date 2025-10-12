@@ -23,6 +23,20 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// Add JSON-based localization
+var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
+builder.Services.AddSingleton<Microsoft.Extensions.Localization.IStringLocalizerFactory>(sp => 
+    new innkt.Officer.Services.JsonStringLocalizerFactory(resourcesPath, sp.GetRequiredService<ILoggerFactory>()));
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en", "es", "fr", "de", "it", "pt", "nl", "pl", "cs", "hu", "ro" };
+    options.SetDefaultCulture("en")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
+
 // Add services to the container
 builder.Services.AddControllers();
 
@@ -186,6 +200,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseIdentityServer();
+
+// Use request localization (detects language from Accept-Language header)
+app.UseRequestLocalization();
 
 app.UseAuthentication();
 app.UseAuthorization();

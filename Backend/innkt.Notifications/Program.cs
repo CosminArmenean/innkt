@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Localization;
 using System.Text;
 using Serilog;
 using Confluent.Kafka;
@@ -9,6 +10,20 @@ using innkt.Notifications.Data;
 using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add JSON-based localization
+var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
+builder.Services.AddSingleton<IStringLocalizerFactory>(sp => 
+    new JsonStringLocalizerFactory(resourcesPath, sp.GetRequiredService<ILoggerFactory>()));
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en", "es", "fr", "de", "it", "pt", "nl", "pl", "cs", "hu", "ro" };
+    options.SetDefaultCulture("en")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -146,6 +161,10 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("NotificationPolicy");
+
+// Use request localization (detects language from Accept-Language header)
+app.UseRequestLocalization();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

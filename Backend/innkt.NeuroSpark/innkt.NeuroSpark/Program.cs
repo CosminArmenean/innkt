@@ -1,6 +1,7 @@
 using innkt.NeuroSpark.Services;
 using innkt.NeuroSpark.Middleware;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Localization;
 using StackExchange.Redis;
 using Microsoft.Extensions.Options;
 using innkt.KafkaCommunicationLibrary.Interfaces;
@@ -11,6 +12,20 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add JSON-based localization
+var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
+builder.Services.AddSingleton<IStringLocalizerFactory>(sp => 
+    new JsonStringLocalizerFactory(resourcesPath, sp.GetRequiredService<ILoggerFactory>()));
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en", "es", "fr", "de", "it", "pt", "nl", "pl", "cs", "hu", "ro" };
+    options.SetDefaultCulture("en")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -198,6 +213,9 @@ if (app.Environment.IsProduction())
 }
 
 app.UseCors("AllowAll");
+
+// Use request localization (detects language from Accept-Language header)
+app.UseRequestLocalization();
 
 // Add Authentication and Authorization
 app.UseAuthentication();

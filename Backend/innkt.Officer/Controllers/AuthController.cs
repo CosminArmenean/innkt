@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using innkt.Officer.Models.DTOs;
 using innkt.Officer.Services;
 using innkt.StringLibrary.Services;
@@ -15,12 +16,18 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IEnhancedLoggingService _logger;
     private readonly ILocalizationService _localization;
+    private readonly IStringLocalizer _localizer;
 
-    public AuthController(IAuthService authService, IEnhancedLoggingService logger, ILocalizationService localization)
+    public AuthController(
+        IAuthService authService, 
+        IEnhancedLoggingService logger, 
+        ILocalizationService localization,
+        IStringLocalizerFactory localizerFactory)
     {
         _authService = authService;
         _logger = logger;
         _localization = localization;
+        _localizer = localizerFactory.Create(typeof(AuthController));
     }
 
     /// <summary>
@@ -83,7 +90,7 @@ public class AuthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, AppStrings.JointAccount.CreationFailed);
-            var errorMessage = await _localization.GetStringAsync(AppStrings.General.ServerError);
+            var errorMessage = _localizer["auth.register.failed"].Value;
             return StatusCode(500, new { error = errorMessage });
         }
     }
@@ -106,12 +113,13 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            var errorMessage = _localizer["auth.login.invalid_credentials"].Value;
+            return BadRequest(new { error = errorMessage });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, AppStrings.Auth.LoginFailed);
-            var errorMessage = await _localization.GetStringAsync(AppStrings.General.ServerError);
+            var errorMessage = _localizer["auth.login.failed"].Value;
             return StatusCode(500, new { error = errorMessage });
         }
     }
@@ -362,6 +370,48 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { error = errorMessage });
         }
     }
+
+    [HttpPut("update-language")]
+    [Authorize]
+    public async Task<IActionResult> UpdateLanguagePreference([FromBody] UpdateLanguageRequest request)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { error = _localizer["auth.user_not_found"].Value });
+            }
+
+            // Validate language code
+            var supportedLanguages = new[] { "en", "es", "fr", "de", "it", "pt", "nl", "pl", "cs", "hu", "ro", "he", "ja", "ko", "hi" };
+            if (!supportedLanguages.Contains(request.PreferredLanguage))
+            {
+                return BadRequest(new { error = _localizer["auth.invalid_language"].Value });
+            }
+
+            // Update user's preferred language
+            var result = await _authService.UpdateUserLanguagePreferenceAsync(userId, request.PreferredLanguage);
+            if (result)
+            {
+                _logger.LogInformation($"User {userId} updated language preference to {request.PreferredLanguage}");
+                return Ok(new { message = _localizer["auth.language_updated"].Value });
+            }
+
+            return StatusCode(500, new { error = _localizer["auth.language_update_failed"].Value });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating language preference");
+            var errorMessage = _localizer["general.server_error"].Value;
+            return StatusCode(500, new { error = errorMessage });
+        }
+    }
+}
+
+public class UpdateLanguageRequest
+{
+    public string PreferredLanguage { get; set; } = string.Empty;
 }
 
 

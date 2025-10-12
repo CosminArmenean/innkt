@@ -523,3 +523,5 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Microso
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\innkt.Officer.staticwebassets.runtime.json
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\runtimes\linux-x64\native\centos8-librdkafka.so
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\AspNetCoreRateLimit.dll
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\en.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\es.json

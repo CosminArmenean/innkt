@@ -20,6 +20,12 @@ export const createApiInstance = (baseURL: string) => {
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;
       }
+      
+      // Add Accept-Language header for translations
+      const language = localStorage.getItem('innkt-language') || navigator.language.split('-')[0] || 'en';
+      config.headers = config.headers || {};
+      config.headers['Accept-Language'] = language;
+      
       return config;
     },
     (error) => {

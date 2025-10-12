@@ -897,4 +897,35 @@ public class AuthService : IAuthService
         }
         return dateTime; // Already UTC
     }
+
+    public async Task<bool> UpdateUserLanguagePreferenceAsync(string userId, string preferredLanguage)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning($"User not found for language preference update: {userId}");
+                return false;
+            }
+
+            user.PreferredLanguage = preferredLanguage;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation($"Updated language preference for user {userId} to {preferredLanguage}");
+                return true;
+            }
+
+            _logger.LogError($"Failed to update language preference for user {userId}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating language preference for user {userId}");
+            return false;
+        }
+    }
 }

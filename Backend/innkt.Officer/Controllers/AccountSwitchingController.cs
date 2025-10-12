@@ -162,7 +162,8 @@ public class AccountSwitchingController : ControllerBase
             new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim(ClaimTypes.Name, user.FullName ?? user.UserName ?? ""),
             new Claim("firstName", user.FirstName ?? ""),
-            new Claim("lastName", user.LastName ?? "")
+            new Claim("lastName", user.LastName ?? ""),
+            new Claim("preferredLanguage", user.PreferredLanguage ?? "en")
         };
 
         return GenerateToken(claims);

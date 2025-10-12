@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { socialService, Group } from '../../services/social.service';
 import { groupsService } from '../../services/groups.service';
 import { convertToFullAvatarUrl, convertToFullGroupImageUrl, getUserInitial } from '../../utils/avatarUtils';
@@ -24,6 +25,7 @@ import {
 
 const GroupDetailPage: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const currentUserId = user?.id;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -454,7 +456,7 @@ const GroupDetailPage: React.FC = () => {
   if (!group) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Group not found</p>
+        <p className="text-gray-500">{t('groups.notFound')}</p>
       </div>
     );
   }
@@ -523,7 +525,7 @@ const GroupDetailPage: React.FC = () => {
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
                     <label className="cursor-pointer flex flex-col items-center justify-center text-white text-xs">
                       <PhotoIcon className="w-4 h-4 mb-1" />
-                      <span className="text-center leading-tight">Add Photo</span>
+                      <span className="text-center leading-tight">{t('groups.addPhoto')}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -604,7 +606,7 @@ const GroupDetailPage: React.FC = () => {
                     className="flex items-center space-x-1 px-2 py-1.5 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300 transition-colors"
                   >
                     <BellIcon className="w-3 h-3" />
-                    <span>Notify</span>
+                    <span>{t('groups.notify')}</span>
                   </button>
                   {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                     <button 
@@ -615,7 +617,7 @@ const GroupDetailPage: React.FC = () => {
                       className="flex items-center space-x-1 px-2 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                     >
                       <UserPlusIcon className="w-3 h-3" />
-                      <span>Invite</span>
+                      <span>{t('groups.inviteMembers')}</span>
                     </button>
                   )}
                   <button 
@@ -623,7 +625,7 @@ const GroupDetailPage: React.FC = () => {
                     className="flex items-center space-x-1 px-2 py-1.5 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors"
                   >
                     <ShareIcon className="w-3 h-3" />
-                    <span>Share</span>
+                    <span>{t('groups.share')}</span>
                   </button>
                   {(group.memberRole === 'owner' || group.memberRole === 'admin' || group.memberRole === 'moderator') && (
                     <button 
@@ -631,7 +633,7 @@ const GroupDetailPage: React.FC = () => {
                       className="flex items-center space-x-1 px-2 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
                     >
                       <CogIcon className="w-3 h-3" />
-                      <span>Manage</span>
+                      <span>{t('groups.manage')}</span>
                     </button>
                   )}
                   <button
@@ -864,13 +866,13 @@ const GroupDetailPage: React.FC = () => {
                     {/* Members List */}
                     <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
                       <div className="px-6 py-4 border-b border-gray-200">
-                        <h4 className="text-sm font-medium text-gray-900">Members ({subgroupMembers.length})</h4>
+                        <h4 className="text-sm font-medium text-gray-900">{t('groups.members')} ({subgroupMembers.length})</h4>
                       </div>
                       <div className="divide-y divide-gray-200">
                         {subgroupMembers.length === 0 ? (
                           <div className="p-6 text-center text-gray-500">
                             <UserGroupIcon className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                            <p>No members in this subgroup yet.</p>
+                            <p>{t('groups.noMembersYet')}</p>
                           </div>
                         ) : (
                           subgroupMembers.map((member) => (
@@ -917,7 +919,7 @@ const GroupDetailPage: React.FC = () => {
                     {subgroupInvitations.length > 0 && (
                       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-200">
-                          <h4 className="text-sm font-medium text-gray-900">Pending Invitations ({subgroupInvitations.length})</h4>
+                          <h4 className="text-sm font-medium text-gray-900">{t('groups.pendingInvitations')} ({subgroupInvitations.length})</h4>
                         </div>
                         <div className="divide-y divide-gray-200">
                           {subgroupInvitations.map((invitation) => (

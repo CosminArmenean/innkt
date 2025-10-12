@@ -22,6 +22,7 @@ public interface IAuthService
     Task<UserProfileDto> GetUserByUsernameAsync(string username);
     Task<UserProfileDto> UpdateUserProfileAsync(string userId, UpdateUserProfileDto updateDto);
     Task<List<ApplicationUser>> SearchUsersAsync(string query, int page = 1, int limit = 20);
+    Task<bool> UpdateUserLanguagePreferenceAsync(string userId, string preferredLanguage);
 }
 
 

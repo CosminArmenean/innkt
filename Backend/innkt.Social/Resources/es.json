@@ -1,0 +1,15 @@
+﻿{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando...",
+    "error": "Error ocurrido",
+    "success": "Ã‰xito"
+  },
+  "service": {
+    "error": "Error del servicio",
+    "success": "OperaciÃ³n completada exitosamente"
+  }
+}

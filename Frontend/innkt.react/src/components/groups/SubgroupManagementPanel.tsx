@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService, GroupRoleResponse, SubgroupWithRolesResponse, RoleWithSubgroupsResponse } from '../../services/groups.service';
 import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DroppableStateSnapshot, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import EnhancedInviteUserModal from './EnhancedInviteUserModal';
@@ -29,6 +30,7 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
   onSubgroupCreated,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [roles, setRoles] = useState<RoleWithSubgroupsResponse[]>([]);
   const [subgroups, setSubgroups] = useState<SubgroupWithRolesResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -276,7 +278,7 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Subgroup Management</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('groups.subgroupManagement')}</h2>
           <p className="text-gray-600">Manage roles and subgroups for {groupName}</p>
         </div>
         {onClose && (
@@ -344,7 +346,7 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
                             {/* Role Permissions Preview */}
                             <div className="mt-2 flex flex-wrap gap-1">
                               {role.canPostText && (
-                                <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Text</span>
+                                <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">{t('groups.text')}</span>
                               )}
                               {role.canPostImages && (
                                 <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">Images</span>

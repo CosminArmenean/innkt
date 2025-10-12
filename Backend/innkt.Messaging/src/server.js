@@ -5,6 +5,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
 const redis = require('redis');
+const i18next = require('i18next');
+const middleware = require('i18next-http-middleware');
+const Backend = require('i18next-fs-backend');
 require('dotenv').config();
 
 const { setupSocketHandlers } = require('./socket/socketHandlers');
@@ -21,6 +24,22 @@ const { AnalyticsService } = require('./services/analyticsService');
 const { BackupService } = require('./services/backupService');
 // const KafkaService = require('./services/kafkaService'); // Temporarily disabled
 const logger = require('./utils/logger');
+
+// Configure i18next for translations
+i18next
+  .use(Backend)
+  .use(middleware.LanguageDetector)
+  .init({
+    backend: {
+      loadPath: __dirname + '/../locales/{{lng}}.json'
+    },
+    fallbackLng: 'en',
+    preload: ['en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'cs', 'hu', 'ro'],
+    detection: {
+      order: ['header'], // Detect from Accept-Language header
+      caches: false
+    }
+  });
 
 const app = express();
 const server = http.createServer(app);
@@ -55,6 +74,9 @@ async function startServer() {
   try {
     // Setup middleware
     setupMiddleware(app);
+    
+    // Add i18next middleware for translation
+    app.use(middleware.handle(i18next));
 
     // Connect to databases
     await connectDatabase(MONGODB_URI);

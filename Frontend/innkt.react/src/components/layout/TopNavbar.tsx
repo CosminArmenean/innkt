@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMessaging } from '../../contexts/MessagingContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PostCreation from '../social/PostCreation';
 import QuickSearch from '../search/QuickSearch';
 import NotificationBell from '../notifications/NotificationBell';
@@ -19,6 +20,7 @@ const TopNavbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { conversations, unreadCount, isLoading: messagesLoading } = useMessaging();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -120,7 +122,7 @@ const TopNavbar: React.FC = () => {
             className="bg-purple-600 text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
           >
             <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="hidden sm:inline">Add New Post</span>
+            <span className="hidden sm:inline">{t('social.createPost')}</span>
           </button>
 
           {/* Notifications */}
@@ -144,18 +146,18 @@ const TopNavbar: React.FC = () => {
             {showMessages && (
               <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('nav.messages')}</h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {messagesLoading ? (
                     <div className="p-4 text-center text-gray-500">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
-                      <p className="mt-2 text-sm">Loading messages...</p>
+                      <p className="mt-2 text-sm">{t('common.loading')}</p>
                     </div>
                   ) : conversations.length === 0 ? (
                     <div className="p-4 text-center text-gray-500">
-                      <p className="text-sm">No conversations yet</p>
-                      <p className="text-xs mt-1">Start a conversation with someone!</p>
+                      <p className="text-sm">{t('messaging.noConversationsYet')}</p>
+                      <p className="text-xs mt-1">{t('messaging.startConversation')}</p>
                     </div>
                   ) : (
                     conversations.slice(0, 5).map((conversation, index) => (
@@ -230,14 +232,14 @@ const TopNavbar: React.FC = () => {
             {showSettings && (
               <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('nav.settings')}</h3>
                 </div>
                 <div className="py-2">
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    Account Settings
+                    {t('settings.accountSettings')}
                   </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    Privacy & Security
+                    {t('settings.privacySecurity')}
                   </button>
                   <button 
                     onClick={() => {
@@ -246,17 +248,26 @@ const TopNavbar: React.FC = () => {
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    Notifications
+                    {t('settings.notifications')}
                   </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    Appearance
+                    {t('settings.appearance')}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigate('/settings/language');
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    {t('settings.language')}
                   </button>
                   <hr className="my-2" />
                   <button 
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                   >
-                    Sign Out
+                    {t('settings.signOut')}
                   </button>
                 </div>
               </div>
@@ -340,7 +351,7 @@ const TopNavbar: React.FC = () => {
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                   >
-                    Sign Out
+                    {t('settings.signOut')}
                   </button>
                 </div>
               </div>
@@ -354,7 +365,7 @@ const TopNavbar: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">Create New Post</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{t('social.createNewPost')}</h3>
               <button
                 onClick={() => setShowCreatePost(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"

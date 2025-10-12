@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, AcademicCapIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { groupsService } from '../../services/groups.service';
 
@@ -15,6 +16,7 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
   onClose, 
   onSubgroupCreated 
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -145,8 +147,8 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Create Subgroup</h2>
-            <p className="text-sm text-gray-500 mt-1">For {groupName}</p>
+            <h2 className="text-xl font-semibold text-gray-900">{t('groups.createSubgroup')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('groups.forGroup')} {groupName}</p>
           </div>
           <button
             onClick={onClose}
@@ -214,7 +216,7 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
 
           {/* Content Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Content Settings</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('groups.contentSettings')}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center">
@@ -273,7 +275,7 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
 
           {/* Participation Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Participation Settings</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('groups.participationSettings')}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center">
@@ -358,7 +360,7 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
 
           {/* Features Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Features</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('groups.features')}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center">
@@ -398,16 +400,16 @@ const CreateSubgroupModal: React.FC<CreateSubgroupModalProps> = ({
                 onChange={(e) => handleInputChange('moderationLevel', e.target.value as 'none' | 'basic' | 'strict')}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="none">None - No moderation</option>
-                <option value="basic">Basic - Light moderation</option>
-                <option value="strict">Strict - Heavy moderation</option>
+                <option value="none">{t('groups.moderationNone')}</option>
+                <option value="basic">{t('groups.moderationBasic')}</option>
+                <option value="strict">{t('groups.moderationStrict')}</option>
               </select>
             </div>
           </div>
 
           {/* Auto-Approval Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Auto-Approval Settings</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('groups.autoApprovalSettings')}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center">

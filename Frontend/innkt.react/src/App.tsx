@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { MessagingProvider } from './contexts/MessagingContext';
+import './i18n'; // Initialize i18next
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout'; 
 import Home from './components/pages/Home';
@@ -31,6 +32,7 @@ import NotificationToast from './components/notifications/NotificationToast';
 import NotificationsPage from './pages/NotificationsPage';
 import PostDetail from './components/social/PostDetail';
 import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
+import LanguageSettings from './components/settings/LanguageSettings';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
 
@@ -150,6 +152,11 @@ function App() {
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <SecurityDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings/language" element={
+                <ProtectedRoute>
+                  <LanguageSettings />
                 </ProtectedRoute>
               } />
               <Route path="/image-processing" element={

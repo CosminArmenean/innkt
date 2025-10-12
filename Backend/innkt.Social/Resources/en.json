@@ -1,0 +1,15 @@
+﻿{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success"
+  },
+  "service": {
+    "error": "Service error occurred",
+    "success": "Operation completed successfully"
+  }
+}

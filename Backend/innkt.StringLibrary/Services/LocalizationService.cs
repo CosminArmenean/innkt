@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using innkt.StringLibrary.Models;
+using innkt.StringLibrary.Data;
 using System.Globalization;
 
 namespace innkt.StringLibrary.Services;
@@ -15,67 +16,16 @@ public class LocalizationService : ILocalizationService
     private readonly string _currentLanguageKey = "CurrentLanguage";
     private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(1);
     
-    // In-memory fallback strings (will be replaced with database calls)
-    private readonly Dictionary<string, Dictionary<string, string>> _fallbackStrings = new()
-    {
-        ["en"] = new Dictionary<string, string>
-        {
-            ["auth.login.success"] = "Login successful",
-            ["auth.login.failed"] = "Login failed",
-            ["auth.login.invalid_credentials"] = "Invalid username or password",
-            ["auth.login.account_locked"] = "Account is locked",
-            ["auth.login.account_inactive"] = "Account is inactive",
-            ["mfa.setup.required"] = "Multi-factor authentication setup required",
-            ["mfa.setup.success"] = "Multi-factor authentication setup successful",
-            ["mfa.verification.required"] = "MFA verification required",
-            ["mfa.verification.success"] = "MFA verification successful",
-            ["verification.credit_card.required"] = "Credit card verification required",
-            ["verification.credit_card.success"] = "Credit card verification successful",
-            ["kid_account.creation.success"] = "Kid account created successfully",
-            ["kid_account.pairing.success"] = "Kid account paired successfully",
-            ["general.success"] = "Operation completed successfully",
-            ["general.error"] = "An error occurred",
-            ["validation.required"] = "This field is required",
-            ["validation.invalid_email"] = "Invalid email format"
-        },
-        ["es"] = new Dictionary<string, string>
-        {
-            ["auth.login.success"] = "Inicio de sesión exitoso",
-            ["auth.login.failed"] = "Inicio de sesión fallido",
-            ["auth.login.invalid_credentials"] = "Usuario o contraseña inválidos",
-            ["general.success"] = "Operación completada exitosamente",
-            ["general.error"] = "Ocurrió un error"
-        },
-        ["fr"] = new Dictionary<string, string>
-        {
-            ["auth.login.success"] = "Connexion réussie",
-            ["auth.login.failed"] = "Échec de la connexion",
-            ["auth.login.invalid_credentials"] = "Nom d'utilisateur ou mot de passe invalide",
-            ["general.success"] = "Opération terminée avec succès",
-            ["general.error"] = "Une erreur s'est produite"
-        },
-        ["de"] = new Dictionary<string, string>
-        {
-            ["auth.login.success"] = "Anmeldung erfolgreich",
-            ["auth.login.failed"] = "Anmeldung fehlgeschlagen",
-            ["auth.login.invalid_credentials"] = "Ungültiger Benutzername oder Passwort",
-            ["general.success"] = "Vorgang erfolgreich abgeschlossen",
-            ["general.error"] = "Ein Fehler ist aufgetreten"
-        },
-        ["ro"] = new Dictionary<string, string>
-        {
-            ["auth.login.success"] = "Autentificare reușită",
-            ["auth.login.failed"] = "Autentificare eșuată",
-            ["auth.login.invalid_credentials"] = "Nume de utilizator sau parolă invalidă",
-            ["general.success"] = "Operațiunea a fost finalizată cu succes",
-            ["general.error"] = "A apărut o eroare"
-        }
-    };
+    // Comprehensive translations for all microservices and European languages
+    private readonly Dictionary<string, Dictionary<string, string>> _fallbackStrings;
 
     public LocalizationService(IMemoryCache cache, ILogger<LocalizationService> logger)
     {
         _cache = cache;
         _logger = logger;
+        
+        // Initialize comprehensive translations
+        _fallbackStrings = ComprehensiveTranslations.GetCompleteTranslations();
         
         // Set default language
         SetCurrentLanguage("en");
@@ -305,8 +255,103 @@ public class LocalizationService : ILocalizationService
             "es" => "Español",
             "fr" => "Français",
             "de" => "Deutsch",
+            "it" => "Italiano",
+            "pt" => "Português",
+            "nl" => "Nederlands",
+            "pl" => "Polski",
+            "cs" => "Čeština",
+            "hu" => "Magyar",
             "ro" => "Română",
+            "he" => "עברית",
+            "ar" => "العربية",
             _ => languageCode.ToUpperInvariant()
         };
+    }
+
+    public async Task<Dictionary<string, string>> GetFrontendTranslationsAsync(string languageCode, string category = "ui")
+    {
+        try
+        {
+            var normalizedCode = NormalizeLanguageCode(languageCode);
+            var result = new Dictionary<string, string>();
+            
+            if (_fallbackStrings.TryGetValue(normalizedCode, out var languageStrings))
+            {
+                foreach (var kvp in languageStrings)
+                {
+                    if (kvp.Key.StartsWith(category + "."))
+                    {
+                        // Remove category prefix for frontend
+                        var key = kvp.Key.Substring(category.Length + 1);
+                        result[key] = kvp.Value;
+                    }
+                }
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting frontend translations for language '{Language}' and category '{Category}'", languageCode, category);
+            return new Dictionary<string, string>();
+        }
+    }
+
+    public async Task<Dictionary<string, string>> GetAllFrontendTranslationsAsync(string languageCode)
+    {
+        var categories = new[] { "ui", "officer", "messaging", "social", "kinder", "notification", "neurospark", "groups", "seer", "system" };
+        var result = new Dictionary<string, string>();
+        
+        foreach (var category in categories)
+        {
+            var categoryTranslations = await GetFrontendTranslationsAsync(languageCode, category);
+            foreach (var kvp in categoryTranslations)
+            {
+                result[$"{category}.{kvp.Key}"] = kvp.Value;
+            }
+        }
+        
+        return result;
+    }
+
+    public async Task<Dictionary<string, Dictionary<string, string>>> GetMultiCategoryTranslationsAsync(string languageCode, string[] categories)
+    {
+        var result = new Dictionary<string, Dictionary<string, string>>();
+        
+        foreach (var category in categories)
+        {
+            result[category] = await GetFrontendTranslationsAsync(languageCode, category);
+        }
+        
+        return result;
+    }
+
+    public async Task<Dictionary<string, string>> GetMobileTranslationsAsync(string languageCode, string platform = "react-native")
+    {
+        var categories = new[] { "ui", "mobile", "notifications" };
+        var result = new Dictionary<string, string>();
+        
+        foreach (var category in categories)
+        {
+            var categoryTranslations = await GetFrontendTranslationsAsync(languageCode, category);
+            foreach (var kvp in categoryTranslations)
+            {
+                result[$"{category}.{kvp.Key}"] = kvp.Value;
+            }
+        }
+        
+        // Add mobile-specific translations
+        var mobileSpecific = await GetFrontendTranslationsAsync(languageCode, "mobile");
+        foreach (var kvp in mobileSpecific)
+        {
+            result[kvp.Key] = kvp.Value;
+        }
+        
+        return result;
+    }
+
+    public async Task<Dictionary<string, string>> GetMicroserviceTranslationsAsync(string languageCode, string microservice)
+    {
+        return await GetFrontendTranslationsAsync(languageCode, microservice);
     }
 }
