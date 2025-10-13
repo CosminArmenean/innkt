@@ -119,7 +119,7 @@ const TopNavbar: React.FC = () => {
                 >
                   <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                      {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </span>
                   </div>
                 </button>
@@ -211,7 +211,7 @@ const TopNavbar: React.FC = () => {
                 >
                   <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                      {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </span>
                   </div>
                 </button>
