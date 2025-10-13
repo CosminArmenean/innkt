@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Post, Group, PostLocation } from '../../services/social.service';
 
 interface PostCreationProps {
@@ -12,6 +13,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
   groupId, 
   replyToPostId 
 }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [postType, setPostType] = useState<'text' | 'image' | 'video' | 'link' | 'poll'>('text');
@@ -83,7 +85,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
     const validFiles = files.filter(file => {
       const maxSize = file.type.startsWith('video/') ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for video, 10MB for images
       if (file.size > maxSize) {
-        alert(`File ${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)}MB`);
+        alert(t('social.postCreation.fileTooLarge', { name: file.name, size: maxSize / (1024 * 1024) }));
         return false;
       }
       return true;
@@ -277,7 +279,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
           setUploadProgress({});
         } catch (uploadError) {
           console.error('Failed to upload media:', uploadError);
-          alert('Failed to upload some media files. Post created without media.');
+          alert(t('social.postCreation.failedToUploadMedia'));
         }
       }
 

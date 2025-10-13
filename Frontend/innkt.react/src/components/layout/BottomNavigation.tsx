@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
@@ -10,15 +11,16 @@ import {
 } from '@heroicons/react/24/outline';
 
 const BottomNavigation: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const menuItems = [
-    { name: 'Feed', href: '/social', icon: HomeIcon },
-    { name: 'Search', href: '/search', icon: MagnifyingGlassIcon },
-    { name: 'Followers', href: '/followers', icon: UsersIcon },
-    { name: 'Groups', href: '/groups', icon: UserGroupIcon },
-    { name: 'Messages', href: '/messaging', icon: ChatBubbleLeftRightIcon },
-    { name: 'Profile', href: '/profile', icon: UserIcon },
+    { name: t('social.feed'), href: '/social', icon: HomeIcon },
+    { name: t('nav.search'), href: '/search', icon: MagnifyingGlassIcon },
+    { name: t('nav.followers'), href: '/followers', icon: UsersIcon },
+    { name: t('nav.groups'), href: '/groups', icon: UserGroupIcon },
+    { name: t('nav.messages'), href: '/messaging', icon: ChatBubbleLeftRightIcon },
+    { name: t('nav.profile'), href: '/profile', icon: UserIcon },
   ];
 
   const isActive = (href: string) => location.pathname === href;

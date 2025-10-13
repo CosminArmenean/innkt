@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Notification } from '../../services/notification.service';
 import './ParentNotificationCard.css';
 
@@ -15,6 +16,7 @@ const ParentNotificationCard: React.FC<ParentNotificationCardProps> = ({
   onReject,
   onViewDetails
 }) => {
+  const { t } = useTranslation();
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'kid_follow_request': return '👤';

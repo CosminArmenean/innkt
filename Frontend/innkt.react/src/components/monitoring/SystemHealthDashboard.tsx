@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { monitoringService, ServiceHealth, SystemAlert } from '../../services/monitoring.service';
 
 const SystemHealthDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [systemHealth, setSystemHealth] = useState<any>(null);
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [selectedService, setSelectedService] = useState<string>('all');
@@ -105,8 +107,8 @@ const SystemHealthDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">System Health Dashboard</h3>
-          <p className="text-sm text-gray-600">Monitor the health and performance of all services</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('monitoring.systemHealthDashboard')}</h3>
+          <p className="text-sm text-gray-600">{t('monitoring.monitorHealthPerformance')}</p>
         </div>
         <div className="flex items-center space-x-4">
           <select
@@ -123,7 +125,7 @@ const SystemHealthDashboard: React.FC = () => {
             onClick={loadSystemHealth}
             className="btn-secondary text-sm px-3 py-2"
           >
-            Refresh Now
+            {t('monitoring.refreshNow')}
           </button>
         </div>
       </div>
@@ -132,10 +134,10 @@ const SystemHealthDashboard: React.FC = () => {
       {systemHealth && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-md font-semibold text-gray-900">System Overview</h4>
+            <h4 className="text-md font-semibold text-gray-900">{t('monitoring.systemOverview')}</h4>
             <div className="flex items-center space-x-2">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(systemHealth.overallHealth)}`}>
-                {getStatusIcon(systemHealth.overallHealth)} {systemHealth.overallHealth.toUpperCase()}
+                {getStatusIcon(systemHealth.overallHealth)} {t(`monitoring.${systemHealth.overallHealth}`)}
               </span>
             </div>
           </div>
@@ -145,25 +147,25 @@ const SystemHealthDashboard: React.FC = () => {
               <div className="text-2xl font-bold text-blue-600">
                 {systemHealth.performanceSummary.totalRequests.toLocaleString()}
               </div>
-              <div className="text-sm text-gray-600">Total Requests</div>
+              <div className="text-sm text-gray-600">{t('monitoring.totalRequests')}</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
                 {systemHealth.performanceSummary.averageResponseTime.toFixed(2)}ms
               </div>
-              <div className="text-sm text-gray-600">Avg Response Time</div>
+              <div className="text-sm text-gray-600">{t('monitoring.avgResponseTime')}</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
                 {systemHealth.performanceSummary.errorRate.toFixed(2)}%
               </div>
-              <div className="text-sm text-gray-600">Error Rate</div>
+              <div className="text-sm text-gray-600">{t('monitoring.errorRate')}</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-orange-600">
                 {formatUptime(systemHealth.performanceSummary.uptime)}
               </div>
-              <div className="text-sm text-gray-600">Uptime</div>
+              <div className="text-sm text-gray-600">{t('monitoring.uptime')}</div>
             </div>
           </div>
         </div>
@@ -172,7 +174,7 @@ const SystemHealthDashboard: React.FC = () => {
       {/* Service Health Status */}
       {systemHealth && (
         <div className="card">
-          <h4 className="text-md font-semibold text-gray-900 mb-4">Service Health</h4>
+          <h4 className="text-md font-semibold text-gray-900 mb-4">{t('monitoring.serviceHealth')}</h4>
           <div className="space-y-4">
             {systemHealth.services.map((service: ServiceHealth) => (
               <div key={service.serviceName} className="border rounded-lg p-4">
@@ -181,41 +183,41 @@ const SystemHealthDashboard: React.FC = () => {
                     <span className="text-2xl">{getStatusIcon(service.status)}</span>
                     <div>
                       <h5 className="font-medium text-gray-900 capitalize">
-                        {service.serviceName} Service
+                        {service.serviceName} {t('monitoring.service')}
                       </h5>
-                      <p className="text-sm text-gray-500">Version {service.version}</p>
+                      <p className="text-sm text-gray-500">{t('monitoring.version')} {service.version}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(service.status)}`}>
-                      {service.status.toUpperCase()}
+                      {t(`monitoring.${service.status}`)}
                     </span>
                     <div className="text-right">
                       <div className="text-sm font-medium text-gray-900">
                         {service.responseTime}ms
                       </div>
-                      <div className="text-xs text-gray-500">Response Time</div>
+                      <div className="text-xs text-gray-500">{t('monitoring.responseTime')}</div>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="font-medium text-gray-700">Uptime:</span>
+                    <span className="font-medium text-gray-700">{t('monitoring.uptime')}:</span>
                     <div className="text-gray-900">{formatUptime(service.uptime)}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700">Last Check:</span>
+                    <span className="font-medium text-gray-700">{t('monitoring.lastCheck')}:</span>
                     <div className="text-gray-900">
                       {new Date(service.lastCheck).toLocaleTimeString()}
                     </div>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700">Endpoints:</span>
+                    <span className="font-medium text-gray-700">{t('monitoring.endpoints')}:</span>
                     <div className="text-gray-900">{service.endpoints.length}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700">Errors:</span>
+                    <span className="font-medium text-gray-700">{t('monitoring.errors')}:</span>
                     <div className="text-gray-900">
                       {service.errorCount}
                     </div>
@@ -224,19 +226,19 @@ const SystemHealthDashboard: React.FC = () => {
 
                 {/* Endpoint Details */}
                 <div className="mt-3 pt-3 border-t">
-                  <h6 className="text-sm font-medium text-gray-700 mb-2">Endpoints</h6>
+                  <h6 className="text-sm font-medium text-gray-700 mb-2">{t('monitoring.endpoints')}</h6>
                   <div className="space-y-2">
                     {service.endpoints.map((endpoint, index) => (
                       <div key={index} className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">{endpoint.name}: {endpoint.path}</span>
                         <div className="flex items-center space-x-3">
                           <span className={`px-2 py-1 rounded text-xs ${getStatusColor(endpoint.status)}`}>
-                            {endpoint.status}
+                            {t(`monitoring.${endpoint.status}`)}
                           </span>
                           <span className="text-gray-500">{endpoint.responseTime}ms</span>
                           {endpoint.errorCount > 0 && (
                             <span className="text-red-600 text-xs">
-                              {endpoint.errorCount} errors
+                              {endpoint.errorCount} {t('monitoring.errors')}
                             </span>
                           )}
                         </div>
@@ -253,15 +255,15 @@ const SystemHealthDashboard: React.FC = () => {
       {/* System Alerts */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-md font-semibold text-gray-900">System Alerts</h4>
+          <h4 className="text-md font-semibold text-gray-900">{t('monitoring.systemAlerts')}</h4>
           <select
             value={selectedService}
             onChange={(e) => setSelectedService(e.target.value)}
             className="input-field text-sm"
           >
-            <option value="all">All Services</option>
-            <option value="officer">Officer Service</option>
-            <option value="neurospark">NeuroSpark Service</option>
+            <option value="all">{t('monitoring.allServices')}</option>
+            <option value="officer">{t('monitoring.officerService')}</option>
+            <option value="neurospark">{t('monitoring.neurosparkService')}</option>
           </select>
         </div>
 
@@ -271,8 +273,8 @@ const SystemHealthDashboard: React.FC = () => {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl">✅</span>
               </div>
-              <p>No active alerts</p>
-              <p className="text-sm">All systems are running normally</p>
+              <p>{t('monitoring.noActiveAlerts')}</p>
+              <p className="text-sm">{t('monitoring.allSystemsRunning')}</p>
             </div>
           ) : (
             alerts.map((alert) => (
@@ -285,15 +287,15 @@ const SystemHealthDashboard: React.FC = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="font-medium text-sm">{alert.title}</span>
                       <span className="text-xs px-2 py-1 rounded-full bg-white bg-opacity-50">
-                        {alert.severity.toUpperCase()}
+                        {t(`monitoring.${alert.severity}`)}
                       </span>
                     </div>
                     <p className="text-sm mb-2">{alert.description}</p>
                     <div className="flex items-center space-x-4 text-xs">
-                      <span>Service: {alert.serviceName}</span>
+                      <span>{t('monitoring.service')}: {alert.serviceName}</span>
                       <span>Time: {new Date(alert.timestamp).toLocaleString()}</span>
                       {alert.isAcknowledged && (
-                        <span>Acknowledged by {alert.acknowledgedBy}</span>
+                        <span>{t('monitoring.acknowledgedBy', { user: alert.acknowledgedBy })}</span>
                       )}
                     </div>
                   </div>
@@ -302,7 +304,7 @@ const SystemHealthDashboard: React.FC = () => {
                       onClick={() => handleAcknowledgeAlert(alert.id)}
                       className="btn-secondary text-xs px-3 py-1 ml-4"
                     >
-                      Acknowledge
+                      {t('monitoring.acknowledge')}
                     </button>
                   )}
                 </div>

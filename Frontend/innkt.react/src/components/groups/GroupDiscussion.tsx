@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Post, Group } from '../../services/social.service';
 import { groupsService, PollResponse, TopicResponse } from '../../services/groups.service';
 import PostCard from '../social/PostCard';
@@ -24,6 +25,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
   currentUserId,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [polls, setPolls] = useState<PollResponse[]>([]);
   const [topics, setTopics] = useState<TopicResponse[]>([]);
@@ -178,8 +180,8 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Group Discussions</h2>
-            <p className="text-gray-600">Share ideas, ask questions, and connect with group members</p>
+            <h2 className="text-xl font-semibold text-gray-900">{t('groups.groupDiscussions')}</h2>
+            <p className="text-gray-600">{t('groups.shareIdeasConnect')}</p>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -218,7 +220,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
         {/* Topic Filter */}
         {topics.length > 0 && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Topic</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('groups.filterByTopic')}</label>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedTopic(null)}
@@ -228,7 +230,7 @@ const GroupDiscussion: React.FC<GroupDiscussionProps> = ({
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                All Topics
+                {t('groups.allTopics')}
               </button>
               {topics.map((topic) => (
                 <button

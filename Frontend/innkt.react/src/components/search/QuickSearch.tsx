@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, UserProfile } from '../../services/social.service';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -10,9 +11,11 @@ interface QuickSearchProps {
 
 const QuickSearch: React.FC<QuickSearchProps> = ({
   onUserSelect,
-  placeholder = "Search users...",
+  placeholder,
   className = ""
 }) => {
+  const { t } = useTranslation();
+  const defaultPlaceholder = placeholder || t('search.searchUsers');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<UserProfile[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -94,7 +97,7 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim() && setIsOpen(true)}
-          placeholder={placeholder}
+          placeholder={defaultPlaceholder}
           className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
         />
         {query && (
@@ -114,7 +117,7 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
           {isLoading ? (
             <div className="p-4 text-center">
               <div className="inline-block w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-2 text-sm text-gray-500">Searching...</span>
+              <span className="ml-2 text-sm text-gray-500">{t('search.searching')}</span>
             </div>
           ) : (
             <div className="py-2">
@@ -157,7 +160,7 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
               
               {results.length === 0 && query.trim() && (
                 <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                  No users found for "{query}"
+                  {t('search.noUsersFoundFor', { query })}
                 </div>
               )}
             </div>

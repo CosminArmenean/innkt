@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Conversation } from '../../services/messaging.service';
 
 interface MessageComposerProps {
@@ -7,6 +8,7 @@ interface MessageComposerProps {
 }
 
 const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conversation }) => {
+  const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -86,7 +88,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
               {selectedFile.type.startsWith('image/') ? (
                 <img
                   src={URL.createObjectURL(selectedFile)}
-                  alt="Preview"
+                  alt={t('messaging.preview')}
                   className="w-12 h-12 object-cover rounded"
                 />
               ) : (
@@ -136,7 +138,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
         <button
           onClick={() => fileInputRef.current?.click()}
           className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-          title="Attach file"
+          title={t('messaging.attachFile')}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -156,7 +158,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
         <button
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-          title="Add emoji"
+          title={t('messaging.emoji')}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -170,7 +172,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={`Message ${conversation.name || conversation.participants.map(p => p.displayName).join(', ')}...`}
+            placeholder={t('messaging.messageUser', { name: conversation.name || conversation.participants.map(p => p.displayName).join(', ') })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-innkt-primary focus:border-transparent resize-none"
             rows={1}
             style={{
@@ -195,7 +197,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
                 ? 'text-innkt-primary bg-purple-100' 
                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
             }`}
-            title={isEncrypted ? 'Message will be encrypted' : 'Encrypt message'}
+            title={isEncrypted ? t('messaging.messageWillBeEncrypted') : t('messaging.encryptMessage')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -212,7 +214,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
               ? 'bg-innkt-primary text-white hover:bg-purple-700'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
-          title="Send message"
+          title={t('messaging.sendMessage')}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -229,7 +231,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({ onSendMessage, conver
               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
-            <span className="ml-2">Someone is typing...</span>
+            <span className="ml-2">{t('messaging.someoneIsTyping')}</span>
           </span>
         </div>
       )}

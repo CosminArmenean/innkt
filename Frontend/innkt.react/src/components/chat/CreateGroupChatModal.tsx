@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupChatService, CreateGroupChatRequest } from '../../services/groupChat.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -21,6 +22,7 @@ const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({
   onGroupCreated,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);

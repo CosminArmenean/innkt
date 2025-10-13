@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Group } from '../../services/social.service';
 import { groupsService, TopicResponse, SubgroupResponse } from '../../services/groups.service';
 import { 
@@ -37,6 +38,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
   onSubgroupViewChange,
   currentSubgroup
 }) => {
+  const { t } = useTranslation();
   const [topics, setTopics] = useState<TopicResponse[]>([]);
   const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);
   const [subgroupTopics, setSubgroupTopics] = useState<Map<string, TopicResponse[]>>(new Map());
@@ -246,7 +248,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
       }
     } catch (error) {
       console.error(`Failed to ${status} topic:`, error);
-      alert(`Failed to ${status} topic. Please try again.`);
+      alert(t('groups.failedToUpdateTopic'));
     }
   };
 
@@ -335,7 +337,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                   className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  <span>New Topic</span>
+                  <span>{t('groups.newTopic')}</span>
                 </button>
               )}
             </div>
@@ -345,8 +347,8 @@ const TopicsList: React.FC<TopicsListProps> = ({
               {topics.length === 0 ? (
                 <div className="text-center py-12">
                   <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Subgroup Topics in this subgroup</h3>
-                  <p className="text-gray-500">Subgroup Topics will appear here when created</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('groups.noSubgroupTopics')}</h3>
+                  <p className="text-gray-500">{t('groups.subgroupTopicsWillAppear')}</p>
                 </div>
               ) : (
                 topics.map((topic) => (
@@ -417,14 +419,14 @@ const TopicsList: React.FC<TopicsListProps> = ({
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-                      Create Announcement
+                      {t('groups.createAnnouncement')}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Share important updates with the group
+                      {t('groups.shareImportantUpdates')}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2 text-purple-600 group-hover:text-purple-700 transition-colors">
-                    <span className="text-sm font-medium">Create</span>
+                    <span className="text-sm font-medium">{t('groups.create')}</span>
                     <PlusIcon className="w-4 h-4" />
                   </div>
                 </div>
@@ -440,7 +442,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                       <UserGroupIcon className="w-4 h-4 text-purple-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Main Group Topics</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('groups.mainGroupTopics')}</h3>
                     <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
                       {topics.length}
                     </span>
@@ -472,7 +474,7 @@ const TopicsList: React.FC<TopicsListProps> = ({
                               <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
                                 <div className="flex items-center space-x-1">
                                   <UsersIcon className="w-3 h-3" />
-                                  <span>{topic.postsCount || 0} posts</span>
+                                  <span>{topic.postsCount || 0} {t('groups.postsCount')}</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
                                   <ClockIcon className="w-3 h-3" />

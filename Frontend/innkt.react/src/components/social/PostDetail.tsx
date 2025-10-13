@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { socialService, Post, Comment } from '../../services/social.service';
 import { ArrowLeft, Bell, Home, Heart, MessageCircle, Share2, MoreHorizontal, ChevronDown, ChevronUp, Reply, Flag, User, Smile, Image, AtSign, Hash, Send } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const PostDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();

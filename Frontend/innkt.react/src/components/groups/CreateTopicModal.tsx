@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, TagIcon } from '@heroicons/react/24/outline';
 import { groupsService, CreateTopicRequest, TopicResponse } from '../../services/groups.service';
 
@@ -17,6 +18,7 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({
   onClose,
   onTopicCreated
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,9 +68,9 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({
               <TagIcon className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Create New Topic</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('groups.createNewTopic')}</h2>
               <p className="text-sm text-gray-600">
-                {subgroupId ? 'Create a topic in this subgroup' : 'Create a topic in this group'}
+                {subgroupId ? t('groups.createTopicInSubgroup') : t('groups.createTopicInGroup')}
               </p>
             </div>
           </div>
@@ -84,13 +86,13 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({
         <div className="p-6 space-y-4">
           <div>
             <label htmlFor="topic-name" className="block text-sm font-medium text-gray-700 mb-2">
-              Topic Name <span className="text-red-500">*</span>
+              {t('groups.topicName')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               id="topic-name"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter topic name"
+              placeholder={t('groups.enterTopicName')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
@@ -99,13 +101,13 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({
           
           <div>
             <label htmlFor="topic-description" className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              {t('groups.description')}
             </label>
             <textarea
               id="topic-description"
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter topic description (optional)"
+              placeholder={t('groups.enterTopicDescription')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isLoading}
@@ -126,7 +128,7 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({
             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             disabled={isLoading}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -136,12 +138,12 @@ const CreateTopicModal: React.FC<CreateTopicModalProps> = ({
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Creating...</span>
+                <span>{t('groups.creating')}</span>
               </>
             ) : (
               <>
                 <TagIcon className="w-4 h-4" />
-                <span>Create Topic</span>
+                <span>{t('groups.createTopicButton')}</span>
               </>
             )}
           </button>

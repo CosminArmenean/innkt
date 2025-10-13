@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../contexts/NotificationContext';
 import NotificationDropdown from './NotificationDropdown';
 import { BellIcon } from '@heroicons/react/24/outline';
@@ -8,6 +9,7 @@ interface NotificationBellProps {
 }
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) => {
+  const { t } = useTranslation();
   const { counts, isConnected } = useNotifications();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -20,7 +22,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) =
       <button
         onClick={handleBellClick}
         className="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
-        title="Notifications"
+        title={t('nav.notifications')}
       >
         <BellIcon className="w-5 h-5" />
         
@@ -34,7 +36,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) =
         {/* Connection Status Indicator */}
         <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full ${
           isConnected ? 'bg-green-500' : 'bg-red-500'
-        }`} title={isConnected ? 'Connected' : 'Disconnected'} />
+        }`} title={isConnected ? t('common.connected') : t('common.disconnected')} />
       </button>
 
       {/* Notification Dropdown */}

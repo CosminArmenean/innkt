@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService, PollResponse, PollOptionResult } from '../../services/groups.service';
 import { ChartBarIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
@@ -13,6 +14,7 @@ const PollDisplay: React.FC<PollDisplayProps> = ({
   onVote,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isVoting, setIsVoting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
@@ -25,7 +27,7 @@ const PollDisplay: React.FC<PollDisplayProps> = ({
       const diff = expiresAt.getTime() - now.getTime();
 
       if (diff <= 0) {
-        setTimeRemaining('Poll expired');
+        setTimeRemaining(t('messaging.pollExpired'));
         return;
       }
 
@@ -34,11 +36,11 @@ const PollDisplay: React.FC<PollDisplayProps> = ({
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
       if (days > 0) {
-        setTimeRemaining(`${days}d ${hours}h ${minutes}m remaining`);
+        setTimeRemaining(t('messaging.daysHoursMinutesRemaining', { days, hours, minutes }));
       } else if (hours > 0) {
-        setTimeRemaining(`${hours}h ${minutes}m remaining`);
+        setTimeRemaining(t('messaging.hoursMinutesRemaining', { hours, minutes }));
       } else {
-        setTimeRemaining(`${minutes}m remaining`);
+        setTimeRemaining(t('messaging.minutesRemaining', { minutes }));
       }
     };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Group } from '../../services/social.service';
 import { 
   UserGroupIcon, 
@@ -30,6 +31,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
   onManage,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleJoin = () => {
@@ -189,14 +191,14 @@ const GroupCard: React.FC<GroupCardProps> = ({
                 onClick={handleViewGroup}
                 className="w-full px-2 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs font-medium"
               >
-                View
+                {t('groups.view')}
               </button>
               <div className="flex space-x-1">
                 {onManage && (
                   <button
                     onClick={() => onManage(group.id)}
                     className="flex-1 px-1 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                    title="Manage Group"
+                    title={t('groups.manageGroup')}
                   >
                     <Cog6ToothIcon className="w-3 h-3 mx-auto" />
                   </button>
@@ -205,7 +207,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
                   onClick={handleLeave}
                   className="flex-1 px-1 py-1 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors text-xs"
                 >
-                  Leave
+                  {t('groups.leave')}
                 </button>
               </div>
             </>
@@ -214,7 +216,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
               onClick={handleJoin}
               className="w-full px-2 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs font-medium"
             >
-              Join
+              {t('groups.join')}
             </button>
           )}
         </div>
@@ -226,7 +228,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
           <div className="pt-2">
             <div className="flex items-center space-x-1 mb-1">
               <ShieldCheckIcon className="w-3 h-3 text-gray-500" />
-              <span className="text-xs font-medium text-gray-700">Rules</span>
+              <span className="text-xs font-medium text-gray-700">{t('groups.rules')}</span>
             </div>
             <div className="space-y-0.5">
               {group.rules.slice(0, 1).map((rule) => (
@@ -237,7 +239,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
               ))}
               {group.rules.length > 1 && (
                 <div className="text-xs text-gray-500">
-                  +{group.rules.length - 1} more rules
+                  +{group.rules.length - 1} {t('groups.moreRules')}
                 </div>
               )}
             </div>

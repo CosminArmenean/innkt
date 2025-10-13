@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { pushNotificationService } from '../../services/pushNotification.service';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { 
@@ -15,6 +16,7 @@ interface PushNotificationSettingsProps {
 }
 
 const PushNotificationSettings: React.FC<PushNotificationSettingsProps> = ({ className = '' }) => {
+  const { t } = useTranslation();
   const { updateSettings } = useNotifications();
   const [isSupported, setIsSupported] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');

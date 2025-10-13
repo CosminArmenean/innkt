@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { messagingService, Conversation, Message } from '../../services/messaging.service';
 import { useMessaging } from '../../contexts/MessagingContext';
 import ConversationList from './ConversationList';
@@ -10,6 +11,7 @@ import PageLayout from '../layout/PageLayout';
 import ScrollableContent from '../layout/ScrollableContent';
 
 const MessagingDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { 
     conversations, 

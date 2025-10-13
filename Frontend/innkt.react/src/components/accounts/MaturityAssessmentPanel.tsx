@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { kinderService, MaturityScore } from '../../services/kinder.service';
 
 interface MaturityAssessmentPanelProps {
@@ -14,6 +15,7 @@ const MaturityAssessmentPanel: React.FC<MaturityAssessmentPanelProps> = ({
   kidName,
   kidAge
 }) => {
+  const { t } = useTranslation();
   const [maturityScore, setMaturityScore] = useState<MaturityScore | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [parentRating, setParentRating] = useState(0);

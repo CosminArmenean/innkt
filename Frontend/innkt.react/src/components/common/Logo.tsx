@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LogoProps {
   variant?: 'full' | 'icon' | 'text';
@@ -13,6 +14,7 @@ const Logo: React.FC<LogoProps> = ({
   className = '',
   color = 'purple' 
 }) => {
+  const { t } = useTranslation();
   const sizeClasses = {
     sm: 'w-6 h-6',
     md: 'w-8 h-8',
@@ -35,12 +37,12 @@ const Logo: React.FC<LogoProps> = ({
   const getAltText = () => {
     switch (variant) {
       case 'icon':
-        return 'INNKT Logo';
+        return t('common.innktLogo');
       case 'text':
-        return 'INNKT';
+        return t('common.innkt');
       case 'full':
       default:
-        return 'INNKT Logo';
+        return t('common.innktLogo');
     }
   };
 

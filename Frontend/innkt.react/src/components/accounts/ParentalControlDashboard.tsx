@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { kinderService, MaturityScore } from '../../services/kinder.service';
 import PasswordManagementPanel from './PasswordManagementPanel';
 import MaturityAssessmentPanel from './MaturityAssessmentPanel';
@@ -22,6 +23,7 @@ const ParentalControlDashboard: React.FC<ParentalControlDashboardProps> = ({
   parentId,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'overview' | 'password' | 'maturity' | 'time' | 'content'>('overview');
   const [maturityScore, setMaturityScore] = useState<MaturityScore | null>(null);
   const [timeRestrictions, setTimeRestrictions] = useState<any[]>([]);

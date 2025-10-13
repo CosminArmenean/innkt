@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Footer: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <footer className="bg-gray-800 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -12,21 +15,20 @@ const Footer: React.FC = () => {
               <div className="w-8 h-8 bg-innkt-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">I</span>
               </div>
-              <span className="text-xl font-bold">innkt</span>
+              <span className="text-xl font-bold">{t('common.innkt')}</span>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
-              Empowering families with secure, innovative social networking. 
-              Join the future of connected communities.
+              {t('nav.empoweringFamilies')}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <span className="sr-only">Facebook</span>
+                <span className="sr-only">{t('common.facebook')}</span>
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
               </a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <span className="sr-only">Twitter</span>
+                <span className="sr-only">{t('common.twitter')}</span>
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
                 </svg>
@@ -37,27 +39,27 @@ const Footer: React.FC = () => {
           {/* Quick Links */}
           <div>
             <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase mb-4">
-              Quick Links
+              {t('nav.quickLinks')}
             </h3>
             <ul className="space-y-3">
               <li>
                 <Link to="/" className="text-gray-300 hover:text-white transition-colors">
-                  Home
+                  {t('nav.home')}
                 </Link>
               </li>
               <li>
                 <Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors">
-                  Dashboard
+                  {t('nav.dashboard')}
                 </Link>
               </li>
               <li>
                 <Link to="/security" className="text-gray-300 hover:text-white transition-colors">
-                  Security
+                  {t('settings.privacySecurity')}
                 </Link>
               </li>
               <li>
                 <Link to="/profile/me" className="text-gray-300 hover:text-white transition-colors">
-                  Profile
+                  {t('nav.profile')}
                 </Link>
               </li>
             </ul>
@@ -66,27 +68,27 @@ const Footer: React.FC = () => {
           {/* Support */}
           <div>
             <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase mb-4">
-              Support
+              {t('nav.support')}
             </h3>
             <ul className="space-y-3">
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Help Center
+                  {t('nav.helpCenter')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Contact Us
+                  {t('nav.contactUs')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Privacy Policy
+                  {t('settings.privacy')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Terms of Service
+                  {t('settings.terms')}
                 </a>
               </li>
             </ul>
@@ -96,11 +98,11 @@ const Footer: React.FC = () => {
         <div className="mt-8 pt-8 border-t border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 INNKT. All rights reserved.
+              {t('nav.allRightsReserved')}
             </p>
             <div className="mt-4 md:mt-0">
               <p className="text-gray-400 text-sm">
-                Built with ❤️ for families
+                {t('nav.builtWithLove')}
               </p>
             </div>
           </div>

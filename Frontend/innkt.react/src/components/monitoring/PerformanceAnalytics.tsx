@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { monitoringService, PerformanceMetrics } from '../../services/monitoring.service';
 
 const PerformanceAnalytics: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedService, setSelectedService] = useState<string>('officer');
   const [timeRange, setTimeRange] = useState<string>('1h');
   const [metrics, setMetrics] = useState<PerformanceMetrics[]>([]);

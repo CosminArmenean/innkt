@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { socialService, UserProfile } from '../../services/social.service';
 import PageLayout from '../layout/PageLayout';
 import ScrollableContent from '../layout/ScrollableContent';
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -25,12 +27,12 @@ const Dashboard: React.FC = () => {
   };
 
   const quickActions = [
-    { name: 'Create Post', icon: '✏️', href: '/create-post', color: 'bg-blue-500' },
-    { name: 'Upload Image', icon: '📷', href: '/upload', color: 'bg-green-500' },
-    { name: 'Security Check', icon: '🛡️', href: '/security', color: 'bg-red-500' },
-    { name: 'QR Code', icon: '📱', href: '/qr', color: 'bg-purple-500' },
-    { name: 'Groups', icon: '👥', href: '/groups', color: 'bg-yellow-500' },
-    { name: 'Settings', icon: '⚙️', href: '/settings', color: 'bg-gray-500' }
+    { name: t('dashboard.createPost'), icon: '✏️', href: '/create-post', color: 'bg-blue-500' },
+    { name: t('dashboard.uploadImage'), icon: '📷', href: '/upload', color: 'bg-green-500' },
+    { name: t('dashboard.securityCheck'), icon: '🛡️', href: '/security', color: 'bg-red-500' },
+    { name: t('dashboard.qrCode'), icon: '📱', href: '/qr', color: 'bg-purple-500' },
+    { name: t('nav.groups'), icon: '👥', href: '/groups', color: 'bg-yellow-500' },
+    { name: t('nav.settings'), icon: '⚙️', href: '/settings', color: 'bg-gray-500' }
   ];
 
   // Recent activity will be loaded from real data in the future
@@ -47,36 +49,36 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            {currentUser?.displayName || 'User'}
+            {currentUser?.displayName || t('dashboard.user')}
           </h3>
           <p className="text-gray-600 mb-4">@{currentUser?.username || 'username'}</p>
           <Link
             to="/profile/me"
             className="btn-primary w-full"
           >
-            View Profile
+            {t('dashboard.viewProfile')}
           </Link>
         </div>
       </div>
 
       {/* Stats Card */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Stats</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.accountStats')}</h3>
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-gray-600">Posts</span>
+            <span className="text-gray-600">{t('social.posts')}</span>
             <span className="font-semibold">24</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Followers</span>
+            <span className="text-gray-600">{t('social.followers')}</span>
             <span className="font-semibold">156</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Following</span>
+            <span className="text-gray-600">{t('social.following')}</span>
             <span className="font-semibold">89</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Groups</span>
+            <span className="text-gray-600">{t('nav.groups')}</span>
             <span className="font-semibold">12</span>
           </div>
         </div>
@@ -88,15 +90,15 @@ const Dashboard: React.FC = () => {
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening with your account.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+        <p className="text-gray-600">{t('dashboard.welcomeMessage')}</p>
       </div>
 
       {/* Current User Info */}
       {currentUser && (
         <div className="mb-6 flex-shrink-0">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-3">Welcome back!</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-3">{t('dashboard.welcomeBack')}</h3>
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-innkt-primary rounded-full flex items-center justify-center">
                 <span className="text-white text-xl">
@@ -115,7 +117,7 @@ const Dashboard: React.FC = () => {
       <ScrollableContent>
         {/* Quick Actions Grid */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('dashboard.quickActions')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {quickActions.map((action) => (
               <Link
@@ -135,7 +137,7 @@ const Dashboard: React.FC = () => {
         {/* Recent Activity */}
         <div className="mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.recentActivity')}</h3>
             <div className="space-y-4">
               {recentActivity.map((activity, index) => (
                 <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
@@ -154,7 +156,7 @@ const Dashboard: React.FC = () => {
                 to="/activity"
                 className="text-innkt-primary hover:text-innkt-dark text-sm font-medium"
               >
-                View all activity →
+                {t('dashboard.viewAllActivity')} →
               </Link>
             </div>
           </div>
@@ -163,35 +165,35 @@ const Dashboard: React.FC = () => {
         {/* Quick Links */}
         <div className="mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.quickLinks')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
                 to="/security"
                 className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-innkt-primary hover:bg-innkt-primary hover:text-white transition-all duration-200"
               >
                 <span className="text-xl">🛡️</span>
-                <span className="font-medium">Security Center</span>
+                <span className="font-medium">{t('dashboard.securityCenter')}</span>
               </Link>
               <Link
                 to="/groups"
                 className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-innkt-primary hover:bg-innkt-primary hover:text-white transition-all duration-200"
               >
                 <span className="text-xl">👥</span>
-                <span className="font-medium">Groups</span>
+                <span className="font-medium">{t('nav.groups')}</span>
               </Link>
               <Link
                 to="/qr"
                 className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-innkt-primary hover:bg-innkt-primary hover:text-white transition-all duration-200"
               >
                 <span className="text-xl">📱</span>
-                <span className="font-medium">QR Codes</span>
+                <span className="font-medium">{t('dashboard.qrCodes')}</span>
               </Link>
               <Link
                 to="/settings"
                 className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-innkt-primary hover:bg-innkt-primary hover:text-white transition-all duration-200"
               >
                 <span className="text-xl">⚙️</span>
-                <span className="font-medium">Settings</span>
+                <span className="font-medium">{t('nav.settings')}</span>
               </Link>
             </div>
           </div>

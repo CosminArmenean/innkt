@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { imageProcessingService, ImageProcessingOptions, ImageProcessingResult } from '../../services/image-processing.service';
 
 const ImageProcessing: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [processingOptions, setProcessingOptions] = useState<ImageProcessingOptions>({
     backgroundRemoval: false,

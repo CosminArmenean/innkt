@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { searchService, SearchRequest, SearchResult, SearchFilters, SearchSort } from '../../services/search.service';
 import { useAuth } from '../../contexts/AuthContext';
 import FollowButton from '../social/FollowButton';
@@ -27,6 +28,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
   className = '',
   onResultClick
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [query, setQuery] = useState('');

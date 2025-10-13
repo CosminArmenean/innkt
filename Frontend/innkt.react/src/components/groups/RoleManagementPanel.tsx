@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService, GroupRoleResponse, GroupMemberResponse } from '../../services/groups.service';
 import { GroupMember } from '../../services/social.service';
 import {
@@ -55,6 +56,7 @@ const RoleManagementPanel: React.FC<RoleManagementPanelProps> = ({
   onRoleDeleted,
   onMemberRoleAssigned
 }) => {
+  const { t } = useTranslation();
   const [roles, setRoles] = useState<GroupRoleResponse[]>([]);
   const [members, setMembers] = useState<(GroupMemberResponse | GroupMember)[]>([]);
   const [isLoading, setIsLoading] = useState(true);

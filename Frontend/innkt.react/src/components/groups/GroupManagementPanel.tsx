@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Group, GroupMember } from '../../services/social.service';
 import { groupsService, SubgroupResponse, GroupMemberResponse, GroupInvitationResponse } from '../../services/groups.service';
 import { convertToFullAvatarUrl, getUserDisplayName, getUserInitial } from '../../utils/avatarUtils';
@@ -22,6 +23,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
   onSubgroupCreated,
   showOnlyTab
 }) => {
+  const { t } = useTranslation();
   const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);
   const [members, setMembers] = useState<GroupMemberResponse[]>([]);
   const [invitations, setInvitations] = useState<GroupInvitationResponse[]>([]);
@@ -132,7 +134,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
           <div className="flex items-center">
             <UserGroupIcon className="w-8 h-8 text-blue-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Members</p>
+              <p className="text-sm font-medium text-gray-500">{t('groups.totalMembers')}</p>
               <p className="text-2xl font-semibold text-gray-900">{members.length}</p>
             </div>
           </div>
@@ -142,7 +144,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
           <div className="flex items-center">
             <AcademicCapIcon className="w-8 h-8 text-green-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Subgroups</p>
+              <p className="text-sm font-medium text-gray-500">{t('groups.subgroups')}</p>
               <p className="text-2xl font-semibold text-gray-900">{subgroups.length}</p>
             </div>
           </div>
@@ -152,7 +154,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
           <div className="flex items-center">
             <Cog6ToothIcon className="w-8 h-8 text-purple-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Group Type</p>
+              <p className="text-sm font-medium text-gray-500">{t('groups.groupType')}</p>
               <p className="text-lg font-semibold text-gray-900 capitalize">{group.type}</p>
             </div>
           </div>
@@ -161,7 +163,7 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
 
       {/* Group Description */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">About This Group</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('groups.aboutThisGroup')}</h3>
         <p className="text-gray-600">{group.description}</p>
         {group.tags && group.tags.length > 0 && (
           <div className="mt-4">

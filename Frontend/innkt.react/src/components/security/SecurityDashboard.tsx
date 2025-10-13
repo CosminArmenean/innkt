@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import MFAManagement from './MFAManagement';
 import APIKeyManagement from './APIKeyManagement';
 import EncryptionTools from './EncryptionTools';
@@ -6,13 +7,14 @@ import PageLayout from '../layout/PageLayout';
 import ScrollableContent from '../layout/ScrollableContent';
 
 const SecurityDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'overview' | 'mfa' | 'api-keys' | 'encryption'>('overview');
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'mfa', label: 'MFA', icon: '🔐' },
-    { id: 'api-keys', label: 'API Keys', icon: '🔑' },
-    { id: 'encryption', label: 'Encryption', icon: '🔒' }
+    { id: 'overview', label: t('security.overview'), icon: '📊' },
+    { id: 'mfa', label: t('security.mfa'), icon: '🔐' },
+    { id: 'api-keys', label: t('security.apiKeys'), icon: '🔑' },
+    { id: 'encryption', label: t('security.encryption'), icon: '🔒' }
   ];
 
   const securityMetrics = {
@@ -239,8 +241,8 @@ const SecurityDashboard: React.FC = () => {
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Security Dashboard</h1>
-        <p className="text-gray-600">Manage your account security and privacy settings</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('security.dashboard')}</h1>
+        <p className="text-gray-600">{t('settings.privacySecurity')}</p>
       </div>
 
       {/* Tabs */}

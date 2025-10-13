@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import SystemHealthDashboard from './SystemHealthDashboard';
 import PerformanceAnalytics from './PerformanceAnalytics';
 import SystemAdministration from './SystemAdministration';
 
 const EnhancedMonitoringDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'health' | 'performance' | 'administration'>('health');
 
   const tabs = [

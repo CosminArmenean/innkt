@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
+import { useTranslation } from 'react-i18next';
 import { socialService, Post, UserProfile } from '../../services/social.service';
 import { feedService, FeedItem } from '../../services/feed.service';
 import { realtimeService, PostEvent, PollEvent } from '../../services/realtime.service';
@@ -161,6 +162,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
   currentUserId,
   initialPostCreationExpanded = false
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth(); // Get current user information
   const [posts, setPosts] = useState<Post[]>([]);
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
@@ -1088,11 +1090,11 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No posts yet</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('social.noPostsYet')}</h3>
               <p className="text-gray-500 max-w-md mx-auto">
                 {showPostCreation 
-                  ? "Be the first to share something with your community!" 
-                  : "No posts found with the current filters."
+                  ? t('social.beFirstToShare')
+                  : t('social.noPostsWithFilters')
                 }
               </p>
             </div>
@@ -1284,6 +1286,7 @@ const PostCard: React.FC<{
   getPostTypeIcon: (type: string) => string;
   currentUser?: any; // Add current user information
 }> = ({ post, onLike, onShare, onDelete, onComment, currentUserId, formatDate, getPostVisibilityIcon, getPostTypeIcon, currentUser }) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -1475,7 +1478,7 @@ const PostCard: React.FC<{
               onChange={(e) => setEditContent(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
               rows={4}
-              placeholder="What's on your mind?"
+              placeholder={t('social.whatsOnYourMind')}
             />
             <div className="flex justify-end space-x-3">
               <button

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Group } from '../../services/social.service';
 import { groupsService, CreateEducationalGroupRequest, CreateFamilyGroupRequest } from '../../services/groups.service';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,6 +11,7 @@ interface CreateGroupModalProps {
 }
 
 const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCreated }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [groupType, setGroupType] = useState<'family' | 'educational'>('family');
   const [formData, setFormData] = useState({
@@ -85,25 +87,25 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Group name is required';
+      newErrors.name = t('groups.groupNameRequired');
     } else if (formData.name.length < 3) {
-      newErrors.name = 'Group name must be at least 3 characters';
+      newErrors.name = t('groups.groupNameTooShort');
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = t('groups.descriptionRequired');
     } else if (formData.description.length < 10) {
-      newErrors.description = 'Description must be at least 10 characters';
+      newErrors.description = t('groups.descriptionTooShort');
     }
 
     if (!formData.category) {
-      newErrors.category = 'Category is required';
+      newErrors.category = t('groups.categoryRequired');
     }
 
     // Educational group specific validation
     if (groupType === 'educational') {
       if (!formData.institutionName.trim()) {
-        newErrors.institutionName = 'Institution name is required';
+        newErrors.institutionName = t('groups.institutionNameRequired');
       }
     }
 
@@ -200,7 +202,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Create New Group</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('groups.createNewGroup')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
@@ -214,7 +216,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           {/* Group Type Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Group Type *
+              {t('groups.groupTypeLabel')} *
             </label>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -229,8 +231,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                 <div className="flex items-center space-x-3">
                   <HomeIcon className="w-6 h-6 text-purple-600" />
                   <div>
-                    <h3 className="font-medium text-gray-900">Family Group</h3>
-                    <p className="text-sm text-gray-500">For families and close friends</p>
+                    <h3 className="font-medium text-gray-900">{t('groups.familyGroup')}</h3>
+                    <p className="text-sm text-gray-500">{t('groups.familyGroupDesc')}</p>
                   </div>
                 </div>
               </button>
@@ -247,8 +249,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                 <div className="flex items-center space-x-3">
                   <AcademicCapIcon className="w-6 h-6 text-purple-600" />
                   <div>
-                    <h3 className="font-medium text-gray-900">Educational Group</h3>
-                    <p className="text-sm text-gray-500">For schools and learning</p>
+                    <h3 className="font-medium text-gray-900">{t('groups.educationalGroup')}</h3>
+                    <p className="text-sm text-gray-500">{t('groups.educationalGroupDesc')}</p>
                   </div>
                 </div>
               </button>
@@ -257,13 +259,13 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           {/* Group Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Group Name *
+              {t('groups.groupName')} *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter group name..."
+              placeholder={t('groups.enterGroupNamePlaceholder')}
               className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                 errors.name ? 'border-red-300' : 'border-gray-300'
               }`}
@@ -274,12 +276,12 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
+              {t('groups.descriptionLabel')} *
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe your group..."
+              placeholder={t('groups.descriptionPlaceholder')}
               rows={4}
               className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                 errors.description ? 'border-red-300' : 'border-gray-300'
@@ -292,20 +294,20 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           {groupType === 'educational' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Institution Name *
+                {t('groups.institutionNameLabel')} *
               </label>
               <input
                 type="text"
                 value={formData.institutionName}
                 onChange={(e) => handleInputChange('institutionName', e.target.value)}
-                placeholder="School or organization name..."
+                placeholder={t('groups.institutionPlaceholder')}
                 className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                   errors.institutionName ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
               {errors.institutionName && <p className="mt-1 text-sm text-red-600">{errors.institutionName}</p>}
               <p className="mt-1 text-sm text-gray-500">
-                Grade levels and specific settings will be configured when creating subgroups (1st grade, 2nd grade, etc.)
+                {t('groups.gradeLevelsConfigured')}
               </p>
             </div>
           )}
@@ -314,7 +316,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category *
+                {t('groups.categoryLabel')} *
               </label>
               <select
                 value={formData.category}
@@ -324,7 +326,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                   errors.category ? 'border-red-300' : 'border-gray-300'
                 } ${groupType === 'educational' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               >
-                <option value="">Select category...</option>
+                <option value="">{t('groups.selectCategoryOption')}</option>
                 {categories.map(category => (
                   <option key={category} value={category.toLowerCase()}>
                     {category}
@@ -333,7 +335,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
               </select>
               {groupType === 'educational' && (
                 <p className="mt-1 text-sm text-gray-500">
-                  Educational groups automatically use "Education" category
+                  {t('groups.educationCategoryAuto')}
                 </p>
               )}
               {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
@@ -341,20 +343,20 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Group Type
+                {t('groups.groupTypeLabel2')}
               </label>
               <select
                 value={formData.type}
                 onChange={(e) => handleInputChange('type', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="public">Public - Anyone can join</option>
-                <option value="private">Private - Approval required</option>
-                <option value="secret">Secret - Invite only</option>
+                <option value="public">{t('groups.publicAnyone')}</option>
+                <option value="private">{t('groups.privateApproval')}</option>
+                <option value="secret">{t('groups.secretInvite')}</option>
               </select>
               {groupType === 'educational' && (
                 <p className="mt-1 text-sm text-gray-500">
-                  Educational groups default to invitation-only with admin approval
+                  {t('groups.educationalDefault')}
                 </p>
               )}
             </div>
@@ -363,10 +365,10 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           {/* Tags */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags
+              {t('groups.tagsLabel')}
             </label>
             <p className="text-sm text-gray-500 mb-3">
-              Add tags to help people find your group. Tags make your group discoverable in search results and help categorize content.
+              {t('groups.tagsHelpText')}
             </p>
             <div className="flex space-x-2 mb-2">
               <input
@@ -374,7 +376,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                placeholder="Add a tag (e.g., mathematics, science, art)..."
+                placeholder={t('groups.addTagPlaceholder')}
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <button
@@ -382,7 +384,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
                 onClick={handleAddTag}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Add
+                {t('groups.add')}
               </button>
             </div>
             {formData.tags.length > 0 && (
@@ -409,7 +411,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
           {/* Note about Group Rules */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Group rules can be added after creating the group. This allows you to set up the basic group structure first, then customize rules and settings as needed.
+              <strong>{t('groups.noteLabel')}:</strong> {t('groups.groupRulesNote')}
             </p>
           </div>
 
@@ -427,14 +429,14 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onGroupCre
               disabled={isLoading}
               className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? 'Creating...' : 'Create Group'}
+              {isLoading ? t('groups.creating') : t('groups.createGroup')}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
           </div>
         </form>

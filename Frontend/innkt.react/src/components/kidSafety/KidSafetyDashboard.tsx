@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ParentDashboard } from './ParentDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import { kidSafetyService } from '../../services/kidSafety.service';
@@ -9,6 +10,7 @@ interface KidSafetyDashboardProps {
 }
 
 export const KidSafetyDashboard: React.FC<KidSafetyDashboardProps> = ({ className = '' }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [userRole, setUserRole] = useState<'parent' | 'kid' | 'unknown'>('unknown');
   const [loading, setLoading] = useState(true);

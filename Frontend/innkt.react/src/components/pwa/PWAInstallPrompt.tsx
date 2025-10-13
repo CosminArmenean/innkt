@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { pwaService } from '../../services/pwa.service';
 import { 
   DevicePhoneMobileIcon, 
@@ -16,6 +17,7 @@ interface PWAInstallPromptProps {
 const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -88,8 +90,8 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
               <DevicePhoneMobileIcon className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Install Innkt</h3>
-              <p className="text-sm text-gray-600">Get the app experience</p>
+              <h3 className="font-semibold text-gray-900">{t('pwa.installInnkt')}</h3>
+              <p className="text-sm text-gray-600">{t('pwa.getAppExperience')}</p>
             </div>
           </div>
           <button
@@ -105,19 +107,19 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-center space-x-2">
               <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>Faster loading and better performance</span>
+              <span>{t('pwa.fasterLoading')}</span>
             </li>
             <li className="flex items-center space-x-2">
               <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>Works offline with cached content</span>
+              <span>{t('pwa.worksOffline')}</span>
             </li>
             <li className="flex items-center space-x-2">
               <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>Push notifications for updates</span>
+              <span>{t('pwa.pushNotificationsUpdates')}</span>
             </li>
             <li className="flex items-center space-x-2">
               <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>App-like experience on your device</span>
+              <span>{t('pwa.appLikeExperience')}</span>
             </li>
           </ul>
         </div>
@@ -128,12 +130,12 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
             {isOnline ? (
               <>
                 <WifiIcon className="w-4 h-4 text-green-500" />
-                <span className="text-green-700">Online - Ready to install</span>
+                <span className="text-green-700">{t('pwa.onlineReadyToInstall')}</span>
               </>
             ) : (
               <>
                 <SignalSlashIcon className="w-4 h-4 text-red-500" />
-                <span className="text-red-700">Offline - Install when online</span>
+                <span className="text-red-700">{t('pwa.offlineInstallWhenOnline')}</span>
               </>
             )}
           </div>
@@ -147,13 +149,13 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
             className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ArrowDownTrayIcon className="w-4 h-4" />
-            <span>{isInstalling ? 'Installing...' : 'Install'}</span>
+            <span>{isInstalling ? t('pwa.installing') : t('pwa.install')}</span>
           </button>
           <button
             onClick={handleLater}
             className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
-            Later
+            {t('pwa.later')}
           </button>
         </div>
 
@@ -161,9 +163,9 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
         {appInfo && (
           <div className="mt-3 pt-3 border-t border-gray-200">
             <div className="text-xs text-gray-500 space-y-1">
-              <div>Service Worker: {appInfo.hasServiceWorker ? '✓' : '✗'}</div>
-              <div>Notifications: {appInfo.hasNotifications ? '✓' : '✗'}</div>
-              <div>Offline Storage: {appInfo.hasIndexedDB ? '✓' : '✗'}</div>
+              <div>{t('pwa.serviceWorker')}: {appInfo.hasServiceWorker ? '✓' : '✗'}</div>
+              <div>{t('pwa.notificationsCapability')}: {appInfo.hasNotifications ? '✓' : '✗'}</div>
+              <div>{t('pwa.offlineStorage')}: {appInfo.hasIndexedDB ? '✓' : '✗'}</div>
             </div>
           </div>
         )}

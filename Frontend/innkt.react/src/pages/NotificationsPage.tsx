@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { notificationService, Notification, NotificationCounts } from '../services/notification.service';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,6 +7,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import './NotificationsPage.css';
 
 const NotificationsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { notifications, counts, markAsRead, markAllAsRead, refreshNotifications } = useNotifications();
   const [loading, setLoading] = useState(true);
@@ -99,10 +101,10 @@ const NotificationsPage: React.FC = () => {
     return (
       <div className="notifications-page">
         <div className="notifications-header">
-          <h1>Notifications</h1>
+          <h1>{t('notifications.title')}</h1>
         </div>
         <div className="notifications-loading">
-          <p>Please log in to view notifications...</p>
+          <p>{t('notifications.pleaseLoginToView')}</p>
         </div>
       </div>
     );
@@ -112,11 +114,11 @@ const NotificationsPage: React.FC = () => {
     return (
       <div className="notifications-page">
         <div className="notifications-header">
-          <h1>Notifications</h1>
+          <h1>{t('notifications.title')}</h1>
         </div>
         <div className="notifications-loading">
           <div className="loading-spinner"></div>
-          <p>Loading notifications...</p>
+          <p>{t('notifications.loadingNotifications')}</p>
         </div>
       </div>
     );
@@ -125,14 +127,14 @@ const NotificationsPage: React.FC = () => {
   return (
     <div className="notifications-page">
       <div className="notifications-header">
-        <h1>Notifications</h1>
+        <h1>{t('notifications.title')}</h1>
         <div className="notifications-actions">
           <button 
             className="mark-all-read-btn"
             onClick={handleMarkAllAsRead}
             disabled={notifications.every(n => n.read)}
           >
-            Mark All as Read
+            {t('notifications.markAllAsRead')}
           </button>
         </div>
       </div>
@@ -143,19 +145,19 @@ const NotificationsPage: React.FC = () => {
             className={filter === 'all' ? 'active' : ''}
             onClick={() => setFilter('all')}
           >
-            All ({notifications.length})
+            {t('notifications.all')} ({notifications.length})
           </button>
           <button 
             className={filter === 'unread' ? 'active' : ''}
             onClick={() => setFilter('unread')}
           >
-            Unread ({notifications.filter(n => !n.read).length})
+            {t('notifications.unread')} ({notifications.filter(n => !n.read).length})
           </button>
           <button 
             className={filter === 'read' ? 'active' : ''}
             onClick={() => setFilter('read')}
           >
-            Read ({notifications.filter(n => n.read).length})
+            {t('notifications.read')} ({notifications.filter(n => n.read).length})
           </button>
         </div>
 
@@ -164,12 +166,12 @@ const NotificationsPage: React.FC = () => {
             value={typeFilter} 
             onChange={(e) => setTypeFilter(e.target.value)}
           >
-            <option value="all">All Types</option>
-            <option value="comment">Comments</option>
-            <option value="like">Likes</option>
-            <option value="follow">Follows</option>
-            <option value="message">Messages</option>
-            <option value="grok_response">AI Responses</option>
+            <option value="all">{t('notifications.allTypes')}</option>
+            <option value="comment">{t('notifications.comments')}</option>
+            <option value="like">{t('notifications.likes')}</option>
+            <option value="follow">{t('notifications.follows')}</option>
+            <option value="message">{t('notifications.messages')}</option>
+            <option value="grok_response">{t('notifications.aiResponses')}</option>
           </select>
         </div>
       </div>
@@ -178,15 +180,15 @@ const NotificationsPage: React.FC = () => {
         {error && (
           <div className="notifications-error">
             <p>{error}</p>
-            <button onClick={loadNotifications}>Retry</button>
+            <button onClick={loadNotifications}>{t('notifications.retry')}</button>
           </div>
         )}
 
         {filteredNotifications.length === 0 ? (
           <div className="notifications-empty">
             <div className="empty-icon">🔔</div>
-            <h3>No notifications found</h3>
-            <p>You're all caught up! Check back later for new notifications.</p>
+            <h3>{t('notifications.noNotificationsFound')}</h3>
+            <p>{t('notifications.allCaughtUp')}</p>
           </div>
         ) : (
           filteredNotifications.map(notification => (

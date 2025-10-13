@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService } from '../../services/groups.service';
 
 interface SimpleInviteModalProps {
@@ -9,6 +10,7 @@ interface SimpleInviteModalProps {
 }
 
 const SimpleInviteModal: React.FC<SimpleInviteModalProps> = ({ isOpen, onClose, groupName, groupId }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +20,7 @@ const SimpleInviteModal: React.FC<SimpleInviteModalProps> = ({ isOpen, onClose, 
     e.preventDefault();
     
     if (!groupId) {
-      alert('Error: Group ID not provided');
+      alert(t('groups.invite.errorGroupIdNotProvided'));
       return;
     }
 
@@ -33,12 +35,12 @@ const SimpleInviteModal: React.FC<SimpleInviteModalProps> = ({ isOpen, onClose, 
       // For now, simulate the API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      alert(`Invite sent to ${email}!`);
+      alert(t('groups.invite.inviteSentTo', { email }));
       setEmail('');
       onClose();
     } catch (error) {
       console.error('Failed to send invite:', error);
-      alert('Failed to send invite. Please try again.');
+      alert(t('groups.invite.failedToSendInvite'));
     } finally {
       setIsLoading(false);
     }
@@ -72,19 +74,19 @@ const SimpleInviteModal: React.FC<SimpleInviteModalProps> = ({ isOpen, onClose, 
         onClick={(e) => e.stopPropagation()}
       >
         <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>
-          Invite to {groupName}
+          {t('groups.invite.inviteTo', { groupName })}
         </h2>
         
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Email Address
+              {t('groups.invite.emailAddress')}
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
+              placeholder={t('groups.invite.enterEmailAddress')}
               required
               style={{
                 width: '100%',
@@ -109,7 +111,7 @@ const SimpleInviteModal: React.FC<SimpleInviteModalProps> = ({ isOpen, onClose, 
                 cursor: 'pointer'
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button 
               type="submit"
@@ -123,7 +125,7 @@ const SimpleInviteModal: React.FC<SimpleInviteModalProps> = ({ isOpen, onClose, 
                 cursor: isLoading ? 'not-allowed' : 'pointer'
               }}
             >
-              {isLoading ? 'Sending...' : 'Send Invite'}
+              {isLoading ? t('groups.invite.sending') : t('groups.invite.sendInvite')}
             </button>
           </div>
         </form>

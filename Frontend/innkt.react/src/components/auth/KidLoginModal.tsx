@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { kinderService } from '../../services/kinder.service';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,6 +10,7 @@ interface KidLoginModalProps {
 }
 
 const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'scan' | 'code'>('scan');
   const [manualCode, setManualCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -68,14 +70,14 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
       const validation = await kinderService.validateLoginCode({ code });
 
       if (!validation.isValid) {
-        setError(validation.message || 'Invalid or expired code');
+        setError(validation.message || t('auth.invalidOrExpiredCode'));
         setIsLoading(false);
         return;
       }
 
       // Code is valid, now authenticate with Officer service
       if (validation.userId) {
-        setSuccess('Login code validated! Authenticating...');
+        setSuccess(t('auth.loginCodeValidated'));
         
         // Call Officer service to complete authentication
         const authResponse = await fetch('http://localhost:5001/api/kid-auth/login-with-code', {
@@ -88,7 +90,7 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
 
         if (!authResponse.ok) {
           const errorData = await authResponse.json();
-          setError(errorData.error || 'Authentication failed');
+          setError(errorData.error || t('auth.authenticationFailed'));
           setSuccess('');
           return;
         }
@@ -105,7 +107,7 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
           isKidAccount: authData.isKidAccount
         }));
 
-        setSuccess('Login successful! Redirecting...');
+        setSuccess(t('auth.loginSuccessful'));
         
         setTimeout(() => {
           onClose();
@@ -114,7 +116,7 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.response?.data?.error || 'Failed to validate login code');
+      setError(err.response?.data?.error || t('auth.failedToValidateCode'));
     } finally {
       setIsLoading(false);
     }
@@ -138,9 +140,9 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Kid Account Login</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('auth.kidAccountLoginTitle')}</h2>
               <p className="text-gray-600 mt-1">
-                Scan your QR code or enter the login code provided by your parent
+                {t('auth.scanOrEnterCode')}
               </p>
             </div>
             <button
@@ -163,7 +165,7 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              📷 Scan QR Code
+              {t('auth.scanQRCode')}
             </button>
             <button
               onClick={() => setActiveTab('code')}
@@ -173,7 +175,7 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              🔢 Enter Code
+              {t('auth.enterCode')}
             </button>
           </div>
 
@@ -206,8 +208,7 @@ const KidLoginModal: React.FC<KidLoginModalProps> = ({ isOpen, onClose }) => {
               <div id="qr-scanner" className="rounded-lg overflow-hidden"></div>
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-700">
-                  <strong>How to use:</strong> Hold your device's camera up to the QR code displayed by your parent. 
-                  The login will happen automatically once the code is recognized.
+                  <strong>{t('auth.howToUse')}</strong> {t('auth.qrScanInstructions')}
                 </p>
               </div>
             </div>

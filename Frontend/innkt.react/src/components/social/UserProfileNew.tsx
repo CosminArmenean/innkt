@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { socialService, UserProfile, Post, Group, Follow } from '../../services/social.service';
 import FollowButton from './FollowButton';
@@ -14,6 +15,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
   isOwnProfile = false, 
   currentUserId 
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);

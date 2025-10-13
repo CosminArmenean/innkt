@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon, ChevronRightIcon, UserIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import { groupsService, GroupMemberResponse } from '../../services/groups.service';
 import { convertToFullAvatarUrl, getUserDisplayName, getUserInitial } from '../../utils/avatarUtils';
@@ -31,6 +32,7 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
   currentUserId,
   onRoleUpdate
 }) => {
+  const { t } = useTranslation();
   const [parentMembers, setParentMembers] = useState<ParentMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -117,17 +119,17 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
     // Map standard roles to more descriptive labels
     switch (role) {
       case 'admin':
-        return 'Group Administrator';
+        return t('messaging.groupAdministrator');
       case 'moderator':
-        return 'Moderator';
+        return t('groups.moderator');
       case 'president':
-        return 'President';
+        return t('messaging.president');
       case 'parent_rep':
-        return 'Parent Representative';
+        return t('messaging.parentRepresentative');
       case 'treasurer':
-        return 'Treasurer';
+        return t('messaging.treasurer');
       case 'secretary':
-        return 'Secretary';
+        return t('messaging.secretary');
       default:
         return role.charAt(0).toUpperCase() + role.slice(1);
     }
@@ -168,7 +170,7 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
     return (
       <div className="text-center py-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="text-sm text-gray-500 mt-2">Loading members...</p>
+        <p className="text-sm text-gray-500 mt-2">{t('messaging.loadingMembers')}</p>
       </div>
     );
   }
@@ -214,13 +216,13 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <p className="text-sm font-medium text-gray-900">
-                    {parent.user?.displayName || 'Unknown Parent'}
+                    {parent.user?.displayName || t('messaging.unknownParent')}
                   </p>
                   <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    Parent
+                    {t('messaging.parent')}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500">@{parent.user?.username || 'unknown'}</p>
+                <p className="text-sm text-gray-500">@{parent.user?.username || t('common.unknown')}</p>
               </div>
             </div>
 
@@ -237,7 +239,7 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
               <div className="px-4 py-2">
                 <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center">
                   <AcademicCapIcon className="w-4 h-4 mr-1" />
-                  Kid Accounts ({parent.kidAccounts.length})
+                  {t('messaging.kidAccountsCount', { count: parent.kidAccounts.length })}
                 </h4>
                 <div className="space-y-2">
                   {parent.kidAccounts.map((kid) => (
@@ -269,16 +271,16 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
                       </div>
                       <div className="flex items-center space-x-1">
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                          Kid
+                          {t('messaging.kid')}
                         </span>
                         {kid.age && (
                           <span className="text-xs text-gray-500">
-                            Age {kid.age}
+                            {t('messaging.age', { age: kid.age })}
                           </span>
                         )}
                         {kid.grade && (
                           <span className="text-xs text-gray-500">
-                            Grade {kid.grade}
+                            {t('messaging.grade', { grade: kid.grade })}
                           </span>
                         )}
                       </div>
@@ -293,7 +295,7 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
           {parent.isExpanded && (!parent.kidAccounts || parent.kidAccounts.length === 0) && (
             <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
               <p className="text-sm text-gray-500 text-center">
-                No kid accounts in this subgroup
+                {t('messaging.noKidAccountsInSubgroup')}
               </p>
             </div>
           )}
@@ -304,7 +306,7 @@ const NestedMemberDisplay: React.FC<NestedMemberDisplayProps> = ({
       {parentMembers.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <UserIcon className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-          <p>No parent members found</p>
+          <p>{t('messaging.noParentMembersFound')}</p>
         </div>
       )}
     </div>

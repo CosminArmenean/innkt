@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fileUploadService } from '../../services/fileUpload.service';
 import { 
   DocumentIcon, 
@@ -35,6 +36,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
   onDelete,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [showPreview, setShowPreview] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -88,7 +90,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
             <DocumentIcon className="w-8 h-8 text-red-600" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-              <p className="text-xs text-gray-500">PDF Document</p>
+              <p className="text-xs text-gray-500">{t('messaging.pdfDocument')}</p>
             </div>
           </div>
         </div>
@@ -100,7 +102,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
             <DocumentIcon className="w-8 h-8 text-green-600" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-              <p className="text-xs text-gray-500">Text File</p>
+              <p className="text-xs text-gray-500">{t('messaging.textFile')}</p>
             </div>
           </div>
         </div>
@@ -132,7 +134,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
           <button
             onClick={handlePreview}
             className="p-1 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm"
-            title="Preview"
+            title={t('messaging.preview')}
           >
             <EyeIcon className="w-4 h-4 text-gray-600" />
           </button>
@@ -140,7 +142,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
           <button
             onClick={handleDownload}
             className="p-1 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm"
-            title="Download"
+            title={t('messaging.download')}
           >
             <ArrowDownTrayIcon className="w-4 h-4 text-gray-600" />
           </button>
@@ -149,7 +151,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="p-1 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm"
-              title="Delete"
+              title={t('common.delete')}
             >
               <TrashIcon className="w-4 h-4 text-red-600" />
             </button>
@@ -161,22 +163,22 @@ const FileMessage: React.FC<FileMessageProps> = ({
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Delete File</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('messaging.deleteFile')}</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Are you sure you want to delete "{file.name}"? This action cannot be undone.
+              {t('messaging.deleteFileConfirm', { fileName: file.name })}
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={handleDelete}
                 className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
               >
-                Delete
+                {t('common.delete')}
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </div>
@@ -200,7 +202,7 @@ const FileMessage: React.FC<FileMessageProps> = ({
                 <button
                   onClick={handleDownload}
                   className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full"
-                  title="Download"
+                  title={t('messaging.download')}
                 >
                   <ArrowDownTrayIcon className="w-5 h-5" />
                 </button>
@@ -224,29 +226,29 @@ const FileMessage: React.FC<FileMessageProps> = ({
               ) : file.type === 'application/pdf' ? (
                 <div className="text-center py-8">
                   <DocumentIcon className="w-16 h-16 text-red-600 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">PDF preview not available</p>
+                  <p className="text-gray-600 mb-4">{t('messaging.pdfPreviewNotAvailable')}</p>
                   <button
                     onClick={handleDownload}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                   >
-                    Download PDF
+                    {t('messaging.downloadPDF')}
                   </button>
                 </div>
               ) : file.type === 'text/plain' ? (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
-                    {file.preview?.preview || 'Text content not available'}
+                    {file.preview?.preview || t('messaging.textContentNotAvailable')}
                   </pre>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <DocumentIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">Preview not available for this file type</p>
+                  <p className="text-gray-600 mb-4">{t('messaging.previewNotAvailable')}</p>
                   <button
                     onClick={handleDownload}
                     className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
                   >
-                    Download File
+                    {t('messaging.downloadFile')}
                   </button>
                 </div>
               )}

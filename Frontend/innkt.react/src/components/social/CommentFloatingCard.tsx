@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Heart, MessageCircle, Share2, MoreHorizontal, ChevronDown, ChevronUp, Reply, Flag, User } from 'lucide-react';
 import { Comment, Post, UserProfile } from '../../services/social.service';
 import { socialService } from '../../services/social.service';
@@ -34,6 +35,7 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
   onClose,
   position = { top: 0, left: 0 }
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentThreads, setCommentThreads] = useState<CommentThread[]>([]);
@@ -590,7 +592,7 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
                     {comment.author?.displayName || 'Unknown User'}
                   </span>
                   {comment.author?.isVerified && (
-                    <div title="Verified Account">
+                    <div title={t('social.verifiedAccount')}>
                       <User className="w-3 h-3 text-blue-500" />
                     </div>
                   )}
@@ -665,10 +667,10 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
                     ? 'text-gray-300 cursor-not-allowed' 
                     : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
                 }`}
-                title={thread.depth >= 3 ? 'Maximum nesting depth reached' : 'Reply to this comment'}
+                title={thread.depth >= 3 ? t('social.maximumNestingReached') : t('social.replyToComment')}
               >
                 <Reply className="w-4 h-4" />
-                <span className="text-xs">Reply</span>
+                <span className="text-xs">{t('social.reply')}</span>
               </button>
 
               <button
@@ -708,8 +710,8 @@ const CommentFloatingCard: React.FC<CommentFloatingCardProps> = ({
             {thread.depth >= 3 && (
               <div className="mt-2 p-2 bg-gray-50 rounded-lg border-l-4 border-gray-300">
                 <p className="text-xs text-gray-600">
-                  <span className="font-medium">Maximum nesting depth reached.</span> 
-                  {' '}This thread cannot be nested further to maintain readability.
+                  <span className="font-medium">{t('social.maximumNestingReached')}.</span> 
+                  {' '}{t('social.maximumNestingMessage')}
                 </p>
               </div>
             )}

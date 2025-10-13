@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { kinderService, KidPasswordSettings } from '../../services/kinder.service';
 
 interface PasswordManagementPanelProps {
@@ -16,6 +17,7 @@ const PasswordManagementPanel: React.FC<PasswordManagementPanelProps> = ({
   maturityLevel,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [passwordSettings, setPasswordSettings] = useState<KidPasswordSettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showSetPassword, setShowSetPassword] = useState(false);

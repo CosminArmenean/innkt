@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trendingService, TrendingPost, TrendingFilters } from '../../services/trending.service';
 import { 
   FireIcon, 
@@ -25,6 +26,7 @@ const TrendingPosts: React.FC<TrendingPostsProps> = ({
   showFilters = true,
   onPostClick
 }) => {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +110,7 @@ const TrendingPosts: React.FC<TrendingPostsProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <FireIcon className="w-6 h-6 text-orange-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Trending Posts</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('search.trendingPosts')}</h2>
           </div>
           <div className="text-sm text-gray-500">
             {trendingService.formatTimeRange(filters.timeRange || '24h')}
@@ -135,12 +137,12 @@ const TrendingPosts: React.FC<TrendingPostsProps> = ({
               onChange={(e) => handleCategoryChange(e.target.value)}
               className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">All Categories</option>
-              <option value="Technology">Technology</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Sports">Sports</option>
-              <option value="News">News</option>
-              <option value="Lifestyle">Lifestyle</option>
+              <option value="">{t('search.allCategories')}</option>
+              <option value="Technology">{t('search.technology')}</option>
+              <option value="Entertainment">{t('search.entertainment')}</option>
+              <option value="Sports">{t('search.sports')}</option>
+              <option value="News">{t('search.news')}</option>
+              <option value="Lifestyle">{t('search.lifestyle')}</option>
             </select>
           </div>
         )}
@@ -151,7 +153,7 @@ const TrendingPosts: React.FC<TrendingPostsProps> = ({
         {displayedPosts.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             <FireIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No trending posts found</p>
+            <p>{t('search.noTrendingPostsFound')}</p>
           </div>
         ) : (
           displayedPosts.map((post, index) => (

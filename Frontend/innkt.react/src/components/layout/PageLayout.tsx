@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PageLayoutProps {
   leftSidebar?: React.ReactNode;
@@ -15,6 +16,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   className = "",
   layoutType = 'default'
 }) => {
+  const { t } = useTranslation();
   // Get column classes based on layout type
   const getColumnClasses = () => {
     if (layoutType === 'full-width') {

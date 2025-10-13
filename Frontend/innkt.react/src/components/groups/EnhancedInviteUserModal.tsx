@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, UserPlusIcon, AcademicCapIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { groupsService } from '../../services/groups.service';
 import { SubgroupResponse } from '../../services/groups.service';
@@ -31,6 +32,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
   onInviteSent,
   currentSubgroup
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
@@ -129,7 +131,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
         const errorMessages = failed.map((result, index) => {
           if (result.status === 'rejected') {
             const error: any = result.reason;
-            let message = 'Failed to send invitation';
+            let message = t('groups.invite.failedToSendInvitation');
             
             if (error?.response?.data?.message) {
               message = error.response.data.message;
@@ -156,7 +158,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
     } catch (error: any) {
       console.error('Failed to send invites:', error);
       
-      let errorMessage = 'Failed to send invitations. Please try again.';
+      let errorMessage = t('groups.invite.failedToSendInvitations');
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -181,7 +183,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
           <div className="flex items-center space-x-2">
             <UserPlusIcon className="w-6 h-6 text-purple-600" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Invite to {groupName}
+              {t('groups.invite.inviteTo', { groupName })}
             </h2>
           </div>
           <button
@@ -199,16 +201,16 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-center space-x-2 mb-2">
                 <AcademicCapIcon className="w-4 h-4 text-blue-600" />
-                <h3 className="text-sm font-medium text-blue-900">Educational Group Invitation</h3>
+                <h3 className="text-sm font-medium text-blue-900">{t('groups.invite.educationalGroupInvitation')}</h3>
               </div>
               <p className="text-xs text-blue-800">
-                This is an educational group. The invitation will be sent to the location you're currently viewing.
+                {t('groups.invite.educationalGroupDesc')}
               </p>
               
               {/* Invitation Target Display */}
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Inviting to:
+                  {t('groups.invite.invitingTo')}
                 </label>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center space-x-3">
@@ -224,7 +226,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
                         {currentSubgroup ? currentSubgroup.name : groupName}
                       </div>
                       <div className="text-xs text-blue-700">
-                        {currentSubgroup ? 'Subgroup' : 'Main Group'}
+                        {currentSubgroup ? t('groups.invite.subgroup') : t('groups.invite.mainGroup')}
                         {currentSubgroup && currentSubgroup.description && (
                           <span> • {currentSubgroup.description}</span>
                         )}
@@ -239,7 +241,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
           {/* User Search */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search for user:
+              {t('groups.invite.searchForUser')}
             </label>
             <div className="relative">
               <input
@@ -249,7 +251,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
                   setSearchQuery(e.target.value);
                   handleSearch(e.target.value);
                 }}
-                placeholder="Type username or display name..."
+                placeholder={t('groups.invite.typeUsernameOrName')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               {isSearching && (
@@ -297,7 +299,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
           {selectedUsers.length > 0 && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Selected Users ({selectedUsers.length}):
+                {t('groups.invite.selectedUsersCount', { count: selectedUsers.length })}
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedUsers.map((user) => (
@@ -340,7 +342,7 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
                   <XMarkIcon className="w-4 h-4 text-red-600 mt-0.5" />
                 </div>
                 <div className="text-sm text-red-800">
-                  <p className="font-medium mb-1">Invitation Error:</p>
+                  <p className="font-medium mb-1">{t('groups.invite.invitationError')}</p>
                   <pre className="whitespace-pre-wrap text-xs">{errorMessage}</pre>
                 </div>
               </div>
@@ -350,12 +352,12 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
           {/* Invite Message */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Invitation message (optional):
+              {t('groups.invite.invitationMessageOptional')}
             </label>
             <textarea
               value={inviteMessage}
               onChange={(e) => setInviteMessage(e.target.value)}
-              placeholder="Add a personal message to the invitation..."
+              placeholder={t('groups.invite.addPersonalMessage')}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             />
@@ -395,14 +397,14 @@ const EnhancedInviteUserModal: React.FC<EnhancedInviteUserModalProps> = ({
             onClick={onClose}
             className="px-3 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleInvite}
             disabled={selectedUsers.length === 0 || (inviteTarget === 'subgroup' && !selectedSubgroup) || isLoading}
             className="px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? 'Sending...' : `Send Invitation${selectedUsers.length > 1 ? 's' : ''} (${selectedUsers.length})`}
+            {isLoading ? t('groups.invite.sending') : (selectedUsers.length > 1 ? t('groups.invite.sendInvitations', { count: selectedUsers.length }) : t('groups.invite.sendInvitation'))}
           </button>
         </div>
       </div>

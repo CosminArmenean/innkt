@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bell, Shield, AlertTriangle, Bot, BookOpen, Calendar, X, Check } from 'lucide-react';
 import { enhancedNotificationService, BaseNotification, KidNotification, ParentNotification, SafetyAlertNotification, GrokResponseNotification } from '../../services/enhancedNotification.service';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +15,7 @@ export const RealTimeNotificationCenter: React.FC<RealTimeNotificationCenterProp
   kidAccountId,
   onEmergencyAlert,
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<BaseNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

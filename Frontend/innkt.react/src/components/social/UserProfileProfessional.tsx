@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, 
@@ -47,6 +48,7 @@ const UserProfileProfessional: React.FC<UserProfileProfessionalProps> = ({
   isOwnProfile = false, 
   currentUserId 
 }) => {
+  const { t } = useTranslation();
   const { user, updateUser, reloadUser } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);

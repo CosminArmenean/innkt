@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService, GroupRuleResponse } from '../../services/groups.service';
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
@@ -13,6 +14,7 @@ const GroupRulesManagement: React.FC<GroupRulesManagementProps> = ({
   currentUserId, 
   isAdmin = false 
 }) => {
+  const { t } = useTranslation();
   const [rules, setRules] = useState<GroupRuleResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);

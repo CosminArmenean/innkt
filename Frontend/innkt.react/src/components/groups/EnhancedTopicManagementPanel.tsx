@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService, TopicResponse, SubgroupResponse } from '../../services/groups.service';
 import {
   PlusIcon,
@@ -61,6 +62,7 @@ const EnhancedTopicManagementPanel: React.FC<EnhancedTopicManagementPanelProps> 
   onTopicUpdated,
   onTopicDeleted
 }) => {
+  const { t } = useTranslation();
   const [mainGroupTopics, setMainGroupTopics] = useState<TopicResponse[]>([]);
   const [subgroupTopics, setSubgroupTopics] = useState<{ [subgroupId: string]: TopicResponse[] }>({});
   const [subgroups, setSubgroups] = useState<SubgroupResponse[]>([]);

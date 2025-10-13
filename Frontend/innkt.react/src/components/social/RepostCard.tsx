@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Repost } from '../../services/repost.service';
 import { Post } from '../../services/social.service';
 import { repostService } from '../../services/repost.service';
@@ -24,6 +25,7 @@ const RepostCard: React.FC<RepostCardProps> = ({
   currentUserId,
   formatDate = (date) => new Date(date).toLocaleDateString()
 }) => {
+  const { t } = useTranslation();
   const [isLiked, setIsLiked] = useState(false);
   const [localLikesCount, setLocalLikesCount] = useState(repost.likesCount);
   const [showCommentCard, setShowCommentCard] = useState(false);

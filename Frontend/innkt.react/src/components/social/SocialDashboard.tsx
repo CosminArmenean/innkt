@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, UserProfile } from '../../services/social.service';
 import UserProfileComponent from './UserProfile';
 import SocialFeed from './SocialFeed';
@@ -12,6 +13,7 @@ interface SocialDashboardProps {
 }
 
 const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'feed' | 'profile' | 'groups' | 'discover' | 'messages'>('feed');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [recommendedUsers, setRecommendedUsers] = useState<UserProfile[]>([]);
@@ -91,7 +93,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
       {/* Trending Topics */}
       {trendingTopics.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 Trending Topics</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 {t('social.trendingTopics')}</h3>
           <div className="space-y-2">
             {trendingTopics.slice(0, 8).map((topic, index) => (
               <div
@@ -109,7 +111,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
       {/* Recommended Users */}
       {recommendedUsers.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Recommended Users</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('social.recommendedUsers')}</h3>
           <div className="space-y-3">
             {recommendedUsers.slice(0, 5).map((user) => (
               <div key={user.id} className="flex items-center space-x-3">
@@ -137,7 +139,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
                   </div>
                 </div>
                 <button className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full hover:bg-purple-700 transition-colors">
-                  Follow
+                  {t('social.follow')}
                 </button>
               </div>
             ))}
@@ -213,11 +215,11 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
         <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6">
           <nav className="flex space-x-0 overflow-x-auto">
             {[
-              { id: 'feed', label: 'Feed', icon: '📱' },
-              { id: 'profile', label: 'Profile', icon: '👤' },
-              { id: 'groups', label: 'Groups', icon: '👥' },
-              { id: 'discover', label: 'Discover', icon: '🔍' },
-              { id: 'messages', label: 'Messages', icon: '💬' }
+              { id: 'feed', label: t('social.feed'), icon: '📱' },
+              { id: 'profile', label: t('nav.profile'), icon: '👤' },
+              { id: 'groups', label: t('nav.groups'), icon: '👥' },
+              { id: 'discover', label: t('social.discover'), icon: '🔍' },
+              { id: 'messages', label: t('nav.messages'), icon: '💬' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -241,24 +243,27 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
 // Placeholder Components for Other Tabs
 
-const DiscoverTab: React.FC = () => (
-  <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">Discover</h2>
-        <p className="text-sm text-gray-600">Find new people, content, and trends</p>
+const DiscoverTab: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">{t('social.discover')}</h2>
+          <p className="text-sm text-gray-600">{t('social.findNewPeople')}</p>
+        </div>
+      </div>
+      
+      <div className="text-center py-12 text-gray-500">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl text-gray-400">🔍</span>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('social.discoveryComingSoon')}</h3>
+        <p>{t('social.searchUsersExplore')}</p>
       </div>
     </div>
-    
-    <div className="text-center py-12 text-gray-500">
-      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <span className="text-2xl text-gray-400">🔍</span>
-      </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">Discovery features coming soon</h3>
-      <p>Search users, explore trending topics, and discover new content.</p>
-    </div>
-  </div>
-);
+  );
+};
 
 
 export default SocialDashboard;

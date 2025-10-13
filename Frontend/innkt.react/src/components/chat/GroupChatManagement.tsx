@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupChatService, GroupChat } from '../../services/groupChat.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -25,6 +26,7 @@ const GroupChatManagement: React.FC<GroupChatManagementProps> = ({
   onClose,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'settings' | 'participants'>('settings');
   const [isEditing, setIsEditing] = useState(false);

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Post } from '../../services/social.service';
 
 interface PostCardProps {
@@ -27,6 +28,7 @@ const PostCard: React.FC<PostCardProps> = ({
   canSeeRealUsername = false, 
   userRole = 'member' 
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-start space-x-3">
@@ -74,7 +76,7 @@ const PostCard: React.FC<PostCardProps> = ({
             ) : (
               <>
                 <h3 className="font-semibold text-gray-900">
-                  {post.author?.displayName || post.author?.username || 'Unknown User'}
+                  {post.author?.displayName || post.author?.username || t('social.unknownUser')}
                 </h3>
                 {post.author?.username && (
                   <span className="text-gray-500 text-sm">

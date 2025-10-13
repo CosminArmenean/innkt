@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { searchService } from '../../services/search.service';
 import { 
@@ -25,6 +26,7 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   onSearch,
   onResultClick
 }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);

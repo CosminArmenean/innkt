@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, UserProfile } from '../../services/social.service';
 import { qrCodeService, QRCodeGenerationResult } from '../../services/qr-code.service';
 import { kinderService, KidLoginCodeResponse } from '../../services/kinder.service';
@@ -33,6 +34,7 @@ interface KidAccount extends UserProfile {
 }
 
 const KidAccountManagement: React.FC<KidAccountManagementProps> = ({ parentId, hideHeader = false }) => {
+  const { t } = useTranslation();
   const [kidAccounts, setKidAccounts] = useState<KidAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);

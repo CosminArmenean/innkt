@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { qrCodeService } from '../../services/qr-code.service';
 
 interface MFASetup {
@@ -18,6 +19,7 @@ interface MFADevice {
 }
 
 const MFAManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [mfaSetup, setMfaSetup] = useState<MFASetup>({
     isEnabled: false,
     secret: '',

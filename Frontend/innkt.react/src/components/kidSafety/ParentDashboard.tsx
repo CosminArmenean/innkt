@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Shield, 
   Users, 
@@ -55,6 +56,7 @@ interface SafetyInsight {
 }
 
 export const ParentDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [kidAccounts, setKidAccounts] = useState<KidAccount[]>([]);
   const [selectedKid, setSelectedKid] = useState<KidAccount | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);

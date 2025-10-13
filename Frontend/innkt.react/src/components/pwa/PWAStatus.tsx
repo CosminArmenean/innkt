@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { pwaService, PWACacheInfo } from '../../services/pwa.service';
 import { 
   WifiIcon, 
@@ -22,6 +23,7 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
   className = '',
   showDetails = false
 }) => {
+  const { t } = useTranslation();
   const [isOnline, setIsOnline] = useState(true);
   const [isInstalled, setIsInstalled] = useState(false);
   const [appInfo, setAppInfo] = useState<any>(null);
@@ -97,7 +99,7 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
             <SignalSlashIcon className="w-4 h-4 text-red-500" />
           )}
           <span className={`text-sm ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-            {isOnline ? 'Online' : 'Offline'}
+            {isOnline ? t('pwa.online') : t('pwa.offline')}
           </span>
         </div>
 
@@ -105,7 +107,7 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
         {isInstalled && (
           <div className="flex items-center space-x-1">
             <DevicePhoneMobileIcon className="w-4 h-4 text-blue-500" />
-            <span className="text-sm text-blue-600">App</span>
+            <span className="text-sm text-blue-600">{t('pwa.app')}</span>
           </div>
         )}
       </div>
@@ -115,14 +117,14 @@ const PWAStatus: React.FC<PWAStatusProps> = ({
   return (
     <div className={`bg-white rounded-lg shadow p-6 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">PWA Status</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('pwa.pwaStatus')}</h3>
         <button
           onClick={updateStatus}
           disabled={loading}
           className="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
         >
           <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
+          <span>{t('common.refresh')}</span>
         </button>
       </div>
 

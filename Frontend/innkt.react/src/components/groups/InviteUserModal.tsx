@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, MagnifyingGlassIcon, UserPlusIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { groupsService, InviteUserRequest, GroupInvitationResponse } from '../../services/groups.service';
 
@@ -22,6 +23,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   onClose,
   onInvitationSent
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);

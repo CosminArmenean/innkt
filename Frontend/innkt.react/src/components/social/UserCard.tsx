@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserProfile } from '../../services/social.service';
 import FollowButton from './FollowButton';
 
@@ -21,6 +22,7 @@ const UserCard: React.FC<UserCardProps> = ({
   className = '',
   onUserClick
 }) => {
+  const { t } = useTranslation();
   const sizeClasses = {
     sm: {
       avatar: 'w-10 h-10',
@@ -110,9 +112,9 @@ const UserCard: React.FC<UserCardProps> = ({
           
           {showStats && (
             <div className={`flex items-center space-x-4 mt-2 text-gray-500 ${sizeClasses[size].stats}`}>
-              <span>{user.postsCount} posts</span>
-              <span>{user.followersCount} followers</span>
-              <span>{user.followingCount} following</span>
+              <span>{user.postsCount} {t('social.posts')}</span>
+              <span>{user.followersCount} {t('social.followers')}</span>
+              <span>{user.followingCount} {t('social.following')}</span>
             </div>
           )}
         </div>

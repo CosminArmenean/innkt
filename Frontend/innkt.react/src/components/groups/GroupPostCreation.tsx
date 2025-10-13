@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Post, PostLocation } from '../../services/social.service';
 import { groupsService, PollResponse, TopicResponse, GroupRoleResponse } from '../../services/groups.service';
 import { PhotoIcon, VideoCameraIcon, LinkIcon, ChartBarIcon, MapPinIcon, TagIcon, PlusIcon, UserGroupIcon, UserIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
@@ -23,6 +24,7 @@ const GroupPostCreation: React.FC<GroupPostCreationProps> = ({
   selectedTopicId,
   currentUserId
 }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [postType, setPostType] = useState<'text' | 'image' | 'video' | 'link' | 'poll'>('text');

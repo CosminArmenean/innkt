@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { socialService, Post } from '../../services/social.service';
 import PWAStatus from '../pwa/PWAStatus';
 
 const RightPanel: React.FC = () => {
+  const { t } = useTranslation();
   const [activePost, setActivePost] = useState<string | null>(null);
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [trendingSearches, setTrendingSearches] = useState<string[]>([]);
@@ -39,10 +41,10 @@ const RightPanel: React.FC = () => {
         {/* Recent Posts Carousel */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Recent Posts</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{t('social.recentPosts')}</h3>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
-            <span className="text-sm text-gray-600 font-medium">Recent Post</span>
+            <span className="text-sm text-gray-600 font-medium">{t('social.recentPost')}</span>
           </div>
         </div>
         
@@ -67,17 +69,17 @@ const RightPanel: React.FC = () => {
                 >
                   <img
                     src={post.authorProfile?.avatar || '/api/placeholder/40/40'}
-                    alt={post.authorProfile?.username || 'User'}
+                    alt={post.authorProfile?.username || t('common.user')}
                     className="w-full h-full object-cover"
                   />
                 </button>
                 <p className="text-xs text-gray-600 text-center mt-1 truncate w-12">
-                  {post.authorProfile?.username || 'User'}
+                  {post.authorProfile?.username || t('common.user')}
                 </p>
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500">No recent posts</p>
+            <p className="text-sm text-gray-500">{t('social.noRecentPosts')}</p>
           )}
         </div>
 
@@ -91,16 +93,16 @@ const RightPanel: React.FC = () => {
                   <div className="flex items-center space-x-2 mb-2">
                     <img
                       src={post.authorProfile?.avatar || '/api/placeholder/24/24'}
-                      alt={post.authorProfile?.username || 'User'}
+                      alt={post.authorProfile?.username || t('common.user')}
                       className="w-6 h-6 rounded-full"
                     />
-                    <span className="text-sm font-medium text-gray-800">{post.authorProfile?.username || 'User'}</span>
+                    <span className="text-sm font-medium text-gray-800">{post.authorProfile?.username || t('common.user')}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{post.content}</p>
                   {post.media && post.media.length > 0 && (
                     <img
                       src={post.media[0].url}
-                      alt={post.media[0].altText || 'Post'}
+                      alt={post.media[0].altText || t('common.post')}
                       className="w-full h-32 object-cover rounded"
                     />
                   )}
@@ -114,7 +116,7 @@ const RightPanel: React.FC = () => {
 
       {/* Trending Searches */}
       <div className="bg-white rounded-lg p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Trending Searches</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('social.trendingSearches')}</h3>
         <div className="space-y-3">
           {isLoading ? (
             <div className="space-y-2">
@@ -129,24 +131,24 @@ const RightPanel: React.FC = () => {
                   <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
                   <span className="text-sm font-medium text-gray-800">#{trend}</span>
                 </div>
-                <span className="text-xs text-gray-500">trending</span>
+                <span className="text-xs text-gray-500">{t('common.trending')}</span>
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500">No trending topics</p>
+            <p className="text-sm text-gray-500">{t('social.noTrendingTopics')}</p>
           )}
         </div>
         <button className="w-full mt-4 text-sm text-purple-600 hover:text-purple-700 font-medium">
-          See all trends
+          {t('common.seeAllTrends')}
         </button>
       </div>
 
       {/* Friend Suggestions */}
       <div className="bg-white rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Friend Suggestions</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{t('social.friendSuggestions')}</h3>
           <Link to="/suggestions" className="text-sm text-purple-600 hover:text-purple-700">
-            See All
+            {t('common.seeAll')}
           </Link>
         </div>
         <div className="space-y-3">
@@ -157,7 +159,7 @@ const RightPanel: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No suggestions available</p>
+            <p className="text-sm text-gray-500">{t('social.noSuggestionsAvailable')}</p>
           )}
         </div>
       </div>
@@ -167,7 +169,7 @@ const RightPanel: React.FC = () => {
       {/* Upcoming Events */}
       <div className="bg-white rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Upcoming Events</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{t('social.upcomingEvents')}</h3>
           <button className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -177,7 +179,7 @@ const RightPanel: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
-              <p className="text-sm font-medium text-gray-800">Friend's Birthday</p>
+              <p className="text-sm font-medium text-gray-800">{t('social.friendsBirthday')}</p>
               <p className="text-xs text-gray-500">Jun 25, 2028</p>
             </div>
             <button className="text-gray-400 hover:text-gray-600">
@@ -192,12 +194,12 @@ const RightPanel: React.FC = () => {
       {/* System Status with Real-time Indicator */}
       <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
         <div className="text-center">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">System Status</h3>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">{t('social.systemStatus')}</h3>
           
           {/* Real-time Connection Status */}
           <div className="flex items-center justify-center space-x-2 mb-3 p-2 bg-gray-50 rounded-lg">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-xs text-gray-600 font-medium">🚀 Real-time active</span>
+            <span className="text-xs text-gray-600 font-medium">{t('social.realtimeActive')}</span>
           </div>
           
           <PWAStatus showDetails={false} />
@@ -208,7 +210,7 @@ const RightPanel: React.FC = () => {
       <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
         <div className="text-center text-sm text-gray-500">
           <div className="flex items-center justify-center space-x-2">
-            <span>Version:</span>
+            <span>{t('common.version')}</span>
                 <span className="font-mono font-semibold">1.0.9</span>
           </div>
           <div className="mt-1 text-xs">

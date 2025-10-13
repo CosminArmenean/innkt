@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trendingService, TrendingUser, TrendingFilters } from '../../services/trending.service';
 import { 
   UserGroupIcon, 
@@ -24,6 +25,7 @@ const TrendingUsers: React.FC<TrendingUsersProps> = ({
   onUserClick,
   onFollowClick
 }) => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<TrendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ const TrendingUsers: React.FC<TrendingUsersProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <UserGroupIcon className="w-6 h-6 text-green-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Trending Users</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('search.trendingUsers')}</h2>
           </div>
           <div className="text-sm text-gray-500">
             {trendingService.formatTimeRange(filters.timeRange || '24h')}
@@ -133,7 +135,7 @@ const TrendingUsers: React.FC<TrendingUsersProps> = ({
         {displayedUsers.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             <UserGroupIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No trending users found</p>
+            <p>{t('search.noTrendingUsersFound')}</p>
           </div>
         ) : (
           displayedUsers.map((user, index) => (

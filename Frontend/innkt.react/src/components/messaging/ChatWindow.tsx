@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Message, Conversation } from '../../services/messaging.service';
 
 // Helper function to get current user ID from token
@@ -20,6 +21,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
+  const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -112,17 +114,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {message.media?.name || 'File'}
+                {message.media?.name || t('messaging.file')}
               </p>
               <p className="text-sm text-gray-500">
-                {message.media?.size ? `${(message.media.size / 1024 / 1024).toFixed(1)} MB` : 'Unknown size'}
+                {message.media?.size ? `${(message.media.size / 1024 / 1024).toFixed(1)} MB` : t('messaging.unknownSize')}
               </p>
             </div>
             <button
               onClick={() => window.open(message.media?.url, '_blank')}
               className="flex-shrink-0 px-3 py-1 bg-innkt-primary text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
             >
-              Download
+              {t('messaging.download')}
             </button>
           </div>
         );
@@ -135,7 +137,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
           </div>
         );
       default:
-        return <div className="text-gray-500 italic">Unsupported message type</div>;
+        return <div className="text-gray-500 italic">{t('messaging.unsupportedMessageType')}</div>;
     }
   };
 
@@ -182,8 +184,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No messages yet</h3>
-          <p className="mt-1 text-sm text-gray-500">Start the conversation by sending a message.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('messaging.noMessagesYet')}</h3>
+          <p className="mt-1 text-sm text-gray-500">{t('messaging.startConversationBySending')}</p>
         </div>
       </div>
     );
@@ -234,7 +236,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
                               console.log('Chat avatar image failed to load:', message.senderProfile?.avatar);
                               e.currentTarget.style.display = 'none';
                             }}
-                            alt={message.senderProfile.displayName || 'User'}
+                            alt={message.senderProfile.displayName || t('messaging.user')}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         ) : (
@@ -254,7 +256,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, conversation }) => {
                       {!isConsecutive && !isCurrentUser && (
                         <div className="flex items-center space-x-2 mb-1">
                           <span className="text-sm font-medium text-gray-900">
-                            {message.senderProfile?.displayName || 'Unknown User'}
+                            {message.senderProfile?.displayName || t('messaging.unknownUser')}
                           </span>
                           <span className="text-xs text-gray-500">
                             {formatMessageTime(message.timestamp)}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import Logo from '../common/Logo';
@@ -24,25 +25,26 @@ interface LeftSidebarProps {
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { counts } = useNotifications();
   const location = useLocation();
   const [showAdvancedMenu, setShowAdvancedMenu] = useState(false);
 
   const basicMenuItems = [
-    { name: 'Social', href: '/social', icon: HomeIcon, badge: counts.byType.like + counts.byType.comment + counts.byType.post_mention },
-    { name: 'Search', href: '/search', icon: MagnifyingGlassIcon },
-    { name: 'Followers', href: '/followers', icon: UsersIcon, badge: counts.byType.follow },
-    { name: 'Groups', href: '/groups', icon: UserGroupIcon, badge: counts.byType.group_invite },
-    { name: 'Settings', href: '/settings', icon: CogIcon },
-    { name: 'Chat-innkt', href: '/messaging', icon: ChatBubbleLeftRightIcon, badge: counts.byType.message },
-    { name: 'Profile', href: `/profile/${user?.id}`, icon: UserIcon },
+    { name: t('nav.social'), href: '/social', icon: HomeIcon, badge: counts.byType.like + counts.byType.comment + counts.byType.post_mention },
+    { name: t('nav.search'), href: '/search', icon: MagnifyingGlassIcon },
+    { name: t('nav.followers'), href: '/followers', icon: UsersIcon, badge: counts.byType.follow },
+    { name: t('nav.groups'), href: '/groups', icon: UserGroupIcon, badge: counts.byType.group_invite },
+    { name: t('nav.settings'), href: '/settings', icon: CogIcon },
+    { name: t('nav.messaging'), href: '/messaging', icon: ChatBubbleLeftRightIcon, badge: counts.byType.message },
+    { name: t('nav.profile'), href: `/profile/${user?.id}`, icon: UserIcon },
   ];
 
   const advancedMenuItems = [
-    { name: 'APIs', href: '/apis', icon: CogIcon },
-    { name: 'Subscription', href: '/subscription', icon: StarIcon },
-    { name: 'Help & Support', href: '/support', icon: UserIcon },
+    { name: t('nav.apis'), href: '/apis', icon: CogIcon },
+    { name: t('nav.subscription'), href: '/subscription', icon: StarIcon },
+    { name: t('nav.helpSupport'), href: '/support', icon: UserIcon },
   ];
 
   const isActive = (href: string) => location.pathname === href;
@@ -125,7 +127,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
             >
               <div className="flex items-center space-x-3">
                 <CogIcon className="h-5 w-5" />
-                <span>Advanced</span>
+                <span>{t('nav.advanced')}</span>
               </div>
               <ChevronDownIcon className={`h-4 w-4 transition-transform ${showAdvancedMenu ? 'rotate-180' : ''}`} />
             </button>
@@ -159,13 +161,13 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
           <div className="bg-purple-500 rounded-lg p-4 text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <StarIcon className="h-5 w-5 text-yellow-400" />
-              <span className="font-semibold">Go Pro</span>
+              <span className="font-semibold">{t('nav.goPro')}</span>
             </div>
             <p className="text-sm text-purple-100 mb-3">
-              Enjoy unlimited access with only a small monthly price
+              {t('nav.unlimitedAccess')}
             </p>
             <button className="w-full bg-yellow-400 text-purple-800 font-semibold py-2 px-4 rounded-lg hover:bg-yellow-300 transition-colors">
-              Upgrade Now
+              {t('nav.upgradeNow')}
             </button>
           </div>
         </div>
@@ -198,7 +200,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
                   {user?.firstName} {user?.lastName}
                 </p>
                 <p className="text-xs text-purple-200 truncate">
-                  {user?.role === 'basic' ? 'Basic Member' : user?.role === 'premium' ? 'Premium Member' : 'Admin'}
+                  {user?.role === 'basic' ? t('nav.basicMember') : user?.role === 'premium' ? t('nav.premiumMember') : t('nav.admin')}
                 </p>
               </div>
               <ChevronDownIcon className="h-4 w-4 text-purple-200" />
@@ -209,7 +211,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
         {/* Linked Accounts - Hidden when collapsed */}
         {!collapsed && user?.linkedAccounts && user.linkedAccounts.length > 0 && (
           <div className="mt-3 space-y-2">
-            <p className="text-xs text-purple-200 font-medium">Linked Accounts</p>
+            <p className="text-xs text-purple-200 font-medium">{t('nav.linkedAccounts')}</p>
             {user.linkedAccounts.map((account) => (
               <div key={account.id} className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center">
@@ -224,7 +226,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
         {/* Kids Accounts - Hidden when collapsed */}
         {!collapsed && user?.kidsAccounts && user.kidsAccounts.length > 0 && (
           <div className="mt-3 space-y-2">
-            <p className="text-xs text-purple-200 font-medium">Kids Accounts</p>
+            <p className="text-xs text-purple-200 font-medium">{t('nav.kidsAccounts')}</p>
             {user.kidsAccounts.map((kid) => (
               <div key={kid.id} className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trendingService, TrendingHashtag, TrendingFilters } from '../../services/trending.service';
 import { 
   HashtagIcon, 
@@ -21,6 +22,7 @@ const TrendingHashtags: React.FC<TrendingHashtagsProps> = ({
   showFilters = true,
   onHashtagClick
 }) => {
+  const { t } = useTranslation();
   const [hashtags, setHashtags] = useState<TrendingHashtag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +102,7 @@ const TrendingHashtags: React.FC<TrendingHashtagsProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <HashtagIcon className="w-6 h-6 text-blue-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Trending Hashtags</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('search.trendingHashtags')}</h2>
           </div>
           <div className="text-sm text-gray-500">
             {trendingService.formatTimeRange(filters.timeRange || '24h')}
@@ -130,7 +132,7 @@ const TrendingHashtags: React.FC<TrendingHashtagsProps> = ({
         {displayedHashtags.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             <HashtagIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No trending hashtags found</p>
+            <p>{t('search.noTrendingHashtagsFound')}</p>
           </div>
         ) : (
           displayedHashtags.map((hashtag, index) => (

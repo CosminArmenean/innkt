@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { groupsService, GroupInvitationResponse } from '../../services/groups.service';
 import { 
   EnvelopeIcon, 
@@ -21,6 +22,7 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
   currentUserId,
   currentSubgroup
 }) => {
+  const { t } = useTranslation();
   const [invites, setInvites] = useState<GroupInvitationResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +104,7 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
       setEditingInvite(null);
     } catch (err) {
       console.error('Failed to update invite:', err);
-      setError('Failed to update invitation. Please try again.');
+      setError(t('groups.invite.failedToUpdateInvitation'));
     } finally {
       setIsEditing(null);
     }
@@ -163,9 +165,9 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
   if (error) {
     return (
       <div className="text-center p-6 text-red-600 bg-red-50 rounded-lg">
-        <p className="font-medium">Error: {error}</p>
+        <p className="font-medium">{t('groups.invite.error')}: {error}</p>
         <button onClick={loadInvites} className="mt-2 text-sm text-red-800 hover:underline">
-          Try again
+          {t('groups.invite.tryAgain')}
         </button>
       </div>
     );
@@ -177,14 +179,14 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {currentSubgroup ? `Invites for ${currentSubgroup.name}` : 'Group Invites'}
+            {currentSubgroup ? t('groups.invite.invitesFor', { name: currentSubgroup.name }) : t('groups.invite.groupInvites')}
           </h3>
           <p className="text-sm text-gray-600">
-            Manage pending invitations for this {currentSubgroup ? 'subgroup' : 'group'}
+            {t('groups.invite.managePendingInvitations', { type: currentSubgroup ? 'subgroup' : 'group' })}
           </p>
         </div>
         <div className="text-sm text-gray-500">
-          {invites.length} invitation{invites.length !== 1 ? 's' : ''}
+          {invites.length} {invites.length === 1 ? t('groups.invite.invitationCount', { count: invites.length }) : t('groups.invite.invitationCount_plural', { count: invites.length })}
         </div>
       </div>
 
@@ -192,8 +194,8 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
       {invites.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <EnvelopeIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-lg font-medium">No pending invitations</p>
-          <p className="text-sm">All invitations have been responded to or expired.</p>
+          <p className="text-lg font-medium">{t('groups.invite.noPendingInvitations')}</p>
+          <p className="text-sm">{t('groups.invite.allInvitationsResponded')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -208,7 +210,7 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        {invite.invitedByRoleName || invite.invitedBy?.displayName || 'Unknown User'}
+                        {invite.invitedByRoleName || invite.invitedBy?.displayName || t('groups.invite.unknownUser')}
                       </p>
                       {invite.invitedByRoleName && invite.invitedBy?.displayName && (
                         <p className="text-sm text-gray-500">
@@ -221,11 +223,11 @@ const InvitesManagementPanel: React.FC<InvitesManagementPanelProps> = ({
                   {/* Invite Details */}
                   <div className="ml-11 space-y-2">
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>Invited: {formatDate(invite.createdAt)}</span>
-                      <span>Expires: {formatDate(invite.expiresAt)}</span>
+                      <span>{t('groups.invite.invited')}: {formatDate(invite.createdAt)}</span>
+                      <span>{t('groups.invite.expires')}: {formatDate(invite.expiresAt)}</span>
                       {invite.subgroupId && (
                         <span className="text-purple-600 font-medium">
-                          Subgroup: {invite.subgroupName || 'Unknown'}
+                          {t('groups.invite.subgroupLabel')}: {invite.subgroupName || t('common.unknown')}
                         </span>
                       )}
                     </div>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { ShieldCheckIcon, QrCodeIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 
 const Setup2FA: React.FC = () => {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<'email' | 'sms' | 'app'>('email');
   const [isSetup, setIsSetup] = useState(false);
@@ -43,14 +45,14 @@ const Setup2FA: React.FC = () => {
       <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
           <ShieldCheckIcon className="h-16 w-16 text-purple-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Secure Your Account</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('auth.setup2FA')}</h1>
           <p className="text-gray-600">
-            Enable two-factor authentication to add an extra layer of security to your account.
+            {t('auth.addExtraSecurity')}
           </p>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900">Choose Your Verification Method</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('auth.chooseVerificationMethod')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Email Option */}
@@ -63,8 +65,8 @@ const Setup2FA: React.FC = () => {
               }`}
             >
               <EnvelopeIcon className="h-8 w-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Email</h3>
-              <p className="text-sm text-gray-600">Receive verification codes via email</p>
+              <h3 className="font-semibold text-gray-900">{t('auth.email')}</h3>
+              <p className="text-sm text-gray-600">{t('auth.receiveCodesEmail')}</p>
             </button>
 
             {/* SMS Option */}
@@ -77,8 +79,8 @@ const Setup2FA: React.FC = () => {
               }`}
             >
               <DevicePhoneMobileIcon className="h-8 w-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">SMS</h3>
-              <p className="text-sm text-gray-600">Receive verification codes via SMS</p>
+              <h3 className="font-semibold text-gray-900">{t('auth.sms')}</h3>
+              <p className="text-sm text-gray-600">{t('auth.receiveCodesSMS')}</p>
             </button>
 
             {/* Authenticator App Option */}
@@ -91,38 +93,35 @@ const Setup2FA: React.FC = () => {
               }`}
             >
               <QrCodeIcon className="h-8 w-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Authenticator App</h3>
-              <p className="text-sm text-gray-600">Use Google Authenticator or similar</p>
+              <h3 className="font-semibold text-gray-900">{t('auth.authenticatorApp')}</h3>
+              <p className="text-sm text-gray-600">{t('auth.useGoogleAuthenticator')}</p>
             </button>
           </div>
 
           {/* Method-specific instructions */}
           {selectedMethod === 'email' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">Email Verification</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">{t('auth.emailVerification')}</h4>
               <p className="text-sm text-blue-800">
-                We'll send a 6-digit verification code to <strong>{user?.email}</strong>. 
-                Enter this code to complete the setup.
+                {t('auth.sendCodeToEmail', { email: user?.email })}
               </p>
             </div>
           )}
 
           {selectedMethod === 'sms' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">SMS Verification</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">{t('auth.smsVerification')}</h4>
               <p className="text-sm text-blue-800">
-                We'll send a 6-digit verification code to your phone number. 
-                Make sure your phone number is verified in your account settings.
+                {t('auth.sendCodeToPhone')}
               </p>
             </div>
           )}
 
           {selectedMethod === 'app' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">Authenticator App Setup</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">{t('auth.authenticatorAppSetup')}</h4>
               <p className="text-sm text-blue-800">
-                Download Google Authenticator, Microsoft Authenticator, or similar app. 
-                Scan the QR code we'll provide to link your account.
+                {t('auth.downloadAuthenticatorApp')}
               </p>
             </div>
           )}

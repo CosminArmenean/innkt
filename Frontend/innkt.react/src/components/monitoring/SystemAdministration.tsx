@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceConfig {
   serviceName: string;
@@ -20,6 +21,7 @@ interface SystemConfig {
 }
 
 const SystemAdministration: React.FC = () => {
+  const { t } = useTranslation();
   const [serviceConfigs, setServiceConfigs] = useState<ServiceConfig[]>([]);
   const [systemConfig, setSystemConfig] = useState<SystemConfig>({
     maintenanceMode: false,

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Post } from '../../services/social.service';
 import { MegaphoneIcon, XMarkIcon, PencilIcon } from '@heroicons/react/24/outline';
 
@@ -19,6 +20,7 @@ const GroupAnnouncement: React.FC<GroupAnnouncementProps> = ({
   onAnnouncementCreated,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +29,7 @@ const GroupAnnouncement: React.FC<GroupAnnouncementProps> = ({
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      alert('Please enter announcement content');
+      alert(t('messaging.pleaseEnterAnnouncementContentAlert'));
       return;
     }
 
@@ -51,7 +53,7 @@ const GroupAnnouncement: React.FC<GroupAnnouncementProps> = ({
       }
     } catch (error) {
       console.error('Failed to create announcement:', error);
-      alert('Failed to create announcement. Please try again.');
+      alert(t('messaging.failedToCreateAnnouncementAlert'));
     } finally {
       setIsLoading(false);
     }
@@ -70,8 +72,8 @@ const GroupAnnouncement: React.FC<GroupAnnouncementProps> = ({
               <MegaphoneIcon className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Create Announcement</h3>
-              <p className="text-sm text-gray-600">Share important updates with the group</p>
+              <h3 className="font-medium text-gray-900">{t('groups.createAnnouncement')}</h3>
+              <p className="text-sm text-gray-600">{t('messaging.shareImportantUpdatesWithGroup')}</p>
             </div>
           </div>
           

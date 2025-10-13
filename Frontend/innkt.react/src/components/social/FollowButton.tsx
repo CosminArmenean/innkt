@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService } from '../../services/social.service';
 
 interface FollowButtonProps {
@@ -20,6 +21,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   variant = 'primary',
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(initialFollowing);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -86,10 +88,10 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       {isLoading ? (
         <div className="flex items-center space-x-1">
           <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading...</span>
+          <span>{t('common.loading')}</span>
         </div>
       ) : (
-        isFollowing ? 'Following' : 'Follow'
+        isFollowing ? t('social.following') : t('social.follow')
       )}
     </button>
   );

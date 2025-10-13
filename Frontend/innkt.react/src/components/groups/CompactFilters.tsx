@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   ClockIcon, 
   FireIcon, 
@@ -7,7 +8,7 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
-interface CompactFiltersProps {
+interface CompactFiltersProps{
   activeFilter: 'all' | 'recent' | 'popular' | 'discussions';
   onFilterChange: (filter: 'all' | 'recent' | 'popular' | 'discussions') => void;
   searchQuery: string;
@@ -24,11 +25,12 @@ const CompactFilters: React.FC<CompactFiltersProps> = ({
   showSearch,
   onToggleSearch
 }) => {
+  const { t } = useTranslation();
   const filters = [
-    { id: 'all', icon: null, label: 'All' },
-    { id: 'recent', icon: ClockIcon, label: 'Recent' },
-    { id: 'popular', icon: FireIcon, label: 'Popular' },
-    { id: 'discussions', icon: ChatBubbleLeftRightIcon, label: 'Discussions' }
+    { id: 'all', icon: null, label: t('search.all') },
+    { id: 'recent', icon: ClockIcon, label: t('search.recent') },
+    { id: 'popular', icon: FireIcon, label: t('search.popular') },
+    { id: 'discussions', icon: ChatBubbleLeftRightIcon, label: t('search.discussions') }
   ];
 
   return (
@@ -80,7 +82,7 @@ const CompactFilters: React.FC<CompactFiltersProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search posts..."
+              placeholder={t('search.searchPosts')}
               className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>

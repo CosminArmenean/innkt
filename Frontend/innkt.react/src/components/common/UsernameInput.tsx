@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usernameValidationService, UsernameValidationResult } from '../../services/usernameValidation.service';
 
 interface UsernameInputProps {
@@ -22,6 +23,7 @@ const UsernameInput: React.FC<UsernameInputProps> = ({
   showSuggestions = true,
   debounceMs = 500
 }) => {
+  const { t } = useTranslation();
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<UsernameValidationResult | null>(null);
   const [showValidation, setShowValidation] = useState(false);
@@ -111,7 +113,7 @@ const UsernameInput: React.FC<UsernameInputProps> = ({
             isValid: false,
             isAvailable: false,
             username: trimmedUsername,
-            errors: ['Error checking username availability'],
+            errors: [t('auth.validation.errorCheckingUsername')],
             suggestions: []
           };
           setValidation(errorResult);
@@ -245,7 +247,7 @@ const UsernameInput: React.FC<UsernameInputProps> = ({
               <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
-              Username is available!
+              {t('auth.validation.usernameIsAvailable')}
             </div>
           ) : (
             <div className="text-sm text-red-600">
@@ -265,7 +267,7 @@ const UsernameInput: React.FC<UsernameInputProps> = ({
       {/* Suggestions */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="mt-2">
-          <div className="text-sm text-gray-600 mb-1">Try these suggestions:</div>
+          <div className="text-sm text-gray-600 mb-1">{t('auth.validation.trySuggestions')}</div>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion, index) => (
               <button
@@ -282,12 +284,12 @@ const UsernameInput: React.FC<UsernameInputProps> = ({
 
       {/* Username rules */}
       <div className="mt-2 text-xs text-gray-500">
-        <div>Username rules:</div>
+        <div>{t('auth.validation.usernameRules')}</div>
         <ul className="list-disc list-inside ml-2 space-y-0.5">
-          <li>3-30 characters long</li>
-          <li>Lowercase letters, numbers, and dots (.) only</li>
-          <li>Cannot start or end with a dot</li>
-          <li>Cannot contain consecutive dots</li>
+          <li>{t('auth.validation.rule3to30chars')}</li>
+          <li>{t('auth.validation.ruleLowercaseOnly')}</li>
+          <li>{t('auth.validation.ruleNoDotStartEnd')}</li>
+          <li>{t('auth.validation.ruleNoConsecutiveDots')}</li>
         </ul>
       </div>
     </div>

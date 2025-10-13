@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PostSkeletonProps {
   count?: number;
 }
 
 const PostSkeleton: React.FC<PostSkeletonProps> = ({ count = 1 }) => {
+  const { t } = useTranslation();
   return (
     <>
       {Array.from({ length: count }).map((_, index) => (

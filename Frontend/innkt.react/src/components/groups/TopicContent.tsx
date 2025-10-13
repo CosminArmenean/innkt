@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Group, Post } from '../../services/social.service';
 import { groupsService, TopicResponse } from '../../services/groups.service';
 import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
@@ -28,6 +29,7 @@ const TopicContent: React.FC<TopicContentProps> = ({
   onBack,
   onPostCreated
 }) => {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'recent' | 'popular' | 'discussions'>('all');

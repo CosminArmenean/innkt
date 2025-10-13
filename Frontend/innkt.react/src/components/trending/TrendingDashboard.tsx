@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trendingService, TrendingPost, TrendingHashtag, TrendingUser } from '../../services/trending.service';
 import TrendingPosts from './TrendingPosts';
 import TrendingHashtags from './TrendingHashtags';
@@ -27,6 +28,7 @@ const TrendingDashboard: React.FC<TrendingDashboardProps> = ({
   onUserClick,
   onFollowClick
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'posts' | 'hashtags' | 'users'>('posts');
   const [timeRange, setTimeRange] = useState<'1h' | '6h' | '24h' | '7d' | '30d'>('24h');
   const [stats, setStats] = useState<any>(null);
@@ -47,19 +49,19 @@ const TrendingDashboard: React.FC<TrendingDashboardProps> = ({
   const tabs = [
     {
       id: 'posts' as const,
-      name: 'Trending Posts',
+      name: t('search.trendingPosts'),
       icon: FireIcon,
       color: 'text-orange-600'
     },
     {
       id: 'hashtags' as const,
-      name: 'Trending Hashtags',
+      name: t('search.trendingHashtags'),
       icon: HashtagIcon,
       color: 'text-blue-600'
     },
     {
       id: 'users' as const,
-      name: 'Trending Users',
+      name: t('search.trendingUsers'),
       icon: UserGroupIcon,
       color: 'text-green-600'
     }
@@ -75,8 +77,8 @@ const TrendingDashboard: React.FC<TrendingDashboardProps> = ({
               <ChartBarIcon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Trending Dashboard</h1>
-              <p className="text-gray-600">Discover what's hot right now</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('search.trendingDashboard')}</h1>
+              <p className="text-gray-600">{t('search.discoverHotNow')}</p>
             </div>
           </div>
 
@@ -102,23 +104,23 @@ const TrendingDashboard: React.FC<TrendingDashboardProps> = ({
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2 mb-2">
               <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Algorithm Parameters</span>
+              <span className="text-sm font-medium text-gray-700">{t('search.algorithmParameters')}</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-gray-500">Log Base:</span>
+                <span className="text-gray-500">{t('search.logBase')}</span>
                 <span className="ml-1 font-medium">{stats.logBase}</span>
               </div>
               <div>
-                <span className="text-gray-500">Time Decay:</span>
+                <span className="text-gray-500">{t('search.timeDecay')}</span>
                 <span className="ml-1 font-medium">{stats.timeDecay}s</span>
               </div>
               <div>
-                <span className="text-gray-500">Score Weight:</span>
+                <span className="text-gray-500">{t('search.scoreWeight')}</span>
                 <span className="ml-1 font-medium">{stats.scoreWeight}</span>
               </div>
               <div>
-                <span className="text-gray-500">Comment Weight:</span>
+                <span className="text-gray-500">{t('search.commentWeight')}</span>
                 <span className="ml-1 font-medium">{stats.commentWeight}</span>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -14,6 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole = 'basic',
   requireMfa = false 
 }) => {
+  const { t } = useTranslation();
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 

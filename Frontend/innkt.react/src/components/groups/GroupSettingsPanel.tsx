@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Group } from '../../services/social.service';
 import SubgroupManagementPanel from './SubgroupManagementPanel';
 import EnhancedTopicManagementPanel from './EnhancedTopicManagementPanel';
@@ -20,6 +21,7 @@ interface GroupSettingsPanelProps {
 }
 
 const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, currentUserId, group }) => {
+  const { t } = useTranslation();
   const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'roles' | 'subgroups' | 'topics' | 'permissions'>('general');
 
   const settingsTabs = [
@@ -117,16 +119,16 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, curren
 
   const renderPermissions = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-medium text-gray-900">Permission Settings</h3>
+      <h3 className="text-lg font-medium text-gray-900">{t('groups.permissionSettings')}</h3>
       
       <div className="space-y-6">
         <div>
-          <h4 className="font-medium text-gray-900 mb-4">Content Permissions</h4>
+          <h4 className="font-medium text-gray-900 mb-4">{t('groups.contentPermissions')}</h4>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">Allow Member Posts</label>
-                <p className="text-sm text-gray-500">Members can create posts in group topics</p>
+                <label className="text-sm font-medium text-gray-700">{t('groups.allowMemberPostsLabel')}</label>
+                <p className="text-sm text-gray-500">{t('groups.membersCanCreatePosts')}</p>
               </div>
               <input
                 type="checkbox"
@@ -136,8 +138,8 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, curren
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">Allow Comments</label>
-                <p className="text-sm text-gray-500">Members can comment on posts</p>
+                <label className="text-sm font-medium text-gray-700">{t('groups.allowCommentsLabel')}</label>
+                <p className="text-sm text-gray-500">{t('groups.membersCanComment')}</p>
               </div>
               <input
                 type="checkbox"
@@ -147,8 +149,8 @@ const GroupSettingsPanel: React.FC<GroupSettingsPanelProps> = ({ groupId, curren
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">Allow File Uploads</label>
-                <p className="text-sm text-gray-500">Members can upload files and documents</p>
+                <label className="text-sm font-medium text-gray-700">{t('groups.allowFileUploadsLabel')}</label>
+                <p className="text-sm text-gray-500">{t('groups.membersCanUpload')}</p>
               </div>
               <input
                 type="checkbox"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Post } from '../../services/social.service';
 
 interface BlockchainIntegrationProps {
@@ -32,6 +33,7 @@ interface WalletInfo {
 }
 
 const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({ userId, isVerified }) => {
+  const { t } = useTranslation();
   const [blockchainPosts, setBlockchainPosts] = useState<BlockchainPost[]>([]);
   const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);

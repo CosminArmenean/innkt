@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import NotificationBell from '../notifications/NotificationBell';
 
 const Header: React.FC = () => {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Image Processing', href: '/image-processing' },
-    { name: 'Security', href: '/security' },
-    { name: 'Social', href: '/social' },
-    { name: 'Messaging', href: '/messaging' },
-    { name: 'Monitoring', href: '/monitoring' },
-    { name: 'Advanced', href: '/advanced' },
-    { name: 'Profile', href: '/profile/me' },
+    { name: t('nav.home'), href: '/' },
+    { name: t('nav.dashboard'), href: '/dashboard' },
+    { name: t('nav.advanced'), href: '/image-processing' },
+    { name: t('settings.privacySecurity'), href: '/security' },
+    { name: t('nav.social'), href: '/social' },
+    { name: t('nav.messaging'), href: '/messaging' },
+    { name: t('nav.advanced'), href: '/monitoring' },
+    { name: t('nav.advanced'), href: '/advanced' },
+    { name: t('nav.profile'), href: '/profile/me' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -64,13 +66,13 @@ const Header: React.FC = () => {
               to="/login"
               className="text-innkt-light hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             >
-              Login
+              {t('auth.login')}
             </Link>
             <Link
               to="/register"
               className="bg-white text-innkt-primary hover:bg-gray-100 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             >
-              Register
+              {t('auth.register')}
             </Link>
           </div>
 
@@ -130,14 +132,14 @@ const Header: React.FC = () => {
                   className="block px-3 py-2 text-innkt-light hover:text-white text-base font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Login
+                  {t('auth.login')}
                 </Link>
                 <Link
                   to="/register"
                   className="block px-3 py-2 bg-white text-innkt-primary rounded-md text-base font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Register
+                  {t('auth.register')}
                 </Link>
               </div>
             </div>

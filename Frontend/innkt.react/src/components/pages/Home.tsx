@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import SocialDashboard from '../social/SocialDashboard';
 import Logo from '../common/Logo';
 
 const Home: React.FC = () => {
+  const { t } = useTranslation();
   const { isAuthenticated, user } = useAuth();
 
   // If user is authenticated, show the social dashboard
@@ -13,38 +15,38 @@ const Home: React.FC = () => {
   }
   const features = [
     {
-      title: 'Joint Accounts',
-      description: 'Create shared accounts with your partner, family, or friends. One password, two people, endless possibilities.',
+      title: t('pages.home.jointAccounts'),
+      description: t('pages.home.jointAccountsDesc'),
       icon: '👥',
       href: '/register'
     },
     {
-      title: 'Advanced Security',
-      description: 'Built-in threat detection, real-time monitoring, and blockchain verification for ultimate trust.',
+      title: t('pages.home.advancedSecurity'),
+      description: t('pages.home.advancedSecurityDesc'),
       icon: '🛡️',
       href: '/security'
     },
     {
-      title: 'Kid Account Management',
-      description: 'Safe, controlled environments for children with parental oversight and educational features.',
+      title: t('pages.home.kidAccountManagement'),
+      description: t('pages.home.kidAccountManagementDesc'),
       icon: '👶',
       href: '/register'
     },
     {
-      title: 'AI-Powered Features',
-      description: 'Smart image processing, QR code generation, and intelligent content moderation.',
+      title: t('pages.home.aiPoweredFeatures'),
+      description: t('pages.home.aiPoweredFeaturesDesc'),
       icon: '🤖',
       href: '/dashboard'
     },
     {
-      title: 'Multi-Language Support',
-      description: 'Global accessibility with RTL support for Hebrew and other languages.',
+      title: t('pages.home.multiLanguageSupport'),
+      description: t('pages.home.multiLanguageSupportDesc'),
       icon: '🌍',
       href: '/dashboard'
     },
     {
-      title: 'Blockchain Integration',
-      description: 'Verified accounts and blockchain posts for enhanced trust and authenticity.',
+      title: t('pages.home.blockchainIntegration'),
+      description: t('pages.home.blockchainIntegrationDesc'),
       icon: '⛓️',
       href: '/dashboard'
     }
@@ -63,24 +65,23 @@ const Home: React.FC = () => {
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Welcome to <span className="text-innkt-light">INNKT</span>
+              {t('pages.home.welcomeTo')} <span className="text-innkt-light">{t('common.innkt')}</span>
             </h1>
             <p className="text-xl md:text-2xl text-innkt-light mb-8 max-w-3xl mx-auto">
-              The next generation of social networking, built for families, 
-              with advanced security, AI features, and blockchain integration.
+              {t('pages.home.nextGenSocial')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/register"
                 className="bg-white text-innkt-primary hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200 shadow-lg"
               >
-                Get Started
+                {t('pages.home.getStarted')}
               </Link>
               <Link
                 to="/login"
                 className="border-2 border-white text-white hover:bg-white hover:text-innkt-primary px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200"
               >
-                Sign In
+                {t('pages.home.signIn')}
               </Link>
             </div>
           </div>
@@ -92,11 +93,10 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose INNKT?
+              {t('pages.home.whyChooseINNKT')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We've built a platform that combines the best of social networking 
-              with cutting-edge technology for families and communities.
+              {t('pages.home.platformDescription')}
             </p>
           </div>
 
@@ -114,7 +114,7 @@ const Home: React.FC = () => {
                   to={feature.href}
                   className="text-innkt-primary hover:text-innkt-dark font-medium transition-colors duration-200"
                 >
-                  Learn more →
+                  {t('pages.home.learnMore')}
                 </Link>
               </div>
             ))}
@@ -126,17 +126,16 @@ const Home: React.FC = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Ready to Join the Future?
+            {t('pages.home.readyToJoin')}
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Experience the most advanced social networking platform designed 
-            with families in mind. Secure, intelligent, and innovative.
+            {t('pages.home.experienceAdvanced')}
           </p>
           <Link
             to="/register"
             className="btn-primary text-lg px-10 py-4"
           >
-            Create Your Account
+            {t('pages.home.createYourAccount')}
           </Link>
         </div>
       </section>

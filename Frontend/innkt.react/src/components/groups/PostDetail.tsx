@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Post, Group } from '../../services/social.service';
 import { groupsService, TopicResponse } from '../../services/groups.service';
 import PostCard from '../social/PostCard';
@@ -24,6 +25,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   onBack,
   onPostCreated
 }) => {
+  const { t } = useTranslation();
   const [topic, setTopic] = useState<TopicResponse | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
   const [isLoading, setIsLoading] = useState(true);

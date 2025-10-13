@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService } from '../../services/social.service';
 import { useMessaging } from '../../contexts/MessagingContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -19,6 +20,7 @@ interface SearchUser {
 }
 
 const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
+  const { t } = useTranslation();
   const { createDirectConversation } = useMessaging();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,7 +118,7 @@ const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
       onClose();
     } catch (error) {
       console.error('Error creating conversation:', error);
-      setError('Failed to start conversation');
+      setError(t('messaging.failedToStartConversation'));
     }
   };
 
@@ -125,7 +127,7 @@ const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Start New Chat</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('messaging.startNewChat')}</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -141,7 +143,7 @@ const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search people you follow or who follow you..."
+              placeholder={t('messaging.searchFollowersPlaceholder')}
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -169,14 +171,14 @@ const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, onClose }) => {
 
           {users.length === 0 && searchTerm && !isLoading && (
             <div className="p-4 text-gray-500 text-center">
-              No users found matching "{searchTerm}". Make sure you have followers or are following someone.
+              {t('messaging.noUsersFoundMatching', { searchTerm })}
             </div>
           )}
 
           {users.length === 0 && !searchTerm && !isLoading && (
             <div className="p-4 text-gray-500 text-center">
-              <div className="text-sm mb-2">Start typing to search for people you follow or who follow you.</div>
-              <div className="text-xs text-gray-400">You can only message people in your network.</div>
+              <div className="text-sm mb-2">{t('messaging.startTypingToSearch')}</div>
+              <div className="text-xs text-gray-400">{t('messaging.canOnlyMessageNetwork')}</div>
             </div>
           )}
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { notificationService } from '../../services/notification.service';
@@ -22,6 +23,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   onClose,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     notifications,
@@ -113,13 +115,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     const days = Math.floor(hours / 24);
     
     if (seconds < 60) {
-      return 'Just now';
+      return t('notifications.justNowShort');
     } else if (minutes < 60) {
-      return `${minutes}m ago`;
+      return t('notifications.mAgo', { count: minutes });
     } else if (hours < 24) {
-      return `${hours}h ago`;
+      return t('notifications.hAgo', { count: hours });
     } else if (days < 7) {
-      return `${days}d ago`;
+      return t('notifications.dAgo', { count: days });
     } else {
       return new Date(timestampMs).toLocaleDateString();
     }
@@ -136,7 +138,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <BellIcon className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Notifications</h3>
+          <h3 className="font-semibold text-gray-900">{t('notifications.title')}</h3>
           {counts.unread > 0 && (
             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
               {counts.unread}
@@ -149,7 +151,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             <button
               onClick={handleMarkAllAsRead}
               className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
-              title="Mark all as read"
+              title={t('notifications.markAllRead')}
             >
               <CheckIcon className="w-4 h-4" />
             </button>
@@ -158,7 +160,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
-            title="Notification settings"
+            title={t('notifications.notificationSettings')}
           >
             <CogIcon className="w-4 h-4" />
           </button>
@@ -187,7 +189,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         {notifications.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <BellIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p>No notifications yet</p>
+            <p>{t('notifications.noNotificationsYet')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">

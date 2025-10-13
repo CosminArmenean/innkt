@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 
 interface EncryptionResult {
@@ -10,6 +11,7 @@ interface EncryptionResult {
 }
 
 const EncryptionTools: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'text' | 'file' | 'keys'>('text');
   const [textInput, setTextInput] = useState('');
   const [textResult, setTextResult] = useState<EncryptionResult | null>(null);

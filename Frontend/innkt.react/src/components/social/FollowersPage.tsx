@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Follow } from '../../services/social.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
 
 const FollowersPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [followers, setFollowers] = useState<Follow[]>([]);
@@ -90,12 +92,12 @@ const FollowersPage: React.FC = () => {
             <UserIcon className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {isFollowing ? 'Not following anyone yet' : 'No followers yet'}
+            {isFollowing ? t('social.notFollowingYet') : t('social.noFollowersYet')}
           </h3>
           <p className="text-gray-500">
             {isFollowing 
-              ? 'Start following people to see their posts in your feed' 
-              : 'Share your profile to get followers'
+              ? t('social.startFollowingPeople')
+              : t('social.shareProfileToGetFollowers')
             }
           </p>
         </div>
@@ -127,7 +129,7 @@ const FollowersPage: React.FC = () => {
                     className="font-medium text-gray-900 cursor-pointer hover:text-purple-600 transition-colors"
                     onClick={() => handleUserClick(profile?.id || '')}
                   >
-                    {profile?.displayName || 'Unknown User'}
+                    {profile?.displayName || t('social.unknownUser')}
                   </h3>
                   <p 
                     className="text-sm text-gray-500 cursor-pointer hover:text-purple-600 transition-colors"
@@ -136,7 +138,7 @@ const FollowersPage: React.FC = () => {
                     @{profile?.username || 'unknown'}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {isFollowing ? 'Following since' : 'Following you since'} {new Date(follow.createdAt).toLocaleDateString()}
+                    {isFollowing ? t('social.followingSince') : t('social.followingYouSince')} {new Date(follow.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -147,7 +149,7 @@ const FollowersPage: React.FC = () => {
                     className="flex items-center space-x-1 px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
                   >
                     <UserMinusIcon className="h-4 w-4" />
-                    <span>Unfollow</span>
+                    <span>{t('social.unfollow')}</span>
                   </button>
                 ) : (
                   <button
@@ -155,7 +157,7 @@ const FollowersPage: React.FC = () => {
                     className="flex items-center space-x-1 px-3 py-1 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-colors"
                   >
                     <UserPlusIcon className="h-4 w-4" />
-                    <span>Follow Back</span>
+                    <span>{t('social.followBack')}</span>
                   </button>
                 )}
               </div>
@@ -171,8 +173,8 @@ const FollowersPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Followers & Following</h1>
-          <p className="text-gray-600">Manage your social connections</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('social.followersAndFollowing')}</h1>
+          <p className="text-gray-600">{t('social.manageSocialConnections')}</p>
         </div>
 
         {/* Tabs */}
@@ -187,7 +189,7 @@ const FollowersPage: React.FC = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Followers ({followers.length})
+                {t('social.followers')} ({followers.length})
               </button>
               <button
                 onClick={() => setActiveTab('following')}
@@ -197,7 +199,7 @@ const FollowersPage: React.FC = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Following ({following.length})
+                {t('social.following')} ({following.length})
               </button>
             </nav>
           </div>

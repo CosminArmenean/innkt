@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Send, Image, Smile, AtSign, Hash } from 'lucide-react';
 import { Post, Comment } from '../../services/social.service';
 import { socialService } from '../../services/social.service';
@@ -21,6 +22,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
   onCommentCreated,
   onCancel
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [content, setContent] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,7 +86,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
       setContent('');
     } catch (error) {
       console.error('Failed to create comment:', error);
-      alert('Failed to create comment. Please try again.');
+      alert(t('errors.tryAgain'));
     } finally {
       setIsSubmitting(false);
     }
@@ -173,15 +175,15 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900">
-              {parentComment ? 'Replying to' : 'Commenting on'}
+              {parentComment ? t('social.comments.replyingTo') : t('social.comments.commentingOn')}
             </p>
             {parentComment ? (
               <p className="text-xs text-gray-500">
-                @{parentComment.author?.username || 'unknown'}
+                @{parentComment.author?.username || t('social.comments.unknown')}
               </p>
             ) : (
               <p className="text-xs text-gray-500">
-                @{post.author?.username || 'unknown'}
+                @{post.author?.username || t('social.comments.unknown')}
               </p>
             )}
           </div>
@@ -217,10 +219,10 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
               )}
             </div>
             <span className="text-sm font-medium text-gray-900">
-              {post.author?.displayName || 'Unknown User'}
+              {post.author?.displayName || t('social.comments.unknownUser')}
             </span>
             <span className="text-xs text-gray-500">
-              @{post.author?.username || 'unknown'}
+              @{post.author?.username || t('social.comments.unknown')}
             </span>
           </div>
           <p className="text-sm text-gray-700 line-clamp-2">
@@ -236,7 +238,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={parentComment ? `Reply to @${parentComment.author?.username || 'unknown'}...` : 'Write a comment...'}
+          placeholder={parentComment ? t('social.comments.replyToUser', { username: parentComment.author?.username || t('social.comments.unknown') }) : t('social.comments.writeComment')}
           className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           rows={3}
           maxLength={MAX_CHARACTERS + 50} // Allow some overflow for better UX
@@ -257,7 +259,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           <button
             onClick={() => setShowMentions(!showMentions)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            title="Mention someone"
+            title={t('social.comments.mentionSomeone')}
           >
             <AtSign className="w-4 h-4 text-gray-500" />
           </button>
@@ -266,7 +268,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           <button
             onClick={() => setShowHashtags(!showHashtags)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            title="Add hashtag"
+            title={t('social.comments.addHashtag')}
           >
             <Hash className="w-4 h-4 text-gray-500" />
           </button>
@@ -274,7 +276,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           {/* Emoji Button */}
           <button
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            title="Add emoji"
+            title={t('social.comments.addEmoji')}
           >
             <Smile className="w-4 h-4 text-gray-500" />
           </button>
@@ -282,7 +284,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           {/* Media Button */}
           <button
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            title="Add media"
+            title={t('social.comments.addMedia')}
           >
             <Image className="w-4 h-4 text-gray-500" />
           </button>
@@ -301,7 +303,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
               }
             }}
             className="p-2 hover:bg-purple-100 rounded-full transition-colors group relative"
-            title="Ask Grok AI - Click to add @grok to your comment"
+            title={t('social.comments.askGrokAI')}
           >
             <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
               <span className="text-white text-xs font-bold">AI</span>
@@ -316,7 +318,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
           className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <Send className="w-4 h-4" />
-          <span>{isSubmitting ? 'Posting...' : 'Post'}</span>
+          <span>{isSubmitting ? t('social.comments.posting') : t('social.comments.post')}</span>
         </button>
       </div>
 
@@ -327,14 +329,14 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
             <input
               ref={mentionRef}
               type="text"
-              placeholder="Search users..."
+              placeholder={t('social.comments.searchUsers')}
               className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
           </div>
           <div className="max-h-48 overflow-y-auto">
             {/* TODO: Implement user search and display */}
             <div className="p-2 text-sm text-gray-500 text-center">
-              User search not implemented yet
+              {t('social.comments.userSearchNotImplemented')}
             </div>
           </div>
         </div>
@@ -347,14 +349,14 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
             <input
               ref={hashtagRef}
               type="text"
-              placeholder="Search hashtags..."
+              placeholder={t('social.comments.searchHashtags')}
               className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
           </div>
           <div className="max-h-48 overflow-y-auto">
             {/* TODO: Implement hashtag search and display */}
             <div className="p-2 text-sm text-gray-500 text-center">
-              Hashtag search not implemented yet
+              {t('social.comments.hashtagSearchNotImplemented')}
             </div>
           </div>
         </div>
@@ -385,7 +387,7 @@ const CommentComposer: React.FC<CommentComposerProps> = ({
       {/* Validation Messages */}
       {isOverLimit && (
         <div className="mt-2 text-sm text-red-500">
-          Comment is too long. Please remove {Math.abs(remainingChars)} characters.
+          {t('social.comments.commentTooLong', { count: Math.abs(remainingChars) })}
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { 
   ChatBubbleLeftRightIcon, 
@@ -46,6 +47,7 @@ const LinkedAccountsPost: React.FC<LinkedAccountsPostProps> = ({
   onShare,
   onDelete
 }) => {
+  const { t } = useTranslation();
   const [showChatOptions, setShowChatOptions] = useState(false);
 
   const getAuthorInfo = () => {

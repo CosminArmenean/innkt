@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { notificationService } from '../../services/notification.service';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -8,6 +9,7 @@ interface NotificationToastProps {
 }
 
 const NotificationToast: React.FC<NotificationToastProps> = ({ className = '' }) => {
+  const { t } = useTranslation();
   const { settings } = useNotifications();
   const [toasts, setToasts] = useState<any[]>([]);
 

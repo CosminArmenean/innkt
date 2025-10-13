@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { groupsService } from '../services/groups.service';
@@ -29,6 +30,7 @@ interface KidAccount {
 }
 
 const InvitePage: React.FC = () => {
+  const { t } = useTranslation();
   const { inviteId } = useParams<{ inviteId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -126,7 +128,7 @@ const InvitePage: React.FC = () => {
       });
       
       if (invite.isEducational && !selectedKidId) {
-        setError('Please select a kid account to join this educational group');
+        setError(t('groups.invitations.pleaseSelectKid'));
         return;
       }
       
@@ -138,10 +140,10 @@ const InvitePage: React.FC = () => {
             // Create a one-off kid and join subgroup
             console.log('🎯 Creating one-off kid for subgroup:', invite.groupId, invite.subgroupId);
             // TODO: Implement createOneOffKidAndJoinSubgroup method
-            setError('Creating one-off kid accounts is not yet implemented. Please use an existing kid account.');
+            setError(t('groups.invitations.creatingOneOffNotImplemented'));
             return;
           } else {
-            setError('One-off kid accounts are only available for subgroup invitations');
+            setError(t('groups.invitations.oneOffKidsSubgroupOnly'));
             return;
           }
         }
@@ -166,7 +168,7 @@ const InvitePage: React.FC = () => {
       navigate(`/groups/${invite.groupId}`);
     } catch (err: any) {
       console.error('Failed to join group:', err);
-      setError(err.message || 'Failed to join group');
+      setError(err.message || t('groups.invitations.failedToJoinGroup'));
     } finally {
       setIsJoining(false);
     }
@@ -188,7 +190,7 @@ const InvitePage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading invitation...</p>
+          <p className="text-gray-600">{t('groups.invitations.loadingInvitation')}</p>
         </div>
       </div>
     );
@@ -198,13 +200,13 @@ const InvitePage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Invitation Not Found</h2>
-          <p className="text-gray-600 mb-8">This invitation may have expired or been revoked.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('groups.invitations.invitationNotFound')}</h2>
+          <p className="text-gray-600 mb-8">{t('groups.invitations.invitationExpiredOrRevoked')}</p>
           <button
             onClick={() => navigate('/groups')}
             className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
           >
-            Browse Groups
+            {t('groups.invitations.browseGroups')}
           </button>
         </div>
       </div>
@@ -221,12 +223,12 @@ const InvitePage: React.FC = () => {
               <span className="text-2xl">{invite.subgroupId ? '🎓' : '👥'}</span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {invite.subgroupId ? 'Subgroup Invitation' : 'Group Invitation'}
+              {invite.subgroupId ? t('groups.invitations.subgroupInvitation') : t('groups.invitations.groupInvitation')}
             </h1>
             <p className="text-gray-600">
               {invite.subgroupId 
-                ? 'You\'ve been invited to join a subgroup in an educational group' 
-                : 'You\'ve been invited to join a group'
+                ? t('groups.invitations.invitedToSubgroup')
+                : t('groups.invitations.invitedToGroup')
               }
             </p>
           </div>
@@ -238,11 +240,10 @@ const InvitePage: React.FC = () => {
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-blue-600">🎓</span>
-                  <h3 className="text-lg font-semibold text-blue-900">Subgroup Invitation</h3>
+                  <h3 className="text-lg font-semibold text-blue-900">{t('groups.invitations.subgroupInvitationTitle')}</h3>
                 </div>
                 <p className="text-sm text-blue-800">
-                  You're being invited to join a specific subgroup within this educational group.
-                  Your parent account will be added as a shadow account to monitor your activity.
+                  {t('groups.invitations.subgroupInvitationDesc')}
                 </p>
               </div>
             )}
@@ -251,7 +252,7 @@ const InvitePage: React.FC = () => {
             <p className="text-gray-600 mb-4">{invite.groupDescription}</p>
             
             <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>Invited by: <strong>{invite.inviterName}</strong></span>
+              <span>{t('groups.invitations.invitedBy')}: <strong>{invite.inviterName}</strong></span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                 invite.groupType === 'educational' 
                   ? 'bg-blue-100 text-blue-800' 
@@ -272,12 +273,12 @@ const InvitePage: React.FC = () => {
           {invite.isEducational && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {invite.subgroupId ? 'Select Kid Account for Subgroup' : 'Select Kid Account'}
+                {invite.subgroupId ? t('groups.invitations.selectKidForSubgroup') : t('groups.invitations.selectKidAccountLabel')}
               </h3>
               <p className="text-gray-600 mb-4">
                 {invite.subgroupId 
-                  ? 'This is a subgroup invitation for an educational group. Please select which kid account should join this subgroup. Your parent account will automatically be added as a shadow account.'
-                  : 'This is an educational group. Please select which kid account should join.'
+                  ? t('groups.invitations.subgroupInvitationExplanation')
+                  : t('groups.invitations.educationalGroupExplanation')
                 }
               </p>
               
@@ -286,10 +287,10 @@ const InvitePage: React.FC = () => {
                 <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-orange-600">👶</span>
-                    <h4 className="text-md font-semibold text-orange-900">Create One-Off Kid</h4>
+                    <h4 className="text-md font-semibold text-orange-900">{t('groups.invitations.createOneOffKid')}</h4>
                   </div>
                   <p className="text-sm text-orange-800 mb-3">
-                    Don't have a kid account? You can create a temporary kid account specifically for this subgroup invitation.
+                    {t('groups.invitations.createOneOffKidDesc')}
                   </p>
                   <button
                     onClick={() => setSelectedKidId('create-new')}
@@ -299,7 +300,7 @@ const InvitePage: React.FC = () => {
                         : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
                     }`}
                   >
-                    {selectedKidId === 'create-new' ? '✓ Selected' : 'Create New Kid Account'}
+                    {selectedKidId === 'create-new' ? t('groups.invitations.selected') : t('groups.invitations.createNewKidAccount')}
                   </button>
                 </div>
               )}
@@ -307,7 +308,7 @@ const InvitePage: React.FC = () => {
               {/* Existing kid accounts */}
               {kidAccounts.length > 0 && (
                 <div className="mb-4">
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Or select existing kid account:</h4>
+                  <h4 className="text-md font-medium text-gray-700 mb-3">{t('groups.invitations.orSelectExisting')}</h4>
                   <div className="space-y-3">
                     {kidAccounts.map((kid) => (
                       <label
@@ -346,7 +347,7 @@ const InvitePage: React.FC = () => {
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}>
-                              {kid.isActive ? 'Active' : 'Inactive'}
+                              {kid.isActive ? t('groups.invitations.active') : t('groups.invitations.inactive')}
                             </span>
                           </div>
                         </div>
@@ -359,8 +360,8 @@ const InvitePage: React.FC = () => {
               {/* No existing kid accounts */}
               {kidAccounts.length === 0 && !invite.subgroupId && (
                 <div className="text-center py-8 text-gray-500">
-                  <p>No kid accounts found.</p>
-                  <p className="text-sm">You may need to create a kid account first.</p>
+                  <p>{t('groups.invitations.noKidAccountsFound')}</p>
+                  <p className="text-sm">{t('groups.invitations.createKidAccountFirst')}</p>
                 </div>
               )}
             </div>
@@ -380,7 +381,7 @@ const InvitePage: React.FC = () => {
               disabled={isJoining || (invite.isEducational && !selectedKidId)}
               className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isJoining ? 'Joining...' : (invite.isEducational && selectedKidId === 'create-new') ? 'Create Kid & Accept' : 'Accept Invitation'}
+              {isJoining ? t('groups.invitations.joining') : (invite.isEducational && selectedKidId === 'create-new') ? t('groups.invitations.createKidAndAccept') : t('groups.invitations.acceptInvitation')}
             </button>
             
             <button
@@ -388,14 +389,14 @@ const InvitePage: React.FC = () => {
               disabled={isJoining}
               className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Decline
+              {t('groups.invitations.decline')}
             </button>
           </div>
 
           {/* Expiration Notice */}
           {invite.expiresAt && (
             <div className="mt-6 text-center text-sm text-gray-500">
-              <p>This invitation expires on {new Date(invite.expiresAt).toLocaleDateString()}</p>
+              <p>{t('groups.invitations.expiresOn')} {new Date(invite.expiresAt).toLocaleDateString()}</p>
             </div>
           )}
         </div>

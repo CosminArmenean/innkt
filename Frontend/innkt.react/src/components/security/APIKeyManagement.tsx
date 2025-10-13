@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface APIKey {
   id: string;
@@ -19,6 +20,7 @@ interface APIKeyForm {
 }
 
 const APIKeyManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newKeyForm, setNewKeyForm] = useState<APIKeyForm>({

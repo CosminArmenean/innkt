@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Conversation } from '../../services/messaging.service';
 
 interface ConversationListProps {
@@ -14,6 +15,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   onConversationSelect,
   isLoading
 }) => {
+  const { t } = useTranslation();
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -34,10 +36,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
     }
     
     if (conversation.type === 'direct') {
-      return conversation.participants[0]?.displayName || 'Unknown User';
+      return conversation.participants[0]?.displayName || t('social.unknownUser');
     }
     
-    return conversation.participants.map(p => p.displayName || 'Unknown User').join(', ');
+    return conversation.participants.map(p => p.displayName || t('social.unknownUser')).join(', ');
   };
 
   const getConversationAvatar = (conversation: Conversation) => {
@@ -54,23 +56,23 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
   const getLastMessagePreview = (conversation: Conversation) => {
     if (!conversation.lastMessage) {
-      return 'No messages yet';
+      return t('messaging.noMessagesYet');
     }
     
     const message = conversation.lastMessage;
-    const senderName = message.senderProfile?.displayName || 'Unknown User';
+    const senderName = message.senderProfile?.displayName || t('social.unknownUser');
     
     switch (message.type) {
       case 'text':
         return `${senderName}: ${message.content}`;
       case 'image':
-        return `${senderName}: 📷 Image`;
+        return `${senderName}: 📷 ${t('dashboard.uploadImage')}`;
       case 'file':
-        return `${senderName}: 📎 File`;
+        return `${senderName}: 📎 ${t('groups.files')}`;
       case 'system':
         return message.content;
       default:
-        return `${senderName}: Message`;
+        return `${senderName}: ${t('nav.messages')}`;
     }
   };
 
@@ -89,8 +91,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No conversations</h3>
-          <p className="mt-1 text-sm text-gray-500">Start a new conversation to begin messaging.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('messaging.noConversationsYet')}</h3>
+          <p className="mt-1 text-sm text-gray-500">{t('messaging.startConversation')}</p>
         </div>
       </div>
     );
@@ -160,7 +162,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
               {conversation.type === 'direct' && conversation.participants[0]?.isOnline && (
                 <div className="flex items-center mt-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-xs text-green-600">Online</span>
+                  <span className="text-xs text-green-600">{t('messaging.online')}</span>
                 </div>
               )}
             </div>

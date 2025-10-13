@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import SimpleInviteModal from './SimpleInviteModal';
 
@@ -9,6 +10,7 @@ interface NewInviteButtonProps {
 }
 
 const NewInviteButton: React.FC<NewInviteButtonProps> = ({ groupName, groupId, className }) => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
 
   const handleClick = () => {
@@ -28,7 +30,7 @@ const NewInviteButton: React.FC<NewInviteButtonProps> = ({ groupName, groupId, c
         className={className || "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"}
       >
         <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" />
-        Invite Members
+        {t('groups.inviteMembers')}
       </button>
 
       <SimpleInviteModal

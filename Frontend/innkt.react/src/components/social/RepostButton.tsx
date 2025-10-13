@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Post } from '../../services/social.service';
 import { repostService } from '../../services/repost.service';
 import RepostModal from './RepostModal';
@@ -18,6 +19,7 @@ const RepostButton: React.FC<RepostButtonProps> = ({
   showCount = true,
   size = 'md'
 }) => {
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasReposted, setHasReposted] = useState(false);
   const [canRepost, setCanRepost] = useState(true);
@@ -41,9 +43,9 @@ const RepostButton: React.FC<RepostButtonProps> = ({
   const handleRepostClick = () => {
     if (!canRepost) {
       if (hasReposted) {
-        alert('You have already reposted this post');
+        alert(t('social.alreadyReposted'));
       } else {
-        alert('You cannot repost this content at this time');
+        alert(t('social.cannotRepost'));
       }
       return;
     }
@@ -104,7 +106,7 @@ const RepostButton: React.FC<RepostButtonProps> = ({
           ${sizeClasses.button}
           ${className}
         `}
-        title={hasReposted ? 'Already reposted' : canRepost ? 'Repost this content' : 'Cannot repost'}
+        title={hasReposted ? t('social.alreadyRepostedTitle') : canRepost ? t('social.repostThisContent') : t('social.cannotRepostTitle')}
       >
         {/* Repost Icon */}
         <svg 

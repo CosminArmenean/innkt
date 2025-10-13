@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fileUploadService, FileInfo, UploadProgress } from '../../services/fileUpload.service';
 import { 
   PaperClipIcon, 
@@ -24,6 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   disabled = false,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -67,7 +69,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       );
 
       onFileUploaded(result.file);
-      setMessage({ type: 'success', text: 'File uploaded successfully!' });
+      setMessage({ type: 'success', text: t('messaging.fileUploadedSuccessfully') });
       
       // Clear progress after a short delay
       setTimeout(() => {
@@ -75,7 +77,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         setMessage(null);
       }, 2000);
     } catch (error: any) {
-      const errorMessage = error.message || 'Failed to upload file';
+      const errorMessage = error.message || t('messaging.failedToUploadFile');
       onUploadError(errorMessage);
       setMessage({ type: 'error', text: errorMessage });
     } finally {

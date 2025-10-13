@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, PhotoIcon, ArrowDownTrayIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { backgroundRemovalService, BackgroundRemovalOptions, AvatarProcessingOptions } from '../../services/backgroundRemoval.service';
 
@@ -17,6 +18,7 @@ const BackgroundRemovalModal: React.FC<BackgroundRemovalModalProps> = ({
   mode = 'background-removal',
   title
 }) => {
+  const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);

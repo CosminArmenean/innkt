@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { socialService, Group } from '../../services/social.service';
 import { groupsService, EnhancedGroupResponse } from '../../services/groups.service';
 import GroupCard from './GroupCard';
@@ -10,6 +11,7 @@ import ScrollableContent from '../layout/ScrollableContent';
 import { useAuth } from '../../contexts/AuthContext';
 
 const GroupsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user, isAuthenticated, isLoading } = useAuth();
   const currentUserId = user?.id;
   
@@ -65,7 +67,7 @@ const GroupsPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -79,8 +81,8 @@ const GroupsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h2>
-          <p className="text-gray-600">Please log in to access the Groups page.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('groups.authenticationRequired')}</h2>
+          <p className="text-gray-600">{t('groups.pleaseLoginToAccess')}</p>
         </div>
       </div>
     );
@@ -256,19 +258,19 @@ const GroupsPage: React.FC = () => {
     <div className="space-y-4">
       {/* Quick Actions */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Quick Actions</h3>
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">{t('dashboard.quickActions')}</h3>
         <button
           onClick={() => setShowCreateModal(true)}
           className="w-full flex items-center space-x-2 bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-colors text-sm"
         >
           <PlusIcon className="h-4 w-4" />
-          <span>Create Group</span>
+          <span>{t('groups.createGroup')}</span>
         </button>
       </div>
 
       {/* Categories */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Categories</h3>
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">{t('groups.category')}</h3>
         <div className="space-y-1">
           {['Technology', 'Business', 'Education', 'Entertainment', 'Lifestyle', 'Sports', 'Health', 'Travel'].map((category) => (
             <button
@@ -293,8 +295,8 @@ const GroupsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Groups</h1>
-          <p className="text-gray-600">Discover and join communities that interest you</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('groups.exploreGroups')}</h1>
+          <p className="text-gray-600">{t('groups.discoverCommunities')}</p>
         </div>
       </div>
 
@@ -310,7 +312,7 @@ const GroupsPage: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search groups..."
+                placeholder={t('groups.searchGroups')}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
@@ -322,7 +324,7 @@ const GroupsPage: React.FC = () => {
             className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <FunnelIcon className="h-5 w-5" />
-            <span>Filters</span>
+            <span>{t('groups.filters')}</span>
           </button>
         </div>
 
@@ -331,49 +333,49 @@ const GroupsPage: React.FC = () => {
           <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('groups.category')}</label>
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="">All Categories</option>
-                  <option value="technology">Technology</option>
-                  <option value="business">Business</option>
-                  <option value="education">Education</option>
-                  <option value="entertainment">Entertainment</option>
-                  <option value="lifestyle">Lifestyle</option>
-                  <option value="sports">Sports</option>
-                  <option value="health">Health</option>
-                  <option value="travel">Travel</option>
+                  <option value="">{t('groups.allCategories')}</option>
+                  <option value="technology">{t('groups.technology')}</option>
+                  <option value="business">{t('groups.business')}</option>
+                  <option value="education">{t('groups.education')}</option>
+                  <option value="entertainment">{t('groups.entertainment')}</option>
+                  <option value="lifestyle">{t('groups.lifestyle')}</option>
+                  <option value="sports">{t('groups.sports')}</option>
+                  <option value="health">{t('groups.health')}</option>
+                  <option value="travel">{t('groups.travel')}</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('groups.type')}</label>
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="">All Types</option>
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                  <option value="secret">Secret</option>
+                  <option value="">{t('groups.allTypes')}</option>
+                  <option value="public">{t('groups.public')}</option>
+                  <option value="private">{t('groups.private')}</option>
+                  <option value="secret">{t('groups.secret')}</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('groups.sortBy')}</label>
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="popular">Most Popular</option>
-                  <option value="recent">Most Recent</option>
-                  <option value="members">Most Members</option>
-                  <option value="activity">Most Active</option>
+                  <option value="popular">{t('groups.mostPopular')}</option>
+                  <option value="recent">{t('groups.mostRecent')}</option>
+                  <option value="members">{t('groups.mostMembers')}</option>
+                  <option value="activity">{t('groups.mostActive')}</option>
                 </select>
               </div>
             </div>
@@ -383,7 +385,7 @@ const GroupsPage: React.FC = () => {
                 onClick={handleSearch}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Apply Filters
+                {t('groups.applyFilters')}
               </button>
             </div>
           </div>
@@ -394,9 +396,9 @@ const GroupsPage: React.FC = () => {
       <div className="border-b border-gray-200 mb-6 flex-shrink-0">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'all', label: 'All Groups', count: groups.length },
-            { id: 'my', label: 'My Groups', count: myGroups.length },
-            { id: 'recommended', label: 'Recommended', count: recommendedGroups.length }
+            { id: 'all', label: t('groups.allGroups'), count: groups.length },
+            { id: 'my', label: t('groups.myGroups'), count: myGroups.length },
+            { id: 'recommended', label: t('groups.recommended'), count: recommendedGroups.length }
           ].map((tab) => (
             <button
               key={tab.id}

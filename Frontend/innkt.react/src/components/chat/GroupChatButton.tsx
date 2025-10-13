@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   UserGroupIcon, 
   PlusIcon,
@@ -25,6 +26,7 @@ const GroupChatButton: React.FC<GroupChatButtonProps> = ({
   onStartGroupChat,
   className = '' 
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
 
@@ -57,7 +59,7 @@ const GroupChatButton: React.FC<GroupChatButtonProps> = ({
         className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
       >
         <UserGroupIcon className="h-5 w-5" />
-        <span className="font-medium">Group Chat</span>
+        <span className="font-medium">{t('messaging.groupChat')}</span>
         <PlusIcon className="h-4 w-4" />
       </button>
 
@@ -67,7 +69,7 @@ const GroupChatButton: React.FC<GroupChatButtonProps> = ({
           {/* Header */}
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Start Group Chat</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('messaging.startGroupChat')}</h3>
               <button
                 onClick={handleClose}
                 className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
@@ -76,7 +78,7 @@ const GroupChatButton: React.FC<GroupChatButtonProps> = ({
               </button>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Select accounts to include in the group chat
+              {t('messaging.selectAccountsForGroupChat')}
             </p>
           </div>
 
@@ -113,9 +115,9 @@ const GroupChatButton: React.FC<GroupChatButtonProps> = ({
             {linkedAccounts.length === 0 && (
               <div className="text-center py-8">
                 <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No linked accounts available</p>
+                <p className="text-gray-500">{t('messaging.noLinkedAccountsAvailable')}</p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Link accounts to start group chats
+                  {t('messaging.linkAccountsToStartGroupChats')}
                 </p>
               </div>
             )}
@@ -125,21 +127,21 @@ const GroupChatButton: React.FC<GroupChatButtonProps> = ({
           <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                {selectedAccounts.length} account{selectedAccounts.length !== 1 ? 's' : ''} selected
+                {t('messaging.accountsSelected', { count: selectedAccounts.length })}
               </div>
               <div className="flex space-x-2">
                 <button
                   onClick={handleClose}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleStartGroupChat}
                   disabled={selectedAccounts.length < 2}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Start Chat ({selectedAccounts.length})
+                  {t('messaging.startChat', { count: selectedAccounts.length })}
                 </button>
               </div>
             </div>

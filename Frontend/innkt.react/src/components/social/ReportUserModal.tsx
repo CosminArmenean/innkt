@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { socialService } from '../../services/social.service';
 
@@ -9,14 +10,14 @@ interface ReportUserModalProps {
   userName: string;
 }
 
-const REPORT_REASONS = [
-  { value: 'spam', label: 'Spam or misleading content' },
-  { value: 'harassment', label: 'Harassment or bullying' },
-  { value: 'hate_speech', label: 'Hate speech or discrimination' },
-  { value: 'inappropriate', label: 'Inappropriate content' },
-  { value: 'fake_account', label: 'Fake account or impersonation' },
-  { value: 'violence', label: 'Violence or threats' },
-  { value: 'other', label: 'Other' }
+const getReportReasons = (t: any) => [
+  { value: 'spam', label: t('social.reportReasons.spam') },
+  { value: 'harassment', label: t('social.reportReasons.harassment') },
+  { value: 'hate_speech', label: t('social.reportReasons.hateSpeech') },
+  { value: 'inappropriate', label: t('social.reportReasons.inappropriate') },
+  { value: 'fake_account', label: t('social.reportReasons.fakeAccount') },
+  { value: 'violence', label: t('social.reportReasons.violence') },
+  { value: 'other', label: t('social.reportReasons.other') }
 ];
 
 const ReportUserModal: React.FC<ReportUserModalProps> = ({
@@ -25,6 +26,8 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
   userId,
   userName
 }) => {
+  const { t } = useTranslation();
+  const reportReasons = getReportReasons(t);
   const [selectedReason, setSelectedReason] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +46,7 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
       setIsSubmitted(true);
     } catch (error) {
       console.error('Failed to report user:', error);
-      alert('Failed to submit report. Please try again.');
+      alert(t('social.failedToSubmitReport'));
     } finally {
       setIsSubmitting(false);
     }
@@ -66,7 +69,7 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <ExclamationTriangleIcon className="w-6 h-6 text-orange-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Report User</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('social.reportUser')}</h2>
             </div>
             <button
               onClick={handleClose}
@@ -83,32 +86,31 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Report Submitted</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('social.reportSubmitted')}</h3>
               <p className="text-gray-600 mb-4">
-                Thank you for your report. We'll review it and take appropriate action.
+                {t('social.thankYouForReport')}
               </p>
               <button
                 onClick={handleClose}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Close
+                {t('common.close')}
               </button>
             </div>
           ) : (
             <>
               <p className="text-gray-600 mb-6">
-                You are reporting <span className="font-medium">@{userName}</span>. 
-                Please select a reason and provide additional details if needed.
+                {t('social.reportingUser', { userName })}
               </p>
 
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reason for reporting
+                      {t('social.selectReason')}
                     </label>
                     <div className="space-y-2">
-                      {REPORT_REASONS.map((reason) => (
+                      {reportReasons.map((reason) => (
                         <label key={reason.value} className="flex items-center">
                           <input
                             type="radio"
@@ -126,12 +128,12 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Additional details (optional)
+                      {t('social.additionalDetails')}
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Please provide any additional context..."
+                      placeholder={t('social.provideMoreInfo')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                       rows={3}
                       maxLength={500}
@@ -148,14 +150,14 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
                     onClick={handleClose}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={!selectedReason || isSubmitting}
                     className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                    {isSubmitting ? t('social.submitting') : t('social.submitReport')}
                   </button>
                 </div>
               </form>

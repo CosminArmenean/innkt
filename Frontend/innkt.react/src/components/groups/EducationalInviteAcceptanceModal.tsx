@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, AcademicCapIcon, UserGroupIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { groupsService } from '../../services/groups.service';
 
@@ -33,6 +34,7 @@ const EducationalInviteAcceptanceModal: React.FC<EducationalInviteAcceptanceModa
   invitation,
   onInviteAccepted
 }) => {
+  const { t } = useTranslation();
   const [kidAccounts, setKidAccounts] = useState<KidAccount[]>([]);
   const [selectedKidId, setSelectedKidId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
