@@ -11,49 +11,48 @@
   text-align: left;
 }
 
-/* RTL Main Layout Structure */
+/* RTL Main Layout Structure - Complete Mirror */
 .rtl .main-layout {
   direction: rtl;
+  flex-direction: row-reverse; /* This flips the entire layout */
 }
 
-/* RTL Sidebar Layout - Flip the entire sidebar to the right */
+/* RTL Sidebar Layout - Move left sidebar to right side */
 .rtl .left-sidebar {
-  right: 0;
-  left: auto;
-  transform: translateX(0);
+  order: 3; /* Move to right side */
 }
 
 .rtl .right-panel {
-  left: 0;
-  right: auto;
-  transform: translateX(0);
+  order: 1; /* Move to left side */
 }
 
 /* RTL Main Content Area */
 .rtl .main-content {
+  order: 2; /* Keep in middle */
   margin-right: 0;
   margin-left: auto;
 }
 
-/* RTL Top Navigation */
+/* RTL Top Navigation - Complete Mirror using flexbox order */
 .rtl .top-navbar {
   direction: rtl;
 }
 
-.rtl .top-navbar .navbar-content {
-  flex-direction: row-reverse;
+.rtl .top-navbar > div {
+  flex-direction: row-reverse; /* Mirror the navbar container */
 }
 
-.rtl .top-navbar .search-container {
-  order: 3;
+/* In RTL: Reverse the order of direct children in navbar */
+.rtl .top-navbar > div > *:nth-child(1) {
+  order: 2; /* Search moves to center-right */
 }
 
-.rtl .top-navbar .action-buttons {
-  order: 1;
+.rtl .top-navbar > div > *:nth-child(2) {
+  order: 1; /* Actions move to left */
 }
 
-.rtl .top-navbar .profile-section {
-  order: 2;
+.rtl .top-navbar > div > *:nth-child(3) {
+  order: 3; /* If there's a 3rd element */
 }
 
 /* RTL-specific layout adjustments */
@@ -68,6 +67,25 @@
 .rtl .flex-col {
   flex-direction: column;
 }
+
+/* RTL Spacing - Flip margins and paddings */
+.rtl .ml-2 { margin-left: 0; margin-right: 0.5rem; }
+.rtl .ml-4 { margin-left: 0; margin-right: 1rem; }
+.rtl .ml-6 { margin-left: 0; margin-right: 1.5rem; }
+.rtl .mr-2 { margin-right: 0; margin-left: 0.5rem; }
+.rtl .mr-4 { margin-right: 0; margin-left: 1rem; }
+.rtl .mr-6 { margin-right: 0; margin-left: 1.5rem; }
+
+.rtl .pl-2 { padding-left: 0; padding-right: 0.5rem; }
+.rtl .pl-4 { padding-left: 0; padding-right: 1rem; }
+.rtl .pr-2 { padding-right: 0; padding-left: 0.5rem; }
+.rtl .pr-4 { padding-right: 0; padding-left: 1rem; }
+
+/* RTL Space between items */
+.rtl .space-x-1 > * + * { margin-left: 0; margin-right: 0.25rem; }
+.rtl .space-x-2 > * + * { margin-left: 0; margin-right: 0.5rem; }
+.rtl .space-x-3 > * + * { margin-left: 0; margin-right: 0.75rem; }
+.rtl .space-x-4 > * + * { margin-left: 0; margin-right: 1rem; }
 
 /* RTL Grid Layout */
 .rtl .grid {
