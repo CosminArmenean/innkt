@@ -1,0 +1,319 @@
+{
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm",
+    "warning": "Warning"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "loginButton": "Sign In",
+    "registerButton": "Create Account",
+    "orLoginWith": "or sign in with",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "loginError": "Login error. Please check your credentials.",
+    "registerError": "Registration error. Please try again.",
+    "passwordMismatch": "Passwords don't match",
+    "invalidEmail": "Invalid email",
+    "weakPassword": "Password is too weak"
+  },
+  "kidSafety": {
+    "title": "Kid Safety",
+    "dashboard": "Safety Dashboard",
+    "safetyLevel": "Safety Level",
+    "safetyLevels": {
+      "strict": "Strict",
+      "moderate": "Moderate",
+      "relaxed": "Relaxed",
+      "adaptive": "Adaptive"
+    },
+    "parentApproval": "Parent Approval",
+    "emergencyContacts": "Emergency Contacts",
+    "screenTime": "Screen Time",
+    "allowedHours": "Allowed Hours",
+    "educationalContent": "Educational Content",
+    "independenceDay": "Independence Day",
+    "safetyEvents": "Safety Events",
+    "behaviorAssessment": "Behavior Assessment"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "HELP!",
+      "pressForHelp": "Press for help",
+      "active": "ACTIVE",
+      "helpComing": "Help is coming!",
+      "confirmTitle": "Emergency Confirmation",
+      "confirmMessage": "Are you in danger and need immediate help?",
+      "cancel": "Cancel",
+      "confirm": "Yes, I need help!",
+      "activatedTitle": "Help is on the way!",
+      "activatedMessage": "Your parents and emergency services have been notified. Stay calm and safe!",
+      "errorTitle": "Emergency Error",
+      "errorMessage": "Could not send alert. Try again or call 911 directly.",
+      "tryAgain": "Try Again",
+      "ok": "I Understand",
+      "safetyReminder": "Use only in real emergencies",
+      "emergencyContacts": "Emergency Contacts",
+      "contactsAvailable": "Available offline"
+    },
+    "contacts": {
+      "title": "Emergency Contacts",
+      "addContact": "Add Contact",
+      "editContact": "Edit Contact",
+      "name": "Name",
+      "phone": "Phone",
+      "relationship": "Relationship",
+      "isPrimary": "Primary Contact",
+      "relationships": {
+        "parent": "Parent",
+        "guardian": "Guardian",
+        "family": "Family",
+        "teacher": "Teacher",
+        "neighbor": "Neighbor",
+        "emergency": "Emergency Services"
+      }
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Your Smart Assistant",
+    "welcome": {
+      "kid": "Hi! I'm Grok, your AI assistant! I can help you learn new things, answer questions, and have fun together. What do you want to know today?",
+      "adult": "Hello! I'm Grok AI. I can help with questions, explanations, and useful information. How can I assist you?"
+    },
+    "you": "You",
+    "system": "System",
+    "kidMode": "Kid Mode",
+    "kidModeDescription": "Safe and educational responses for children",
+    "educational": "📚 Educational",
+    "safetyScore": "Safety Score",
+    "sources": "Sources",
+    "followUp": "Related Questions",
+    "thinking": "Thinking...",
+    "placeholder": {
+      "kid": "Ask me anything! For example: 'How does the moon work?' or 'Help me with my math homework'",
+      "adult": "Type your question here..."
+    },
+    "safetyNotice": "🛡️ All conversations are monitored for your safety. Your parents can see this chat.",
+    "safety": {
+      "inappropriateQuestion": "I'm sorry, but I can't answer that question. Let's talk about something educational and fun instead!",
+      "parentNotified": "Your parent has been notified about this conversation."
+    },
+    "error": {
+      "general": "Sorry, I'm having a technical problem. Try again in a few moments.",
+      "network": "No internet connection. Try again later.",
+      "safety": "For your safety, I cannot process this request."
+    },
+    "suggestions": {
+      "homework": "Help with homework",
+      "science": "Explain something scientific",
+      "creative": "Let's create a story",
+      "general1": "How does...?",
+      "general2": "Explain about...",
+      "general3": "What is...?"
+    }
+  },
+  "parentDashboard": {
+    "title": "Parent Dashboard",
+    "overview": "Overview",
+    "kidAccounts": "Kid Accounts",
+    "pendingApprovals": "Pending Approvals",
+    "safetyAlerts": "Safety Alerts",
+    "screenTime": "Screen Time",
+    "activitySummary": "Activity Summary",
+    "educationalProgress": "Educational Progress",
+    "independencePlanning": "Independence Planning",
+    "communityConnection": "Community Connection",
+    "settings": "Settings",
+    "approvals": {
+      "title": "Approval Requests",
+      "followRequest": "Follow Request",
+      "messageRequest": "Message Request",
+      "contentShare": "Content Share",
+      "approve": "Approve",
+      "deny": "Deny",
+      "viewProfile": "View Profile",
+      "safetyScore": "Safety Score: {{score}}%",
+      "recommendation": "Recommendation: {{recommendation}}"
+    }
+  },
+  "compliance": {
+    "gdpr": {
+      "title": "Data Protection (GDPR)",
+      "consentTitle": "Data Processing Consent",
+      "consentMessage": "To provide our safe services for children, we need your consent to process personal data in accordance with GDPR.",
+      "dataTypes": {
+        "profile": "Profile data (name, age, email)",
+        "activity": "Platform activity (posts, messages)",
+        "safety": "Safety data (emergency contacts, settings)",
+        "analytics": "Usage analytics (for improvements)"
+      },
+      "purposes": {
+        "safety": "Child safety and protection",
+        "education": "Educational and learning features",
+        "communication": "Communication between parents and children",
+        "improvement": "Service improvements"
+      },
+      "rights": {
+        "title": "Your GDPR Rights",
+        "access": "Right to access personal data",
+        "rectification": "Right to data rectification",
+        "erasure": "Right to data erasure",
+        "portability": "Right to data portability",
+        "objection": "Right to object to processing"
+      },
+      "dataExport": {
+        "title": "Data Export",
+        "description": "Download all personal data associated with your account.",
+        "button": "Request Data Export",
+        "processing": "Processing your request...",
+        "ready": "Export is ready for download",
+        "download": "Download"
+      },
+      "dataErasure": {
+        "title": "Data Erasure",
+        "description": "Request complete erasure of personal data.",
+        "warning": "⚠️ This action is irreversible and will permanently delete all data.",
+        "button": "Request Data Erasure",
+        "confirm": "I confirm I want to delete all data"
+      }
+    },
+    "privacy": {
+      "title": "Privacy",
+      "settings": "Privacy Settings",
+      "dataUsage": "Data Usage",
+      "thirdParty": "Third-Party Sharing",
+      "retention": "Data Retention",
+      "contact": "Data Protection Contact"
+    }
+  },
+  "premium": {
+    "title": "Family Premium",
+    "upgrade": "Upgrade to Premium",
+    "features": {
+      "unlimited": "Unlimited kid accounts",
+      "advanced": "Advanced AI safety",
+      "priority": "Priority support",
+      "analytics": "Detailed analytics",
+      "customization": "Advanced customization"
+    },
+    "pricing": {
+      "basic": "Free",
+      "plus": "Family Plus - $9.99/month",
+      "premium": "Family Premium - $19.99/month",
+      "enterprise": "School - $99.99/month"
+    },
+    "trial": "14-day free trial"
+  },
+  "ads": {
+    "sponsored": "Sponsored",
+    "adChoices": "Ad Choices",
+    "reportAd": "Report Ad",
+    "whyThisAd": "Why this ad?",
+    "notForKids": "This ad is not for kids",
+    "familyFriendly": "Family-friendly content"
+  },
+  "education": {
+    "title": "Education",
+    "progress": "Progress",
+    "achievements": "Achievements",
+    "learningPath": "Learning Path",
+    "subjects": {
+      "math": "Math",
+      "science": "Science",
+      "history": "History",
+      "literature": "Literature",
+      "geography": "Geography",
+      "art": "Art",
+      "music": "Music",
+      "sports": "Sports"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
+  },
+  "social": {
+    "feed": "Feed",
+    "posts": "Posts",
+    "comments": "Comments",
+    "likes": "Likes",
+    "shares": "Shares",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "message": "Message",
+    "profile": "Profile",
+    "friends": "Friends",
+    "family": "Family",
+    "blocked": "Blocked",
+    "report": "Report",
+    "inappropriate": "Inappropriate content"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "settings": "Notification settings",
+    "types": {
+      "safety": "Safety",
+      "approval": "Approval",
+      "educational": "Educational",
+      "social": "Social",
+      "emergency": "Emergency"
+    },
+    "channels": {
+      "inApp": "In-app",
+      "email": "Email",
+      "push": "Push",
+      "sms": "SMS"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "privacy": "Privacy",
+    "notifications": "Notifications",
+    "language": "Language",
+    "theme": "Theme",
+    "help": "Help",
+    "about": "About",
+    "logout": "Logout",
+    "deleteAccount": "Delete Account"
+  },
+  "errors": {
+    "network": "Network error. Check your internet connection.",
+    "server": "Server error. Please try later.",
+    "unauthorized": "You are not authorized to access this resource.",
+    "forbidden": "Access forbidden.",
+    "notFound": "Resource not found.",
+    "validation": "Invalid data. Check the information entered.",
+    "unknown": "An unexpected error occurred."
+  },
+  "offline": {
+    "title": "Offline",
+    "message": "No internet connection. Some features may be limited.",
+    "retry": "Try to reconnect",
+    "cached": "Locally saved content",
+    "syncWhenOnline": "Will sync when back online"
+  }
+}
+

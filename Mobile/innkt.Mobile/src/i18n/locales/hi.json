@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "हाँ",
+    "no": "नहीं",
+    "ok": "ठीक है",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "retry": "पुनः प्रयास करें",
+    "close": "बंद करें",
+    "back": "वापस",
+    "next": "अगला",
+    "previous": "पिछला",
+    "confirm": "पुष्टि करें",
+    "warning": "चेतावनी"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "logout": "लॉगआउट",
+    "register": "पंजीकरण",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "loginButton": "लॉगिन करें",
+    "registerButton": "खाता बनाएं",
+    "loginError": "लॉगिन त्रुटि। अपना डेटा जांचें।",
+    "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+    "invalidEmail": "अमान्य ईमेल",
+    "weakPassword": "पासवर्ड बहुत कमजोर है"
+  },
+  "kidSafety": {
+    "title": "बाल सुरक्षा",
+    "dashboard": "सुरक्षा डैशबोर्ड",
+    "safetyLevel": "सुरक्षा स्तर"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "मदद!",
+      "pressForHelp": "मदद के लिए दबाएं",
+      "confirmMessage": "क्या आप खतरे में हैं और तत्काल मदद की आवश्यकता है?"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - आपका स्मार्ट सहायक",
+    "thinking": "सोच रहा है..."
+  },
+  "social": {
+    "feed": "फ़ीड",
+    "posts": "पोस्ट",
+    "comments": "टिप्पणियाँ",
+    "likes": "पसंद",
+    "follow": "फ़ॉलो करें",
+    "profile": "प्रोफ़ाइल"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "language": "भाषा",
+    "logout": "लॉगआउट"
+  },
+  "errors": {
+    "network": "नेटवर्क त्रुटि। अपना इंटरनेट कनेक्शन जांचें।",
+    "server": "सर्वर त्रुटि। बाद में पुनः प्रयास करें।"
+  },
+  "offline": {
+    "title": "ऑफ़लाइन",
+    "message": "कोई इंटरनेट कनेक्शन नहीं।"
+  }
+}
+

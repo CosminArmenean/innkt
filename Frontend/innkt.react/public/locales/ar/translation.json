@@ -1,0 +1,68 @@
+{
+  "common": {
+    "innkt": "INNKT",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "نجح",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا",
+    "close": "إغلاق",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "search": "بحث",
+    "refresh": "تحديث"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "register": "التسجيل",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟"
+  },
+  "social": {
+    "feed": "التغذية",
+    "posts": "المنشورات",
+    "comments": "التعليقات",
+    "likes": "الإعجابات",
+    "follow": "متابعة",
+    "unfollow": "إلغاء المتابعة",
+    "profile": "الملف الشخصي",
+    "repost": "إعادة نشر"
+  },
+  "groups": {
+    "createGroup": "إنشاء مجموعة",
+    "joinGroup": "انضم إلى المجموعة",
+    "leaveGroup": "مغادرة المجموعة",
+    "members": "الأعضاء",
+    "topics": "المواضيع"
+  },
+  "messaging": {
+    "messages": "الرسائل",
+    "newMessage": "رسالة جديدة",
+    "typeMessage": "اكتب رسالة...",
+    "sendMessage": "إرسال رسالة"
+  },
+  "settings": {
+    "settings": "الإعدادات",
+    "language": "اللغة",
+    "privacy": "الخصوصية",
+    "notifications": "الإشعارات"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "profile": "الملف الشخصي",
+    "messages": "الرسائل",
+    "groups": "المجموعات",
+    "search": "بحث"
+  }
+}
+

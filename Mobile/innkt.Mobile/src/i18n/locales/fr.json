@@ -1,0 +1,145 @@
+{
+  "common": {
+    "yes": "Oui",
+    "no": "Non",
+    "ok": "OK",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "confirm": "Confirmer",
+    "warning": "Avertissement"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "S'inscrire",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "loginButton": "Se connecter",
+    "registerButton": "Créer un compte",
+    "orLoginWith": "ou se connecter avec",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "loginError": "Erreur de connexion. Vérifiez vos informations.",
+    "registerError": "Erreur d'inscription. Réessayez.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "invalidEmail": "Email invalide",
+    "weakPassword": "Le mot de passe est trop faible"
+  },
+  "kidSafety": {
+    "title": "Sécurité des Enfants",
+    "dashboard": "Tableau de Sécurité",
+    "safetyLevel": "Niveau de Sécurité",
+    "safetyLevels": {
+      "strict": "Strict",
+      "moderate": "Modéré",
+      "relaxed": "Détendu",
+      "adaptive": "Adaptatif"
+    },
+    "parentApproval": "Approbation parentale",
+    "emergencyContacts": "Contacts d'urgence",
+    "screenTime": "Temps d'écran",
+    "allowedHours": "Heures autorisées",
+    "educationalContent": "Contenu éducatif",
+    "independenceDay": "Jour de l'Indépendance",
+    "safetyEvents": "Événements de sécurité",
+    "behaviorAssessment": "Évaluation du comportement"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "AIDE !",
+      "pressForHelp": "Appuyez pour de l'aide",
+      "active": "ACTIF",
+      "helpComing": "L'aide arrive !",
+      "confirmTitle": "Confirmation d'Urgence",
+      "confirmMessage": "Êtes-vous en danger et avez-vous besoin d'aide immédiate ?",
+      "cancel": "Annuler",
+      "confirm": "Oui, j'ai besoin d'aide !",
+      "activatedTitle": "L'aide est en route !",
+      "activatedMessage": "Vos parents et les services d'urgence ont été notifiés. Restez calme et en sécurité !",
+      "errorTitle": "Erreur d'Urgence",
+      "errorMessage": "Impossible d'envoyer l'alerte. Réessayez ou appelez directement.",
+      "tryAgain": "Réessayer",
+      "ok": "Compris",
+      "safetyReminder": "Utilisez uniquement en cas d'urgence réelle",
+      "emergencyContacts": "Contacts d'urgence",
+      "contactsAvailable": "Disponible hors ligne"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Votre Assistant Intelligent",
+    "welcome": {
+      "kid": "Salut ! Je suis Grok, ton assistant intelligent ! Je peux t'aider à apprendre de nouvelles choses et répondre à tes questions. Que veux-tu savoir aujourd'hui ?",
+      "adult": "Bonjour ! Je suis Grok AI. Je peux vous aider avec des questions et des explications. Comment puis-je vous aider ?"
+    },
+    "you": "Vous",
+    "system": "Système",
+    "kidMode": "Mode Enfants",
+    "kidModeDescription": "Réponses sûres et éducatives pour les enfants",
+    "educational": "📚 Éducatif",
+    "safetyScore": "Score de sécurité",
+    "sources": "Sources",
+    "followUp": "Questions similaires",
+    "thinking": "Je réfléchis...",
+    "placeholder": {
+      "kid": "Demande-moi n'importe quoi ! Par exemple : 'Comment fonctionne la lune ?' ou 'Aide-moi avec mes devoirs de maths'",
+      "adult": "Tapez votre question ici..."
+    }
+  },
+  "social": {
+    "feed": "Fil d'actualité",
+    "posts": "Publications",
+    "comments": "Commentaires",
+    "likes": "J'aime",
+    "shares": "Partages",
+    "follow": "Suivre",
+    "unfollow": "Ne plus suivre",
+    "message": "Message",
+    "profile": "Profil",
+    "friends": "Amis",
+    "family": "Famille",
+    "blocked": "Bloqué",
+    "report": "Signaler",
+    "inappropriate": "Contenu inapproprié"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "account": "Compte",
+    "privacy": "Confidentialité",
+    "notifications": "Notifications",
+    "language": "Langue",
+    "theme": "Thème",
+    "help": "Aide",
+    "about": "À propos",
+    "logout": "Déconnexion",
+    "deleteAccount": "Supprimer le compte"
+  },
+  "errors": {
+    "network": "Erreur réseau. Vérifiez votre connexion internet.",
+    "server": "Erreur serveur. Réessayez plus tard.",
+    "unauthorized": "Vous n'êtes pas autorisé à accéder à cette ressource.",
+    "forbidden": "Accès interdit.",
+    "notFound": "Ressource non trouvée.",
+    "validation": "Données invalides. Vérifiez les informations saisies.",
+    "unknown": "Une erreur inattendue s'est produite."
+  },
+  "offline": {
+    "title": "Hors ligne",
+    "message": "Pas de connexion internet. Certaines fonctionnalités peuvent être limitées.",
+    "retry": "Essayer de reconnecter",
+    "cached": "Contenu sauvegardé localement",
+    "syncWhenOnline": "Se synchronisera lorsque vous serez de nouveau en ligne"
+  }
+}
+

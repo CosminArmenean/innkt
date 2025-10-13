@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "Evet",
+    "no": "Hayır",
+    "ok": "Tamam",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "retry": "Tekrar dene",
+    "close": "Kapat",
+    "back": "Geri",
+    "next": "İleri",
+    "previous": "Önceki",
+    "confirm": "Onayla",
+    "warning": "Uyarı"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "logout": "Çıkış Yap",
+    "register": "Kayıt Ol",
+    "email": "E-posta",
+    "password": "Şifre",
+    "confirmPassword": "Şifreyi Onayla",
+    "forgotPassword": "Şifrenizi mi unuttunuz?",
+    "loginButton": "Giriş Yap",
+    "registerButton": "Hesap Oluştur",
+    "loginError": "Giriş hatası. Verilerinizi kontrol edin.",
+    "passwordMismatch": "Şifreler eşleşmiyor",
+    "invalidEmail": "Geçersiz e-posta",
+    "weakPassword": "Şifre çok zayıf"
+  },
+  "kidSafety": {
+    "title": "Çocuk Güvenliği",
+    "dashboard": "Güvenlik Panosu",
+    "safetyLevel": "Güvenlik Seviyesi"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "YARDIM!",
+      "pressForHelp": "Yardım için basın",
+      "confirmMessage": "Tehlikedesiniz ve acil yardıma mı ihtiyacınız var?"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Akıllı Asistanınız",
+    "thinking": "Düşünüyor..."
+  },
+  "social": {
+    "feed": "Akış",
+    "posts": "Gönderiler",
+    "comments": "Yorumlar",
+    "likes": "Beğeniler",
+    "follow": "Takip Et",
+    "profile": "Profil"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "logout": "Çıkış Yap"
+  },
+  "errors": {
+    "network": "Ağ hatası. İnternet bağlantınızı kontrol edin.",
+    "server": "Sunucu hatası. Daha sonra tekrar deneyin."
+  },
+  "offline": {
+    "title": "Çevrimdışı",
+    "message": "İnternet bağlantısı yok."
+  }
+}
+

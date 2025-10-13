@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "Да",
+    "no": "Нет",
+    "ok": "OK",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успех",
+    "retry": "Повторить",
+    "close": "Закрыть",
+    "back": "Назад",
+    "next": "Далее",
+    "previous": "Предыдущий",
+    "confirm": "Подтвердить",
+    "warning": "Предупреждение"
+  },
+  "auth": {
+    "login": "Войти",
+    "logout": "Выйти",
+    "register": "Зарегистрироваться",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "forgotPassword": "Забыли пароль?",
+    "loginButton": "Войти",
+    "registerButton": "Создать аккаунт",
+    "loginError": "Ошибка входа. Проверьте данные.",
+    "passwordMismatch": "Пароли не совпадают",
+    "invalidEmail": "Недействительный email",
+    "weakPassword": "Пароль слишком слабый"
+  },
+  "kidSafety": {
+    "title": "Безопасность Детей",
+    "dashboard": "Панель Безопасности",
+    "safetyLevel": "Уровень Безопасности"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "ПОМОЩЬ!",
+      "pressForHelp": "Нажмите для помощи",
+      "confirmMessage": "Вы в опасности и нуждаетесь в немедленной помощи?"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Ваш Умный Помощник",
+    "thinking": "Думаю..."
+  },
+  "social": {
+    "feed": "Лента",
+    "posts": "Посты",
+    "comments": "Комментарии",
+    "likes": "Лайки",
+    "follow": "Подписаться",
+    "profile": "Профиль"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "logout": "Выйти"
+  },
+  "errors": {
+    "network": "Ошибка сети. Проверьте подключение к интернету.",
+    "server": "Ошибка сервера. Попробуйте позже."
+  },
+  "offline": {
+    "title": "Офлайн",
+    "message": "Нет подключения к интернету."
+  }
+}
+

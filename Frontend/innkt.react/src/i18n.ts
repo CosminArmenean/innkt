@@ -11,7 +11,7 @@ i18n
   .init({
     fallbackLng: 'en',
     lng: getCurrentLanguagePreference(), // Use preferred language from JWT token
-    supportedLngs: ['en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'cs', 'hu', 'ro', 'he', 'ja', 'ko', 'hi'],
+    supportedLngs: ['en', 'ro', 'he', 'ar', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'ko', 'hi', 'tr', 'nl', 'pl', 'cs', 'hu'],
     
     backend: {
       loadPath: '/locales/{{lng}}/translation.json',

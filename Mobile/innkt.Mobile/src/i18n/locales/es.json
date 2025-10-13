@@ -1,0 +1,145 @@
+{
+  "common": {
+    "yes": "Sí",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "retry": "Reintentar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "confirm": "Confirmar",
+    "warning": "Advertencia"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "register": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "loginButton": "Iniciar sesión",
+    "registerButton": "Crear cuenta",
+    "orLoginWith": "o inicia sesión con",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "loginError": "Error al iniciar sesión. Verifica tus datos.",
+    "registerError": "Error al registrarse. Inténtalo de nuevo.",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "invalidEmail": "Correo electrónico inválido",
+    "weakPassword": "La contraseña es demasiado débil"
+  },
+  "kidSafety": {
+    "title": "Seguridad Infantil",
+    "dashboard": "Panel de Seguridad",
+    "safetyLevel": "Nivel de Seguridad",
+    "safetyLevels": {
+      "strict": "Estricto",
+      "moderate": "Moderado",
+      "relaxed": "Relajado",
+      "adaptive": "Adaptativo"
+    },
+    "parentApproval": "Aprobación de los padres",
+    "emergencyContacts": "Contactos de emergencia",
+    "screenTime": "Tiempo de pantalla",
+    "allowedHours": "Horas permitidas",
+    "educationalContent": "Contenido educativo",
+    "independenceDay": "Día de la Independencia",
+    "safetyEvents": "Eventos de seguridad",
+    "behaviorAssessment": "Evaluación de comportamiento"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "¡AYUDA!",
+      "pressForHelp": "Presiona para pedir ayuda",
+      "active": "ACTIVO",
+      "helpComing": "¡La ayuda está en camino!",
+      "confirmTitle": "Confirmación de Emergencia",
+      "confirmMessage": "¿Estás en peligro y necesitas ayuda inmediata?",
+      "cancel": "Cancelar",
+      "confirm": "¡Sí, necesito ayuda!",
+      "activatedTitle": "¡Ayuda en camino!",
+      "activatedMessage": "Tus padres y los servicios de emergencia han sido notificados. ¡Mantén la calma y quédate seguro!",
+      "errorTitle": "Error de Emergencia",
+      "errorMessage": "No se pudo enviar la alerta. Inténtalo de nuevo o llama directamente.",
+      "tryAgain": "Intentar de nuevo",
+      "ok": "Entendido",
+      "safetyReminder": "Usa solo en emergencias reales",
+      "emergencyContacts": "Contactos de emergencia",
+      "contactsAvailable": "Disponible sin conexión"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Tu Asistente Inteligente",
+    "welcome": {
+      "kid": "¡Hola! Soy Grok, tu asistente inteligente. Puedo ayudarte a aprender cosas nuevas y responder preguntas. ¿Qué quieres saber hoy?",
+      "adult": "¡Hola! Soy Grok AI. Puedo ayudarte con preguntas y explicaciones. ¿Cómo puedo ayudarte?"
+    },
+    "you": "Tú",
+    "system": "Sistema",
+    "kidMode": "Modo Niños",
+    "kidModeDescription": "Respuestas seguras y educativas para niños",
+    "educational": "📚 Educativo",
+    "safetyScore": "Puntuación de seguridad",
+    "sources": "Fuentes",
+    "followUp": "Preguntas relacionadas",
+    "thinking": "Pensando...",
+    "placeholder": {
+      "kid": "¡Pregúntame lo que quieras! Por ejemplo: '¿Cómo funciona la luna?' o 'Ayúdame con mi tarea de matemáticas'",
+      "adult": "Escribe tu pregunta aquí..."
+    }
+  },
+  "social": {
+    "feed": "Feed",
+    "posts": "Publicaciones",
+    "comments": "Comentarios",
+    "likes": "Me gusta",
+    "shares": "Compartir",
+    "follow": "Seguir",
+    "unfollow": "Dejar de seguir",
+    "message": "Mensaje",
+    "profile": "Perfil",
+    "friends": "Amigos",
+    "family": "Familia",
+    "blocked": "Bloqueado",
+    "report": "Reportar",
+    "inappropriate": "Contenido inapropiado"
+  },
+  "settings": {
+    "title": "Configuración",
+    "account": "Cuenta",
+    "privacy": "Privacidad",
+    "notifications": "Notificaciones",
+    "language": "Idioma",
+    "theme": "Tema",
+    "help": "Ayuda",
+    "about": "Acerca de",
+    "logout": "Cerrar sesión",
+    "deleteAccount": "Eliminar cuenta"
+  },
+  "errors": {
+    "network": "Error de red. Verifica tu conexión a internet.",
+    "server": "Error del servidor. Inténtalo más tarde.",
+    "unauthorized": "No estás autorizado para acceder a este recurso.",
+    "forbidden": "Acceso prohibido.",
+    "notFound": "Recurso no encontrado.",
+    "validation": "Datos inválidos. Verifica la información ingresada.",
+    "unknown": "Ocurrió un error inesperado."
+  },
+  "offline": {
+    "title": "Sin conexión",
+    "message": "No hay conexión a internet. Algunas funciones pueden estar limitadas.",
+    "retry": "Intentar reconectar",
+    "cached": "Contenido guardado localmente",
+    "syncWhenOnline": "Se sincronizará cuando vuelvas a estar en línea"
+  }
+}
+

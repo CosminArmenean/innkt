@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "はい",
+    "no": "いいえ",
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "retry": "再試行",
+    "close": "閉じる",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "confirm": "確認",
+    "warning": "警告"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "register": "登録",
+    "email": "メール",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "loginButton": "ログイン",
+    "registerButton": "アカウント作成",
+    "loginError": "ログインエラー。データを確認してください。",
+    "passwordMismatch": "パスワードが一致しません",
+    "invalidEmail": "無効なメール",
+    "weakPassword": "パスワードが弱すぎます"
+  },
+  "kidSafety": {
+    "title": "子供の安全",
+    "dashboard": "安全ダッシュボード",
+    "safetyLevel": "安全レベル"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "助けて！",
+      "pressForHelp": "ヘルプを押す",
+      "confirmMessage": "危険にさらされており、すぐに助けが必要ですか？"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - スマートアシスタント",
+    "thinking": "考え中..."
+  },
+  "social": {
+    "feed": "フィード",
+    "posts": "投稿",
+    "comments": "コメント",
+    "likes": "いいね",
+    "follow": "フォロー",
+    "profile": "プロフィール"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "logout": "ログアウト"
+  },
+  "errors": {
+    "network": "ネットワークエラー。インターネット接続を確認してください。",
+    "server": "サーバーエラー。後で試してください。"
+  },
+  "offline": {
+    "title": "オフライン",
+    "message": "インターネット接続がありません。"
+  }
+}
+

@@ -1,0 +1,102 @@
+{
+  "common": {
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "retry": "Wiederholen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorherige",
+    "confirm": "Bestätigen",
+    "warning": "Warnung"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "register": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "forgotPassword": "Passwort vergessen?",
+    "loginButton": "Anmelden",
+    "registerButton": "Konto erstellen",
+    "orLoginWith": "oder anmelden mit",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "dontHaveAccount": "Sie haben noch kein Konto?",
+    "loginError": "Anmeldefehler. Überprüfen Sie Ihre Daten.",
+    "registerError": "Registrierungsfehler. Bitte versuchen Sie es erneut.",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein",
+    "invalidEmail": "Ungültige E-Mail",
+    "weakPassword": "Das Passwort ist zu schwach"
+  },
+  "kidSafety": {
+    "title": "Kindersicherheit",
+    "dashboard": "Sicherheits-Dashboard",
+    "safetyLevel": "Sicherheitsstufe",
+    "safetyLevels": {
+      "strict": "Streng",
+      "moderate": "Moderat",
+      "relaxed": "Entspannt",
+      "adaptive": "Adaptiv"
+    }
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "HILFE!",
+      "pressForHelp": "Drücken für Hilfe",
+      "active": "AKTIV",
+      "helpComing": "Hilfe ist unterwegs!",
+      "confirmTitle": "Notfallbestätigung",
+      "confirmMessage": "Sind Sie in Gefahr und benötigen sofortige Hilfe?",
+      "cancel": "Abbrechen",
+      "confirm": "Ja, ich brauche Hilfe!",
+      "activatedMessage": "Ihre Eltern und Notdienste wurden benachrichtigt. Bleiben Sie ruhig und sicher!"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Ihr intelligenter Assistent",
+    "you": "Sie",
+    "system": "System",
+    "kidMode": "Kindermodus",
+    "thinking": "Nachdenken..."
+  },
+  "social": {
+    "feed": "Feed",
+    "posts": "Beiträge",
+    "comments": "Kommentare",
+    "likes": "Gefällt mir",
+    "shares": "Teilen",
+    "follow": "Folgen",
+    "unfollow": "Nicht mehr folgen",
+    "profile": "Profil",
+    "friends": "Freunde",
+    "family": "Familie"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "account": "Konto",
+    "privacy": "Datenschutz",
+    "notifications": "Benachrichtigungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "logout": "Abmelden"
+  },
+  "errors": {
+    "network": "Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.",
+    "server": "Serverfehler. Bitte versuchen Sie es später erneut.",
+    "unauthorized": "Sie sind nicht berechtigt, auf diese Ressource zuzugreifen."
+  },
+  "offline": {
+    "title": "Offline",
+    "message": "Keine Internetverbindung. Einige Funktionen könnten eingeschränkt sein."
+  }
+}
+

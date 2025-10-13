@@ -28,7 +28,7 @@ export const environment = {
     name: 'INNKT',
     version: '1.0.9',
     defaultLanguage: 'en',
-    supportedLanguages: ['en', 'he', 'ar'],
+    supportedLanguages: ['en', 'ro', 'he', 'ar', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'ko', 'hi', 'tr'],
     theme: {
       primaryColor: '#6E31A6',
       secondaryColor: '#8B5CF6',

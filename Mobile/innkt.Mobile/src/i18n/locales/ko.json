@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "예",
+    "no": "아니오",
+    "ok": "확인",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "편집",
+    "loading": "로딩 중...",
+    "error": "오류",
+    "success": "성공",
+    "retry": "재시도",
+    "close": "닫기",
+    "back": "뒤로",
+    "next": "다음",
+    "previous": "이전",
+    "confirm": "확인",
+    "warning": "경고"
+  },
+  "auth": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "register": "회원가입",
+    "email": "이메일",
+    "password": "비밀번호",
+    "confirmPassword": "비밀번호 확인",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "loginButton": "로그인",
+    "registerButton": "계정 만들기",
+    "loginError": "로그인 오류. 데이터를 확인하세요.",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다",
+    "invalidEmail": "유효하지 않은 이메일",
+    "weakPassword": "비밀번호가 너무 약합니다"
+  },
+  "kidSafety": {
+    "title": "어린이 안전",
+    "dashboard": "안전 대시보드",
+    "safetyLevel": "안전 수준"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "도와주세요!",
+      "pressForHelp": "도움을 요청하려면 누르세요",
+      "confirmMessage": "위험에 처했으며 즉시 도움이 필요하신가요?"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - 스마트 어시스턴트",
+    "thinking": "생각 중..."
+  },
+  "social": {
+    "feed": "피드",
+    "posts": "게시물",
+    "comments": "댓글",
+    "likes": "좋아요",
+    "follow": "팔로우",
+    "profile": "프로필"
+  },
+  "settings": {
+    "title": "설정",
+    "language": "언어",
+    "logout": "로그아웃"
+  },
+  "errors": {
+    "network": "네트워크 오류. 인터넷 연결을 확인하세요.",
+    "server": "서버 오류. 나중에 다시 시도하세요."
+  },
+  "offline": {
+    "title": "오프라인",
+    "message": "인터넷 연결이 없습니다."
+  }
+}
+

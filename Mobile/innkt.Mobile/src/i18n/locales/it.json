@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "Sì",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "success": "Successo",
+    "retry": "Riprova",
+    "close": "Chiudi",
+    "back": "Indietro",
+    "next": "Avanti",
+    "previous": "Precedente",
+    "confirm": "Conferma",
+    "warning": "Avviso"
+  },
+  "auth": {
+    "login": "Accedi",
+    "logout": "Esci",
+    "register": "Registrati",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Conferma password",
+    "forgotPassword": "Password dimenticata?",
+    "loginButton": "Accedi",
+    "registerButton": "Crea account",
+    "loginError": "Errore di accesso. Controlla i tuoi dati.",
+    "passwordMismatch": "Le password non corrispondono",
+    "invalidEmail": "Email non valida",
+    "weakPassword": "La password è troppo debole"
+  },
+  "kidSafety": {
+    "title": "Sicurezza Bambini",
+    "dashboard": "Dashboard Sicurezza",
+    "safetyLevel": "Livello di Sicurezza"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "AIUTO!",
+      "pressForHelp": "Premi per aiuto",
+      "confirmMessage": "Sei in pericolo e hai bisogno di aiuto immediato?"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - Il tuo Assistente Intelligente",
+    "thinking": "Pensando..."
+  },
+  "social": {
+    "feed": "Feed",
+    "posts": "Post",
+    "comments": "Commenti",
+    "likes": "Mi piace",
+    "follow": "Segui",
+    "profile": "Profilo"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "language": "Lingua",
+    "logout": "Esci"
+  },
+  "errors": {
+    "network": "Errore di rete. Controlla la tua connessione internet.",
+    "server": "Errore del server. Riprova più tardi."
+  },
+  "offline": {
+    "title": "Offline",
+    "message": "Nessuna connessione internet."
+  }
+}
+

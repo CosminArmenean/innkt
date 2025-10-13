@@ -1,0 +1,145 @@
+{
+  "common": {
+    "yes": "כן",
+    "no": "לא",
+    "ok": "אישור",
+    "cancel": "ביטול",
+    "save": "שמור",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "retry": "נסה שוב",
+    "close": "סגור",
+    "back": "חזור",
+    "next": "הבא",
+    "previous": "קודם",
+    "confirm": "אשר",
+    "warning": "אזהרה"
+  },
+  "auth": {
+    "login": "התחברות",
+    "logout": "התנתקות",
+    "register": "הרשמה",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "confirmPassword": "אשר סיסמה",
+    "forgotPassword": "שכחת סיסמה?",
+    "loginButton": "התחבר",
+    "registerButton": "צור חשבון",
+    "orLoginWith": "או התחבר עם",
+    "alreadyHaveAccount": "כבר יש לך חשבון?",
+    "dontHaveAccount": "אין לך חשבון?",
+    "loginError": "שגיאת התחברות. בדוק את הפרטים.",
+    "registerError": "שגיאת הרשמה. נסה שוב.",
+    "passwordMismatch": "הסיסמאות לא תואמות",
+    "invalidEmail": "אימייל לא תקין",
+    "weakPassword": "הסיסמה חלשה מדי"
+  },
+  "kidSafety": {
+    "title": "בטיחות ילדים",
+    "dashboard": "לוח בטיחות",
+    "safetyLevel": "רמת בטיחות",
+    "safetyLevels": {
+      "strict": "קפדני",
+      "moderate": "מתון",
+      "relaxed": "רגוע",
+      "adaptive": "מסתגל"
+    },
+    "parentApproval": "אישור הורה",
+    "emergencyContacts": "אנשי קשר לחירום",
+    "screenTime": "זמן מסך",
+    "allowedHours": "שעות מותרות",
+    "educationalContent": "תוכן חינוכי",
+    "independenceDay": "יום העצמאות",
+    "safetyEvents": "אירועי בטיחות",
+    "behaviorAssessment": "הערכת התנהגות"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "עזרה!",
+      "pressForHelp": "לחץ לעזרה",
+      "active": "פעיל",
+      "helpComing": "עזרה בדרך!",
+      "confirmTitle": "אישור חירום",
+      "confirmMessage": "האם אתה בסכנה וזקוק לעזרה מיידית?",
+      "cancel": "ביטול",
+      "confirm": "כן, אני צריך עזרה!",
+      "activatedTitle": "עזרה בדרך!",
+      "activatedMessage": "ההורים שלך ושירותי החירום קיבלו התראה. הישאר רגוע ובטוח!",
+      "errorTitle": "שגיאת חירום",
+      "errorMessage": "לא ניתן לשלוח התראה. נסה שוב או התקשר ישירות.",
+      "tryAgain": "נסה שוב",
+      "ok": "הבנתי",
+      "safetyReminder": "השתמש רק במצבי חירום אמיתיים",
+      "emergencyContacts": "אנשי קשר לחירום",
+      "contactsAvailable": "זמין במצב לא מקוון"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - העוזר החכם שלך",
+    "welcome": {
+      "kid": "שלום! אני Grok, העוזר החכם שלך! אני יכול לעזור לך ללמוד דברים חדשים ולענות על שאלות. מה תרצה לדעת היום?",
+      "adult": "שלום! אני Grok AI. אני יכול לעזור עם שאלות והסברים. איך אוכל לעזור?"
+    },
+    "you": "את/ה",
+    "system": "מערכת",
+    "kidMode": "מצב ילדים",
+    "kidModeDescription": "תשובות בטוחות וחינוכיות לילדים",
+    "educational": "📚 חינוכי",
+    "safetyScore": "ציון בטיחות",
+    "sources": "מקורות",
+    "followUp": "שאלות דומות",
+    "thinking": "חושב...",
+    "placeholder": {
+      "kid": "שאל אותי כל דבר! למשל: 'איך הירח עובד?' או 'עזור לי בשיעורי בית במתמטיקה'",
+      "adult": "הקלד את השאלה כאן..."
+    }
+  },
+  "social": {
+    "feed": "פיד",
+    "posts": "פוסטים",
+    "comments": "תגובות",
+    "likes": "לייקים",
+    "shares": "שיתופים",
+    "follow": "עקוב",
+    "unfollow": "הפסק לעקוב",
+    "message": "הודעה",
+    "profile": "פרופיל",
+    "friends": "חברים",
+    "family": "משפחה",
+    "blocked": "חסום",
+    "report": "דווח",
+    "inappropriate": "תוכן לא הולם"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "account": "חשבון",
+    "privacy": "פרטיות",
+    "notifications": "התראות",
+    "language": "שפה",
+    "theme": "ערכת נושא",
+    "help": "עזרה",
+    "about": "אודות",
+    "logout": "התנתק",
+    "deleteAccount": "מחק חשבון"
+  },
+  "errors": {
+    "network": "שגיאת רשת. בדוק את החיבור לאינטרנט.",
+    "server": "שגיאת שרת. נסה מאוחר יותר.",
+    "unauthorized": "אינך מורשה לגשת למשאב זה.",
+    "forbidden": "גישה אסורה.",
+    "notFound": "המשאב לא נמצא.",
+    "validation": "נתונים לא תקינים. בדוק את המידע שהוזן.",
+    "unknown": "אירעה שגיאה בלתי צפויה."
+  },
+  "offline": {
+    "title": "לא מקוון",
+    "message": "אין חיבור לאינטרנט. חלק מהתכונות עשויות להיות מוגבלות.",
+    "retry": "נסה להתחבר מחדש",
+    "cached": "תוכן שמור מקומית",
+    "syncWhenOnline": "יסונכרן כשתחזור למצב מקוון"
+  }
+}
+

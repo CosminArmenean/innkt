@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "Sim",
+    "no": "Não",
+    "ok": "OK",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "A carregar...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "retry": "Tentar novamente",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "confirm": "Confirmar",
+    "warning": "Aviso"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Registar",
+    "email": "Email",
+    "password": "Palavra-passe",
+    "confirmPassword": "Confirmar palavra-passe",
+    "forgotPassword": "Esqueceu a palavra-passe?",
+    "loginButton": "Entrar",
+    "registerButton": "Criar conta",
+    "loginError": "Erro de login. Verifique os seus dados.",
+    "passwordMismatch": "As palavras-passe não correspondem",
+    "invalidEmail": "Email inválido",
+    "weakPassword": "A palavra-passe é muito fraca"
+  },
+  "kidSafety": {
+    "title": "Segurança Infantil",
+    "dashboard": "Painel de Segurança",
+    "safetyLevel": "Nível de Segurança"
+  },
+  "emergency": {
+    "panicButton": {
+      "help": "AJUDA!",
+      "pressForHelp": "Pressione para ajuda",
+      "confirmMessage": "Está em perigo e precisa de ajuda imediata?"
+    }
+  },
+  "grok": {
+    "title": "Grok AI - O seu Assistente Inteligente",
+    "thinking": "A pensar..."
+  },
+  "social": {
+    "feed": "Feed",
+    "posts": "Publicações",
+    "comments": "Comentários",
+    "likes": "Gostos",
+    "follow": "Seguir",
+    "profile": "Perfil"
+  },
+  "settings": {
+    "title": "Definições",
+    "language": "Idioma",
+    "logout": "Sair"
+  },
+  "errors": {
+    "network": "Erro de rede. Verifique a sua ligação à internet.",
+    "server": "Erro do servidor. Tente mais tarde."
+  },
+  "offline": {
+    "title": "Offline",
+    "message": "Sem ligação à internet."
+  }
+}
+
