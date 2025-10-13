@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMessaging } from '../../contexts/MessagingContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../providers/LanguageProvider';
 import PostCreation from '../social/PostCreation';
 import QuickSearch from '../search/QuickSearch';
 import NotificationBell from '../notifications/NotificationBell';
@@ -22,6 +23,7 @@ const TopNavbar: React.FC = () => {
   const { conversations, unreadCount, isLoading: messagesLoading } = useMessaging();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { isRTL } = useLanguage();
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -94,10 +96,10 @@ const TopNavbar: React.FC = () => {
   }, []);
 
   return (
-    <div ref={navbarRef} className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40">
-      <div className="flex items-center justify-between">
+    <div ref={navbarRef} className={`bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40 top-navbar ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div className={`flex items-center justify-between navbar-content ${isRTL ? 'rtl' : 'ltr'}`}>
         {/* Search Bar - Hidden on mobile */}
-        <div className="hidden md:flex flex-1 max-w-2xl">
+        <div className={`hidden md:flex flex-1 max-w-2xl search-container ${isRTL ? 'rtl' : 'ltr'}`}>
           <QuickSearch
             placeholder="Search for friends, groups, pages..."
             className="w-full"
@@ -116,7 +118,7 @@ const TopNavbar: React.FC = () => {
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 ml-2 sm:ml-4 md:ml-6">
+        <div className={`flex items-center space-x-1 sm:space-x-2 md:space-x-4 ml-2 sm:ml-4 md:ml-6 action-buttons ${isRTL ? 'rtl' : 'ltr'}`}>
           {/* Create Post Button */}
           <button
             onClick={handleCreatePost}

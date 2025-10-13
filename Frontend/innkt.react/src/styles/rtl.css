@@ -11,6 +11,51 @@
   text-align: left;
 }
 
+/* RTL Main Layout Structure */
+.rtl .main-layout {
+  direction: rtl;
+}
+
+/* RTL Sidebar Layout - Flip the entire sidebar to the right */
+.rtl .left-sidebar {
+  right: 0;
+  left: auto;
+  transform: translateX(0);
+}
+
+.rtl .right-panel {
+  left: 0;
+  right: auto;
+  transform: translateX(0);
+}
+
+/* RTL Main Content Area */
+.rtl .main-content {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+/* RTL Top Navigation */
+.rtl .top-navbar {
+  direction: rtl;
+}
+
+.rtl .top-navbar .navbar-content {
+  flex-direction: row-reverse;
+}
+
+.rtl .top-navbar .search-container {
+  order: 3;
+}
+
+.rtl .top-navbar .action-buttons {
+  order: 1;
+}
+
+.rtl .top-navbar .profile-section {
+  order: 2;
+}
+
 /* RTL-specific layout adjustments */
 .rtl .flex {
   flex-direction: row-reverse;
@@ -22,6 +67,107 @@
 
 .rtl .flex-col {
   flex-direction: column;
+}
+
+/* RTL Grid Layout */
+.rtl .grid {
+  direction: rtl;
+}
+
+.rtl .grid-cols-1 {
+  direction: rtl;
+}
+
+.rtl .grid-cols-2 {
+  direction: rtl;
+}
+
+.rtl .grid-cols-3 {
+  direction: rtl;
+}
+
+/* RTL Post Layout */
+.rtl .post-container {
+  direction: rtl;
+}
+
+.rtl .post-header {
+  flex-direction: row-reverse;
+}
+
+.rtl .post-avatar {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+.rtl .post-content {
+  text-align: right;
+}
+
+.rtl .post-actions {
+  flex-direction: row-reverse;
+}
+
+/* RTL Search Layout */
+.rtl .search-input {
+  text-align: right;
+  padding-right: 2.5rem;
+  padding-left: 1rem;
+}
+
+.rtl .search-icon {
+  right: 0.75rem;
+  left: auto;
+}
+
+/* RTL Navigation Items */
+.rtl .nav-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.rtl .nav-item .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL User Profile */
+.rtl .user-profile {
+  flex-direction: row-reverse;
+}
+
+.rtl .user-avatar {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL Button Groups */
+.rtl .btn-group {
+  flex-direction: row-reverse;
+}
+
+.rtl .btn-group .btn {
+  margin-right: 0;
+  margin-left: 0.25rem;
+}
+
+/* RTL Card Layout */
+.rtl .card {
+  direction: rtl;
+}
+
+.rtl .card-header {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.rtl .card-body {
+  text-align: right;
+}
+
+.rtl .card-footer {
+  flex-direction: row-reverse;
+  text-align: right;
 }
 
 /* RTL sidebar adjustments */

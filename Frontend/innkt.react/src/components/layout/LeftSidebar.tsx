@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useLanguage } from '../providers/LanguageProvider';
 import Logo from '../common/Logo';
 import { 
   HomeIcon, 
@@ -28,6 +29,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { counts } = useNotifications();
+  const { isRTL } = useLanguage();
   const location = useLocation();
   const [showAdvancedMenu, setShowAdvancedMenu] = useState(false);
 
@@ -50,7 +52,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <div className={`${collapsed ? 'w-16' : 'w-56'} bg-purple-600 text-white flex flex-col h-screen transition-all duration-300 ease-in-out`}>
+    <div className={`${collapsed ? 'w-16' : 'w-56'} bg-purple-600 text-white flex flex-col h-screen transition-all duration-300 ease-in-out left-sidebar ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Logo and Toggle */}
       <div className="p-4 border-b border-purple-500 flex items-center justify-between">
         {!collapsed && (
@@ -82,9 +84,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full bg-purple-500 text-white placeholder-purple-200 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className={`w-full bg-purple-500 text-white placeholder-purple-200 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-300 search-input ${isRTL ? 'rtl' : 'ltr'}`}
             />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none search-icon ${isRTL ? 'rtl' : 'ltr'}`}>
               <svg className="h-5 w-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -99,14 +101,14 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
           <Link
             key={item.name}
             to={item.href}
-            className={`flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3'} rounded-lg transition-colors ${
+            className={`flex items-center nav-item ${collapsed ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3'} rounded-lg transition-colors ${
               isActive(item.href)
                 ? 'bg-purple-500 text-white'
                 : 'text-purple-100 hover:bg-purple-500 hover:text-white'
-            }`}
+            } ${isRTL ? 'rtl' : 'ltr'}`}
             title={collapsed ? item.name : undefined}
           >
-            <div className={`flex items-center ${collapsed ? '' : 'space-x-3'}`}>
+            <div className={`flex items-center ${collapsed ? '' : 'space-x-3'} ${isRTL ? 'rtl' : 'ltr'}`}>
               <item.icon className="h-5 w-5" />
               {!collapsed && <span>{item.name}</span>}
             </div>

@@ -25,9 +25,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className={`h-screen bg-gray-50 flex overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`} dir={direction}>
+    <div className={`h-screen bg-gray-50 flex overflow-hidden main-layout ${isRTL ? 'rtl' : 'ltr'}`} dir={direction}>
       {/* Left Sidebar - Fixed */}
-      <div className="flex-shrink-0">
+      <div className={`flex-shrink-0 ${isRTL ? 'left-sidebar' : ''}`}>
         <LeftSidebar 
           collapsed={sidebarCollapsed} 
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
@@ -35,7 +35,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </div>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 ${isRTL ? 'main-content' : ''}`}>
         {/* Top Navigation - Fixed */}
         <div className="flex-shrink-0">
           <TopNavbar />
@@ -50,7 +50,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </main>
           
           {/* Right Panel - Hidden on mobile */}
-          <div className="hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)] scrollbar-none">
+          <div className={`hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)] scrollbar-none ${isRTL ? 'right-panel' : ''}`}>
             <RightPanel />
           </div>
         </div>
