@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import PostCreation from '../social/PostCreation';
 import QuickSearch from '../search/QuickSearch';
 import NotificationBell from '../notifications/NotificationBell';
+import LanguageSelector from '../language/LanguageSelector';
 import { 
   MagnifyingGlassIcon, 
   PlusIcon, 
@@ -253,6 +254,13 @@ const TopNavbar: React.FC = () => {
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                     {t('settings.appearance')}
                   </button>
+                  
+                  {/* Language Selector */}
+                  <div className="px-4 py-2 border-t border-gray-200">
+                    <div className="text-xs text-gray-500 mb-2">{t('settings.language')}</div>
+                    <LanguageSelector compact={true} showNativeNames={false} />
+                  </div>
+                  
                   <button 
                     onClick={() => {
                       navigate('/settings/language');
@@ -260,7 +268,7 @@ const TopNavbar: React.FC = () => {
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    {t('settings.language')}
+                    {t('settings.language')} Settings
                   </button>
                   <hr className="my-2" />
                   <button 

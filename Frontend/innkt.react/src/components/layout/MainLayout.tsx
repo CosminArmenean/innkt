@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../providers/LanguageProvider';
 import LeftSidebar from './LeftSidebar';
 import RightPanel from './RightPanel';
 import TopNavbar from './TopNavbar';
@@ -13,6 +14,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { t } = useTranslation();
   const { isAuthenticated, isLoading } = useAuth();
+  const { isRTL, direction } = useLanguage();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   console.log('MainLayout render - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
@@ -23,7 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
+    <div className={`h-screen bg-gray-50 flex overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`} dir={direction}>
       {/* Left Sidebar - Fixed */}
       <div className="flex-shrink-0">
         <LeftSidebar 

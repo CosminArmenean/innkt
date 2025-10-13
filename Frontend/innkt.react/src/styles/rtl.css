@@ -1,0 +1,425 @@
+/* RTL (Right-to-Left) Support for Hebrew and Arabic */
+
+/* Base RTL styles */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL-specific layout adjustments */
+.rtl .flex {
+  flex-direction: row-reverse;
+}
+
+.rtl .flex-row {
+  flex-direction: row-reverse;
+}
+
+.rtl .flex-col {
+  flex-direction: column;
+}
+
+/* RTL sidebar adjustments */
+.rtl .sidebar {
+  right: 0;
+  left: auto;
+}
+
+.rtl .main-content {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+/* RTL text alignment */
+.rtl .text-left {
+  text-align: right;
+}
+
+.rtl .text-right {
+  text-align: left;
+}
+
+.rtl .text-center {
+  text-align: center;
+}
+
+/* RTL margin and padding adjustments */
+.rtl .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rtl .mr-auto {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+.rtl .pl-4 {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+.rtl .pr-4 {
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+.rtl .ml-4 {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+.rtl .mr-4 {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+/* RTL icon positioning */
+.rtl .icon-left {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+.rtl .icon-right {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* RTL navigation adjustments */
+.rtl .nav-item {
+  text-align: right;
+}
+
+.rtl .nav-item .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL form elements */
+.rtl input,
+.rtl textarea,
+.rtl select {
+  text-align: right;
+}
+
+.rtl .form-label {
+  text-align: right;
+}
+
+/* RTL button adjustments */
+.rtl .btn .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+.rtl .btn-icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL card adjustments */
+.rtl .card-header {
+  text-align: right;
+}
+
+.rtl .card-body {
+  text-align: right;
+}
+
+/* RTL list adjustments */
+.rtl .list-item {
+  text-align: right;
+}
+
+.rtl .list-item .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL modal adjustments */
+.rtl .modal-header {
+  text-align: right;
+}
+
+.rtl .modal-body {
+  text-align: right;
+}
+
+.rtl .modal-footer {
+  text-align: right;
+}
+
+/* RTL dropdown adjustments */
+.rtl .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+.rtl .dropdown-item {
+  text-align: right;
+}
+
+/* RTL table adjustments */
+.rtl table {
+  direction: rtl;
+}
+
+.rtl th,
+.rtl td {
+  text-align: right;
+}
+
+/* RTL grid adjustments */
+.rtl .grid {
+  direction: rtl;
+}
+
+/* RTL specific utility classes */
+.rtl .float-left {
+  float: right;
+}
+
+.rtl .float-right {
+  float: left;
+}
+
+.rtl .clear-left {
+  clear: right;
+}
+
+.rtl .clear-right {
+  clear: left;
+}
+
+/* RTL border adjustments */
+.rtl .border-l {
+  border-left: none;
+  border-right: 1px solid;
+}
+
+.rtl .border-r {
+  border-right: none;
+  border-left: 1px solid;
+}
+
+/* RTL shadow adjustments */
+.rtl .shadow-left {
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.rtl .shadow-right {
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* RTL scrollbar adjustments */
+.rtl .scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.rtl .scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rtl .scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.rtl .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+/* RTL animation adjustments */
+.rtl .slide-in-left {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.rtl .slide-in-right {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* RTL responsive adjustments */
+@media (max-width: 768px) {
+  .rtl .mobile-nav {
+    right: 0;
+    left: auto;
+  }
+  
+  .rtl .mobile-menu {
+    text-align: right;
+  }
+}
+
+/* RTL print styles */
+@media print {
+  .rtl {
+    direction: rtl;
+  }
+  
+  .rtl .no-print {
+    display: none;
+  }
+}
+
+/* RTL focus styles */
+.rtl input:focus,
+.rtl textarea:focus,
+.rtl select:focus {
+  outline: 2px solid #6E31A6;
+  outline-offset: 2px;
+}
+
+/* RTL selection styles */
+.rtl ::selection {
+  background-color: #6E31A6;
+  color: white;
+}
+
+/* RTL placeholder styles */
+.rtl input::placeholder,
+.rtl textarea::placeholder {
+  text-align: right;
+}
+
+/* RTL specific component overrides */
+.rtl .sidebar-nav {
+  text-align: right;
+}
+
+.rtl .sidebar-nav .nav-link {
+  text-align: right;
+  padding-right: 1rem;
+  padding-left: 0.5rem;
+}
+
+.rtl .sidebar-nav .nav-link .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+.rtl .top-nav {
+  text-align: right;
+}
+
+.rtl .top-nav .nav-item {
+  text-align: right;
+}
+
+.rtl .top-nav .nav-item .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL language selector */
+.rtl .language-selector {
+  text-align: right;
+}
+
+.rtl .language-selector select {
+  text-align: right;
+  direction: rtl;
+}
+
+.rtl .language-selector option {
+  text-align: right;
+  direction: rtl;
+}
+
+/* RTL search bar */
+.rtl .search-bar {
+  text-align: right;
+}
+
+.rtl .search-bar input {
+  text-align: right;
+  padding-right: 2.5rem;
+  padding-left: 1rem;
+}
+
+.rtl .search-bar .search-icon {
+  right: 0.75rem;
+  left: auto;
+}
+
+/* RTL notification adjustments */
+.rtl .notification {
+  text-align: right;
+}
+
+.rtl .notification .icon {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL breadcrumb adjustments */
+.rtl .breadcrumb {
+  direction: rtl;
+}
+
+.rtl .breadcrumb-item {
+  text-align: right;
+}
+
+.rtl .breadcrumb-item::after {
+  content: "\\";
+  margin-right: 0.5rem;
+  margin-left: 0;
+}
+
+.rtl .breadcrumb-item:last-child::after {
+  content: "";
+}
+
+/* RTL pagination adjustments */
+.rtl .pagination {
+  direction: rtl;
+}
+
+.rtl .pagination .page-item {
+  text-align: right;
+}
+
+/* RTL tooltip adjustments */
+.rtl .tooltip {
+  text-align: right;
+}
+
+.rtl .tooltip-arrow {
+  right: 50%;
+  left: auto;
+  transform: translateX(50%);
+}
+
+/* RTL popover adjustments */
+.rtl .popover {
+  text-align: right;
+}
+
+.rtl .popover-arrow {
+  right: 50%;
+  left: auto;
+  transform: translateX(50%);
+}

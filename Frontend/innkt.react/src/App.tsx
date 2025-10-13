@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { MessagingProvider } from './contexts/MessagingContext';
+import { LanguageProvider } from './components/providers/LanguageProvider';
 import './i18n'; // Initialize i18next
+import './styles/rtl.css'; // RTL support styles
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout'; 
 import Home from './components/pages/Home';
@@ -28,11 +30,11 @@ import MessagingDashboard from './components/messaging/MessagingDashboard';
 import FollowersPage from './components/social/FollowersPage';
 import Unauthorized from './components/pages/Unauthorized';
 import Setup2FA from './components/auth/Setup2FA';
+import LanguageSettings from './components/pages/LanguageSettings';
 import NotificationToast from './components/notifications/NotificationToast';
 import NotificationsPage from './pages/NotificationsPage';
 import PostDetail from './components/social/PostDetail';
 import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
-import LanguageSettings from './components/settings/LanguageSettings';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
 
@@ -75,9 +77,10 @@ function App() {
 
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <MessagingProvider>
-          <Router>
+      <LanguageProvider>
+        <NotificationProvider>
+          <MessagingProvider>
+            <Router>
           <div className="min-h-screen bg-gray-50">
           <MainLayout>
             <Routes>
@@ -216,8 +219,9 @@ function App() {
           <PWAInstallPrompt />
         </div>
       </Router>
-        </MessagingProvider>
-      </NotificationProvider>
+          </MessagingProvider>
+        </NotificationProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 }
