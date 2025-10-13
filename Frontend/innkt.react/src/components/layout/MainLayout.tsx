@@ -26,35 +26,73 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className={`h-screen bg-gray-50 flex overflow-hidden main-layout ${isRTL ? 'rtl' : 'ltr'}`} dir={direction}>
-      {/* Left Sidebar - Fixed */}
-      <div className={`flex-shrink-0 ${isRTL ? 'left-sidebar' : ''}`}>
-        <LeftSidebar 
-          collapsed={sidebarCollapsed} 
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-        />
-      </div>
-      
-      {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col min-w-0 ${isRTL ? 'main-content' : ''}`}>
-        {/* Top Navigation - Fixed */}
-        <div className="flex-shrink-0">
-          <TopNavbar />
-        </div>
-        
-        {/* Main Content - Scrollable */}
-        <div className="flex-1 flex min-h-0">
-          <main className="flex-1 px-2 sm:px-4 py-4 sm:py-6 overflow-y-auto pb-20 lg:pb-6 scrollbar-none">
-            <div className="max-w-4xl mx-auto">
-              {children}
-            </div>
-          </main>
-          
-          {/* Right Panel - Hidden on mobile */}
-          <div className={`hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)] scrollbar-none ${isRTL ? 'right-panel' : ''}`}>
+      {isRTL ? (
+        // RTL Layout: Right Panel -> Main Content -> Left Sidebar
+        <>
+          {/* Right Panel - Now on the left in RTL */}
+          <div className="hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)] scrollbar-none right-panel">
             <RightPanel />
           </div>
-        </div>
-      </div>
+          
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0 main-content">
+            {/* Top Navigation - Fixed */}
+            <div className="flex-shrink-0">
+              <TopNavbar />
+            </div>
+            
+            {/* Main Content - Scrollable */}
+            <div className="flex-1 flex min-h-0">
+              <main className="flex-1 px-2 sm:px-4 py-4 sm:py-6 overflow-y-auto pb-20 lg:pb-6 scrollbar-none">
+                <div className="max-w-4xl mx-auto">
+                  {children}
+                </div>
+              </main>
+            </div>
+          </div>
+          
+          {/* Left Sidebar - Now on the right in RTL */}
+          <div className="flex-shrink-0 left-sidebar">
+            <LeftSidebar 
+              collapsed={sidebarCollapsed} 
+              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+            />
+          </div>
+        </>
+      ) : (
+        // LTR Layout: Left Sidebar -> Main Content -> Right Panel
+        <>
+          {/* Left Sidebar - Fixed */}
+          <div className="flex-shrink-0">
+            <LeftSidebar 
+              collapsed={sidebarCollapsed} 
+              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+            />
+          </div>
+          
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Top Navigation - Fixed */}
+            <div className="flex-shrink-0">
+              <TopNavbar />
+            </div>
+            
+            {/* Main Content - Scrollable */}
+            <div className="flex-1 flex min-h-0">
+              <main className="flex-1 px-2 sm:px-4 py-4 sm:py-6 overflow-y-auto pb-20 lg:pb-6 scrollbar-none">
+                <div className="max-w-4xl mx-auto">
+                  {children}
+                </div>
+              </main>
+              
+              {/* Right Panel - Hidden on mobile */}
+              <div className="hidden lg:block overflow-y-auto max-h-[calc(100vh-4rem)] scrollbar-none">
+                <RightPanel />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       
       {/* Bottom Navigation - Mobile only - HIDDEN FOR NOW */}
       {/* <BottomNavigation /> */}
