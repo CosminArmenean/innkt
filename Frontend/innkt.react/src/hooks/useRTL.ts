@@ -38,7 +38,7 @@ export const useRTL = () => {
   return {
     isRTL,
     language: i18n.language,
-    direction: isRTL ? 'rtl' : 'ltr'
+    direction: (isRTL ? 'rtl' : 'ltr') as 'ltr' | 'rtl'
   };
 };
 

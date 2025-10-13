@@ -37,6 +37,17 @@ class LanguageService {
       return await response.json();
     } catch (error) {
       console.warn('Failed to detect language from backend, using fallback:', error);
+      
+      // Check localStorage first
+      const storedLanguage = localStorage.getItem('innkt_language');
+      if (storedLanguage) {
+        return {
+          language: storedLanguage,
+          metadata: this.getFallbackLanguageMetadata(storedLanguage),
+          source: 'cookie'
+        };
+      }
+      
       return this.getFallbackLanguage();
     }
   }
@@ -83,8 +94,17 @@ class LanguageService {
 
       return await response.json();
     } catch (error) {
-      console.error('Failed to set language:', error);
-      throw error;
+      console.warn('Failed to set language on backend, using fallback:', error);
+      
+      // Fallback: Set language in localStorage and return success
+      localStorage.setItem('innkt_language', language);
+      const metadata = this.getFallbackLanguageMetadata(language);
+      
+      return {
+        success: true,
+        language,
+        metadata
+      };
     }
   }
 
