@@ -35,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.CountryCode).HasMaxLength(20);
             entity.Property(e => e.Gender).HasMaxLength(10);
             entity.Property(e => e.Language).HasMaxLength(10).HasDefaultValue("en");
+            entity.Property(e => e.PreferredLanguage).HasMaxLength(10).HasDefaultValue("en");
             entity.Property(e => e.Theme).HasMaxLength(10).HasDefaultValue("light");
             entity.Property(e => e.ProfilePictureUrl).HasMaxLength(500);
             

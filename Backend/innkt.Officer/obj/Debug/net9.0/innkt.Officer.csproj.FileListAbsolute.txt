@@ -525,3 +525,16 @@ C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\runtime
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\AspNetCoreRateLimit.dll
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\en.json
 C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\es.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\cs.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\de.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\fr.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\he.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\hi.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\hu.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\it.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\ja.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\ko.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\nl.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\pl.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\pt.json
+C:\Users\cosmi\source\repos\innkt\Backend\innkt.Officer\bin\Debug\net9.0\Resources\ro.json

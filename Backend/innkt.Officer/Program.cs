@@ -1,6 +1,7 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using innkt.Officer.Data;
+using innkt.Officer.Middleware;
 using innkt.Officer.Models;
 using innkt.Officer.Services;
 using innkt.StringLibrary.Data;
@@ -111,6 +112,10 @@ builder.Services.AddScoped<IMfaService, MfaService>();
 builder.Services.AddScoped<IKidAccountService, KidAccountService>();
 builder.Services.AddScoped<IUserVerificationService, UserVerificationService>();
 builder.Services.AddScoped<IUsernameValidationService, UsernameValidationService>();
+builder.Services.AddScoped<LanguageDetectionService>();
+
+// Add HttpContextAccessor for language detection
+builder.Services.AddHttpContextAccessor();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -203,6 +208,9 @@ app.UseIdentityServer();
 
 // Use request localization (detects language from Accept-Language header)
 app.UseRequestLocalization();
+
+// Use language detection middleware (cookie > database > header > default)
+app.UseLanguageDetection();
 
 app.UseAuthentication();
 app.UseAuthorization();
