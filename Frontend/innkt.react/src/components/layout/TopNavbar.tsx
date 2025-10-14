@@ -101,6 +101,67 @@ const TopNavbar: React.FC = () => {
                     </span>
                   )}
                 </button>
+                
+                {/* Messages Dropdown */}
+                {showMessages && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <div className="px-4 py-2 border-b border-gray-200">
+                        <h3 className="text-sm font-medium text-gray-900">{t('messaging.recentConversations')}</h3>
+                      </div>
+                      {conversations && conversations.length > 0 ? (
+                        <div className="max-h-64 overflow-y-auto">
+                          {conversations.slice(0, 5).map((conversation) => (
+                            <button
+                              key={conversation.id}
+                              onClick={() => {
+                                navigate('/messaging');
+                                setShowMessages(false);
+                              }}
+                              className="block w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                  <span className="text-purple-600 text-sm font-medium">
+                                    {conversation.participants?.[0]?.displayName?.charAt(0) || 'U'}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {conversation.participants?.[0]?.displayName} {conversation.participants?.[0]?.username}
+                                  </p>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    {conversation.lastMessage?.content || t('messaging.noMessages')}
+                                  </p>
+                                </div>
+                                {conversation.unreadCount > 0 && (
+                                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                                    {conversation.unreadCount}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                          {t('messaging.noConversations')}
+                        </div>
+                      )}
+                      <div className="border-t border-gray-200 px-4 py-2">
+                        <button
+                          onClick={() => {
+                            navigate('/messaging');
+                            setShowMessages(false);
+                          }}
+                          className="w-full text-center text-sm text-purple-600 hover:text-purple-700 font-medium"
+                        >
+                          {t('messaging.viewAll')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="relative">
@@ -110,6 +171,32 @@ const TopNavbar: React.FC = () => {
                 >
                   <Cog6ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
+                
+                {/* Settings Dropdown */}
+                {showSettings && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.settings')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/settings/language')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('settings.language')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/security')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.security')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="relative">
@@ -123,6 +210,33 @@ const TopNavbar: React.FC = () => {
                     </span>
                   </div>
                 </button>
+                
+                {/* Account Dropdown */}
+                {showAccount && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => navigate(`/profile/${user?.id}`)}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.profile')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.settings')}
+                      </button>
+                      <hr className="my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        {t('auth.logout')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -193,6 +307,67 @@ const TopNavbar: React.FC = () => {
                     </span>
                   )}
                 </button>
+                
+                {/* Messages Dropdown */}
+                {showMessages && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <div className="px-4 py-2 border-b border-gray-200">
+                        <h3 className="text-sm font-medium text-gray-900">{t('messaging.recentConversations')}</h3>
+                      </div>
+                      {conversations && conversations.length > 0 ? (
+                        <div className="max-h-64 overflow-y-auto">
+                          {conversations.slice(0, 5).map((conversation) => (
+                            <button
+                              key={conversation.id}
+                              onClick={() => {
+                                navigate('/messaging');
+                                setShowMessages(false);
+                              }}
+                              className="block w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                  <span className="text-purple-600 text-sm font-medium">
+                                    {conversation.participants?.[0]?.displayName?.charAt(0) || 'U'}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {conversation.participants?.[0]?.displayName} {conversation.participants?.[0]?.username}
+                                  </p>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    {conversation.lastMessage?.content || t('messaging.noMessages')}
+                                  </p>
+                                </div>
+                                {conversation.unreadCount > 0 && (
+                                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                                    {conversation.unreadCount}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                          {t('messaging.noConversations')}
+                        </div>
+                      )}
+                      <div className="border-t border-gray-200 px-4 py-2">
+                        <button
+                          onClick={() => {
+                            navigate('/messaging');
+                            setShowMessages(false);
+                          }}
+                          className="w-full text-center text-sm text-purple-600 hover:text-purple-700 font-medium"
+                        >
+                          {t('messaging.viewAll')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="relative">
@@ -202,6 +377,32 @@ const TopNavbar: React.FC = () => {
                 >
                   <Cog6ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
+                
+                {/* Settings Dropdown */}
+                {showSettings && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.settings')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/settings/language')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('settings.language')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/security')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.security')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="relative">
@@ -215,6 +416,33 @@ const TopNavbar: React.FC = () => {
                     </span>
                   </div>
                 </button>
+                
+                {/* Account Dropdown */}
+                {showAccount && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => navigate(`/profile/${user?.id}`)}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.profile')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t('nav.settings')}
+                      </button>
+                      <hr className="my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        {t('auth.logout')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </>
