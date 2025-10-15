@@ -80,7 +80,8 @@
     "premiumMember": "Membro Premium",
     "admin": "Administrador",
     "linkedAccounts": "Contas Ligadas",
-    "kidsAccounts": "Contas de Crianças"
+    "kidsAccounts": "Contas de Crianças",
+    "security": "Security"
   },
   "dashboard": {
     "title": "Painel",
@@ -189,10 +190,9 @@
     "qrScanInstructions": "Segure a câmera do seu dispositivo em frente ao código QR mostrado pelo seu pai. A entrada ocorrerá automaticamente assim que o código for reconhecido.",
     "googleAuthComingSoon": "A autenticação Google será implementada em breve!",
     "continueWithGoogle": "Continuar com Google",
-    "setup2FA": "Configurar Autenticação de Dois Fatores",
+    "setup2FA": "Configurará a autenticação de dois fatores",
     "addExtraSecurity": "Ative a autenticação de dois fatores para adicionar uma camada extra de segurança à sua conta.",
     "chooseVerificationMethod": "Escolha o Seu Método de Verificação",
-    "email": "Email",
     "receiveCodesEmail": "Receber códigos de verificação por email",
     "sms": "SMS",
     "receiveCodesSMS": "Receber códigos de verificação por SMS",
@@ -244,7 +244,6 @@
     "privacyPolicy": "Política de Privacidade",
     "whatHappensNext": "O que acontece a seguir?",
     "verifyEmail": "Vamos verificar o seu endereço de email",
-    "setup2FA": "Configurará a autenticação de dois fatores",
     "accountReady": "A sua conta será criada e pronta a usar",
     "createAccount": "Criar Conta",
     "creating": "A criar...",
@@ -579,7 +578,9 @@
     "mostPopular": "Mais Popular",
     "mostRecent": "Mais Recente",
     "mostMembers": "Mais Membros",
-    "mostActive": "Mais Ativo"
+    "mostActive": "Mais Ativo",
+    "myGroups": "My Groups",
+    "all": "All"
   },
   "messaging": {
     "newMessage": "Nova Mensagem",
@@ -700,7 +701,26 @@
     "deletePost": "Eliminar Publicação",
     "viewPost": "Ver Publicação",
     "likes": "gostos",
-    "comments": "comentários",
+    "comments": {
+      "replyingTo": "A responder a",
+      "commentingOn": "A comentar em",
+      "unknown": "desconhecido",
+      "replyToUser": "Responder a @{{username}}...",
+      "writeComment": "Escrever um comentário...",
+      "mentionSomeone": "Mencionar alguém",
+      "addHashtag": "Adicionar hashtag",
+      "addEmoji": "Adicionar emoji",
+      "addMedia": "Adicionar multimédia",
+      "askGrokAI": "Perguntar a Grok AI - Clique para adicionar @grok ao seu comentário",
+      "posting": "A publicar...",
+      "post": "Publicar",
+      "searchUsers": "Pesquisar utilizadores...",
+      "userSearchNotImplemented": "Pesquisa de utilizadores ainda não implementada",
+      "searchHashtags": "Pesquisar hashtags...",
+      "hashtagSearchNotImplemented": "Pesquisa de hashtags ainda não implementada",
+      "commentTooLong": "O comentário é demasiado longo. Por favor remova {{count}} caracteres.",
+      "unknownUser": "Utilizador Desconhecido"
+    },
     "shares": "partilhas",
     "repost": "Republicar",
     "reposted": "Republicado",
@@ -826,26 +846,6 @@
       "failedToUploadMedia": "Falha ao carregar alguns ficheiros multimédia. Publicação criada sem multimédia.",
       "dragDropFiles": "Arraste e solte ficheiros aqui ou clique para navegar",
       "maxFileSize": "Tamanho máximo do ficheiro: {{size}}MB"
-    },
-    "comments": {
-      "replyingTo": "A responder a",
-      "commentingOn": "A comentar em",
-      "unknown": "desconhecido",
-      "replyToUser": "Responder a @{{username}}...",
-      "writeComment": "Escrever um comentário...",
-      "mentionSomeone": "Mencionar alguém",
-      "addHashtag": "Adicionar hashtag",
-      "addEmoji": "Adicionar emoji",
-      "addMedia": "Adicionar multimédia",
-      "askGrokAI": "Perguntar a Grok AI - Clique para adicionar @grok ao seu comentário",
-      "posting": "A publicar...",
-      "post": "Publicar",
-      "searchUsers": "Pesquisar utilizadores...",
-      "userSearchNotImplemented": "Pesquisa de utilizadores ainda não implementada",
-      "searchHashtags": "Pesquisar hashtags...",
-      "hashtagSearchNotImplemented": "Pesquisa de hashtags ainda não implementada",
-      "commentTooLong": "O comentário é demasiado longo. Por favor remova {{count}} caracteres.",
-      "unknownUser": "Utilizador Desconhecido"
     }
   },
   "notifications": {
@@ -1048,5 +1048,21 @@
     "cacheStatus": "Estado da Cache",
     "checkForUpdates": "Verificar Atualizações",
     "clearCache": "Limpar Cache"
+  },
+  "theme": {
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode",
+    "theme": "Theme",
+    "appearance": "Appearance",
+    "colorScheme": "Color Scheme",
+    "systemDefault": "System Default",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "themeDescription": "Choose your preferred color scheme",
+    "themeInfo": "Theme Information",
+    "themeInfoDescription": "The theme affects the overall appearance of the interface. You can choose between light, dark, or automatic based on your system preferences."
   }
 }

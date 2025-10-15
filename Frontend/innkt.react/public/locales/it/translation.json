@@ -80,7 +80,8 @@
     "premiumMember": "Membro Premium",
     "admin": "Amministratore",
     "linkedAccounts": "Account Collegati",
-    "kidsAccounts": "Account Bambini"
+    "kidsAccounts": "Account Bambini",
+    "security": "Security"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -189,10 +190,9 @@
     "qrScanInstructions": "Tieni la fotocamera del tuo dispositivo davanti al codice QR mostrato dal tuo genitore. L'accesso avverrà automaticamente una volta riconosciuto il codice.",
     "googleAuthComingSoon": "L'autenticazione Google sarà presto implementata!",
     "continueWithGoogle": "Continua con Google",
-    "setup2FA": "Configura Autenticazione a Due Fattori",
+    "setup2FA": "Configurerai l'autenticazione a due fattori",
     "addExtraSecurity": "Abilita l'autenticazione a due fattori per aggiungere un ulteriore livello di sicurezza al tuo account.",
     "chooseVerificationMethod": "Scegli il Tuo Metodo di Verifica",
-    "email": "Email",
     "receiveCodesEmail": "Ricevi codici di verifica via email",
     "sms": "SMS",
     "receiveCodesSMS": "Ricevi codici di verifica via SMS",
@@ -244,7 +244,6 @@
     "privacyPolicy": "Informativa sulla Privacy",
     "whatHappensNext": "Cosa succede dopo?",
     "verifyEmail": "Verificheremo il tuo indirizzo email",
-    "setup2FA": "Configurerai l'autenticazione a due fattori",
     "accountReady": "Il tuo account sarà creato e pronto all'uso",
     "createAccount": "Crea Account",
     "creating": "Creazione...",
@@ -296,7 +295,7 @@
     "createSubgroup": "Crea Sottogruppo",
     "topicManagement": "Gestione Argomenti",
     "settings": "Impostazioni Gruppo",
-    "members": "Membri",
+    "members": "membri",
     "topics": "Argomenti",
     "posts": "Post",
     "files": "File",
@@ -327,7 +326,6 @@
     "noGroupsYet": "Ancora nessun gruppo",
     "startByCreating": "Inizia creando il tuo primo gruppo!",
     "generateQRCode": "Genera Codice QR",
-    "members": "membri",
     "totalMembers": "Membri Totali",
     "activeSubgroups": "Sottogruppi Attivi",
     "pendingInvites": "Inviti In Sospeso",
@@ -580,7 +578,9 @@
     "mostPopular": "Più Popolare",
     "mostRecent": "Più Recente",
     "mostMembers": "Più Membri",
-    "mostActive": "Più Attivo"
+    "mostActive": "Più Attivo",
+    "myGroups": "My Groups",
+    "all": "All"
   },
   "messaging": {
     "newMessage": "Nuovo Messaggio",
@@ -701,7 +701,26 @@
     "deletePost": "Elimina Post",
     "viewPost": "Visualizza Post",
     "likes": "mi piace",
-    "comments": "commenti",
+    "comments": {
+      "replyingTo": "Rispondendo a",
+      "commentingOn": "Commentando su",
+      "unknown": "sconosciuto",
+      "replyToUser": "Rispondi a @{{username}}...",
+      "writeComment": "Scrivi un commento...",
+      "mentionSomeone": "Menziona qualcuno",
+      "addHashtag": "Aggiungi hashtag",
+      "addEmoji": "Aggiungi emoji",
+      "addMedia": "Aggiungi media",
+      "askGrokAI": "Chiedi a Grok AI - Clicca per aggiungere @grok al tuo commento",
+      "posting": "Pubblicazione...",
+      "post": "Posta",
+      "searchUsers": "Cerca utenti...",
+      "userSearchNotImplemented": "Ricerca utenti non ancora implementata",
+      "searchHashtags": "Cerca hashtag...",
+      "hashtagSearchNotImplemented": "Ricerca hashtag non ancora implementata",
+      "commentTooLong": "Il commento è troppo lungo. Rimuovi {{count}} caratteri.",
+      "unknownUser": "Utente Sconosciuto"
+    },
     "shares": "condivisioni",
     "repost": "Riposta",
     "reposted": "Ripostato",
@@ -827,26 +846,6 @@
       "failedToUploadMedia": "Caricamento di alcuni file multimediali fallito. Post creato senza media.",
       "dragDropFiles": "Trascina e rilascia file qui o clicca per sfogliare",
       "maxFileSize": "Dimensione massima file: {{size}}MB"
-    },
-    "comments": {
-      "replyingTo": "Rispondendo a",
-      "commentingOn": "Commentando su",
-      "unknown": "sconosciuto",
-      "replyToUser": "Rispondi a @{{username}}...",
-      "writeComment": "Scrivi un commento...",
-      "mentionSomeone": "Menziona qualcuno",
-      "addHashtag": "Aggiungi hashtag",
-      "addEmoji": "Aggiungi emoji",
-      "addMedia": "Aggiungi media",
-      "askGrokAI": "Chiedi a Grok AI - Clicca per aggiungere @grok al tuo commento",
-      "posting": "Pubblicazione...",
-      "post": "Posta",
-      "searchUsers": "Cerca utenti...",
-      "userSearchNotImplemented": "Ricerca utenti non ancora implementata",
-      "searchHashtags": "Cerca hashtag...",
-      "hashtagSearchNotImplemented": "Ricerca hashtag non ancora implementata",
-      "commentTooLong": "Il commento è troppo lungo. Rimuovi {{count}} caratteri.",
-      "unknownUser": "Utente Sconosciuto"
     }
   },
   "notifications": {
@@ -1049,5 +1048,21 @@
     "cacheStatus": "Stato Cache",
     "checkForUpdates": "Controlla Aggiornamenti",
     "clearCache": "Cancella Cache"
+  },
+  "theme": {
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode",
+    "theme": "Theme",
+    "appearance": "Appearance",
+    "colorScheme": "Color Scheme",
+    "systemDefault": "System Default",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "themeDescription": "Choose your preferred color scheme",
+    "themeInfo": "Theme Information",
+    "themeInfoDescription": "The theme affects the overall appearance of the interface. You can choose between light, dark, or automatic based on your system preferences."
   }
 }

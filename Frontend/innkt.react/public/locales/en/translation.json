@@ -80,7 +80,8 @@
     "premiumMember": "Premium Member",
     "admin": "Admin",
     "linkedAccounts": "Linked Accounts",
-    "kidsAccounts": "Kids Accounts"
+    "kidsAccounts": "Kids Accounts",
+    "security": "Security"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -150,6 +151,22 @@
     "selectLanguage": "Select Language",
     "languageInfo": "Language Information",
     "languageInfoDescription": "Changing the language will update the interface text. Some content may still appear in the original language."
+  },
+  "theme": {
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode",
+    "theme": "Theme",
+    "appearance": "Appearance",
+    "colorScheme": "Color Scheme",
+    "systemDefault": "System Default",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "themeDescription": "Choose your preferred color scheme",
+    "themeInfo": "Theme Information",
+    "themeInfoDescription": "The theme affects the overall appearance of the interface. You can choose between light, dark, or automatic based on your system preferences."
   },
   "auth": {
     "login": "Login",

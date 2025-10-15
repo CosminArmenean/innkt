@@ -37,7 +37,10 @@
     "start": "set PORT=3001 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "translations:update": "node scripts/update-translations.js",
+    "translations:check": "node scripts/update-translations.js check",
+    "translations:verify": "node scripts/verify-translations.js"
   },
   "eslintConfig": {
     "extends": [
