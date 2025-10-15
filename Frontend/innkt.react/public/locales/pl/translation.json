@@ -1063,6 +1063,15 @@
     "auto": "Auto",
     "themeDescription": "Choose your preferred color scheme",
     "themeInfo": "Theme Information",
-    "themeInfoDescription": "The theme affects the overall appearance of the interface. You can choose between light, dark, or automatic based on your system preferences."
+    "themeInfoDescription": "The theme affects the overall appearance of the interface. You can choose between light, dark, or automatic based on your system preferences.",
+    "purpleMode": "Purple Mode",
+    "blackMode": "Black Mode",
+    "switchToPurple": "Switch to Purple Mode",
+    "switchToBlack": "Switch to Black Mode",
+    "purple": "Purple",
+    "black": "Black",
+    "lightThemeDescription": "Clean and bright interface with light backgrounds",
+    "purpleThemeDescription": "Imperial purple theme with elegant dark purple backgrounds",
+    "blackThemeDescription": "Minimal black theme for maximum contrast and focus"
   }
 }

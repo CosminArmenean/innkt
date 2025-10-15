@@ -15,6 +15,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import SecurityDashboard from './components/security/SecurityDashboard';
+import SettingsPage from './components/settings/SettingsPage';
 import UserProfileProfessional from './components/social/UserProfileProfessional';
 import { ParentDashboard } from './components/kidSafety/ParentDashboard';
 import { KidSafetyDashboard } from './components/kidSafety/KidSafetyDashboard';
@@ -157,7 +158,7 @@ function App() {
               } />
               <Route path="/settings" element={
                 <ProtectedRoute>
-                  <SecurityDashboard />
+                  <SettingsPage />
                 </ProtectedRoute>
               } />
               <Route path="/settings/language" element={

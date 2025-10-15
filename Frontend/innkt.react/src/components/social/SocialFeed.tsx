@@ -879,18 +879,18 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                                 onClick={() => handleProfileClick(post.userId)}
                                 className="text-left hover:bg-gray-50 rounded-lg p-1 transition-colors"
                               >
-                                <h4 className="text-base font-semibold text-gray-900 hover:text-purple-600">{post.authorProfile?.displayName || 'Unknown User'}</h4>
-                                <p className="text-sm text-gray-500">@{post.authorProfile?.username || 'unknown'}</p>
+                                <h4 className="text-base font-semibold text-primary hover:text-accent">{post.authorProfile?.displayName || 'Unknown User'}</h4>
+                                <p className="text-sm text-secondary">@{post.authorProfile?.username || 'unknown'}</p>
                               </button>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <span className="text-xs text-gray-400">{formatDate(post.createdAt)}</span>
+                              <span className="text-xs text-secondary">{formatDate(post.createdAt)}</span>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setExpandedRecentPost(null);
                                 }}
-                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full"
+                                className="text-secondary hover:text-primary p-1 hover:bg-hover rounded-full"
                               >
                                 ✕
                               </button>
@@ -898,7 +898,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                           </div>
                           
                           {/* Post Content */}
-                          <div className="text-sm text-gray-700 mb-4">
+                          <div className="text-sm text-primary mb-4">
                             {showFullRecentPost === post.id ? (
                               <p className="leading-relaxed">{post.content}</p>
                             ) : (
@@ -908,7 +908,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                             {post.content.length > 120 && showFullRecentPost !== post.id && (
                               <button
                                 onClick={() => handleReadMore(post.id)}
-                                className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-2"
+                                className="text-accent hover:text-accent-hover text-sm font-medium mt-2"
                               >
                                 Read more
                               </button>
@@ -1401,7 +1401,7 @@ const PostCard: React.FC<{
             {/* User Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2">
-                <h3 className="font-semibold text-gray-900 truncate">
+                <h3 className="font-semibold text-primary truncate">
                   {post.authorProfile?.displayName || post.author?.displayName || `User ${post.userId?.substring(0, 8) || 'Unknown'}`}
                 </h3>
                 {(post.authorProfile?.isVerified || post.author?.isVerified) && (
@@ -1419,17 +1419,17 @@ const PostCard: React.FC<{
                 )}
               </div>
               <div className="flex items-center space-x-2 mt-1">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-secondary">
                   @{post.authorProfile?.username || post.author?.username || 'unknown'}
                 </span>
-                <span className="text-gray-300">•</span>
-                <span className="text-sm text-gray-500">{formatDate(post.createdAt)}</span>
-                <span className="text-gray-300">•</span>
-                <span className="text-sm text-gray-500 flex items-center">
+                <span className="text-secondary">•</span>
+                <span className="text-sm text-secondary">{formatDate(post.createdAt)}</span>
+                <span className="text-secondary">•</span>
+                <span className="text-sm text-secondary flex items-center">
                   {getPostVisibilityIcon(post.visibility)} {post.visibility}
                 </span>
-                <span className="text-gray-300">•</span>
-                <span className="text-sm text-gray-500 flex items-center">
+                <span className="text-secondary">•</span>
+                <span className="text-sm text-secondary flex items-center">
                   {getPostTypeIcon(post.postType)} {post.postType}
                 </span>
               </div>
@@ -1442,7 +1442,7 @@ const PostCard: React.FC<{
               <div className="flex items-center space-x-1">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 text-secondary hover:text-primary rounded-lg hover:bg-hover transition-colors"
                   title="Edit post"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1451,7 +1451,7 @@ const PostCard: React.FC<{
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  className="p-2 text-secondary hover:text-red-500 rounded-lg hover:bg-red-500 hover:bg-opacity-10 transition-colors"
                   title="Delete post"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1460,7 +1460,7 @@ const PostCard: React.FC<{
                 </button>
               </div>
             )}
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+            <button className="p-2 text-secondary hover:text-primary rounded-lg hover:bg-hover transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
               </svg>
@@ -1498,14 +1498,14 @@ const PostCard: React.FC<{
           </div>
         ) : (
           <div className="prose prose-sm max-w-none">
-            <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            <p className="text-primary leading-relaxed whitespace-pre-wrap">{post.content}</p>
           </div>
         )}
 
         {/* Poll Display */}
         {post.postType === 'poll' && (
           <div className="mt-4">
-            <div className="text-sm text-gray-600 mb-2">
+            <div className="text-sm text-secondary mb-2">
               🐛 Debug: PostType = "{post.postType}", PollOptions = {JSON.stringify(post.pollOptions)}
             </div>
             
@@ -1625,7 +1625,7 @@ const PostCard: React.FC<{
 
         {/* Location */}
         {post.location && post.location.name && (
-          <div className="mt-4 flex items-center text-sm text-gray-500">
+          <div className="mt-4 flex items-center text-sm text-secondary">
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1693,7 +1693,7 @@ const PostCard: React.FC<{
             </div>
           </div>
 
-          <div className="text-sm text-purple-200">
+          <div className="text-sm text-secondary">
             {post.viewsCount && post.viewsCount > 0 && `${post.viewsCount} views`}
           </div>
         </div>
