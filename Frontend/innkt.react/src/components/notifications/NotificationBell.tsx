@@ -6,22 +6,27 @@ import { BellIcon } from '@heroicons/react/24/outline';
 
 interface NotificationBellProps {
   className?: string;
+  onNotificationClick?: () => void;
 }
 
-const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) => {
+const NotificationBell: React.FC<NotificationBellProps> = ({ className = '', onNotificationClick }) => {
   const { t } = useTranslation();
   const { counts, isConnected } = useNotifications();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleBellClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
+    // Call the parent callback to close other dropdowns
+    if (onNotificationClick) {
+      onNotificationClick();
+    }
   };
 
   return (
     <div className={`relative ${className}`}>
       <button
         onClick={handleBellClick}
-        className="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+        className="relative p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
         title={t('nav.notifications')}
       >
         <BellIcon className="w-5 h-5" />

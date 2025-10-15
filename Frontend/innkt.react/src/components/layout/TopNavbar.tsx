@@ -8,6 +8,7 @@ import PostCreation from '../social/PostCreation';
 import QuickSearch from '../search/QuickSearch';
 import NotificationBell from '../notifications/NotificationBell';
 import LanguageSelector from '../language/LanguageSelector';
+import ThemeToggle from '../theme/ThemeToggle';
 import { 
   MagnifyingGlassIcon, 
   PlusIcon, 
@@ -56,6 +57,13 @@ const TopNavbar: React.FC = () => {
     setShowSettings(false);
   };
 
+  const handleNotificationClick = () => {
+    // Close all other dropdowns when notification bell is clicked
+    setShowMessages(false);
+    setShowSettings(false);
+    setShowAccount(false);
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -80,19 +88,19 @@ const TopNavbar: React.FC = () => {
   }, []);
 
   return (
-    <div ref={navbarRef} className={`bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40 ${isRTL ? 'rtl' : 'ltr'}`}>
-      <div className="flex items-center justify-between">
+    <div ref={navbarRef} className={`border-b border-theme px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40 h-16 ${isRTL ? 'rtl' : 'ltr'}`} style={{ backgroundColor: '#4B0082' }}>
+      <div className="flex items-center justify-between h-full">
         {isRTL ? (
           // RTL Layout: Profile/Settings -> Search -> Create Post
           <>
             {/* Left: Profile/Settings */}
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
-              <NotificationBell />
+              <NotificationBell onNotificationClick={handleNotificationClick} />
               
               <div className="relative">
                 <button 
                   onClick={handleMessages}
-                  className="relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  className="relative p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
                   <ChatBubbleLeftRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                   {unreadCount > 0 && (
@@ -104,10 +112,10 @@ const TopNavbar: React.FC = () => {
                 
                 {/* Messages Dropdown */}
                 {showMessages && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-80 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <h3 className="text-sm font-medium text-gray-900">{t('messaging.recentConversations')}</h3>
+                      <div className="px-4 py-2 border-b border-white border-opacity-20">
+                        <h3 className="text-sm font-medium text-white">{t('messaging.recentConversations')}</h3>
                       </div>
                       {conversations && conversations.length > 0 ? (
                         <div className="max-h-64 overflow-y-auto">
@@ -118,7 +126,7 @@ const TopNavbar: React.FC = () => {
                                 navigate('/messaging');
                                 setShowMessages(false);
                               }}
-                              className="block w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+                              className="block w-full text-left px-4 py-3 hover:bg-white hover:bg-opacity-10 border-b border-white border-opacity-20"
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -127,10 +135,10 @@ const TopNavbar: React.FC = () => {
                                   </span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                  <p className="text-sm font-medium text-white truncate">
                                     {conversation.participants?.[0]?.displayName} {conversation.participants?.[0]?.username}
                                   </p>
-                                  <p className="text-xs text-gray-500 truncate">
+                                  <p className="text-xs text-purple-200 truncate">
                                     {conversation.lastMessage?.content || t('messaging.noMessages')}
                                   </p>
                                 </div>
@@ -144,11 +152,11 @@ const TopNavbar: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                        <div className="px-4 py-3 text-center text-purple-200 text-sm">
                           {t('messaging.noConversations')}
                         </div>
                       )}
-                      <div className="border-t border-gray-200 px-4 py-2">
+                      <div className="border-t border-white border-opacity-20 px-4 py-2">
                         <button
                           onClick={() => {
                             navigate('/messaging');
@@ -167,30 +175,33 @@ const TopNavbar: React.FC = () => {
               <div className="relative">
                 <button 
                   onClick={handleSettings}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
                   <Cog6ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
                 
                 {/* Settings Dropdown */}
                 {showSettings && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <button
                         onClick={() => navigate('/settings')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.settings')}
                       </button>
                       <button
                         onClick={() => navigate('/settings/language')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('settings.language')}
                       </button>
+                      <div className="px-4 py-2">
+                        <ThemeToggle showLabel={true} className="w-full justify-start" />
+                      </div>
                       <button
                         onClick={() => navigate('/security')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.security')}
                       </button>
@@ -202,9 +213,9 @@ const TopNavbar: React.FC = () => {
               <div className="relative">
                 <button 
                   onClick={handleAccount}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
-                  <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
                       {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </span>
@@ -213,17 +224,17 @@ const TopNavbar: React.FC = () => {
                 
                 {/* Account Dropdown */}
                 {showAccount && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <button
                         onClick={() => navigate(`/profile/${user?.id}`)}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.profile')}
                       </button>
                       <button
                         onClick={() => navigate('/settings')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.settings')}
                       </button>
@@ -255,7 +266,8 @@ const TopNavbar: React.FC = () => {
             <div>
               <button
                 onClick={handleCreatePost}
-                className="bg-purple-600 text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
+                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
+                style={{ backgroundColor: '#4B0082' }}
               >
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden sm:inline">{t('social.createPost')}</span>
@@ -278,7 +290,7 @@ const TopNavbar: React.FC = () => {
 
             {/* Mobile Search Button */}
             <div className="md:hidden">
-              <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors">
+              <button className="p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-10 rounded-full transition-colors">
                 <MagnifyingGlassIcon className="h-5 w-5" />
               </button>
             </div>
@@ -287,18 +299,19 @@ const TopNavbar: React.FC = () => {
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 ml-2 sm:ml-4 md:ml-6">
               <button
                 onClick={handleCreatePost}
-                className="bg-purple-600 text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
+                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
+                style={{ backgroundColor: '#4B0082' }}
               >
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden sm:inline">{t('social.createPost')}</span>
               </button>
 
-              <NotificationBell />
+              <NotificationBell onNotificationClick={handleNotificationClick} />
 
               <div className="relative">
                 <button 
                   onClick={handleMessages}
-                  className="relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  className="relative p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
                   <ChatBubbleLeftRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                   {unreadCount > 0 && (
@@ -310,10 +323,10 @@ const TopNavbar: React.FC = () => {
                 
                 {/* Messages Dropdown */}
                 {showMessages && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-80 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <h3 className="text-sm font-medium text-gray-900">{t('messaging.recentConversations')}</h3>
+                      <div className="px-4 py-2 border-b border-white border-opacity-20">
+                        <h3 className="text-sm font-medium text-white">{t('messaging.recentConversations')}</h3>
                       </div>
                       {conversations && conversations.length > 0 ? (
                         <div className="max-h-64 overflow-y-auto">
@@ -324,7 +337,7 @@ const TopNavbar: React.FC = () => {
                                 navigate('/messaging');
                                 setShowMessages(false);
                               }}
-                              className="block w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+                              className="block w-full text-left px-4 py-3 hover:bg-white hover:bg-opacity-10 border-b border-white border-opacity-20"
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -333,10 +346,10 @@ const TopNavbar: React.FC = () => {
                                   </span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                  <p className="text-sm font-medium text-white truncate">
                                     {conversation.participants?.[0]?.displayName} {conversation.participants?.[0]?.username}
                                   </p>
-                                  <p className="text-xs text-gray-500 truncate">
+                                  <p className="text-xs text-purple-200 truncate">
                                     {conversation.lastMessage?.content || t('messaging.noMessages')}
                                   </p>
                                 </div>
@@ -350,11 +363,11 @@ const TopNavbar: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                        <div className="px-4 py-3 text-center text-purple-200 text-sm">
                           {t('messaging.noConversations')}
                         </div>
                       )}
-                      <div className="border-t border-gray-200 px-4 py-2">
+                      <div className="border-t border-white border-opacity-20 px-4 py-2">
                         <button
                           onClick={() => {
                             navigate('/messaging');
@@ -373,30 +386,33 @@ const TopNavbar: React.FC = () => {
               <div className="relative">
                 <button 
                   onClick={handleSettings}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
                   <Cog6ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
                 
                 {/* Settings Dropdown */}
                 {showSettings && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <button
                         onClick={() => navigate('/settings')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.settings')}
                       </button>
                       <button
                         onClick={() => navigate('/settings/language')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('settings.language')}
                       </button>
+                      <div className="px-4 py-2">
+                        <ThemeToggle showLabel={true} className="w-full justify-start" />
+                      </div>
                       <button
                         onClick={() => navigate('/security')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.security')}
                       </button>
@@ -408,9 +424,9 @@ const TopNavbar: React.FC = () => {
               <div className="relative">
                 <button 
                   onClick={handleAccount}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
-                  <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
                       {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </span>
@@ -419,17 +435,17 @@ const TopNavbar: React.FC = () => {
                 
                 {/* Account Dropdown */}
                 {showAccount && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <button
                         onClick={() => navigate(`/profile/${user?.id}`)}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.profile')}
                       </button>
                       <button
                         onClick={() => navigate('/settings')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
                       >
                         {t('nav.settings')}
                       </button>
@@ -452,12 +468,12 @@ const TopNavbar: React.FC = () => {
       {/* Create Post Modal */}
       {showCreatePost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">{t('social.createNewPost')}</h3>
+          <div className="bg-white dark:bg-gradient-to-br dark:from-purple-900 dark:via-purple-800 dark:to-indigo-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-white dark:border-opacity-20">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white dark:border-opacity-20">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t('social.createNewPost')}</h3>
               <button
                 onClick={() => setShowCreatePost(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 text-gray-500 dark:text-purple-200 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white dark:hover:bg-opacity-10 rounded-full transition-colors"
               >
                 <XMarkIcon className="w-6 h-6" />
               </button>

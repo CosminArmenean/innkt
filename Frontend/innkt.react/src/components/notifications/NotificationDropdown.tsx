@@ -132,13 +132,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   return (
     <div 
       ref={dropdownRef}
-      className={`absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ${className}`}
+      className={`absolute right-0 mt-2 w-80 sm:w-96 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-lg shadow-lg border border-white border-opacity-20 z-50 ${className}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20">
         <div className="flex items-center space-x-2">
-          <BellIcon className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">{t('notifications.title')}</h3>
+          <BellIcon className="w-5 h-5 text-white" />
+          <h3 className="font-semibold text-white">{t('notifications.title')}</h3>
           {counts.unread > 0 && (
             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
               {counts.unread}
@@ -150,7 +150,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           {counts.unread > 0 && (
             <button
               onClick={handleMarkAllAsRead}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+              className="p-1 text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded"
               title={t('notifications.markAllRead')}
             >
               <CheckIcon className="w-4 h-4" />
@@ -159,7 +159,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+            className="p-1 text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded"
             title={t('notifications.notificationSettings')}
           >
             <CogIcon className="w-4 h-4" />
@@ -167,7 +167,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           
           <button
             onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+            className="p-1 text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded"
           >
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -176,9 +176,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="p-4 border-b border-gray-200 bg-gray-50 max-h-96 overflow-y-auto">
+        <div className="p-4 border-b border-white border-opacity-20 bg-white bg-opacity-5 max-h-96 overflow-y-auto">
           <NotificationSettings />
-          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-white border-opacity-20">
             <PushNotificationSettings />
           </div>
         </div>
@@ -187,18 +187,18 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       {/* Notifications List */}
       <div className="max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <BellIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+          <div className="text-center py-8 text-purple-200">
+            <BellIcon className="w-12 h-12 mx-auto mb-2 text-purple-300" />
             <p>{t('notifications.noNotificationsYet')}</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-white divide-opacity-20">
             {notifications.slice(0, 10).map((notification) => (
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                  !notification.read ? 'bg-blue-50' : ''
+                className={`p-4 hover:bg-white hover:bg-opacity-10 cursor-pointer transition-colors ${
+                  !notification.read ? 'bg-white bg-opacity-5' : ''
                 }`}
               >
                 <div className="flex items-start space-x-3">
@@ -218,20 +218,20 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             />
                           )}
                           <p className={`text-sm font-medium ${
-                            !notification.read ? 'text-gray-900' : 'text-gray-700'
+                            !notification.read ? 'text-white' : 'text-purple-200'
                           }`}>
                             {notification.title}
                           </p>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <p className="text-sm text-purple-200 mt-1 line-clamp-2">
                           {notification.body}
                         </p>
                         <div className="flex items-center justify-between mt-1">
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-purple-300">
                             {formatTime(notification.timestamp)}
                           </p>
                           {notification.senderName && (
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-purple-300">
                               by {notification.senderName}
                             </p>
                           )}
@@ -244,7 +244,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                         )}
                         <button
                           onClick={(e) => handleDeleteNotification(e, notification.id)}
-                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                          className="p-1 text-purple-300 hover:text-red-400 hover:bg-red-500 hover:bg-opacity-20 rounded"
                         >
                           <TrashIcon className="w-3 h-3" />
                         </button>
@@ -260,13 +260,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-3 border-t border-gray-200 bg-gray-50">
+        <div className="p-3 border-t border-white border-opacity-20 bg-white bg-opacity-5">
           <button 
             onClick={() => {
               window.location.href = '/notifications';
               onClose();
             }}
-            className="w-full text-center text-sm text-purple-600 hover:text-purple-700 font-medium"
+            className="w-full text-center text-sm text-purple-200 hover:text-white font-medium"
           >
             Load More / View All
           </button>
@@ -289,7 +289,7 @@ const NotificationSettings: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      <h4 className="font-medium text-gray-900">Notification Settings</h4>
+      <h4 className="font-medium text-white">Notification Settings</h4>
       
       <div className="space-y-2">
         {[
@@ -302,7 +302,7 @@ const NotificationSettings: React.FC = () => {
           { key: 'soundEnabled', label: 'Sound' }
         ].map(({ key, label }) => (
           <label key={key} className="flex items-center justify-between">
-            <span className="text-sm text-gray-700">{label}</span>
+            <span className="text-sm text-purple-200">{label}</span>
             <input
               type="checkbox"
               checked={typeof localSettings[key as keyof typeof localSettings] === 'boolean' ? localSettings[key as keyof typeof localSettings] as boolean : false}

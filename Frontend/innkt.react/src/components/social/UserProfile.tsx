@@ -237,7 +237,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
         {isOwnProfile && (
           <button
             onClick={() => setShowAvatarUpload(true)}
-            className="absolute -bottom-2 -right-2 bg-white text-purple-600 p-2 rounded-full shadow-lg hover:bg-purple-50 transition-colors"
+            className="absolute -bottom-2 -right-2 bg-card text-purple-600 p-2 rounded-full shadow-lg hover:bg-purple-50 transition-colors"
             title="Add/Change Profile Picture"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -562,7 +562,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                     ) : (
                       <div className="space-y-6">
                         {reposts.map((repost) => (
-                          <div key={repost.repostId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                          <div key={repost.repostId} className="bg-card rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             {/* Repost Header */}
                             <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
                               <div className="flex items-center space-x-3">
@@ -580,7 +580,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
 
                               {/* Quote text for quote reposts */}
                               {repost.repostType === 'quote' && repost.quoteText && (
-                                <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
+                                <div className="mt-3 p-3 bg-card rounded-lg border border-gray-200">
                                   <p className="text-gray-800 leading-relaxed">{repost.quoteText}</p>
                                 </div>
                               )}
@@ -702,7 +702,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {mediaPosts.map((post) => (
-                            <div key={post.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                            <div key={post.id} className="bg-card border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 group">
                               <div className="relative aspect-square bg-gray-100 overflow-hidden">
                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                                   <div className="text-center">
@@ -818,7 +818,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                       {kidAccounts.length > 0 ? (
                         <div className="space-y-4">
                           {kidAccounts.map((kid) => (
-                            <div key={kid.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                            <div key={kid.id} className="bg-card rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
                               <div className="flex items-center space-x-4">
                                 {/* Kid Profile Picture */}
                                 <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -1053,7 +1053,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
       {/* Avatar Upload Modal with Cropping */}
       {showAvatarUpload && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="bg-card rounded-2xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Update Profile Picture</h3>
               <button
@@ -1128,15 +1128,15 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                 <h4 className="text-base font-semibold text-gray-900">Background Style</h4>
                 <div className="grid grid-cols-3 gap-3">
                   <button className="p-3 border-2 border-purple-500 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
-                    <div className="w-8 h-8 rounded-full bg-white/20 mx-auto mb-1"></div>
+                    <div className="w-8 h-8 rounded-full bg-card/20 mx-auto mb-1"></div>
                     <p className="text-xs font-medium">Purple</p>
                   </button>
                   <button className="p-3 border-2 border-gray-300 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
-                    <div className="w-8 h-8 rounded-full bg-white/20 mx-auto mb-1"></div>
+                    <div className="w-8 h-8 rounded-full bg-card/20 mx-auto mb-1"></div>
                     <p className="text-xs font-medium">Blue</p>
                   </button>
                   <button className="p-3 border-2 border-gray-300 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                    <div className="w-8 h-8 rounded-full bg-white/20 mx-auto mb-1"></div>
+                    <div className="w-8 h-8 rounded-full bg-card/20 mx-auto mb-1"></div>
                     <p className="text-xs font-medium">Green</p>
                   </button>
                 </div>
@@ -1158,7 +1158,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">Powered by NeuroSpark AI • Free for premium users</p>
@@ -1192,7 +1192,7 @@ const UserProfileComponent: React.FC<UserProfileProps> = ({
       {/* Kid Account Management Modal */}
       {showKidAccountModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-gray-900">Kid Account Management</h2>

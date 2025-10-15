@@ -52,7 +52,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <div className={`${collapsed ? 'w-16' : 'w-56'} bg-purple-600 text-white flex flex-col h-screen transition-all duration-300 ease-in-out left-sidebar ${isRTL ? 'rtl' : 'ltr'}`}>
+    <div className={`${collapsed ? 'w-16' : 'w-56'} text-white flex flex-col h-screen transition-all duration-300 ease-in-out left-sidebar ${isRTL ? 'rtl' : 'ltr'}`} style={{ backgroundColor: '#4B0082' }}>
       {/* Logo and Toggle */}
       <div className="p-4 border-b border-purple-500 flex items-center justify-between">
         {!collapsed && (
@@ -103,7 +103,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
             to={item.href}
             className={`flex items-center nav-item ${collapsed ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3'} rounded-lg transition-colors ${
               isActive(item.href)
-                ? 'bg-purple-500 text-white'
+                ? 'accent-purple text-white'
                 : 'text-purple-100 hover:bg-purple-500 hover:text-white'
             } ${isRTL ? 'rtl' : 'ltr'}`}
             title={collapsed ? item.name : undefined}
@@ -160,7 +160,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
       {/* Go Pro Banner - Hidden when collapsed */}
       {!collapsed && (
         <div className="p-4">
-          <div className="bg-purple-500 rounded-lg p-4 text-center">
+          <div className="accent-purple rounded-lg p-4 text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <StarIcon className="h-5 w-5 text-yellow-400" />
               <span className="font-semibold">{t('nav.goPro')}</span>

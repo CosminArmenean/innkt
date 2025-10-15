@@ -1,0 +1,158 @@
+/* Theme Variables */
+:root {
+  --background-color: #F8F6FF;
+  --text-color: #2D1B3D;
+  --primary-color: #4B0082;
+  --secondary-color: #6B46C1;
+  --accent-color: #8B5CF6;
+  --content-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --border-color: #E5E7EB;
+  --input-bg: #FFFFFF;
+  --hover-bg: #F3F4F6;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+  --background-color: #1C1124;
+  --text-color: #E6D8F5;
+  --primary-color: #4B0082;
+  --secondary-color: #B19CD9;
+  --accent-color: #C0C0C0;
+  --content-bg: #2D1B3D;
+  --card-bg: #3A2A4A;
+  --border-color: #4A3A5A;
+  --input-bg: #2D1B3D;
+  --hover-bg: #4A3A5A;
+}
+
+/* Global Theme Styles */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Content Areas */
+.bg-content {
+  background-color: var(--content-bg);
+}
+
+.bg-card {
+  background-color: var(--card-bg);
+}
+
+.bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+/* Text Colors */
+.text-content {
+  color: var(--text-color);
+}
+
+.text-muted {
+  color: var(--secondary-color);
+}
+
+/* Borders */
+.border-theme {
+  border-color: var(--border-color);
+}
+
+.border-gray-200 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+/* Input Fields */
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+input:focus, textarea:focus, select:focus {
+  background-color: var(--input-bg);
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+/* Cards and Containers */
+.card, .bg-white {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+/* Hover States */
+.hover\:bg-gray-50:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+/* Navigation */
+.navbar {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: var(--primary-color);
+}
+
+/* Main Content Area */
+.main-content {
+  background-color: var(--content-bg);
+}
+
+/* Post Cards */
+.post-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+/* Search Bar */
+.search-bar {
+  background-color: var(--input-bg);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.search-bar::placeholder {
+  color: var(--secondary-color);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+/* Status Indicators */
+.status-online {
+  color: #10B981;
+}
+
+.status-offline {
+  color: var(--secondary-color);
+}
+
+/* Transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+

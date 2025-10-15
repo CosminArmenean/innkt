@@ -44,6 +44,10 @@ export interface Repost {
     viewsCount: number;
     createdAt: string;
     feedScore: number;
+    // Poll properties
+    pollOptions?: string[];
+    pollDuration?: number;
+    pollExpiresAt?: string;
   };
   
   // Engagement metrics

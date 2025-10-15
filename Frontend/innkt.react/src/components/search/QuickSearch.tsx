@@ -91,20 +91,20 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
     <div ref={containerRef} className={`relative ${className}`}>
       {/* Search Input */}
       <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-200" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim() && setIsOpen(true)}
           placeholder={defaultPlaceholder}
-          className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          className="w-full pl-9 pr-8 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm text-white placeholder-purple-200"
         />
         {query && (
           <button
             type="button"
             onClick={clearSearch}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-purple-200 hover:text-white"
           >
             <XMarkIcon className="h-4 w-4" />
           </button>
@@ -113,7 +113,7 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
 
       {/* Search Results Dropdown */}
       {isOpen && (results.length > 0 || isLoading) && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
           {isLoading ? (
             <div className="p-4 text-center">
               <div className="inline-block w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>

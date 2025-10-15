@@ -1,0 +1,1487 @@
+/* Theme System - Imperial Color Palette */
+
+/* ===========================================
+   INNKT CSS CUSTOM PROPERTIES SYSTEM
+   SINGLE SOURCE OF TRUTH FOR ALL THEMING
+   =========================================== */
+
+:root {
+  /* ===========================================
+     CORE BRAND COLORS - CHANGE THESE TO UPDATE ENTIRE APP
+     =========================================== */
+  --brand-primary: #4B0082;        /* Imperial Purple - Main brand color */
+  --brand-primary-hover: #3A0066;  /* Darker Imperial Purple */
+  --brand-primary-light: #6B2A9E;  /* Lighter Imperial Purple */
+  --brand-primary-dark: #2D0047;   /* Darkest Imperial Purple */
+  
+  --brand-secondary: #6E31A6;      /* Accent Purple - Active states, highlights */
+  --brand-secondary-hover: #5A2A8A; /* Darker Accent Purple */
+  --brand-secondary-light: #8B53C7; /* Lighter Accent Purple */
+  
+  --brand-accent: #8B5CF6;         /* Light Purple - Special highlights */
+  --brand-accent-hover: #7C3AED;   /* Darker Light Purple */
+  
+  /* ===========================================
+     BACKGROUND COLORS
+     =========================================== */
+  --bg-primary: #FFFFFF;           /* Main background (white) */
+  --bg-secondary: #F8F6FF;         /* Secondary background (very light lavender) */
+  --bg-tertiary: #F3F0FF;          /* Tertiary background (light hover state) */
+  --bg-card: #FFFFFF;              /* Card backgrounds */
+  --bg-overlay: rgba(0, 0, 0, 0.5); /* Modal overlays */
+  
+  /* ===========================================
+     TEXT COLORS
+     =========================================== */
+  --text-primary: #1F2937;         /* Primary text (dark gray) */
+  --text-secondary: #6B7280;       /* Secondary text (medium gray) */
+  --text-muted: #9CA3AF;           /* Muted text (light gray) */
+  --text-inverse: #FFFFFF;         /* Inverse text (white) */
+  --text-accent: var(--brand-primary); /* Accent text (brand primary) */
+  
+  /* ===========================================
+     BORDER COLORS
+     =========================================== */
+  --border-primary: #E5E7EB;       /* Primary borders (light gray) */
+  --border-secondary: #D1D5DB;     /* Secondary borders (medium gray) */
+  --border-accent: var(--brand-primary); /* Accent borders (brand primary) */
+  --border-focus: var(--brand-primary);  /* Focus borders */
+  
+  /* ===========================================
+     COMPONENT-SPECIFIC COLORS
+     =========================================== */
+  /* Modal System */
+  --modal-bg: var(--bg-primary);
+  --modal-border: var(--border-primary);
+  --modal-header-bg: var(--bg-primary);
+  --modal-header-border: var(--border-primary);
+  
+  /* Sidebar System */
+  --sidebar-bg: var(--brand-primary);
+  --sidebar-text: var(--text-inverse);
+  --sidebar-hover: var(--brand-primary-hover);
+  --sidebar-active: var(--brand-secondary);
+  
+  /* Navbar System */
+  --navbar-bg: var(--brand-primary);
+  --navbar-text: var(--text-inverse);
+  --navbar-hover: var(--brand-primary-hover);
+  
+  /* Button System */
+  --btn-primary-bg: var(--brand-primary);
+  --btn-primary-hover: var(--brand-primary-hover);
+  --btn-primary-text: var(--text-inverse);
+  
+  --btn-secondary-bg: var(--bg-secondary);
+  --btn-secondary-hover: var(--bg-tertiary);
+  --btn-secondary-text: var(--text-primary);
+  
+  --btn-accent-bg: var(--brand-secondary);
+  --btn-accent-hover: var(--brand-secondary-hover);
+  --btn-accent-text: var(--text-inverse);
+  
+  /* Input System */
+  --input-bg: var(--bg-primary);
+  --input-border: var(--border-primary);
+  --input-border-focus: var(--border-focus);
+  --input-text: var(--text-primary);
+  --input-placeholder: var(--text-muted);
+  
+  /* Poll System */
+  --poll-bg: var(--bg-secondary);
+  --poll-border: var(--border-primary);
+  --poll-header-bg: transparent;
+  --poll-option-bg: var(--bg-primary);
+  --poll-option-hover: var(--bg-tertiary);
+  --poll-option-active: var(--brand-primary);
+  --poll-option-text: var(--text-primary);
+  --poll-progress-bg: var(--bg-tertiary);
+  --poll-progress-fill: var(--brand-primary);
+  --poll-progress-fill-active: var(--brand-secondary);
+  
+  /* Repost/Quote System */
+  --repost-header-bg: var(--bg-primary);
+  --repost-header-border: var(--border-primary);
+  --repost-header-text: var(--text-primary);
+  --repost-header-muted: var(--text-secondary);
+  --repost-content-bg: var(--bg-card);
+  --repost-quote-bg: var(--bg-secondary);
+  --repost-quote-text: var(--text-primary);
+  --repost-quote-border: var(--border-primary);
+  
+  /* Status Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+  
+  /* ===========================================
+     SHADOWS AND EFFECTS
+     =========================================== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* ===========================================
+     GRADIENTS
+     =========================================== */
+  --gradient-primary: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  --gradient-secondary: linear-gradient(135deg, var(--brand-secondary), var(--brand-secondary-light));
+  --gradient-modal: linear-gradient(135deg, var(--brand-primary-dark), var(--brand-primary));
+}
+
+/* ===========================================
+   DARK THEME OVERRIDES
+   =========================================== */
+[data-theme="dark"] {
+  /* ===========================================
+     BACKGROUND COLORS - Dark Theme
+     =========================================== */
+  --bg-primary: #1C1124;           /* Dark Purple Void - Main background */
+  --bg-secondary: #2D1B3D;         /* Dark Purple - Secondary background */
+  --bg-tertiary: #3A2A4A;          /* Dark Purple Hover - Hover states */
+  --bg-card: #2A1F3D;              /* Distinct purple - Post cards, dropdowns */
+  --bg-overlay: rgba(0, 0, 0, 0.7); /* Darker modal overlays */
+  
+  /* ===========================================
+     TEXT COLORS - Dark Theme
+     =========================================== */
+  --text-primary: #E6D8F5;         /* Pale Lilac - Primary text */
+  --text-secondary: #B19CD9;       /* Light Wisteria - Secondary text */
+  --text-muted: #9CA3AF;           /* Muted text (light gray) */
+  --text-inverse: #1F2937;         /* Dark text for light backgrounds */
+  --text-accent: var(--brand-secondary); /* Accent text (brand secondary) */
+  
+  /* ===========================================
+     BORDER COLORS - Dark Theme
+     =========================================== */
+  --border-primary: rgba(255, 255, 255, 0.2); /* White borders with opacity */
+  --border-secondary: rgba(255, 255, 255, 0.3); /* Lighter white borders */
+  --border-accent: var(--brand-secondary); /* Accent borders (brand secondary) */
+  --border-focus: var(--brand-secondary);  /* Focus borders */
+  
+  /* ===========================================
+     COMPONENT-SPECIFIC COLORS - Dark Theme
+     =========================================== */
+  /* Modal System - Dark Theme */
+  --modal-bg: var(--gradient-modal);     /* Gradient background */
+  --modal-border: var(--border-primary); /* White borders with opacity */
+  --modal-header-bg: transparent;        /* Transparent header */
+  --modal-header-border: var(--border-primary);
+  
+  /* Sidebar System - Dark Theme */
+  --sidebar-bg: var(--brand-primary);    /* Imperial Purple */
+  --sidebar-text: var(--text-inverse);   /* White text */
+  --sidebar-hover: var(--brand-primary-hover);
+  --sidebar-active: var(--brand-secondary); /* Accent Purple for active */
+  
+  /* Navbar System - Dark Theme */
+  --navbar-bg: var(--brand-primary);     /* Imperial Purple */
+  --navbar-text: var(--text-inverse);    /* White text */
+  --navbar-hover: var(--brand-primary-hover);
+  
+  /* Button System - Dark Theme */
+  --btn-primary-bg: var(--brand-primary);
+  --btn-primary-hover: var(--brand-primary-hover);
+  --btn-primary-text: var(--text-inverse);
+  
+  --btn-secondary-bg: rgba(255, 255, 255, 0.1); /* Glass effect */
+  --btn-secondary-hover: rgba(255, 255, 255, 0.2); /* Glass effect hover */
+  --btn-secondary-text: var(--text-primary);
+  
+  --btn-accent-bg: var(--brand-secondary);
+  --btn-accent-hover: var(--brand-secondary-hover);
+  --btn-accent-text: var(--text-inverse);
+  
+  /* Input System - Dark Theme */
+  --input-bg: rgba(255, 255, 255, 0.1); /* Glass effect */
+  --input-border: var(--border-primary); /* White borders with opacity */
+  --input-border-focus: var(--border-focus);
+  --input-text: var(--text-primary);     /* Light text */
+  --input-placeholder: var(--text-muted);
+  
+  /* Poll System - Dark Theme */
+  --poll-bg: rgba(255, 255, 255, 0.05); /* Very subtle glass effect */
+  --poll-border: var(--border-primary); /* White borders with opacity */
+  --poll-header-bg: transparent;
+  --poll-option-bg: rgba(255, 255, 255, 0.08); /* Glass effect */
+  --poll-option-hover: rgba(255, 255, 255, 0.12); /* Slightly more opaque */
+  --poll-option-active: var(--brand-secondary); /* Accent purple for active */
+  --poll-option-text: var(--text-primary); /* Light text */
+  --poll-progress-bg: rgba(255, 255, 255, 0.15); /* Light progress background */
+  --poll-progress-fill: var(--brand-secondary); /* Accent purple progress */
+  --poll-progress-fill-active: var(--brand-secondary-light); /* Lighter accent */
+  
+  /* Repost/Quote System - Dark Theme */
+  --repost-header-bg: rgba(255, 255, 255, 0.1); /* Glass effect header */
+  --repost-header-border: var(--border-primary); /* White borders with opacity */
+  --repost-header-text: var(--text-primary); /* Light text for good contrast */
+  --repost-header-muted: var(--text-secondary); /* Lighter text for secondary info */
+  --repost-content-bg: var(--bg-card); /* Dark card background */
+  --repost-quote-bg: rgba(255, 255, 255, 0.08); /* Subtle glass effect for quotes */
+  --repost-quote-text: var(--text-primary); /* Light text for good contrast */
+  --repost-quote-border: var(--border-primary); /* White borders with opacity */
+  
+  /* Status Colors - Dark Theme */
+  --success: #34D399;
+  --warning: #FBBF24;
+  --error: #F87171;
+  --info: #60A5FA;
+  
+  /* ===========================================
+     SHADOWS AND EFFECTS - Dark Theme
+     =========================================== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+/* Apply theme colors to common elements */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ===========================================
+   UTILITY CLASSES SYSTEM
+   COMPONENTS USE THESE CLASSES INSTEAD OF INLINE STYLING
+   =========================================== */
+
+/* ===========================================
+   MODAL SYSTEM CLASSES
+   =========================================== */
+.modal-container {
+  background: var(--modal-bg);
+  border: 1px solid var(--modal-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--modal-header-border);
+  background: var(--modal-header-bg);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close-btn {
+  padding: 8px;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+/* ===========================================
+   CONTENT CONTAINER CLASSES
+   =========================================== */
+.content-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+}
+
+/* ===========================================
+   USER AVATAR CLASSES
+   =========================================== */
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  background: var(--bg-secondary);
+}
+
+.user-avatar-icon {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+/* ===========================================
+   CONTENT TYPE BUTTON CLASSES
+   =========================================== */
+.content-type-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.content-type-btn:hover {
+  transform: scale(1.05);
+}
+
+.content-type-btn-inactive {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+.content-type-btn-inactive:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.content-type-btn-active {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===========================================
+   INPUT AREA CLASSES
+   =========================================== */
+.text-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 16px;
+  resize: none;
+  font-size: 1.25rem;
+  color: var(--input-text);
+  min-height: 120px;
+  transition: all 0.2s ease;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 2px var(--input-border-focus);
+}
+
+.text-input::placeholder {
+  color: var(--input-placeholder);
+}
+
+/* ===========================================
+   ACTION BUTTON CLASSES
+   =========================================== */
+.action-btn {
+  padding: 12px;
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--btn-secondary-text);
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.action-btn:hover {
+  background: var(--btn-secondary-hover);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.action-btn-active {
+  background: var(--btn-accent-bg);
+  color: var(--btn-accent-text);
+}
+
+/* ===========================================
+   ADVANCED OPTIONS CLASSES
+   =========================================== */
+.advanced-options-link {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.advanced-options-link:hover {
+  color: var(--text-primary);
+}
+
+.advanced-options-container {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-primary);
+}
+
+.advanced-options-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* ===========================================
+   SUBMIT BUTTON CLASSES
+   =========================================== */
+.submit-btn {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.2s ease;
+  transform: scale(1);
+  border: none;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: var(--btn-primary-hover);
+  box-shadow: var(--shadow-xl);
+  transform: scale(1.05);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===========================================
+   NAVBAR SYSTEM CLASSES
+   =========================================== */
+.navbar-container {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.navbar-btn {
+  color: var(--navbar-text);
+  transition: all 0.2s ease;
+}
+
+.navbar-btn:hover {
+  color: var(--text-primary);
+  background: var(--navbar-hover);
+}
+
+/* ===========================================
+   SIDEBAR SYSTEM CLASSES
+   =========================================== */
+.sidebar-container {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+.sidebar-nav-item {
+  color: var(--sidebar-text);
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar-nav-item.active {
+  background: var(--sidebar-active);
+}
+
+/* ===========================================
+   GLASS MORPHISM EFFECTS
+   =========================================== */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-effect-light {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+/* ===========================================
+   TEXT COLOR UTILITIES
+   =========================================== */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-inverse { color: var(--text-inverse); }
+.text-accent { color: var(--text-accent); }
+
+/* ===========================================
+   BACKGROUND UTILITIES
+   =========================================== */
+.bg-primary { background: var(--bg-primary); }
+.bg-secondary { background: var(--bg-secondary); }
+.bg-tertiary { background: var(--bg-tertiary); }
+.bg-card { background: var(--bg-card); }
+
+/* ===========================================
+   BORDER UTILITIES
+   =========================================== */
+.border-primary { border-color: var(--border-primary); }
+.border-secondary { border-color: var(--border-secondary); }
+.border-accent { border-color: var(--border-accent); }
+
+/* ===========================================
+   SHADOW UTILITIES
+   =========================================== */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+
+/* ===========================================
+   POLL SYSTEM CLASSES
+   =========================================== */
+.poll-container {
+  background: var(--poll-bg);
+  border: 1px solid var(--poll-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.poll-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.poll-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.poll-status {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poll-option {
+  background: var(--poll-option-bg);
+  border: 1px solid var(--poll-border);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.poll-option:hover {
+  background: var(--poll-option-hover);
+}
+
+.poll-option.active {
+  background: var(--poll-option-active);
+  color: var(--text-inverse);
+}
+
+.poll-option.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.poll-option-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.poll-option-text {
+  color: var(--poll-option-text);
+  font-weight: 500;
+}
+
+.poll-option.active .poll-option-text {
+  color: var(--text-inverse);
+}
+
+.poll-option-stats {
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+.poll-percentage {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.poll-option.active .poll-percentage {
+  color: var(--text-inverse);
+}
+
+.poll-votes {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.poll-option.active .poll-votes {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.poll-progress {
+  background: var(--poll-progress-bg);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.poll-progress-fill {
+  height: 100%;
+  background: var(--poll-progress-fill);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.poll-option.active .poll-progress-fill {
+  background: var(--poll-progress-fill-active);
+}
+
+.poll-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.poll-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.poll-expired {
+  color: var(--error);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.poll-active {
+  color: var(--success);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===========================================
+   REPOST/QUOTE SYSTEM CLASSES
+   =========================================== */
+.repost-header {
+  background: var(--repost-header-bg);
+  border-bottom: 1px solid var(--repost-header-border);
+  padding: 12px 24px;
+}
+
+.repost-header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.repost-header-text {
+  color: var(--repost-header-text);
+  font-weight: 500;
+}
+
+.repost-header-muted {
+  color: var(--repost-header-muted);
+  font-size: 0.875rem;
+}
+
+.repost-content {
+  background: var(--repost-content-bg);
+  padding: 24px;
+}
+
+.repost-quote {
+  background: var(--repost-quote-bg);
+  border: 1px solid var(--repost-quote-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.repost-quote-text {
+  color: var(--repost-quote-text);
+  line-height: 1.5;
+}
+
+.repost-original-header {
+  background: var(--repost-header-bg);
+  border-bottom: 1px solid var(--repost-header-border);
+  padding: 12px 24px;
+  border-radius: 8px 8px 0 0;
+}
+
+.repost-original-content {
+  background: var(--repost-content-bg);
+  padding: 16px 24px;
+  border-radius: 0 0 8px 8px;
+}
+
+.repost-badge {
+  background: var(--brand-secondary);
+  color: var(--text-inverse);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.repost-stats {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Theme-aware utility classes */
+.bg-theme {
+  background-color: var(--background-color);
+}
+
+.bg-background {
+  background-color: var(--background-color);
+}
+
+.bg-content {
+  background-color: var(--content-bg);
+}
+
+.bg-surface {
+  background-color: var(--surface-color);
+}
+
+.bg-card {
+  background-color: var(--card-bg);
+}
+
+.text-theme {
+  color: var(--text-color);
+}
+
+.text-primary {
+  color: var(--text-color);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.text-primary-color {
+  color: var(--primary-color);
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color);
+}
+
+.text-secondary-color {
+  color: var(--secondary-color);
+}
+
+.bg-accent {
+  background-color: var(--accent-color);
+}
+
+.text-accent {
+  color: var(--accent-color);
+}
+
+.border-theme {
+  border-color: var(--border-color);
+}
+
+/* Dark mode specific adjustments - COMPONENT-SPECIFIC APPROACH */
+/* Only target specific components, not broad classes */
+
+/* Navigation Components */
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .top-navbar {
+  background-color: var(--surface-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Fix navbar notification icons - make them visible on dark background */
+[data-theme="dark"] .top-navbar button {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .top-navbar button:hover {
+  color: var(--primary-color) !important;
+  background-color: var(--hover-bg) !important;
+}
+
+/* Fix notification bell and chat icons specifically */
+[data-theme="dark"] .top-navbar .relative button {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .top-navbar .relative button:hover {
+  color: var(--primary-color) !important;
+  background-color: var(--hover-bg) !important;
+}
+
+[data-theme="dark"] .navbar .dropdown-menu,
+[data-theme="dark"] .dropdown-content {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Search Bar */
+[data-theme="dark"] .search-bar,
+[data-theme="dark"] input[type="search"] {
+  background-color: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .search-bar::placeholder,
+[data-theme="dark"] input[type="search"]::placeholder {
+  color: var(--secondary-color) !important;
+}
+
+/* Main Content Area */
+[data-theme="dark"] .main-content,
+[data-theme="dark"] .content-area {
+  background-color: var(--content-bg) !important;
+}
+
+/* Post Cards - Specific targeting */
+[data-theme="dark"] .post-card,
+[data-theme="dark"] .social-post {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Fix post interaction buttons - remove white sections */
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .border-gray-100 {
+  border-color: var(--border-color) !important;
+}
+
+/* Post engagement bar styling */
+[data-theme="dark"] .px-6.py-3.bg-gray-50 {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .border-gray-100 {
+  border-color: var(--border-color) !important;
+}
+
+/* Sidebar Cards - Right Panel */
+[data-theme="dark"] .sidebar-card,
+[data-theme="dark"] .right-panel .card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Form Elements - Specific targeting */
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .post-input,
+[data-theme="dark"] textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .post-input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Button States */
+[data-theme="dark"] .btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+/* Modal and Overlay Components */
+[data-theme="dark"] .modal,
+[data-theme="dark"] .overlay {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.4);
+}
+
+/* Status Indicators */
+[data-theme="dark"] .status-online {
+  color: var(--success-color) !important;
+}
+
+[data-theme="dark"] .status-offline {
+  color: var(--text-muted) !important;
+}
+
+/* Utility Classes for Theme Hierarchy */
+[data-theme="dark"] .bg-level-1 { background-color: var(--background-color) !important; }
+[data-theme="dark"] .bg-level-2 { background-color: var(--content-bg) !important; }
+[data-theme="dark"] .bg-level-3 { background-color: var(--card-bg) !important; }
+[data-theme="dark"] .bg-level-4 { background-color: var(--hover-bg) !important; }
+
+[data-theme="dark"] .text-primary { color: var(--text-color) !important; }
+[data-theme="dark"] .text-secondary { color: var(--text-secondary) !important; }
+[data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+
+[data-theme="dark"] .border-theme { border-color: var(--border-color) !important; }
+[data-theme="dark"] .border-hover { border-color: var(--border-hover) !important; }
+
+/* Enhanced visual separation for dark theme */
+[data-theme="dark"] .bg-card {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .bg-surface {
+  background-color: var(--surface-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .bg-content {
+  background-color: var(--content-bg) !important;
+}
+
+/* Dropdowns and modals get extra elevation */
+[data-theme="dark"] .dropdown-content,
+[data-theme="dark"] .modal {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Force dropdown styling based on theme */
+[data-theme="light"] .dropdown-content,
+[data-theme="light"] .modal {
+  background-color: white !important;
+  border: 1px solid #E5E7EB !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Add primary color accents to navbar */
+[data-theme="dark"] .bg-purple-600 {
+  background-color: var(--primary-color) !important;
+}
+
+[data-theme="dark"] .bg-purple-700 {
+  background-color: var(--primary-color) !important;
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .hover\:bg-purple-700:hover {
+  background-color: var(--primary-color) !important;
+  opacity: 0.9;
+}
+
+/* Left sidebar improvements */
+[data-theme="dark"] .left-sidebar {
+  background-color: #4B0082 !important;
+}
+
+/* Force navbar primary color in dark mode */
+[data-theme="dark"] .top-navbar {
+  background-color: #4B0082 !important;
+}
+
+/* Force all purple elements in dark mode */
+[data-theme="dark"] .bg-purple-500 {
+  background-color: #6B2A9E !important;
+}
+
+[data-theme="dark"] .bg-purple-400 {
+  background-color: #7A4BB8 !important;
+}
+
+/* Override purple gradients in dark mode */
+[data-theme="dark"] .bg-gradient-to-r.from-purple-900.to-indigo-900 {
+  background: linear-gradient(to right, #4B0082, #6B46C1) !important;
+}
+
+[data-theme="dark"] .bg-gradient-to-br.from-purple-800.to-indigo-800 {
+  background: linear-gradient(to bottom right, #6B46C1, #8B5CF6) !important;
+}
+
+[data-theme="dark"] .left-sidebar .nav-item {
+  color: var(--text-color) !important;
+}
+
+/* Accent Purple for Active States and Promotions */
+.accent-purple {
+  background-color: #6E31A6 !important;
+}
+
+[data-theme="dark"] .accent-purple {
+  background-color: #6E31A6 !important;
+}
+
+/* Active navigation item styling */
+[data-theme="dark"] .nav-item.active {
+  background-color: #6E31A6 !important;
+}
+
+/* Promotional sections (Go Pro, etc.) */
+[data-theme="dark"] .promo-section {
+  background-color: #6E31A6 !important;
+}
+
+/* Navbar tabs and buttons accent */
+[data-theme="dark"] .navbar-accent {
+  background-color: #6E31A6 !important;
+}
+
+/* ===========================================
+   REUSABLE COMPONENT CLASSES SYSTEM
+   =========================================== */
+
+/* Modal System */
+.modal-container {
+  @apply bg-white rounded-xl shadow-2xl border border-gray-200;
+}
+
+[data-theme="dark"] .modal-container {
+  @apply bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 border-white border-opacity-20;
+}
+
+.modal-header {
+  @apply border-b border-gray-200;
+}
+
+[data-theme="dark"] .modal-header {
+  @apply border-white border-opacity-20;
+}
+
+.modal-title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+[data-theme="dark"] .modal-title {
+  @apply text-white;
+}
+
+.modal-close-btn {
+  @apply p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors;
+}
+
+[data-theme="dark"] .modal-close-btn {
+  @apply text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10;
+}
+
+/* Content Container */
+.content-container {
+  @apply bg-white rounded-xl shadow-lg border border-gray-200 p-6;
+}
+
+[data-theme="dark"] .content-container {
+  @apply bg-white bg-opacity-10 backdrop-blur-sm border-white border-opacity-20;
+}
+
+/* User Avatar */
+.user-avatar {
+  @apply w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center shadow-lg;
+}
+
+[data-theme="dark"] .user-avatar {
+  @apply bg-gradient-to-br from-purple-600 to-purple-700;
+}
+
+.user-avatar-icon {
+  @apply text-gray-600 text-lg;
+}
+
+[data-theme="dark"] .user-avatar-icon {
+  @apply text-white;
+}
+
+/* Content Type Buttons */
+.content-type-btn {
+  @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105;
+}
+
+.content-type-btn-inactive {
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900 border border-gray-200;
+}
+
+[data-theme="dark"] .content-type-btn-inactive {
+  @apply bg-white bg-opacity-20 text-purple-200 hover:bg-opacity-30 hover:text-white border-white border-opacity-30;
+}
+
+.content-type-btn-active {
+  @apply bg-purple-600 text-white shadow-lg;
+}
+
+[data-theme="dark"] .content-type-btn-active {
+  @apply bg-gradient-to-r from-purple-600 to-purple-700;
+}
+
+/* Input Areas */
+.text-input {
+  @apply w-full bg-gray-50 border border-gray-200 rounded-lg p-4 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xl placeholder-gray-400 text-gray-900 min-h-[120px];
+}
+
+[data-theme="dark"] .text-input {
+  @apply bg-white bg-opacity-10 border-white border-opacity-20 placeholder-purple-200 text-white backdrop-blur-sm;
+}
+
+/* Action Buttons */
+.action-btn {
+  @apply p-3 bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 rounded-lg transition-all duration-200 transform hover:scale-105 border border-gray-200;
+}
+
+[data-theme="dark"] .action-btn {
+  @apply bg-white bg-opacity-10 hover:bg-opacity-20 text-purple-200 hover:text-white border-white border-opacity-20;
+}
+
+.action-btn-active {
+  @apply bg-purple-600 text-white;
+}
+
+[data-theme="dark"] .action-btn-active {
+  @apply bg-gradient-to-r from-purple-600 to-purple-700;
+}
+
+/* Advanced Options */
+.advanced-options-link {
+  @apply text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium;
+}
+
+[data-theme="dark"] .advanced-options-link {
+  @apply text-purple-200 hover:text-white;
+}
+
+.advanced-options-container {
+  @apply space-y-4 pt-4 border-t border-gray-200;
+}
+
+[data-theme="dark"] .advanced-options-container {
+  @apply border-white border-opacity-20;
+}
+
+.advanced-options-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+[data-theme="dark"] .advanced-options-label {
+  @apply text-purple-200;
+}
+
+/* Submit Button */
+.submit-btn {
+  @apply bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+}
+
+[data-theme="dark"] .submit-btn {
+  @apply bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800;
+}
+
+/* Glass Morphism Effects */
+.glass-effect {
+  @apply bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20;
+}
+
+.glass-effect-light {
+  @apply bg-gray-100 border border-gray-200;
+}
+
+[data-theme="dark"] .glass-effect-light {
+  @apply glass-effect;
+}
+
+/* Purple Gradient System */
+.gradient-primary {
+  @apply bg-gradient-to-r from-purple-600 to-purple-700;
+}
+
+.gradient-primary-hover {
+  @apply hover:from-purple-700 hover:to-purple-800;
+}
+
+.gradient-modal {
+  @apply bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900;
+}
+
+/* Text Colors */
+.text-primary {
+  @apply text-gray-900;
+}
+
+[data-theme="dark"] .text-primary {
+  @apply text-white;
+}
+
+.text-secondary {
+  @apply text-gray-700;
+}
+
+[data-theme="dark"] .text-secondary {
+  @apply text-purple-200;
+}
+
+.text-muted {
+  @apply text-gray-500;
+}
+
+[data-theme="dark"] .text-muted {
+  @apply text-purple-300;
+}
+
+/* Border Colors */
+.border-primary {
+  @apply border-gray-200;
+}
+
+[data-theme="dark"] .border-primary {
+  @apply border-white border-opacity-20;
+}
+
+[data-theme="dark"] .left-sidebar .nav-item:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .left-sidebar .nav-item.active {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* Input fields and form elements */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Button styling for dark theme */
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] button:not(.btn-primary) {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover,
+[data-theme="dark"] button:not(.btn-primary):hover {
+  background-color: var(--hover-bg) !important;
+}
+
+/* Text color overrides for dark theme */
+[data-theme="dark"] .text-gray-800,
+[data-theme="dark"] .text-gray-900 {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-gray-700 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-gray-500 {
+  color: var(--text-muted) !important;
+}
+
+/* Purple theme overrides for primary elements */
+.bg-purple-600 {
+  background-color: var(--primary-color) !important;
+}
+
+.bg-purple-700 {
+  background-color: var(--primary-color) !important;
+  opacity: 0.9;
+}
+
+/* Force dark mode primary color override */
+[data-theme="dark"] .bg-purple-600 {
+  background-color: #4B0082 !important;
+}
+
+[data-theme="dark"] .bg-purple-700 {
+  background-color: #3A0066 !important;
+}
+
+[data-theme="dark"] .hover\:bg-purple-700:hover {
+  background-color: #3A0066 !important;
+}
+
+.text-purple-600 {
+  color: var(--primary-color) !important;
+}
+
+.text-purple-700 {
+  color: var(--primary-color) !important;
+}
+
+.border-purple-200 {
+  border-color: var(--secondary-color) !important;
+}
+
+.border-purple-300 {
+  border-color: var(--secondary-color) !important;
+}
+
+/* Hover states */
+.hover\:bg-purple-700:hover {
+  background-color: var(--primary-color) !important;
+  opacity: 0.9;
+}
+
+.hover\:text-purple-700:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Focus states */
+.focus\:ring-purple-500:focus {
+  --tw-ring-color: var(--primary-color);
+}
+
+/* Custom scrollbar for dark theme */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+/* Perfect alignment between navbar and sidebar */
+.main-layout {
+  position: relative;
+}
+
+.left-sidebar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  height: 100vh !important;
+  z-index: 30;
+}
+
+.main-content {
+  margin-left: 0 !important;
+}
+
+/* Adjust main content when sidebar is collapsed */
+.left-sidebar.collapsed + .main-content {
+  margin-left: 4rem !important;
+}
+
+/* Adjust main content when sidebar is expanded */
+.left-sidebar:not(.collapsed) + .main-content {
+  margin-left: 14rem !important;
+}
+
+/* Ensure navbar aligns with sidebar top */
+.top-navbar {
+  position: relative;
+  z-index: 40;
+}
+
+/* Fix any potential icon positioning issues */
+.top-navbar .hidden {
+  display: none !important;
+}
+
+/* Ensure mobile elements are properly hidden on desktop */
+@media (min-width: 768px) {
+  .top-navbar .md\\:hidden {
+    display: none !important;
+  }
+}
+
+/* Fix navbar layout issues */
+.top-navbar .flex {
+  display: flex !important;
+}
+
+.top-navbar .items-center {
+  align-items: center !important;
+}
+
+.top-navbar .justify-between {
+  justify-content: space-between !important;
+}
+
+/* For RTL layouts */
+[dir="rtl"] .left-sidebar {
+  left: auto !important;
+  right: 0 !important;
+}
+
+[dir="rtl"] .main-content {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}

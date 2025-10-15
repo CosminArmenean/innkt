@@ -92,7 +92,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
     <div className="space-y-4 sm:space-y-6">
       {/* Trending Topics */}
       {trendingTopics.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 {t('social.trendingTopics')}</h3>
           <div className="space-y-2">
             {trendingTopics.slice(0, 8).map((topic, index) => (
@@ -110,7 +110,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
 
       {/* Recommended Users */}
       {recommendedUsers.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('social.recommendedUsers')}</h3>
           <div className="space-y-3">
             {recommendedUsers.slice(0, 5).map((user) => (
@@ -211,7 +211,7 @@ const SocialDashboard: React.FC<SocialDashboardProps> = ({ currentUserId }) => {
       )}
 
       {/* Fixed Bottom Navigation Bar - Mobile Only */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-gray-200 z-50">
         <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6">
           <nav className="flex space-x-0 overflow-x-auto">
             {[

@@ -25,7 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className={`h-screen bg-gray-50 flex overflow-hidden main-layout ${isRTL ? 'rtl' : 'ltr'}`} dir={direction}>
+    <div className={`h-screen bg-background flex overflow-hidden main-layout ${isRTL ? 'rtl' : 'ltr'}`} dir={direction}>
       {isRTL ? (
         // RTL Layout: Right Panel -> Main Content -> Left Sidebar
         <>
@@ -35,7 +35,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
           
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0 main-content">
+          <div className="flex-1 flex flex-col min-w-0 main-content" style={{ marginRight: sidebarCollapsed ? '4rem' : '14rem' }}>
             {/* Top Navigation - Fixed */}
             <div className="flex-shrink-0">
               <TopNavbar />
@@ -51,19 +51,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </div>
           
-          {/* Left Sidebar - Now on the right in RTL */}
-          <div className="flex-shrink-0 left-sidebar">
-            <LeftSidebar 
-              collapsed={sidebarCollapsed} 
-              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-            />
-          </div>
-        </>
-      ) : (
-        // LTR Layout: Left Sidebar -> Main Content -> Right Panel
-        <>
-          {/* Left Sidebar - Fixed */}
-          <div className="flex-shrink-0">
+            {/* Left Sidebar - Now on the right in RTL */}
+            <div className={`flex-shrink-0 left-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+              <LeftSidebar 
+                collapsed={sidebarCollapsed} 
+                onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+              />
+            </div>
+          </>
+        ) : (
+          // LTR Layout: Left Sidebar -> Main Content -> Right Panel
+          <>
+            {/* Left Sidebar - Fixed */}
+            <div className={`flex-shrink-0 left-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
             <LeftSidebar 
               collapsed={sidebarCollapsed} 
               onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
@@ -71,7 +71,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
           
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 main-content" style={{ marginLeft: sidebarCollapsed ? '4rem' : '14rem' }}>
             {/* Top Navigation - Fixed */}
             <div className="flex-shrink-0">
               <TopNavbar />

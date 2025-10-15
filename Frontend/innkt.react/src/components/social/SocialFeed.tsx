@@ -696,7 +696,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                       {notification.authors.slice(0, 3).map((author, index) => (
                         <div
                           key={author.userId}
-                          className="w-7 h-7 rounded-full border-2 border-white bg-white flex items-center justify-center"
+                          className="w-7 h-7 rounded-full border-2 border-white bg-card flex items-center justify-center"
                           style={{ zIndex: 10 - index }}
                         >
                           {author.avatarUrl ? (
@@ -732,7 +732,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                       )}
                     </div>
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-card bg-opacity-20 flex items-center justify-center">
                       <span className="text-sm">
                         {notification.type === 'new_post' && '📬'}
                         {notification.type === 'post_liked' && '❤️'}
@@ -753,7 +753,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                     {notification.message}
                   </span>
                   {notification.count && notification.count > 1 && (
-                    <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-card bg-opacity-20 px-2 py-1 rounded-full">
                       {notification.count}
                     </span>
                   )}
@@ -766,7 +766,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 
       {/* Professional Header */}
       {/* Thin Header Row */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-gray-200">
         <div className="px-6 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold text-gray-900">
@@ -775,7 +775,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
             
               <button
                 onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-card hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
@@ -837,9 +837,9 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
       </div>
 
       {/* Recent Posts Row - Styled like Add New Post */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-gray-200">
         <div className="px-6 py-3">
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-dashed border-purple-200 rounded-xl p-4">
+          <div className="bg-gradient-to-r from-purple-900 to-indigo-900 border-2 border-dashed border-purple-200 rounded-xl p-4">
             <div className="flex items-center space-x-4 overflow-x-auto pb-2">
               {recentPosts.length > 0 ? (
                 recentPosts.map((post) => (
@@ -866,7 +866,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                         />
                         
                         {/* Floating card positioned over everything */}
-                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 p-5 popover-card">
+                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-96 bg-card rounded-xl shadow-2xl border border-gray-200 p-5 popover-card">
                           {/* Profile Header with clickable username */}
                           <div className="flex items-center space-x-3 mb-4 pb-3 border-b border-gray-100">
                             <img
@@ -997,13 +997,13 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
 
       {/* Enhanced Post Creation with Toggle */}
       {showPostCreation && (
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-card border-b border-gray-200">
           <div className="p-6">
             {!isPostCreationExpanded ? (
               /* Cool "Add New Post" Button - Collapsed State */
               <div 
                 onClick={togglePostCreation}
-                className="group cursor-pointer bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 border-2 border-dashed border-purple-200 hover:border-purple-300 rounded-xl p-6 post-creation-button relative"
+                className="group cursor-pointer bg-gradient-to-r from-purple-900 to-indigo-900 hover:from-purple-800 hover:to-indigo-800 border-2 border-dashed border-purple-200 hover:border-purple-300 rounded-xl p-6 post-creation-button relative"
                 title="Click to create a new post (Ctrl+Shift+N)"
               >
                 <div className="flex items-center space-x-4">
@@ -1026,15 +1026,15 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                   
                   {/* Quick Action Buttons */}
                   <div className="flex items-center space-x-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center space-x-1 bg-white rounded-full px-3 py-1 shadow-sm">
+                    <div className="flex items-center space-x-1 bg-card rounded-full px-3 py-1 shadow-sm">
                       <span className="text-purple-600 text-sm">📝</span>
                       <span className="text-xs text-gray-600">Text</span>
                     </div>
-                    <div className="flex items-center space-x-1 bg-white rounded-full px-3 py-1 shadow-sm">
+                    <div className="flex items-center space-x-1 bg-card rounded-full px-3 py-1 shadow-sm">
                       <span className="text-green-600 text-sm">📷</span>
                       <span className="text-xs text-gray-600">Image</span>
                     </div>
-                    <div className="flex items-center space-x-1 bg-white rounded-full px-3 py-1 shadow-sm">
+                    <div className="flex items-center space-x-1 bg-card rounded-full px-3 py-1 shadow-sm">
                       <span className="text-blue-600 text-sm">📊</span>
                       <span className="text-xs text-gray-600">Poll</span>
                     </div>
@@ -1054,7 +1054,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({
                 {/* Close Button */}
                 <button
                   onClick={togglePostCreation}
-                  className="absolute top-0 right-0 z-10 bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded-full p-2 shadow-lg transition-all duration-200 transform hover:scale-110"
+                  className="absolute top-0 right-0 z-10 bg-card hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded-full p-2 shadow-lg transition-all duration-200 transform hover:scale-110"
                   title="Collapse post creation"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1368,7 +1368,7 @@ const PostCard: React.FC<{
 
   return (
     <div 
-      className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+      className="bg-card rounded-xl shadow-sm border border-gray-200 overflow-hidden"
       data-post-id={post.id}
     >
       {/* Professional Post Header */}
@@ -1510,13 +1510,13 @@ const PostCard: React.FC<{
             </div>
             
             {post.pollOptions && post.pollOptions.length > 0 ? (
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-gray-900 flex items-center">
+              <div className="poll-container">
+                <div className="poll-header">
+                  <h4 className="poll-title">
                     📊 Poll
                   </h4>
                   {post.pollExpiresAt && (
-                    <span className="text-sm text-gray-500 flex items-center">
+                    <span className="poll-status">
                       ⏰ {new Date(post.pollExpiresAt) > new Date() 
                         ? `Expires ${new Date(post.pollExpiresAt).toLocaleDateString()}`
                         : 'Expired'
@@ -1525,7 +1525,7 @@ const PostCard: React.FC<{
                   )}
                 </div>
                 
-                <div className="space-y-2">
+                <div className="poll-options">
                   {post.pollOptions.map((option, index) => {
                     const result = pollResults?.results?.find((r: any) => r.option === option);
                     const percentage = result?.percentage || 0;
@@ -1536,12 +1536,8 @@ const PostCard: React.FC<{
                     return (
                       <div 
                         key={index}
-                        className={`p-3 border rounded-lg transition-colors ${
-                          isUserVote 
-                            ? 'bg-blue-100 border-blue-300' 
-                            : isExpired 
-                              ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
-                              : 'bg-white border-gray-200 hover:bg-blue-50 cursor-pointer'
+                        className={`poll-option ${
+                          isUserVote ? 'active' : isExpired ? 'disabled' : ''
                         }`}
                         onClick={() => {
                           if (!isExpired && !isVoting) {
@@ -1549,21 +1545,19 @@ const PostCard: React.FC<{
                           }
                         }}
                       >
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="poll-option-content">
                           <div className="flex items-center space-x-2">
-                            <span className="text-gray-800">{option}</span>
-                            {isUserVote && <span className="text-blue-600 text-sm">✓ Your vote</span>}
+                            <span className="poll-option-text">{option}</span>
+                            {isUserVote && <span className="text-sm opacity-80">✓ Your vote</span>}
                           </div>
-                          <div className="text-right">
-                            <span className="text-sm font-semibold text-gray-700">{percentage.toFixed(1)}%</span>
-                            <div className="text-xs text-gray-500">{voteCount} votes</div>
+                          <div className="poll-option-stats">
+                            <span className="poll-percentage">{percentage.toFixed(1)}%</span>
+                            <div className="poll-votes">{voteCount} votes</div>
                           </div>
                         </div>
-                        <div className="bg-gray-200 rounded-full h-2">
+                        <div className="poll-progress">
                           <div 
-                            className={`h-2 rounded-full transition-all duration-300 ${
-                              isUserVote ? 'bg-blue-500' : 'bg-gray-400'
-                            }`}
+                            className="poll-progress-fill"
                             style={{width: `${percentage}%`}}
                           ></div>
                         </div>
@@ -1572,20 +1566,20 @@ const PostCard: React.FC<{
                   })}
                 </div>
                 
-                <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                  <div>
+                <div className="poll-footer">
+                  <div className="poll-summary">
                     {pollResults && (
                       <span>Total votes: {pollResults.totalVotes}</span>
                     )}
                     {post.pollDuration && (
-                      <span className="ml-4">Duration: {post.pollDuration} hours</span>
+                      <span>Duration: {post.pollDuration} hours</span>
                     )}
                   </div>
                   <div>
                     {pollResults?.isExpired ? (
-                      <span className="text-red-600 font-medium">🔒 Poll Expired</span>
+                      <span className="poll-expired">🔒 Poll Expired</span>
                     ) : (
-                      <span className="text-green-600 font-medium">🗳️ Active</span>
+                      <span className="poll-active">🗳️ Active</span>
                     )}
                   </div>
                 </div>
@@ -1642,15 +1636,15 @@ const PostCard: React.FC<{
       </div>
 
       {/* Professional Engagement Bar */}
-      <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+      <div className="px-6 py-3 bg-gradient-to-r from-purple-900 to-indigo-900 border-t border-theme">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <button
               onClick={() => onLike(post.id)}
               className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                 post.isLiked 
-                  ? 'text-red-600 bg-red-50' 
-                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+                  ? 'text-red-400 bg-red-500 bg-opacity-20' 
+                  : 'text-white hover:text-red-400 hover:bg-red-500 hover:bg-opacity-20'
               }`}
             >
               <svg className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1661,7 +1655,7 @@ const PostCard: React.FC<{
 
             <button
               onClick={(e) => onComment(post, e)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-white hover:text-blue-400 hover:bg-blue-500 hover:bg-opacity-20 transition-colors"
               data-comment-button
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1674,8 +1668,8 @@ const PostCard: React.FC<{
               onClick={() => onShare(post.id)}
               className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                 post.isShared 
-                  ? 'text-green-600 bg-green-50' 
-                  : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
+                  ? 'text-green-400 bg-green-500 bg-opacity-20' 
+                  : 'text-white hover:text-green-400 hover:bg-green-500 hover:bg-opacity-20'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1699,7 +1693,7 @@ const PostCard: React.FC<{
             </div>
           </div>
 
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-purple-200">
             {post.viewsCount && post.viewsCount > 0 && `${post.viewsCount} views`}
           </div>
         </div>

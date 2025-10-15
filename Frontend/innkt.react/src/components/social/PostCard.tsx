@@ -30,7 +30,7 @@ const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+    <div className="bg-card rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-start space-x-3">
         {post.postedAsRoleName ? (
           // Role-based avatar
@@ -118,7 +118,7 @@ const PostCard: React.FC<PostCardProps> = ({
                     {post.pollOptions.map((option, index) => (
                       <div 
                         key={index}
-                        className="p-3 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
+                        className="p-3 bg-card border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
                         onClick={() => {
                           // TODO: Implement voting logic
                           console.log(`Voted for option: ${option}`);

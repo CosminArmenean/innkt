@@ -368,11 +368,11 @@ const PostCreation: React.FC<PostCreationProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-white dark:bg-white dark:bg-opacity-10 dark:backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-white dark:border-opacity-20 p-6">
       <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-600 text-lg">👤</span>
+        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gradient-to-br dark:from-purple-600 dark:to-purple-700 flex items-center justify-center shadow-lg">
+          <span className="text-gray-600 dark:text-white text-lg">👤</span>
         </div>
         
         <div className="flex-1 space-y-4">
@@ -382,10 +382,10 @@ const PostCreation: React.FC<PostCreationProps> = ({
               <button
                 key={type}
                 onClick={() => type === 'poll' ? handlePollTypeSelect() : setPostType(type as any)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 ${
                   postType === type
-                    ? 'bg-innkt-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-purple-600 dark:bg-gradient-to-r dark:from-purple-600 dark:to-purple-700 text-white shadow-lg'
+                    : 'bg-gray-100 dark:bg-white dark:bg-opacity-20 text-gray-700 dark:text-purple-200 hover:bg-gray-200 dark:hover:bg-opacity-30 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white dark:border-opacity-30'
                 }`}
               >
                 {type === 'text' && '📝'}
@@ -418,7 +418,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
                   ? "Write your reply..." 
                   : "What's on your mind?"
               }
-              className="w-full border-0 resize-none focus:ring-0 text-xl placeholder-gray-400 min-h-[120px]"
+              className="w-full bg-gray-50 dark:bg-white dark:bg-opacity-10 border border-gray-200 dark:border-white dark:border-opacity-20 rounded-lg p-4 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xl placeholder-gray-400 dark:placeholder-purple-200 text-gray-900 dark:text-white min-h-[120px] dark:backdrop-blur-sm"
               rows={4}
             />
             
@@ -684,7 +684,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
               {/* File Upload */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-gray-500 hover:text-innkt-primary transition-colors"
+                className="p-3 bg-gray-100 dark:bg-white dark:bg-opacity-10 hover:bg-gray-200 dark:hover:bg-opacity-20 text-gray-500 dark:text-purple-200 hover:text-gray-700 dark:hover:text-white rounded-lg transition-all duration-200 transform hover:scale-105 border border-gray-200 dark:border-white dark:border-opacity-20"
                 title="Add media"
               >
                 📎
@@ -693,8 +693,8 @@ const PostCreation: React.FC<PostCreationProps> = ({
               {/* Location */}
               <button
                 onClick={() => setShowLocationSelector(!showLocationSelector)}
-                className={`p-2 transition-colors ${
-                  location ? 'text-innkt-primary' : 'text-gray-500 hover:text-innkt-primary'
+                className={`p-3 rounded-lg transition-all duration-200 transform hover:scale-105 border border-gray-200 dark:border-white dark:border-opacity-20 ${
+                  location ? 'bg-purple-600 dark:bg-gradient-to-r dark:from-purple-600 dark:to-purple-700 text-white' : 'bg-gray-100 dark:bg-white dark:bg-opacity-10 hover:bg-gray-200 dark:hover:bg-opacity-20 text-gray-500 dark:text-purple-200 hover:text-gray-700 dark:hover:text-white'
                 }`}
                 title="Add location"
               >
@@ -704,8 +704,8 @@ const PostCreation: React.FC<PostCreationProps> = ({
               {/* AI Processing Toggle */}
               <button
                 onClick={() => setUseAIProcessing(!useAIProcessing)}
-                className={`p-2 transition-colors ${
-                  useAIProcessing ? 'text-innkt-primary' : 'text-gray-500 hover:text-innkt-primary'
+                className={`p-3 rounded-lg transition-all duration-200 transform hover:scale-105 border border-gray-200 dark:border-white dark:border-opacity-20 ${
+                  useAIProcessing ? 'bg-purple-600 dark:bg-gradient-to-r dark:from-purple-600 dark:to-purple-700 text-white' : 'bg-gray-100 dark:bg-white dark:bg-opacity-10 hover:bg-gray-200 dark:hover:bg-opacity-20 text-gray-500 dark:text-purple-200 hover:text-gray-700 dark:hover:text-white'
                 }`}
                 title="AI Processing"
               >
@@ -726,7 +726,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
 
             <button
               onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 dark:text-purple-200 hover:text-gray-700 dark:hover:text-white transition-colors font-medium"
             >
               {showAdvancedOptions ? 'Hide' : 'Advanced'} Options
             </button>
@@ -734,10 +734,10 @@ const PostCreation: React.FC<PostCreationProps> = ({
 
           {/* Advanced Options */}
           {showAdvancedOptions && (
-            <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-white dark:border-opacity-20">
               {/* Visibility Settings */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-purple-200 mb-2">
                   Post Visibility
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -868,7 +868,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
             <button
               onClick={handleSubmit}
               disabled={isLoading || (!content.trim() && selectedFiles.length === 0)}
-              className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-purple-600 dark:bg-gradient-to-r dark:from-purple-600 dark:to-purple-700 hover:bg-purple-700 dark:hover:from-purple-700 dark:hover:to-purple-800 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? 'Creating...' : replyToPostId ? 'Reply' : 'Post'}
             </button>
@@ -889,7 +889,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
       {/* Group Selector Modal */}
       {showGroupSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Group</h3>
             
             <div className="space-y-2">

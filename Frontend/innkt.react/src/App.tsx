@@ -4,8 +4,10 @@ import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { MessagingProvider } from './contexts/MessagingContext';
 import { LanguageProvider } from './components/providers/LanguageProvider';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './i18n'; // Initialize i18next
 import './styles/rtl.css'; // RTL support styles
+import './styles/themes.css'; // Theme system styles
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout'; 
 import Home from './components/pages/Home';
@@ -78,12 +80,13 @@ function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <NotificationProvider>
-          <MessagingProvider>
-            <Router>
-          <div className="min-h-screen bg-gray-50">
-          <MainLayout>
-            <Routes>
+        <ThemeProvider>
+          <NotificationProvider>
+            <MessagingProvider>
+              <Router>
+                <div className="min-h-screen bg-gray-50">
+                  <MainLayout>
+                    <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -219,11 +222,12 @@ function App() {
           <PWAInstallPrompt />
         </div>
       </Router>
-          </MessagingProvider>
-        </NotificationProvider>
-      </LanguageProvider>
-    </AuthProvider>
-  );
+              </MessagingProvider>
+            </NotificationProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    );
 }
 
 export default App;

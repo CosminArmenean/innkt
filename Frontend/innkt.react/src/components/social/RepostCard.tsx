@@ -74,10 +74,10 @@ const RepostCard: React.FC<RepostCardProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden mb-6">
       {/* Repost Header */}
-      <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
-        <div className="flex items-center space-x-3">
+      <div className="repost-header">
+        <div className="repost-header-content">
           <div className="flex items-center space-x-2">
             <span className="text-green-600">
               {repost.repostType === 'quote' ? '💬' : '🔄'}
@@ -87,27 +87,27 @@ const RepostCard: React.FC<RepostCardProps> = ({
               alt={repost.userSnapshot?.username || 'User'}
               className="w-6 h-6 rounded-full"
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="repost-header-text">
               {repost.userSnapshot?.displayName || 'Unknown User'}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="repost-header-muted">
               {repost.repostType === 'quote' ? 'quote reposted' : 'reposted'}
             </span>
           </div>
           <span className="text-xs text-gray-400">•</span>
-          <span className="text-xs text-gray-500">{formatDate(repost.createdAt)}</span>
+          <span className="repost-header-muted">{formatDate(repost.createdAt)}</span>
         </div>
 
         {/* Quote text for quote reposts */}
         {repost.repostType === 'quote' && repost.quoteText && (
-          <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
-            <p className="text-gray-800 leading-relaxed">{repost.quoteText}</p>
+          <div className="repost-quote">
+            <p className="repost-quote-text">{repost.quoteText}</p>
           </div>
         )}
       </div>
 
       {/* Original Post Content */}
-      <div className="px-6 py-4">
+      <div className="repost-content">
         {/* Original Post Header */}
         <div className="flex items-start space-x-3 mb-4">
           <img
@@ -117,20 +117,20 @@ const RepostCard: React.FC<RepostCardProps> = ({
           />
           <div className="flex-1">
             <div className="flex items-center space-x-2">
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-primary">
                 {originalPost.authorSnapshot?.displayName || 'Unknown User'}
               </h3>
               {originalPost.authorSnapshot?.isVerified && (
                 <span className="text-blue-500">✓</span>
               )}
-              <span className="text-gray-500 text-sm">
+              <span className="text-secondary text-sm">
                 @{originalPost.authorSnapshot?.username || 'unknown'}
               </span>
               <span className="text-gray-400">•</span>
-              <span className="text-gray-500 text-sm">{formatDate(originalPost.createdAt)}</span>
+              <span className="text-secondary text-sm">{formatDate(originalPost.createdAt)}</span>
             </div>
             <div className="flex items-center space-x-2 mt-1">
-              <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+              <span className="repost-badge">
                 Original Post
               </span>
               {repost.repostChainLength > 1 && (
@@ -144,7 +144,7 @@ const RepostCard: React.FC<RepostCardProps> = ({
 
         {/* Original Post Content */}
         <div className="mb-4">
-          <p className="text-gray-800 leading-relaxed">{originalPost.content}</p>
+          <p className="text-primary leading-relaxed">{originalPost.content}</p>
         </div>
 
         {/* Original Post Media */}
@@ -164,8 +164,64 @@ const RepostCard: React.FC<RepostCardProps> = ({
           </div>
         )}
 
+        {/* Original Post Poll */}
+        {originalPost.postType === 'poll' && originalPost.pollOptions && originalPost.pollOptions.length > 0 && (
+          <div className="mb-4">
+            <div className="poll-container">
+              <div className="poll-header">
+                <h4 className="poll-title">
+                  📊 Poll
+                </h4>
+                {originalPost.pollExpiresAt && (
+                  <span className="poll-status">
+                    ⏰ {new Date(originalPost.pollExpiresAt) > new Date() 
+                      ? `Expires ${new Date(originalPost.pollExpiresAt).toLocaleDateString()}`
+                      : 'Expired'
+                    }
+                  </span>
+                )}
+              </div>
+              
+              <div className="poll-options">
+                {originalPost.pollOptions.map((option, index) => (
+                  <div key={index} className="poll-option disabled">
+                    <div className="poll-option-content">
+                      <div className="flex items-center space-x-2">
+                        <span className="poll-option-text">{option}</span>
+                      </div>
+                      <div className="poll-option-stats">
+                        <span className="poll-percentage">0.0%</span>
+                        <div className="poll-votes">0 votes</div>
+                      </div>
+                    </div>
+                    <div className="poll-progress">
+                      <div className="poll-progress-fill" style={{width: '0%'}}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="poll-footer">
+                <div className="poll-summary">
+                  <span>Total votes: 0</span>
+                  {originalPost.pollDuration && (
+                    <span>Duration: {originalPost.pollDuration} hours</span>
+                  )}
+                </div>
+                <div>
+                  {originalPost.pollExpiresAt && new Date(originalPost.pollExpiresAt) <= new Date() ? (
+                    <span className="poll-expired">🔒 Poll Expired</span>
+                  ) : (
+                    <span className="poll-active">🗳️ Active</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Original Post Engagement Stats */}
-        <div className="flex items-center space-x-6 text-sm text-gray-500 mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="repost-stats">
           <span className="flex items-center space-x-1">
             <span>❤️</span>
             <span>{originalPost.likesCount}</span>
@@ -186,7 +242,7 @@ const RepostCard: React.FC<RepostCardProps> = ({
       </div>
 
       {/* Repost Engagement Bar */}
-      <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+      <div className="px-6 py-3 bg-gradient-to-r from-purple-900 to-indigo-900 border-t border-theme">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
             {/* Like Repost */}
@@ -194,8 +250,8 @@ const RepostCard: React.FC<RepostCardProps> = ({
               onClick={handleLike}
               className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                 isLiked 
-                  ? 'text-red-600 bg-red-50' 
-                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+                  ? 'text-red-400 bg-red-500 bg-opacity-20' 
+                  : 'text-white hover:text-red-400 hover:bg-red-500 hover:bg-opacity-20'
               }`}
             >
               <svg className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +263,7 @@ const RepostCard: React.FC<RepostCardProps> = ({
             {/* Comment on Repost */}
             <button
               onClick={handleCommentClick}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-white hover:text-blue-400 hover:bg-blue-500 hover:bg-opacity-20 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -218,7 +274,7 @@ const RepostCard: React.FC<RepostCardProps> = ({
             {/* Share Repost */}
             <button
               onClick={() => onShare?.(repost.repostId)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-white hover:text-green-400 hover:bg-green-500 hover:bg-opacity-20 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
@@ -229,12 +285,12 @@ const RepostCard: React.FC<RepostCardProps> = ({
 
           {/* More Options */}
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-400">👁️ {repost.viewsCount}</span>
+            <span className="text-xs text-purple-200">👁️ {repost.viewsCount}</span>
             
             {isOwnRepost && (
               <button
                 onClick={() => onDelete?.(repost.repostId)}
-                className="text-gray-400 hover:text-red-600 p-1 hover:bg-red-50 rounded transition-colors"
+                className="text-purple-200 hover:text-red-400 p-1 hover:bg-red-500 hover:bg-opacity-20 rounded transition-colors"
                 title="Delete repost"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

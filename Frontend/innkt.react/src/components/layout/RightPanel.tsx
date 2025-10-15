@@ -36,10 +36,10 @@ const RightPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-80 bg-gray-100 p-6 h-full flex flex-col">
+    <div className="w-80 bg-surface p-6 h-full flex flex-col">
       <div className="flex-1 space-y-6 overflow-y-auto">
         {/* Recent Posts Carousel */}
-        <div className="bg-white rounded-lg p-4 shadow-sm">
+        <div className="bg-card rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-800">{t('social.recentPosts')}</h3>
           <div className="flex items-center space-x-2">
@@ -85,7 +85,7 @@ const RightPanel: React.FC = () => {
 
         {/* Active Post Preview */}
         {activePost && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-3 bg-hover rounded-lg">
             {(() => {
               const post = recentPosts.find(p => p.id === activePost);
               return post ? (
@@ -115,8 +115,8 @@ const RightPanel: React.FC = () => {
       </div>
 
       {/* Trending Searches */}
-      <div className="bg-white rounded-lg p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('social.trendingSearches')}</h3>
+      <div className="bg-card rounded-lg p-4 shadow-sm">
+        <h3 className="text-lg font-semibold text-primary mb-4">{t('social.trendingSearches')}</h3>
         <div className="space-y-3">
           {isLoading ? (
             <div className="space-y-2">
@@ -126,7 +126,7 @@ const RightPanel: React.FC = () => {
             </div>
           ) : trendingSearches.length > 0 ? (
             trendingSearches.map((trend, index) => (
-              <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg cursor-pointer transition-colors">
+              <div key={index} className="flex items-center justify-between hover:bg-hover p-2 rounded-lg cursor-pointer transition-colors">
                 <div className="flex items-center space-x-3">
                   <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
                   <span className="text-sm font-medium text-gray-800">#{trend}</span>
@@ -135,7 +135,13 @@ const RightPanel: React.FC = () => {
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500">{t('social.noTrendingTopics')}</p>
+            <div className="text-center py-4">
+              <div className="w-10 h-10 mx-auto mb-2 bg-hover rounded-full flex items-center justify-center">
+                <span className="text-lg">📈</span>
+              </div>
+              <p className="text-sm text-secondary mb-1">No trending topics</p>
+              <p className="text-xs text-muted">Start conversations to see what's trending!</p>
+            </div>
           )}
         </div>
         <button className="w-full mt-4 text-sm text-purple-600 hover:text-purple-700 font-medium">
@@ -144,9 +150,9 @@ const RightPanel: React.FC = () => {
       </div>
 
       {/* Friend Suggestions */}
-      <div className="bg-white rounded-lg p-4 shadow-sm">
+      <div className="bg-card rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">{t('social.friendSuggestions')}</h3>
+          <h3 className="text-lg font-semibold text-primary">{t('social.friendSuggestions')}</h3>
           <Link to="/suggestions" className="text-sm text-purple-600 hover:text-purple-700">
             {t('common.seeAll')}
           </Link>
@@ -159,7 +165,13 @@ const RightPanel: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">{t('social.noSuggestionsAvailable')}</p>
+            <div className="text-center py-4">
+              <div className="w-10 h-10 mx-auto mb-2 bg-hover rounded-full flex items-center justify-center">
+                <span className="text-lg">👥</span>
+              </div>
+              <p className="text-sm text-secondary mb-1">No suggestions yet</p>
+              <p className="text-xs text-muted">Connect with friends to get suggestions!</p>
+            </div>
           )}
         </div>
       </div>
@@ -167,7 +179,7 @@ const RightPanel: React.FC = () => {
       {/* Profile Activity - Removed mock data */}
 
       {/* Upcoming Events */}
-      <div className="bg-white rounded-lg p-4 shadow-sm">
+      <div className="bg-card rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-800">{t('social.upcomingEvents')}</h3>
           <button className="text-gray-400 hover:text-gray-600">
@@ -177,7 +189,7 @@ const RightPanel: React.FC = () => {
           </button>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-hover rounded-lg">
             <div>
               <p className="text-sm font-medium text-gray-800">{t('social.friendsBirthday')}</p>
               <p className="text-xs text-gray-500">Jun 25, 2028</p>
@@ -192,12 +204,12 @@ const RightPanel: React.FC = () => {
       </div>
 
       {/* System Status with Real-time Indicator */}
-      <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
+      <div className="bg-card rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
         <div className="text-center">
           <h3 className="text-sm font-medium text-gray-900 mb-3">{t('social.systemStatus')}</h3>
           
           {/* Real-time Connection Status */}
-          <div className="flex items-center justify-center space-x-2 mb-3 p-2 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-center space-x-2 mb-3 p-2 bg-hover rounded-lg">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-xs text-gray-600 font-medium">{t('social.realtimeActive')}</span>
           </div>
@@ -207,7 +219,7 @@ const RightPanel: React.FC = () => {
       </div>
 
       {/* Version Information - Fixed at bottom */}
-      <div className="bg-white rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
+      <div className="bg-card rounded-lg p-4 shadow-sm mt-4 flex-shrink-0">
         <div className="text-center text-sm text-gray-500">
           <div className="flex items-center justify-center space-x-2">
             <span>{t('common.version')}</span>
