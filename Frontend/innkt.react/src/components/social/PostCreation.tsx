@@ -376,13 +376,13 @@ const PostCreation: React.FC<PostCreationProps> = ({
         {user?.avatar ? (
           <img
             src={user.avatar}
-            alt={user.displayName || user.username || 'User'}
+            alt={user.username || 'User'}
             className="w-12 h-12 rounded-full object-cover shadow-lg"
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg">
             <span className="text-gray-600 dark:text-white text-lg">
-              {(user?.displayName || user?.username || 'U').charAt(0).toUpperCase()}
+              {(user?.username || 'U').charAt(0).toUpperCase()}
             </span>
           </div>
         )}
