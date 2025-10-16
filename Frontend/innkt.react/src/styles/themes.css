@@ -2074,19 +2074,7 @@ body {
    LIGHT MODE SECONDARY COLOR & GRADIENTS
    =========================================== */
 
-/* Light mode secondary color scheme - Blue-gray with gradients */
-[data-theme="light"] .bg-purple-600,
-[data-theme="light"] .bg-purple-700,
-[data-theme="light"] .bg-purple-800 {
-  background: linear-gradient(135deg, #4F46E5, #6366F1) !important; /* Indigo gradient */
-}
-
-[data-theme="light"] .from-purple-600,
-[data-theme="light"] .to-purple-700,
-[data-theme="light"] .from-purple-800,
-[data-theme="light"] .to-indigo-800 {
-  background: linear-gradient(135deg, #4F46E5, #6366F1) !important; /* Indigo gradient */
-}
+/* Light mode secondary color scheme - ONLY for social feed components */
 
 /* Add New Post section with light gradient */
 [data-theme="light"] .post-creation-container {
@@ -2140,39 +2128,43 @@ body {
   border-color: #BBF7D0 !important;
 }
 
-/* Create Post button with indigo gradient */
-[data-theme="light"] .bg-purple-600.text-white {
+/* Social feed Create Post button with indigo gradient (only within social feed) */
+[data-theme="light"] .post-creation-container .bg-purple-600,
+[data-theme="light"] .social-post .bg-purple-600 {
   background: linear-gradient(135deg, #4F46E5, #6366F1) !important;
   border: none !important;
   box-shadow: 0 2px 4px 0 rgba(79, 70, 229, 0.3) !important;
 }
 
-[data-theme="light"] .bg-purple-600.text-white:hover {
+[data-theme="light"] .post-creation-container .bg-purple-600:hover,
+[data-theme="light"] .social-post .bg-purple-600:hover {
   background: linear-gradient(135deg, #4338CA, #5B21B6) !important;
   box-shadow: 0 4px 8px 0 rgba(79, 70, 229, 0.4) !important;
   transform: translateY(-1px) !important;
 }
 
-/* Text/Image/Poll buttons with secondary color */
-[data-theme="light"] .bg-gray-100.text-gray-700 {
+/* Text/Image/Poll buttons with secondary color (only in social feed) */
+[data-theme="light"] .post-creation-container .bg-gray-100.text-gray-700 {
   background: linear-gradient(135deg, #F1F5F9, #E2E8F0) !important;
   border: 1px solid #CBD5E1 !important;
   color: #475569 !important;
 }
 
-[data-theme="light"] .bg-gray-100.text-gray-700:hover {
+[data-theme="light"] .post-creation-container .bg-gray-100.text-gray-700:hover {
   background: linear-gradient(135deg, #E2E8F0, #CBD5E1) !important;
   border-color: #94A3B8 !important;
   color: #334155 !important;
 }
 
-/* Avatar backgrounds with secondary color gradient */
-[data-theme="light"] .bg-gradient-to-br.from-purple-500.to-blue-500 {
+/* Avatar backgrounds with secondary color gradient (only in social feed) */
+[data-theme="light"] .post-creation-container .bg-gradient-to-br.from-purple-500.to-blue-500,
+[data-theme="light"] .social-post .bg-gradient-to-br.from-purple-500.to-blue-500 {
   background: linear-gradient(135deg, #6366F1, #8B5CF6) !important;
 }
 
-/* Verified badge with secondary color */
-[data-theme="light"] .bg-blue-100.text-blue-800 {
+/* Verified badge with secondary color (only in social feed) */
+[data-theme="light"] .post-creation-container .bg-blue-100.text-blue-800,
+[data-theme="light"] .social-post .bg-blue-100.text-blue-800 {
   background: linear-gradient(135deg, #DBEAFE, #BFDBFE) !important;
   color: #1E40AF !important;
   border: 1px solid #93C5FD !important;
