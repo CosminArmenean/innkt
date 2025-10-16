@@ -1803,3 +1803,128 @@ body {
 [data-theme="light"] .caught-up-icon {
   background-color: #F5F5F5 !important;
 }
+
+/* ===========================================
+   TEXT VISIBILITY FIXES FOR DARK THEMES
+   =========================================== */
+
+/* Fix all dark text colors in purple theme */
+[data-theme="purple"] .text-gray-800,
+[data-theme="purple"] .text-gray-900,
+[data-theme="purple"] .text-black,
+[data-theme="purple"] h1,
+[data-theme="purple"] h2,
+[data-theme="purple"] h3,
+[data-theme="purple"] h4,
+[data-theme="purple"] h5,
+[data-theme="purple"] h6,
+[data-theme="purple"] .font-semibold,
+[data-theme="purple"] .font-bold,
+[data-theme="purple"] .font-medium {
+  color: #FFFFFF !important;
+}
+
+/* Fix all dark text colors in black theme */
+[data-theme="black"] .text-gray-800,
+[data-theme="black"] .text-gray-900,
+[data-theme="black"] .text-black,
+[data-theme="black"] h1,
+[data-theme="black"] h2,
+[data-theme="black"] h3,
+[data-theme="black"] h4,
+[data-theme="black"] h5,
+[data-theme="black"] h6,
+[data-theme="black"] .font-semibold,
+[data-theme="black"] .font-bold,
+[data-theme="black"] .font-medium {
+  color: #FFFFFF !important;
+}
+
+/* Fix secondary text colors in dark themes */
+[data-theme="purple"] .text-gray-600,
+[data-theme="purple"] .text-gray-700 {
+  color: #E0E0E0 !important;
+}
+
+[data-theme="black"] .text-gray-600,
+[data-theme="black"] .text-gray-700 {
+  color: #CCCCCC !important;
+}
+
+/* Fix muted text colors in dark themes */
+[data-theme="purple"] .text-gray-500,
+[data-theme="purple"] .text-gray-400 {
+  color: #B0B0B0 !important;
+}
+
+[data-theme="black"] .text-gray-500,
+[data-theme="black"] .text-gray-400 {
+  color: #999999 !important;
+}
+
+/* Fix specific component text visibility issues */
+[data-theme="purple"] .social-post h3,
+[data-theme="purple"] .social-post .font-semibold,
+[data-theme="purple"] .social-post .font-medium,
+[data-theme="purple"] .post-card h3,
+[data-theme="purple"] .post-card .font-semibold,
+[data-theme="purple"] .post-card .font-medium {
+  color: #FFFFFF !important;
+}
+
+[data-theme="black"] .social-post h3,
+[data-theme="black"] .social-post .font-semibold,
+[data-theme="black"] .social-post .font-medium,
+[data-theme="black"] .post-card h3,
+[data-theme="black"] .post-card .font-semibold,
+[data-theme="black"] .post-card .font-medium {
+  color: #FFFFFF !important;
+}
+
+/* Fix modal text visibility */
+[data-theme="purple"] .modal h3,
+[data-theme="purple"] .modal .font-semibold,
+[data-theme="purple"] .modal .font-medium,
+[data-theme="black"] .modal h3,
+[data-theme="black"] .modal .font-semibold,
+[data-theme="black"] .modal .font-medium {
+  color: #FFFFFF !important;
+}
+
+/* Fix navigation text visibility */
+[data-theme="purple"] .nav-item,
+[data-theme="purple"] .nav-item:hover,
+[data-theme="black"] .nav-item,
+[data-theme="black"] .nav-item:hover {
+  color: #FFFFFF !important;
+}
+
+/* Comprehensive text visibility fixes - catch all remaining dark text */
+[data-theme="purple"] * {
+  color: inherit;
+}
+
+[data-theme="purple"] *:not([class*="text-"]):not([style*="color"]) {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="black"] * {
+  color: inherit;
+}
+
+[data-theme="black"] *:not([class*="text-"]):not([style*="color"]) {
+  color: var(--text-primary) !important;
+}
+
+/* Force override any remaining problematic text classes */
+[data-theme="purple"] [class*="text-gray-8"],
+[data-theme="purple"] [class*="text-gray-9"],
+[data-theme="purple"] [class*="text-black"] {
+  color: #FFFFFF !important;
+}
+
+[data-theme="black"] [class*="text-gray-8"],
+[data-theme="black"] [class*="text-gray-9"],
+[data-theme="black"] [class*="text-black"] {
+  color: #FFFFFF !important;
+}
