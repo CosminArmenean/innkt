@@ -1928,3 +1928,41 @@ body {
 [data-theme="black"] [class*="text-black"] {
   color: #FFFFFF !important;
 }
+
+/* Fix verified badge visibility in dark themes */
+[data-theme="purple"] .bg-blue-100,
+[data-theme="purple"] .bg-green-100 {
+  background-color: #1E3A8A !important; /* Dark blue background */
+}
+
+[data-theme="purple"] .text-blue-800,
+[data-theme="purple"] .text-green-800 {
+  color: #FFFFFF !important; /* White text */
+}
+
+[data-theme="black"] .bg-blue-100,
+[data-theme="black"] .bg-green-100 {
+  background-color: #1E3A8A !important; /* Dark blue background */
+}
+
+[data-theme="black"] .text-blue-800,
+[data-theme="black"] .text-green-800 {
+  color: #FFFFFF !important; /* White text */
+}
+
+/* Fix caught up icon visibility in dark themes */
+[data-theme="purple"] .caught-up-icon {
+  background-color: #374151 !important; /* Dark gray background */
+}
+
+[data-theme="purple"] .caught-up-icon svg {
+  color: #FFFFFF !important; /* White icon */
+}
+
+[data-theme="black"] .caught-up-icon {
+  background-color: #374151 !important; /* Dark gray background */
+}
+
+[data-theme="black"] .caught-up-icon svg {
+  color: #FFFFFF !important; /* White icon */
+}
