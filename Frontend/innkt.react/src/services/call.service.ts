@@ -219,14 +219,18 @@ class CallService {
       console.log(`Starting ${type} call to ${calleeId}`);
 
       // Create call via Seer service API
-      // Capitalize first letter of type to match enum (Voice, Video)
+      // Match C# PascalCase property names and capitalize enum value
       const callType = type.charAt(0).toUpperCase() + type.slice(1);
       
-      const response = await seerApi.post('/api/call/start', {
-        calleeId,
-        type: callType,
-        conversationId
-      });
+      const requestPayload = {
+        CalleeId: calleeId,  // PascalCase to match C# model
+        Type: callType,      // PascalCase and capitalized enum value
+        ConversationId: conversationId  // PascalCase to match C# model
+      };
+      
+      console.log('📞 Sending call request:', requestPayload);
+      
+      const response = await seerApi.post('/api/call/start', requestPayload);
 
       const call: Call = response.data.data;
       this.currentCall = call;
