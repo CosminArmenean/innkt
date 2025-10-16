@@ -22,11 +22,16 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
     endCall,
     toggleMute,
     toggleVideo,
+    getCurrentCallType,
+    getCurrentVideoQuality,
+    setVideoQuality,
+    upgradeToVideoCall,
   } = useCall();
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
 
   // Set up video streams
   useEffect(() => {
@@ -108,6 +113,30 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleUpgradeToVideo = async () => {
+    setIsLoading(true);
+    try {
+      const success = await upgradeToVideoCall();
+      if (!success) {
+        // Show error message to user
+        console.error('Failed to upgrade to video call');
+      }
+    } catch (error) {
+      console.error('Failed to upgrade to video call:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSetVideoQuality = async (quality: 'low' | 'medium' | 'high' | 'hd') => {
+    try {
+      await setVideoQuality(quality);
+      setShowQualityMenu(false);
+    } catch (error) {
+      console.error('Failed to set video quality:', error);
+    }
+  };
+
   if (!isOpen || !currentCall) {
     return null;
   }
@@ -155,6 +184,12 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
           {connectionStats && (
             <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Quality: {connectionStats.quality} | Latency: {Math.round(connectionStats.latency)}ms
+            </div>
+          )}
+          
+          {getCurrentCallType() === 'video' && (
+            <div className="mt-1 text-xs text-purple-600 dark:text-purple-400">
+              Video Quality: {getCurrentVideoQuality().toUpperCase()}
             </div>
           )}
         </div>
@@ -250,26 +285,71 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
                 )}
               </button>
 
-              {currentCall.type === 'video' && (
+              {getCurrentCallType() === 'video' ? (
+                <>
+                  <button
+                    onClick={handleToggleVideo}
+                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+                      isVideoEnabled 
+                        ? 'bg-gray-600 hover:bg-gray-700 text-white' 
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                    title={isVideoEnabled ? 'Turn off video' : 'Turn on video'}
+                  >
+                    {isVideoEnabled ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16l-4-4 4-4M6 18l4-4-4-4" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Video Quality Button */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowQualityMenu(!showQualityMenu)}
+                      className="flex items-center justify-center w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                      title="Video Quality"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </button>
+
+                    {showQualityMenu && (
+                      <div className="absolute bottom-14 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                        {(['low', 'medium', 'high', 'hd'] as const).map((quality) => (
+                          <button
+                            key={quality}
+                            onClick={() => handleSetVideoQuality(quality)}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                              getCurrentVideoQuality() === quality 
+                                ? 'text-purple-600 dark:text-purple-400 font-medium' 
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {quality.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* Upgrade to Video Button */
                 <button
-                  onClick={handleToggleVideo}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                    isVideoEnabled 
-                      ? 'bg-gray-600 hover:bg-gray-700 text-white' 
-                      : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}
-                  title={isVideoEnabled ? 'Turn off video' : 'Turn on video'}
+                  onClick={handleUpgradeToVideo}
+                  disabled={isLoading}
+                  className="flex items-center justify-center w-12 h-12 bg-green-600 hover:bg-green-700 text-white rounded-full transition-colors disabled:opacity-50"
+                  title="Upgrade to video call"
                 >
-                  {isVideoEnabled ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16l-4-4 4-4M6 18l4-4-4-4" />
-                    </svg>
-                  )}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
                 </button>
               )}
 
@@ -293,6 +373,14 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
           ) : null}
+
+          {/* Click outside to close quality menu */}
+          {showQualityMenu && (
+            <div 
+              className="fixed inset-0 z-5" 
+              onClick={() => setShowQualityMenu(false)}
+            />
+          )}
 
           {/* Loading overlay */}
           {isLoading && (

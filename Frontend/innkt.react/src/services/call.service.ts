@@ -79,6 +79,12 @@ class CallService {
   private remoteStream: MediaStream | null = null;
   private peerConnection: RTCPeerConnection | null = null;
   private eventHandlers: Map<string, Function[]> = new Map();
+  
+  // Video call state
+  private currentCallType: 'voice' | 'video' = 'voice';
+  private videoQuality: 'low' | 'medium' | 'high' | 'hd' = 'medium';
+  private bandwidthEstimate: number = 0;
+  private isVideoSupported: boolean = true;
 
   // Configuration
   private readonly SEER_SERVICE_URL = 'http://localhost:5267';
@@ -86,6 +92,14 @@ class CallService {
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' }
   ];
+  
+  // Video quality constraints
+  private readonly VIDEO_CONSTRAINTS = {
+    low: { width: 320, height: 240, frameRate: 15 },
+    medium: { width: 640, height: 480, frameRate: 24 },
+    high: { width: 1280, height: 720, frameRate: 30 },
+    hd: { width: 1920, height: 1080, frameRate: 30 }
+  };
 
   constructor() {
     this.initializeConnection();
@@ -217,6 +231,30 @@ class CallService {
   public async startCall(calleeId: string, type: 'voice' | 'video' = 'voice', conversationId?: string): Promise<Call> {
     try {
       console.log(`Starting ${type} call to ${calleeId}`);
+      
+      // Store current call type
+      this.currentCallType = type;
+      
+      // Check video support and bandwidth for smart fallback
+      if (type === 'video') {
+        const videoSupport = await this.checkVideoSupport();
+        const bandwidth = await this.estimateBandwidth();
+        
+        if (!videoSupport.supported) {
+          console.warn('Video not supported, falling back to voice call');
+          type = 'voice';
+          this.currentCallType = 'voice';
+          this.emit('callTypeFallback', { from: 'video', to: 'voice', reason: 'Video not supported' });
+        } else if (bandwidth < 500) { // Less than 500 kbps
+          console.warn('Low bandwidth detected, falling back to voice call');
+          type = 'voice';
+          this.currentCallType = 'voice';
+          this.emit('callTypeFallback', { from: 'video', to: 'voice', reason: 'Low bandwidth' });
+        } else {
+          // Adjust video quality based on bandwidth
+          this.adjustVideoQuality(bandwidth);
+        }
+      }
 
       // Create call via Seer service API
       // Match C# PascalCase property names and capitalize enum value
@@ -235,11 +273,9 @@ class CallService {
       const call: Call = response.data.data;
       this.currentCall = call;
 
-      // Initialize WebRTC for voice calls
-      if (type === 'voice') {
-        await this.initializeWebRTC();
-        await this.joinCall(call.id);
-      }
+      // Initialize WebRTC
+      await this.initializeWebRTC(type);
+      await this.joinCall(call.id);
 
       this.emit('callStarted', call);
       return call;
@@ -259,7 +295,10 @@ class CallService {
       }
 
       await this.connection.invoke('JoinCall', callId);
-      await this.initializeWebRTC();
+      
+      // Determine call type from current call or default to voice
+      const callType = this.currentCall?.type === 'video' ? 'video' : 'voice';
+      await this.initializeWebRTC(callType);
 
       this.emit('callAnswered', { callId });
     } catch (error) {
@@ -338,22 +377,41 @@ class CallService {
   }
 
   // WebRTC management
-  private async initializeWebRTC(): Promise<void> {
+  private async initializeWebRTC(callType: 'voice' | 'video' = 'voice'): Promise<void> {
     try {
-      // Get user media for voice
-      this.localStream = await navigator.mediaDevices.getUserMedia({
+      // Get user media based on call type
+      const mediaConstraints = {
         audio: true,
-        video: false
-      });
+        video: callType === 'video' ? this.getVideoConstraints() : false
+      };
 
-      // Create peer connection
-      this.peerConnection = new RTCPeerConnection({
-        iceServers: this.ICE_SERVERS
-      });
+      console.log(`Initializing WebRTC for ${callType} call with constraints:`, mediaConstraints);
+      
+      this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+
+      // Create peer connection with video-specific configuration
+      const peerConnectionConfig: RTCConfiguration = {
+        iceServers: this.ICE_SERVERS,
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
+      };
+
+      // Add video-specific constraints for better performance
+      if (callType === 'video') {
+        peerConnectionConfig.iceTransportPolicy = 'all';
+      }
+
+      this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
 
       // Add local stream
       this.localStream.getTracks().forEach(track => {
         this.peerConnection!.addTrack(track, this.localStream!);
+        
+        // Set video quality constraints for video tracks
+        if (track.kind === 'video' && callType === 'video') {
+          this.applyVideoConstraints(track);
+        }
       });
 
       // Handle remote stream
@@ -380,9 +438,22 @@ class CallService {
       this.peerConnection.onconnectionstatechange = () => {
         console.log('WebRTC connection state:', this.peerConnection?.connectionState);
         this.emit('connectionStateChanged', this.peerConnection?.connectionState);
+        
+        // Monitor connection quality for video calls
+        if (callType === 'video' && this.peerConnection?.connectionState === 'connected') {
+          this.startConnectionQualityMonitoring();
+        }
       };
 
-      this.emit('webRTCInitialized');
+      // Handle ICE connection state changes for quality monitoring
+      this.peerConnection.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', this.peerConnection?.iceConnectionState);
+        if (callType === 'video' && this.peerConnection?.iceConnectionState === 'connected') {
+          this.monitorBandwidthAndAdjustQuality();
+        }
+      };
+
+      this.emit('webRTCInitialized', { callType });
     } catch (error) {
       console.error('Failed to initialize WebRTC:', error);
       this.emit('error', { message: 'Failed to initialize WebRTC', error });
@@ -393,7 +464,9 @@ class CallService {
   private async handleIncomingOffer(offer: WebRTCOffer): Promise<void> {
     try {
       if (!this.peerConnection) {
-        await this.initializeWebRTC();
+        // Determine call type from current call or default to voice
+        const callType = this.currentCall?.type === 'video' ? 'video' : 'voice';
+        await this.initializeWebRTC(callType);
       }
 
       await this.peerConnection!.setRemoteDescription({
@@ -452,6 +525,12 @@ class CallService {
 
   private async cleanupWebRTC(): Promise<void> {
     try {
+      // Clear quality monitoring interval
+      if ((this as any).qualityInterval) {
+        clearInterval((this as any).qualityInterval);
+        (this as any).qualityInterval = null;
+      }
+
       // Stop local stream
       if (this.localStream) {
         this.localStream.getTracks().forEach(track => track.stop());
@@ -465,6 +544,7 @@ class CallService {
       }
 
       this.remoteStream = null;
+      this.currentCallType = 'voice'; // Reset call type
       this.emit('webRTCCleanedUp');
     } catch (error) {
       console.error('Failed to cleanup WebRTC:', error);
@@ -536,6 +616,164 @@ class CallService {
     }
   }
 
+  // Video support and quality management
+  private async checkVideoSupport(): Promise<{ supported: boolean; reason?: string }> {
+    try {
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return { supported: false, reason: 'getUserMedia not supported' };
+      }
+
+      // Check if video is supported
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasVideoDevice = devices.some(device => device.kind === 'videoinput');
+      
+      if (!hasVideoDevice) {
+        return { supported: false, reason: 'No video device found' };
+      }
+
+      // Test video access
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: 320, height: 240 } 
+        });
+        stream.getTracks().forEach(track => track.stop());
+        return { supported: true };
+      } catch (error) {
+        return { supported: false, reason: 'Video access denied or failed' };
+      }
+    } catch (error) {
+      console.error('Error checking video support:', error);
+      return { supported: false, reason: 'Error checking video support' };
+    }
+  }
+
+  private async estimateBandwidth(): Promise<number> {
+    try {
+      // Use Connection API if available
+      if ('connection' in navigator) {
+        const connection = (navigator as any).connection;
+        if (connection && connection.downlink) {
+          // Convert Mbps to kbps
+          return connection.downlink * 1000;
+        }
+      }
+
+      // Fallback: estimate based on connection type
+      if ('connection' in navigator) {
+        const connection = (navigator as any).connection;
+        if (connection && connection.effectiveType) {
+          const bandwidthMap: { [key: string]: number } = {
+            'slow-2g': 50,
+            '2g': 250,
+            '3g': 750,
+            '4g': 1600
+          };
+          return bandwidthMap[connection.effectiveType] || 500;
+        }
+      }
+
+      // Default estimate
+      return 1000;
+    } catch (error) {
+      console.error('Error estimating bandwidth:', error);
+      return 500; // Conservative estimate
+    }
+  }
+
+  private adjustVideoQuality(bandwidth: number): void {
+    if (bandwidth < 500) {
+      this.videoQuality = 'low';
+    } else if (bandwidth < 1000) {
+      this.videoQuality = 'medium';
+    } else if (bandwidth < 2000) {
+      this.videoQuality = 'high';
+    } else {
+      this.videoQuality = 'hd';
+    }
+    
+    console.log(`Adjusted video quality to ${this.videoQuality} based on bandwidth: ${bandwidth} kbps`);
+    this.emit('videoQualityChanged', { quality: this.videoQuality, bandwidth });
+  }
+
+  private getVideoConstraints(): MediaTrackConstraints {
+    const constraints = this.VIDEO_CONSTRAINTS[this.videoQuality];
+    return {
+      width: { ideal: constraints.width },
+      height: { ideal: constraints.height },
+      frameRate: { ideal: constraints.frameRate },
+      facingMode: 'user'
+    };
+  }
+
+  private applyVideoConstraints(track: MediaStreamTrack): void {
+    const constraints = this.getVideoConstraints();
+    track.applyConstraints(constraints).catch(error => {
+      console.warn('Failed to apply video constraints:', error);
+    });
+  }
+
+  private startConnectionQualityMonitoring(): void {
+    if (this.currentCallType !== 'video') return;
+
+    // Monitor connection quality every 5 seconds
+    const qualityInterval = setInterval(async () => {
+      if (!this.peerConnection || this.peerConnection.connectionState !== 'connected') {
+        clearInterval(qualityInterval);
+        return;
+      }
+
+      try {
+        const stats = await this.getConnectionStats();
+        if (stats && stats.quality === 'poor') {
+          console.warn('Poor connection quality detected, considering quality adjustment');
+          this.emit('connectionQualityWarning', stats);
+        }
+      } catch (error) {
+        console.error('Error monitoring connection quality:', error);
+      }
+    }, 5000);
+
+    // Store interval ID for cleanup
+    (this as any).qualityInterval = qualityInterval;
+  }
+
+  private async monitorBandwidthAndAdjustQuality(): Promise<void> {
+    if (this.currentCallType !== 'video') return;
+
+    try {
+      const stats = await this.getConnectionStats();
+      if (stats && stats.quality === 'poor') {
+        // Downgrade video quality
+        const currentQuality = this.videoQuality;
+        if (currentQuality === 'hd') {
+          this.videoQuality = 'high';
+        } else if (currentQuality === 'high') {
+          this.videoQuality = 'medium';
+        } else if (currentQuality === 'medium') {
+          this.videoQuality = 'low';
+        }
+
+        if (this.videoQuality !== currentQuality) {
+          console.log(`Auto-adjusting video quality from ${currentQuality} to ${this.videoQuality}`);
+          this.emit('videoQualityAutoAdjusted', { 
+            from: currentQuality, 
+            to: this.videoQuality, 
+            reason: 'Poor connection quality' 
+          });
+
+          // Apply new constraints to video track
+          const videoTrack = this.localStream?.getVideoTracks()[0];
+          if (videoTrack) {
+            this.applyVideoConstraints(videoTrack);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error monitoring bandwidth:', error);
+    }
+  }
+
   // Utility methods
   private getCurrentUserId(): string {
     // Get user ID from localStorage token or AuthContext
@@ -569,6 +807,85 @@ class CallService {
 
   public isCallActive(): boolean {
     return this.currentCall !== null && this.currentCall.status === 'active';
+  }
+
+  public getCurrentCallType(): 'voice' | 'video' {
+    return this.currentCallType;
+  }
+
+  public getCurrentVideoQuality(): 'low' | 'medium' | 'high' | 'hd' {
+    return this.videoQuality;
+  }
+
+  public async setVideoQuality(quality: 'low' | 'medium' | 'high' | 'hd'): Promise<boolean> {
+    try {
+      if (this.currentCallType !== 'video' || !this.localStream) {
+        return false;
+      }
+
+      const oldQuality = this.videoQuality;
+      this.videoQuality = quality;
+
+      // Apply new constraints to video track
+      const videoTrack = this.localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        this.applyVideoConstraints(videoTrack);
+        this.emit('videoQualityChanged', { 
+          from: oldQuality, 
+          to: quality, 
+          manual: true 
+        });
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Failed to set video quality:', error);
+      this.emit('error', { message: 'Failed to set video quality', error });
+      return false;
+    }
+  }
+
+  public async upgradeToVideoCall(): Promise<boolean> {
+    try {
+      if (this.currentCallType === 'video' || !this.currentCall) {
+        return false;
+      }
+
+      // Check video support
+      const videoSupport = await this.checkVideoSupport();
+      if (!videoSupport.supported) {
+        this.emit('error', { message: 'Video not supported on this device', error: videoSupport.reason });
+        return false;
+      }
+
+      // Check bandwidth
+      const bandwidth = await this.estimateBandwidth();
+      if (bandwidth < 500) {
+        this.emit('error', { message: 'Insufficient bandwidth for video call', error: 'Low bandwidth' });
+        return false;
+      }
+
+      // Update call type and reinitialize WebRTC with video
+      this.currentCallType = 'video';
+      this.adjustVideoQuality(bandwidth);
+
+      // Clean up current WebRTC and reinitialize with video
+      await this.cleanupWebRTC();
+      await this.initializeWebRTC('video');
+
+      // Notify backend about call type change
+      if (this.connection && this.isConnected) {
+        await this.connection.invoke('UpdateCallType', this.currentCall.id, 'video');
+      }
+
+      this.emit('callUpgradedToVideo', { callId: this.currentCall.id });
+      return true;
+    } catch (error) {
+      console.error('Failed to upgrade to video call:', error);
+      this.emit('error', { message: 'Failed to upgrade to video call', error });
+      return false;
+    }
   }
 
   public async getConnectionStats(): Promise<WebRTCStats | null> {

@@ -29,6 +29,12 @@ interface CallContextType {
   toggleMute: () => Promise<boolean>;
   toggleVideo: () => Promise<boolean>;
   
+  // Video controls
+  getCurrentCallType: () => 'voice' | 'video';
+  getCurrentVideoQuality: () => 'low' | 'medium' | 'high' | 'hd';
+  setVideoQuality: (quality: 'low' | 'medium' | 'high' | 'hd') => Promise<boolean>;
+  upgradeToVideoCall: () => Promise<boolean>;
+  
   // Participants
   participants: CallParticipant[];
   
@@ -140,6 +146,32 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setParticipants([]);
       setLocalStream(null);
       setRemoteStream(null);
+    });
+
+    // Video-specific events
+    callService.on('callTypeFallback', (data: { from: string; to: string; reason: string }) => {
+      console.log('Call type fallback:', data);
+      // You can show a notification to the user about the fallback
+    });
+
+    callService.on('videoQualityChanged', (data: { from?: string; to: string; manual?: boolean }) => {
+      console.log('Video quality changed:', data);
+      // Update UI to show current video quality
+    });
+
+    callService.on('videoQualityAutoAdjusted', (data: { from: string; to: string; reason: string }) => {
+      console.log('Video quality auto-adjusted:', data);
+      // Show notification about automatic quality adjustment
+    });
+
+    callService.on('callUpgradedToVideo', (data: { callId: string }) => {
+      console.log('Call upgraded to video:', data);
+      // Update UI to show video call is now active
+    });
+
+    callService.on('connectionQualityWarning', (stats: WebRTCStats) => {
+      console.log('Connection quality warning:', stats);
+      // Show warning about poor connection quality
     });
 
     // Participant events
@@ -280,6 +312,37 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Video control functions
+  const getCurrentCallType = useCallback((): 'voice' | 'video' => {
+    return callService.getCurrentCallType();
+  }, []);
+
+  const getCurrentVideoQuality = useCallback((): 'low' | 'medium' | 'high' | 'hd' => {
+    return callService.getCurrentVideoQuality();
+  }, []);
+
+  const setVideoQuality = useCallback(async (quality: 'low' | 'medium' | 'high' | 'hd'): Promise<boolean> => {
+    try {
+      const success = await callService.setVideoQuality(quality);
+      return success;
+    } catch (error) {
+      console.error('Failed to set video quality:', error);
+      setConnectionError('Failed to set video quality');
+      return false;
+    }
+  }, []);
+
+  const upgradeToVideoCall = useCallback(async (): Promise<boolean> => {
+    try {
+      const success = await callService.upgradeToVideoCall();
+      return success;
+    } catch (error) {
+      console.error('Failed to upgrade to video call:', error);
+      setConnectionError('Failed to upgrade to video call');
+      return false;
+    }
+  }, []);
+
   // Event handlers for external components
   const onIncomingCall = useCallback((call: Call) => {
     console.log('Incoming call:', call);
@@ -355,6 +418,12 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     // Media controls
     toggleMute,
     toggleVideo,
+    
+    // Video controls
+    getCurrentCallType,
+    getCurrentVideoQuality,
+    setVideoQuality,
+    upgradeToVideoCall,
     
     // Participants
     participants,
