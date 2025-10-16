@@ -85,7 +85,7 @@ function App() {
           <NotificationProvider>
             <MessagingProvider>
               <Router>
-                <div className="min-h-screen bg-gray-50">
+                <div className="min-h-screen bg-white dark:bg-gray-900">
                   <MainLayout>
                     <Routes>
               <Route path="/" element={<Home />} />

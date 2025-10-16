@@ -30,7 +30,7 @@ const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="bg-card rounded-lg shadow-md p-4 mb-4">
+    <div className="post-card social-post bg-card rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-start space-x-3">
         {post.postedAsRoleName ? (
           // Role-based avatar

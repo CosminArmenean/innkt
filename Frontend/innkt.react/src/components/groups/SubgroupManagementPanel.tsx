@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { groupsService, GroupRoleResponse, SubgroupWithRolesResponse, RoleWithSubgroupsResponse } from '../../services/groups.service';
 import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DroppableStateSnapshot, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import EnhancedInviteUserModal from './EnhancedInviteUserModal';
+import CreateSubgroupModal from './CreateSubgroupModal';
 import { 
   PlusIcon, 
   EyeIcon, 
@@ -52,6 +53,7 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
   const [showViewModal, setShowViewModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [showCreateSubgroupModal, setShowCreateSubgroupModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -220,6 +222,13 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
     setShowAnalyticsModal(true);
   };
 
+  // Handle subgroup creation
+  const handleSubgroupCreated = (subgroup: any) => {
+    setShowCreateSubgroupModal(false);
+    loadData(); // Refresh the list
+    if (onSubgroupCreated) onSubgroupCreated();
+  };
+
   // Save subgroup changes
   const handleSaveSubgroup = async () => {
     if (!editingSubgroup) return;
@@ -377,7 +386,10 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">🏫 Subgroups</h3>
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                <button 
+                  onClick={() => setShowCreateSubgroupModal(true)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
                   <PlusIcon className="w-4 h-4 inline mr-2" />
                   Create Subgroup
                 </button>
@@ -886,6 +898,16 @@ const SubgroupManagementPanel: React.FC<SubgroupManagementPanelProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Create Subgroup Modal */}
+      {showCreateSubgroupModal && (
+        <CreateSubgroupModal
+          groupId={groupId}
+          groupName={groupName || 'Group'}
+          onClose={() => setShowCreateSubgroupModal(false)}
+          onSubgroupCreated={handleSubgroupCreated}
+        />
       )}
     </div>
   );

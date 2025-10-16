@@ -1781,3 +1781,25 @@ body {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+
+/* Light mode component improvements - make cards lighter */
+[data-theme="light"] .bg-card,
+[data-theme="light"] .post-card,
+[data-theme="light"] .social-post {
+  background-color: #FFFFFF !important;
+}
+
+/* Ensure PostCreation component is white in light mode */
+[data-theme="light"] .post-creation-container {
+  background-color: #FFFFFF !important;
+}
+
+/* Make main content area very light in light mode */
+[data-theme="light"] .main-content {
+  background-color: #FAFAFA !important;
+}
+
+/* Make caught up icon lighter in light mode */
+[data-theme="light"] .caught-up-icon {
+  background-color: #F5F5F5 !important;
+}
