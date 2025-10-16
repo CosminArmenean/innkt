@@ -387,7 +387,10 @@ const PostCreation: React.FC<PostCreationProps> = ({
             }}
           />
         ) : (
-          console.log('PostCreation: No avatar or empty avatar. User object:', user)
+          (() => {
+            console.log('PostCreation: No avatar or empty avatar. User object:', user);
+            return null;
+          })()
         )}
         <div className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg ${user?.avatar && user.avatar.trim() !== '' ? 'hidden' : ''}`}>
           <span className="text-gray-600 dark:text-white text-lg">

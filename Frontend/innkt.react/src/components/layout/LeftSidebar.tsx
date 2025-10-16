@@ -191,10 +191,14 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
                 }}
               />
             ) : (
-              console.log('LeftSidebar: No avatar or empty avatar. User object:', user) ||
-              <span className="text-purple-800 font-semibold text-sm">
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </span>
+              (() => {
+                console.log('LeftSidebar: No avatar or empty avatar. User object:', user);
+                return (
+                  <span className="text-purple-800 font-semibold text-sm">
+                    {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                  </span>
+                );
+              })()
             )}
           </div>
           {!collapsed && (
