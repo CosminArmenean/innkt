@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Conversation } from '../../services/messaging.service';
+import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -113,7 +114,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             <div className="flex-shrink-0">
               {getConversationAvatar(conversation) ? (
                 <img
-                  src={getConversationAvatar(conversation) || ''}
+                  src={convertToFullAvatarUrl(getConversationAvatar(conversation)) || ''}
                   alt={getConversationDisplayName(conversation)}
                   className="w-12 h-12 rounded-full object-cover"
                   onError={(e) => {

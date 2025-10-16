@@ -9,6 +9,7 @@ import MessageComposer from './MessageComposer';
 import UserSearch from './UserSearch';
 import PageLayout from '../layout/PageLayout';
 import ScrollableContent from '../layout/ScrollableContent';
+import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 
 const MessagingDashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -147,9 +148,13 @@ const MessagingDashboard: React.FC = () => {
               <div className="flex items-center space-x-3">
                 {selectedConversation.avatar ? (
                   <img
-                    src={selectedConversation.avatar}
+                    src={convertToFullAvatarUrl(selectedConversation.avatar)}
                     alt={selectedConversation.name || 'Conversation'}
-                    className="w-10 h-10 rounded-full"
+                    className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      console.log('Chat header avatar image failed to load:', selectedConversation.avatar);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="w-10 h-10 bg-innkt-primary rounded-full flex items-center justify-center">
@@ -159,23 +164,19 @@ const MessagingDashboard: React.FC = () => {
                     </span>
                   </div>
                 )}
-                <div>
-                  <h3 className="font-semibold text-gray-900">
-                    {selectedConversation.name || 
-                     selectedConversation.participants.map(p => p.displayName || 'Unknown User').join(', ')}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {selectedConversation.participants.length} participant{selectedConversation.participants.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
               </div>
               
               <div className="flex items-center space-x-2">
-                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                {/* Call Button */}
+                <button 
+                  className="p-2 text-gray-400 hover:text-innkt-primary rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Start Video Call"
+                >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 19h6v-6H4v6zM4 5h6V1H4v4zM15 3h5l-5-5v5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </button>
+                {/* More Options */}
                 <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -220,7 +221,7 @@ const MessagingDashboard: React.FC = () => {
       <PageLayout
         leftSidebar={leftSidebar}
         centerContent={centerContent}
-        layoutType="wide-right"
+        layoutType="messaging"
       />
 
       {/* User Search Modal */}

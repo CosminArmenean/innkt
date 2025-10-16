@@ -6,7 +6,7 @@ interface PageLayoutProps {
   centerContent: React.ReactNode;
   rightSidebar?: React.ReactNode;
   className?: string;
-  layoutType?: 'default' | 'wide-right' | 'full-width';
+  layoutType?: 'default' | 'wide-right' | 'full-width' | 'messaging';
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ 
@@ -29,6 +29,12 @@ const PageLayout: React.FC<PageLayoutProps> = ({
       return {
         left: leftSidebar ? 'lg:col-span-3' : '',
         center: leftSidebar ? 'lg:col-span-9' : 'lg:col-span-12',
+        right: rightSidebar ? 'lg:col-span-0' : ''
+      };
+    } else if (layoutType === 'messaging') {
+      return {
+        left: leftSidebar ? 'lg:col-span-4' : '', // Wider conversation list
+        center: leftSidebar ? 'lg:col-span-8' : 'lg:col-span-12', // Narrower chat area
         right: rightSidebar ? 'lg:col-span-0' : ''
       };
     } else {
