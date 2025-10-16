@@ -219,9 +219,12 @@ class CallService {
       console.log(`Starting ${type} call to ${calleeId}`);
 
       // Create call via Seer service API
+      // Capitalize first letter of type to match enum (Voice, Video)
+      const callType = type.charAt(0).toUpperCase() + type.slice(1);
+      
       const response = await seerApi.post('/api/call/start', {
         calleeId,
-        type,
+        type: callType,
         conversationId
       });
 
