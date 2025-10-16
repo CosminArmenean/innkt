@@ -17,6 +17,7 @@ import {
   UserIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 
 const TopNavbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -221,7 +222,7 @@ const TopNavbar: React.FC = () => {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
                     {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
                       <img
-                        src={user.profilePictureUrl}
+                        src={convertToFullAvatarUrl(user.profilePictureUrl)!}
                         alt={user.firstName || user.username || 'User'}
                         className="w-8 h-8 rounded-full object-cover"
                         onError={(e) => {
@@ -443,7 +444,7 @@ const TopNavbar: React.FC = () => {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
                     {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
                       <img
-                        src={user.profilePictureUrl}
+                        src={convertToFullAvatarUrl(user.profilePictureUrl)!}
                         alt={user.firstName || user.username || 'User'}
                         className="w-8 h-8 rounded-full object-cover"
                         onError={(e) => {

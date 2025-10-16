@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 import { socialService, Post, Group, PostLocation } from '../../services/social.service';
 
 interface PostCreationProps {
@@ -375,7 +376,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
         {/* User Avatar */}
         {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
           <img
-            src={user.profilePictureUrl}
+                src={convertToFullAvatarUrl(user.profilePictureUrl)!}
             alt={user.username || 'User'}
             className="w-12 h-12 rounded-full object-cover shadow-lg"
             onLoad={() => console.log('PostCreation avatar loaded successfully:', user.profilePictureUrl)}

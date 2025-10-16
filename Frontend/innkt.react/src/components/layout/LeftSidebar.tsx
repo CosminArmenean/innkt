@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useLanguage } from '../providers/LanguageProvider';
 import Logo from '../common/Logo';
+import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -181,7 +182,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-400 rounded-full flex items-center justify-center">
             {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
               <img 
-                src={user.profilePictureUrl} 
+                        src={convertToFullAvatarUrl(user.profilePictureUrl)!}
                 alt="Profile" 
                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" 
                 onLoad={() => console.log('LeftSidebar avatar loaded successfully:', user.profilePictureUrl)}
