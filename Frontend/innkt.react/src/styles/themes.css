@@ -2069,3 +2069,111 @@ body {
   background-color: #F9FAFB !important;
   color: #1F2937 !important; /* Ensure text stays dark on hover */
 }
+
+/* ===========================================
+   LIGHT MODE SECONDARY COLOR & GRADIENTS
+   =========================================== */
+
+/* Light mode secondary color scheme - Blue-gray with gradients */
+[data-theme="light"] .bg-purple-600,
+[data-theme="light"] .bg-purple-700,
+[data-theme="light"] .bg-purple-800 {
+  background: linear-gradient(135deg, #4F46E5, #6366F1) !important; /* Indigo gradient */
+}
+
+[data-theme="light"] .from-purple-600,
+[data-theme="light"] .to-purple-700,
+[data-theme="light"] .from-purple-800,
+[data-theme="light"] .to-indigo-800 {
+  background: linear-gradient(135deg, #4F46E5, #6366F1) !important; /* Indigo gradient */
+}
+
+/* Add New Post section with light gradient */
+[data-theme="light"] .post-creation-container {
+  background: linear-gradient(135deg, #F8FAFC, #F1F5F9) !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Post cards with light gradient */
+[data-theme="light"] .post-card,
+[data-theme="light"] .social-post {
+  background: linear-gradient(135deg, #F8FAFC, #F1F5F9) !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Post engagement buttons with secondary color gradient */
+[data-theme="light"] .post-engagement button {
+  background: linear-gradient(135deg, #F1F5F9, #E2E8F0) !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #475569 !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="light"] .post-engagement button:hover {
+  background: linear-gradient(135deg, #E2E8F0, #CBD5E1) !important;
+  border-color: #94A3B8 !important;
+  color: #334155 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Like button hover - subtle red tint */
+[data-theme="light"] .post-engagement .like-btn:hover {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2) !important;
+  color: #DC2626 !important;
+  border-color: #FECACA !important;
+}
+
+/* Comment button hover - subtle blue tint */
+[data-theme="light"] .post-engagement .comment-btn:hover {
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE) !important;
+  color: #2563EB !important;
+  border-color: #BFDBFE !important;
+}
+
+/* Share button hover - subtle green tint */
+[data-theme="light"] .post-engagement .share-btn:hover {
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7) !important;
+  color: #16A34A !important;
+  border-color: #BBF7D0 !important;
+}
+
+/* Create Post button with indigo gradient */
+[data-theme="light"] .bg-purple-600.text-white {
+  background: linear-gradient(135deg, #4F46E5, #6366F1) !important;
+  border: none !important;
+  box-shadow: 0 2px 4px 0 rgba(79, 70, 229, 0.3) !important;
+}
+
+[data-theme="light"] .bg-purple-600.text-white:hover {
+  background: linear-gradient(135deg, #4338CA, #5B21B6) !important;
+  box-shadow: 0 4px 8px 0 rgba(79, 70, 229, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Text/Image/Poll buttons with secondary color */
+[data-theme="light"] .bg-gray-100.text-gray-700 {
+  background: linear-gradient(135deg, #F1F5F9, #E2E8F0) !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .bg-gray-100.text-gray-700:hover {
+  background: linear-gradient(135deg, #E2E8F0, #CBD5E1) !important;
+  border-color: #94A3B8 !important;
+  color: #334155 !important;
+}
+
+/* Avatar backgrounds with secondary color gradient */
+[data-theme="light"] .bg-gradient-to-br.from-purple-500.to-blue-500 {
+  background: linear-gradient(135deg, #6366F1, #8B5CF6) !important;
+}
+
+/* Verified badge with secondary color */
+[data-theme="light"] .bg-blue-100.text-blue-800 {
+  background: linear-gradient(135deg, #DBEAFE, #BFDBFE) !important;
+  color: #1E40AF !important;
+  border: 1px solid #93C5FD !important;
+}
