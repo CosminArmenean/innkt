@@ -77,6 +77,7 @@ export const groupsApi = createApiInstance(environment.api.groups);
 export const neurosparkApi = createApiInstance(environment.api.neurospark);
 export const messagingApi = createApiInstance(environment.api.messaging);
 export const frontierApi = createApiInstance(environment.api.frontier);
+export const seerApi = createApiInstance(environment.api.seer);
 
 // Generic API response interface
 export interface ApiResponse<T = any> {

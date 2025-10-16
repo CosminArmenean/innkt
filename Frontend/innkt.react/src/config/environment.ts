@@ -10,6 +10,7 @@ export const environment = {
     messaging: process.env.REACT_APP_MESSAGING_API_URL || 'http://localhost:3000',
     notifications: process.env.REACT_APP_NOTIFICATIONS_API_URL || 'http://localhost:5006',
     frontier: process.env.REACT_APP_FRONTIER_API_URL || 'http://localhost:51303',
+    seer: process.env.REACT_APP_SEER_API_URL || 'http://localhost:5267',
   },
   
   // Feature Flags

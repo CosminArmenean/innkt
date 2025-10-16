@@ -1,5 +1,5 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
-import { messagingApi } from './api.service';
+import { seerApi } from './api.service';
 
 export interface CallParticipant {
   id: string;
@@ -219,7 +219,7 @@ class CallService {
       console.log(`Starting ${type} call to ${calleeId}`);
 
       // Create call via Seer service API
-      const response = await messagingApi.post('/api/call/start', {
+      const response = await seerApi.post('/api/call/start', {
         calleeId,
         type,
         conversationId
@@ -267,7 +267,7 @@ class CallService {
       console.log('Rejecting call:', callId);
 
       // Update call status via API
-      await messagingApi.post(`/api/call/${callId}/end`, {});
+      await seerApi.post(`/api/call/${callId}/end`, {});
 
       this.emit('callRejected', { callId });
     } catch (error) {
@@ -285,7 +285,7 @@ class CallService {
       await this.cleanupWebRTC();
 
       // End call via API
-      await messagingApi.post(`/api/call/${callId}/end`, {});
+      await seerApi.post(`/api/call/${callId}/end`, {});
 
       if (!this.connection || !this.isConnected) {
         throw new Error('Call service not connected');
