@@ -9,6 +9,7 @@ interface User {
   lastName: string;
   username: string;
   avatar?: string;
+  profilePictureUrl?: string;
   birthDate?: string;
   isMfaEnabled: boolean;
   role: 'basic' | 'premium' | 'admin';
