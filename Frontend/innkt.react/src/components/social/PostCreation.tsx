@@ -373,14 +373,14 @@ const PostCreation: React.FC<PostCreationProps> = ({
     <div className="post-creation-container bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-6">
       <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        {user?.avatar && user.avatar.trim() !== '' ? (
+        {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
           <img
-            src={user.avatar}
+            src={user.profilePictureUrl}
             alt={user.username || 'User'}
             className="w-12 h-12 rounded-full object-cover shadow-lg"
-            onLoad={() => console.log('PostCreation avatar loaded successfully:', user.avatar)}
+            onLoad={() => console.log('PostCreation avatar loaded successfully:', user.profilePictureUrl)}
             onError={(e) => {
-              console.log('PostCreation avatar failed to load:', user.avatar);
+              console.log('PostCreation avatar failed to load:', user.profilePictureUrl);
               // If image fails to load, hide it and show fallback
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -392,7 +392,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
             return null;
           })()
         )}
-        <div className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg ${user?.avatar && user.avatar.trim() !== '' ? 'hidden' : ''}`}>
+        <div className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg ${user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? 'hidden' : ''}`}>
           <span className="text-gray-600 dark:text-white text-lg">
             {(user?.firstName || user?.username || 'U').charAt(0).toUpperCase()}
           </span>

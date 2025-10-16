@@ -219,9 +219,9 @@ const TopNavbar: React.FC = () => {
                   className="p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
-                    {user?.avatar && user.avatar.trim() !== '' ? (
+                    {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
                       <img
-                        src={user.avatar}
+                        src={user.profilePictureUrl}
                         alt={user.firstName || user.username || 'User'}
                         className="w-8 h-8 rounded-full object-cover"
                         onError={(e) => {
@@ -230,7 +230,7 @@ const TopNavbar: React.FC = () => {
                         }}
                       />
                     ) : null}
-                    <div className={`w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center ${user?.avatar && user.avatar.trim() !== '' ? 'hidden' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center ${user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? 'hidden' : ''}`}>
                       <span className="text-white text-sm font-medium">
                         {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       </span>
@@ -441,9 +441,9 @@ const TopNavbar: React.FC = () => {
                   className="p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
-                    {user?.avatar && user.avatar.trim() !== '' ? (
+                    {user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? (
                       <img
-                        src={user.avatar}
+                        src={user.profilePictureUrl}
                         alt={user.firstName || user.username || 'User'}
                         className="w-8 h-8 rounded-full object-cover"
                         onError={(e) => {
@@ -452,7 +452,7 @@ const TopNavbar: React.FC = () => {
                         }}
                       />
                     ) : null}
-                    <div className={`w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center ${user?.avatar && user.avatar.trim() !== '' ? 'hidden' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center ${user?.profilePictureUrl && user.profilePictureUrl.trim() !== '' ? 'hidden' : ''}`}>
                       <span className="text-white text-sm font-medium">
                         {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       </span>
