@@ -2020,3 +2020,52 @@ body {
   background: linear-gradient(to bottom right, #F3F4F6, #E5E7EB) !important;
   border: 1px solid #D1D5DB !important;
 }
+
+/* Fix all text content inside dropdowns in light mode */
+[data-theme="light"] .absolute.right-0.mt-2 *,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] * {
+  color: #1F2937 !important; /* Dark gray for all text */
+}
+
+/* Fix specific text elements in dropdowns */
+[data-theme="light"] .absolute.right-0.mt-2 p,
+[data-theme="light"] .absolute.right-0.mt-2 span,
+[data-theme="light"] .absolute.right-0.mt-2 div,
+[data-theme="light"] .absolute.right-0.mt-2 button,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] p,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] span,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] div,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] button {
+  color: #1F2937 !important; /* Dark gray text */
+}
+
+/* Fix dropdown icons specifically */
+[data-theme="light"] .absolute.right-0.mt-2 .w-5,
+[data-theme="light"] .absolute.right-0.mt-2 .w-4,
+[data-theme="light"] .absolute.right-0.mt-2 .h-5,
+[data-theme="light"] .absolute.right-0.mt-2 .h-4,
+[data-theme="light"] .absolute.right-0.mt-2 svg,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .w-5,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .w-4,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .h-5,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .h-4,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] svg {
+  color: #374151 !important; /* Darker gray for icons */
+}
+
+/* Fix notification items specifically */
+[data-theme="light"] .absolute.right-0.mt-2 .px-4,
+[data-theme="light"] .absolute.right-0.mt-2 .py-3,
+[data-theme="light"] .absolute.right-0.mt-2 .py-2,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .px-4,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .py-3,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .py-2 {
+  color: #1F2937 !important; /* Dark text for notification items */
+}
+
+/* Fix button hover states in dropdowns */
+[data-theme="light"] .absolute.right-0.mt-2 button:hover,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] button:hover {
+  background-color: #F9FAFB !important;
+  color: #1F2937 !important; /* Ensure text stays dark on hover */
+}
