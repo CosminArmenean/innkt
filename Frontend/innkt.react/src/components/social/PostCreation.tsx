@@ -373,19 +373,23 @@ const PostCreation: React.FC<PostCreationProps> = ({
     <div className="post-creation-container bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-6">
       <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        {user?.avatar ? (
+        {user?.avatar && user.avatar.trim() !== '' ? (
           <img
             src={user.avatar}
             alt={user.username || 'User'}
             className="w-12 h-12 rounded-full object-cover shadow-lg"
+            onError={(e) => {
+              // If image fails to load, hide it and show fallback
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+            }}
           />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg">
-            <span className="text-gray-600 dark:text-white text-lg">
-              {(user?.username || 'U').charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
+        ) : null}
+        <div className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg ${user?.avatar && user.avatar.trim() !== '' ? 'hidden' : ''}`}>
+          <span className="text-gray-600 dark:text-white text-lg">
+            {(user?.firstName || user?.username || 'U').charAt(0).toUpperCase()}
+          </span>
+        </div>
         
         <div className="flex-1 space-y-4">
           {/* Post Type Selector */}

@@ -269,7 +269,7 @@ const TopNavbar: React.FC = () => {
             <div>
               <button
                 onClick={handleCreatePost}
-                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors bg-purple-600"
+                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors bg-purple-500 border border-purple-400 shadow-lg"
               >
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="inline">{t('social.createPost')}</span>
@@ -301,7 +301,7 @@ const TopNavbar: React.FC = () => {
             <div className="flex items-center space-x-2 md:space-x-4 ml-4">
               <button
                 onClick={handleCreatePost}
-                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors bg-purple-600"
+                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors bg-purple-500 border border-purple-400 shadow-lg"
               >
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="inline">{t('social.createPost')}</span>
