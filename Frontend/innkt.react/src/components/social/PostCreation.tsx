@@ -373,9 +373,9 @@ const PostCreation: React.FC<PostCreationProps> = ({
     <div className="post-creation-container bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-6">
       <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        {user?.avatarUrl ? (
+        {user?.avatar ? (
           <img
-            src={user.avatarUrl}
+            src={user.avatar}
             alt={user.displayName || user.username || 'User'}
             className="w-12 h-12 rounded-full object-cover shadow-lg"
           />
