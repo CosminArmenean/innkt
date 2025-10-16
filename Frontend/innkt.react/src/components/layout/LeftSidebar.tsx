@@ -179,17 +179,19 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
       <div className="p-2 border-t border-purple-500">
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-3'}`}>
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-400 rounded-full flex items-center justify-center">
-            {user?.avatar ? (
+            {user?.avatar && user.avatar.trim() !== '' ? (
               <img 
                 src={user.avatar} 
                 alt="Profile" 
                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" 
+                onLoad={() => console.log('LeftSidebar avatar loaded successfully:', user.avatar)}
                 onError={(e) => {
-                  console.log('Navbar avatar image failed to load:', user.avatar);
+                  console.log('LeftSidebar avatar image failed to load:', user.avatar);
                   e.currentTarget.style.display = 'none';
                 }}
               />
             ) : (
+              console.log('LeftSidebar: No avatar or empty avatar. User object:', user) ||
               <span className="text-purple-800 font-semibold text-sm">
                 {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
               </span>

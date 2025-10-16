@@ -378,13 +378,17 @@ const PostCreation: React.FC<PostCreationProps> = ({
             src={user.avatar}
             alt={user.username || 'User'}
             className="w-12 h-12 rounded-full object-cover shadow-lg"
+            onLoad={() => console.log('PostCreation avatar loaded successfully:', user.avatar)}
             onError={(e) => {
+              console.log('PostCreation avatar failed to load:', user.avatar);
               // If image fails to load, hide it and show fallback
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
           />
-        ) : null}
+        ) : (
+          console.log('PostCreation: No avatar or empty avatar. User object:', user)
+        )}
         <div className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg ${user?.avatar && user.avatar.trim() !== '' ? 'hidden' : ''}`}>
           <span className="text-gray-600 dark:text-white text-lg">
             {(user?.firstName || user?.username || 'U').charAt(0).toUpperCase()}
