@@ -52,7 +52,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed, onToggle }) => {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <div className={`${collapsed ? 'w-16' : 'w-56'} text-white flex flex-col h-screen transition-all duration-300 ease-in-out left-sidebar ${isRTL ? 'rtl' : 'ltr'}`} style={{ backgroundColor: '#4B0082' }}>
+    <div className={`${collapsed ? 'w-16' : 'w-56'} text-white flex flex-col h-screen transition-all duration-300 ease-in-out left-sidebar bg-purple-600 ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Logo and Toggle */}
       <div className="p-4 border-b border-purple-500 flex items-center justify-between">
         {!collapsed && (

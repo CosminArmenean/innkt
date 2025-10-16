@@ -145,11 +145,11 @@
   --bg-overlay: rgba(0, 0, 0, 0.7); /* Darker modal overlays */
   
   /* ===========================================
-     TEXT COLORS - Dark Theme
+     TEXT COLORS - Dark Theme - WHITE FOR VISIBILITY
      =========================================== */
-  --text-primary: #E6D8F5;         /* Pale Lilac - Primary text */
-  --text-secondary: #B19CD9;       /* Light Wisteria - Secondary text */
-  --text-muted: #9CA3AF;           /* Muted text (light gray) */
+  --text-primary: #FFFFFF;         /* WHITE - Primary text for visibility */
+  --text-secondary: #E0E0E0;       /* Light Gray - Secondary text */
+  --text-muted: #B0B0B0;           /* Medium Gray - Muted text */
   --text-inverse: #1F2937;         /* Dark text for light backgrounds */
   --text-accent: var(--brand-secondary); /* Accent text (brand secondary) */
   
@@ -252,13 +252,13 @@
   --bg-overlay: rgba(0, 0, 0, 0.8); /* Darker modal overlays */
   
   /* ===========================================
-     TEXT COLORS - Black Theme
+     TEXT COLORS - Black Theme - WHITE FOR VISIBILITY
      =========================================== */
   --text-primary: #FFFFFF;         /* White - Primary text */
   --text-secondary: #CCCCCC;       /* Light Gray - Secondary text */
   --text-muted: #999999;           /* Muted text (medium gray) */
   --text-inverse: #000000;         /* Black text for light backgrounds */
-  --text-accent: var(--brand-secondary); /* Accent text (brand secondary) */
+  --text-accent: #FFFFFF;          /* White accent text */
   
   /* ===========================================
      BORDER COLORS - Black Theme
@@ -277,27 +277,27 @@
   --modal-header-bg: transparent;        /* Transparent header */
   --modal-header-border: var(--border-primary);
   
-  /* Sidebar System - Black Theme */
-  --sidebar-bg: var(--brand-primary);    /* Imperial Purple */
-  --sidebar-text: var(--text-inverse);   /* Black text */
-  --sidebar-hover: var(--brand-primary-hover);
-  --sidebar-active: var(--brand-secondary);
+  /* Sidebar System - Black Theme - DARK GRAY, NO PURPLE */
+  --sidebar-bg: #111111;                 /* Very Dark Gray */
+  --sidebar-text: #FFFFFF;               /* White text */
+  --sidebar-hover: #2A2A2A;              /* Dark Gray hover */
+  --sidebar-active: #333333;             /* Medium Gray active */
+
+  /* Navbar System - Black Theme - DARK GRAY, NO PURPLE */
+  --navbar-bg: #111111;                  /* Very Dark Gray */
+  --navbar-text: #FFFFFF;                /* White text */
+  --navbar-hover: #2A2A2A;               /* Dark Gray hover */
   
-  /* Navbar System - Black Theme */
-  --navbar-bg: var(--brand-primary);     /* Imperial Purple */
-  --navbar-text: var(--text-inverse);    /* Black text */
-  --navbar-hover: var(--brand-primary-hover);
-  
-  /* Button System - Black Theme */
-  --btn-primary-bg: var(--brand-primary);
-  --btn-primary-hover: var(--brand-primary-hover);
-  --btn-primary-text: var(--text-inverse);
+  /* Button System - Black Theme - DARK GRAY, NO PURPLE */
+  --btn-primary-bg: #333333;              /* Dark Gray */
+  --btn-primary-hover: #444444;           /* Medium Gray hover */
+  --btn-primary-text: #FFFFFF;            /* White text */
   --btn-secondary-bg: rgba(255, 255, 255, 0.1);
   --btn-secondary-hover: rgba(255, 255, 255, 0.2);
-  --btn-secondary-text: var(--text-primary);
-  --btn-accent-bg: var(--brand-secondary);
-  --btn-accent-hover: var(--brand-secondary-hover);
-  --btn-accent-text: var(--text-inverse);
+  --btn-secondary-text: #FFFFFF;          /* White text */
+  --btn-accent-bg: #555555;               /* Medium Gray */
+  --btn-accent-hover: #666666;            /* Lighter Gray hover */
+  --btn-accent-text: #FFFFFF;             /* White text */
   
   /* Input System - Black Theme */
   --input-bg: rgba(255, 255, 255, 0.05); /* Very subtle white overlay */
@@ -1135,32 +1135,58 @@ body {
   opacity: 0.9;
 }
 
-/* Left sidebar improvements */
-[data-theme="dark"] .left-sidebar {
+/* Left sidebar improvements - RESPECT THEME CHOICE */
+[data-theme="purple"] .left-sidebar {
   background-color: #4B0082 !important;
 }
 
-/* Force navbar primary color in dark mode */
-[data-theme="dark"] .top-navbar {
+[data-theme="black"] .left-sidebar {
+  background-color: #111111 !important;
+}
+
+/* Force navbar primary color in dark mode - RESPECT THEME CHOICE */
+[data-theme="purple"] .top-navbar {
   background-color: #4B0082 !important;
 }
 
-/* Force all purple elements in dark mode */
-[data-theme="dark"] .bg-purple-500 {
+[data-theme="black"] .top-navbar {
+  background-color: #111111 !important;
+}
+
+/* Force purple elements in purple theme */
+[data-theme="purple"] .bg-purple-500 {
   background-color: #6B2A9E !important;
 }
 
-[data-theme="dark"] .bg-purple-400 {
+[data-theme="purple"] .bg-purple-400 {
   background-color: #7A4BB8 !important;
 }
 
-/* Override purple gradients in dark mode */
-[data-theme="dark"] .bg-gradient-to-r.from-purple-900.to-indigo-900 {
+/* Force dark gray elements in black theme */
+[data-theme="black"] .bg-purple-500 {
+  background-color: #333333 !important;
+}
+
+[data-theme="black"] .bg-purple-400 {
+  background-color: #444444 !important;
+}
+
+/* Override purple gradients in purple theme */
+[data-theme="purple"] .bg-gradient-to-r.from-purple-900.to-indigo-900 {
   background: linear-gradient(to right, #4B0082, #6B46C1) !important;
 }
 
-[data-theme="dark"] .bg-gradient-to-br.from-purple-800.to-indigo-800 {
+[data-theme="purple"] .bg-gradient-to-br.from-purple-800.to-indigo-800 {
   background: linear-gradient(to bottom right, #6B46C1, #8B5CF6) !important;
+}
+
+/* Override with dark gray gradients in black theme */
+[data-theme="black"] .bg-gradient-to-r.from-purple-900.to-indigo-900 {
+  background: linear-gradient(to right, #111111, #222222) !important;
+}
+
+[data-theme="black"] .bg-gradient-to-br.from-purple-800.to-indigo-800 {
+  background: linear-gradient(to bottom right, #222222, #333333) !important;
 }
 
 [data-theme="dark"] .left-sidebar .nav-item {
@@ -1447,6 +1473,124 @@ body {
   color: var(--text-muted) !important;
 }
 
+/* Override specific text color issues ONLY where needed */
+[data-theme="purple"] .text-black,
+[data-theme="black"] .text-black {
+  color: #FFFFFF !important;
+}
+
+[data-theme="purple"] .text-gray-800,
+[data-theme="black"] .text-gray-800 {
+  color: #FFFFFF !important;
+}
+
+[data-theme="purple"] .text-gray-900,
+[data-theme="black"] .text-gray-900 {
+  color: #FFFFFF !important;
+}
+
+/* Fix sidebar text colors specifically */
+[data-theme="purple"] .left-sidebar .nav-item,
+[data-theme="black"] .left-sidebar .nav-item {
+  color: #FFFFFF !important;
+}
+
+[data-theme="purple"] .left-sidebar .nav-item:hover,
+[data-theme="black"] .left-sidebar .nav-item:hover {
+  color: #FFFFFF !important;
+}
+
+/* Fix post interaction numbers and text */
+[data-theme="purple"] .post-engagement span,
+[data-theme="black"] .post-engagement span {
+  color: #FFFFFF !important;
+}
+
+/* Fix search placeholder text - ONLY for dark themes */
+[data-theme="purple"] input::placeholder,
+[data-theme="black"] input::placeholder {
+  color: #CCCCCC !important;
+}
+
+/* CRITICAL: Force dark gray instead of purple ONLY in black theme */
+[data-theme="black"] .bg-purple-600,
+[data-theme="black"] .bg-purple-700,
+[data-theme="black"] .bg-purple-800,
+[data-theme="black"] .bg-purple-900 {
+  background-color: #111111 !important;
+}
+
+/* Force navbar to be dark gray ONLY in black theme */
+[data-theme="black"] .top-navbar,
+[data-theme="black"] .navbar {
+  background-color: #111111 !important;
+}
+
+/* Force left sidebar to be dark gray ONLY in black theme */
+[data-theme="black"] .left-sidebar {
+  background-color: #111111 !important;
+}
+
+/* Fix Add New Post section text visibility - ONLY for dark themes */
+[data-theme="purple"] textarea::placeholder,
+[data-theme="black"] textarea::placeholder {
+  color: #CCCCCC !important;
+}
+
+/* Fix Add New Post section text color - ONLY for dark themes */
+[data-theme="purple"] textarea,
+[data-theme="black"] textarea {
+  color: #FFFFFF !important;
+}
+
+/* Post interaction buttons hover effects for dark themes */
+[data-theme="purple"] .post-engagement button:hover,
+[data-theme="black"] .post-engagement button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  transform: scale(1.05) !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="purple"] .post-engagement button,
+[data-theme="black"] .post-engagement button {
+  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+}
+
+/* Specific button hover colors for dark themes */
+[data-theme="purple"] .post-engagement .like-btn:hover,
+[data-theme="black"] .post-engagement .like-btn:hover {
+  background-color: rgba(239, 68, 68, 0.2) !important; /* Red tint for likes */
+}
+
+[data-theme="purple"] .post-engagement .comment-btn:hover,
+[data-theme="black"] .post-engagement .comment-btn:hover {
+  background-color: rgba(59, 130, 246, 0.2) !important; /* Blue tint for comments */
+}
+
+[data-theme="purple"] .post-engagement .share-btn:hover,
+[data-theme="black"] .post-engagement .share-btn:hover {
+  background-color: rgba(34, 197, 94, 0.2) !important; /* Green tint for shares */
+}
+
+/* Ensure light mode and purple mode work properly */
+[data-theme="light"] .top-navbar {
+  background-color: #4B0082 !important;
+}
+
+[data-theme="light"] .left-sidebar {
+  background-color: #4B0082 !important;
+}
+
+[data-theme="purple"] .top-navbar {
+  background-color: #4B0082 !important;
+}
+
+[data-theme="purple"] .left-sidebar {
+  background-color: #4B0082 !important;
+}
+
 /* Purple theme overrides for primary elements */
 .bg-purple-600 {
   background-color: var(--primary-color) !important;
@@ -1550,6 +1694,56 @@ body {
 .top-navbar {
   position: relative;
   z-index: 40;
+  min-height: 64px;
+}
+
+/* Debug: Ensure navbar content is visible */
+.top-navbar > div {
+  width: 100%;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+/* Ensure search bar is visible and properly sized */
+.top-navbar .flex.flex-1 {
+  display: flex !important;
+  flex: 1;
+  max-width: 32rem;
+  margin-right: 1rem;
+}
+
+/* Ensure right side buttons are visible and aligned */
+.top-navbar .flex.items-center.space-x-2 {
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 0;
+}
+
+/* Ensure QuickSearch component is visible */
+.top-navbar input[type="text"] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+}
+
+.top-navbar input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Fix modal positioning - ensure it's centered */
+.fixed.inset-0 {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 50 !important;
 }
 
 /* Fix any potential icon positioning issues */

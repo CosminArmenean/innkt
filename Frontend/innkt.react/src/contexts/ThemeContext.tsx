@@ -50,7 +50,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const root = document.documentElement;
     
     if (theme === 'purple') {
-      // Imperial Purple Theme (Current Dark Theme)
+      // Imperial Purple Theme (Current Dark Theme) - IMPROVED TEXT VISIBILITY
       // Level 1: Deepest Background
       root.style.setProperty('--background-color', '#1C1124'); // Dark Purple Void
       
@@ -73,30 +73,30 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       root.style.setProperty('--border-hover', '#6B7280'); // Lighter border on hover
       root.style.setProperty('--accent-color', '#C0C0C0'); // Silver
       
-      // Text Colors
-      root.style.setProperty('--text-color', '#E6D8F5'); // Pale Lilac
-      root.style.setProperty('--text-secondary', '#B19CD9'); // Light Wisteria
-      root.style.setProperty('--text-muted', '#9CA3AF'); // Muted text
+      // Text Colors - WHITE FOR BETTER VISIBILITY
+      root.style.setProperty('--text-color', '#FFFFFF'); // WHITE for visibility
+      root.style.setProperty('--text-secondary', '#E0E0E0'); // Light Gray
+      root.style.setProperty('--text-muted', '#B0B0B0'); // Medium Gray
       
       // Brand Colors
       root.style.setProperty('--primary-color', '#4B0082'); // Imperial Purple
       root.style.setProperty('--secondary-color', '#B19CD9'); // Light Wisteria
     } else if (theme === 'black') {
-      // Pure Black Theme - Minimal and Dark
+      // Pure Black Theme - Minimal and Dark (NO PURPLE)
       // Level 1: Deepest Background
       root.style.setProperty('--background-color', '#000000'); // Pure Black
       
-      // Level 2: Navigation & Sidebars
+      // Level 2: Navigation & Sidebars - DARK GRAY, NOT PURPLE
       root.style.setProperty('--surface-color', '#111111'); // Very Dark Gray
       
       // Level 3: Content Areas
       root.style.setProperty('--content-bg', '#0A0A0A'); // Almost Black
       
-      // Level 4: Cards & Elevated Elements
+      // Level 4: Cards & Elevated Elements - DARK GRAY
       root.style.setProperty('--card-bg', '#1A1A1A'); // Dark Gray - Post cards, dropdowns
       root.style.setProperty('--surface-hover', '#2A2A2A'); // Hover states
       
-      // Level 5: Interactive Elements
+      // Level 5: Interactive Elements - DARK GRAY
       root.style.setProperty('--hover-bg', '#333333'); // Dark Gray Hover
       root.style.setProperty('--input-bg', '#0A0A0A'); // Same as content - Form inputs, search
       
@@ -105,14 +105,18 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       root.style.setProperty('--border-hover', '#555555'); // Lighter border on hover
       root.style.setProperty('--accent-color', '#FFFFFF'); // White accents
       
-      // Text Colors
+      // Text Colors - WHITE FOR VISIBILITY
       root.style.setProperty('--text-color', '#FFFFFF'); // White
       root.style.setProperty('--text-secondary', '#CCCCCC'); // Light Gray
       root.style.setProperty('--text-muted', '#999999'); // Muted text
       
-      // Brand Colors
-      root.style.setProperty('--primary-color', '#4B0082'); // Imperial Purple (keep brand)
-      root.style.setProperty('--secondary-color', '#8B5CF6'); // Light Purple
+      // Brand Colors - MINIMAL PURPLE, MORE DARK GRAY
+      root.style.setProperty('--primary-color', '#111111'); // Very Dark Gray instead of purple
+      root.style.setProperty('--secondary-color', '#222222'); // Dark Gray
+      
+      // Additional CSS variables for complete theme override
+      root.style.setProperty('--sidebar-bg', '#111111'); // Very Dark Gray
+      root.style.setProperty('--navbar-bg', '#111111'); // Very Dark Gray
     } else {
       // Imperial Dawn (Light Theme)
       root.style.setProperty('--background-color', '#F8F6FF'); // Very Light Lavender

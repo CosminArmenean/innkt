@@ -368,10 +368,10 @@ const PostCreation: React.FC<PostCreationProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-white dark:bg-opacity-10 dark:backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-white dark:border-opacity-20 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-6">
       <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gradient-to-br dark:from-purple-600 dark:to-purple-700 flex items-center justify-center shadow-lg">
+        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg">
           <span className="text-gray-600 dark:text-white text-lg">👤</span>
         </div>
         
@@ -418,7 +418,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
                   ? "Write your reply..." 
                   : "What's on your mind?"
               }
-              className="w-full bg-gray-50 dark:bg-white dark:bg-opacity-10 border border-gray-200 dark:border-white dark:border-opacity-20 rounded-lg p-4 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xl placeholder-gray-400 dark:placeholder-purple-200 text-gray-900 dark:text-white min-h-[120px] dark:backdrop-blur-sm"
+              className="w-full bg-gray-50 dark:bg-white dark:bg-opacity-10 border border-gray-200 dark:border-white dark:border-opacity-20 rounded-lg p-4 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xl placeholder-gray-400 dark:placeholder-white text-gray-900 dark:text-white min-h-[120px] dark:backdrop-blur-sm"
               rows={4}
             />
             

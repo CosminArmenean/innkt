@@ -162,24 +162,24 @@ const PostCard: React.FC<PostCardProps> = ({
             </div>
           )}
           
-          <div className="flex items-center space-x-4 mt-3">
+          <div className="flex items-center space-x-4 mt-3 post-engagement">
             <button
               onClick={() => onLike?.(post.id)}
-              className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
+              className="like-btn flex items-center space-x-1 text-gray-500 hover:text-red-500 dark:text-white dark:hover:text-red-400"
             >
               <span>❤️</span>
               <span>{post.likesCount || 0}</span>
             </button>
             <button
               onClick={() => onComment?.(post.id)}
-              className="flex items-center space-x-1 text-gray-500 hover:text-blue-500"
+              className="comment-btn flex items-center space-x-1 text-gray-500 hover:text-blue-500 dark:text-white dark:hover:text-blue-400"
             >
               <span>💬</span>
               <span>{post.commentsCount || 0}</span>
             </button>
             <button
               onClick={() => onShare?.(post.id)}
-              className="flex items-center space-x-1 text-gray-500 hover:text-green-500"
+              className="share-btn flex items-center space-x-1 text-gray-500 hover:text-green-500 dark:text-white dark:hover:text-green-400"
             >
               <span>🔄</span>
               <span>Share</span>

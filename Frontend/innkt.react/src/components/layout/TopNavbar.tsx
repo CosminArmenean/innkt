@@ -24,6 +24,9 @@ const TopNavbar: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isRTL } = useLanguage();
+  
+  // Debug: Force LTR layout for now to fix navbar issues
+  const forceLTR = true;
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -88,9 +91,9 @@ const TopNavbar: React.FC = () => {
   }, []);
 
   return (
-    <div ref={navbarRef} className={`border-b border-theme px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40 h-16 ${isRTL ? 'rtl' : 'ltr'}`} style={{ backgroundColor: '#4B0082' }}>
-      <div className="flex items-center justify-between h-full">
-        {isRTL ? (
+    <div ref={navbarRef} className={`border-b border-theme px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40 h-16 top-navbar bg-purple-600 ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div className="flex items-center justify-between h-full w-full">
+        {isRTL && !forceLTR ? (
           // RTL Layout: Profile/Settings -> Search -> Create Post
           <>
             {/* Left: Profile/Settings */}
@@ -266,11 +269,10 @@ const TopNavbar: React.FC = () => {
             <div>
               <button
                 onClick={handleCreatePost}
-                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
-                style={{ backgroundColor: '#4B0082' }}
+                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors bg-purple-600"
               >
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline">{t('social.createPost')}</span>
+                <span className="inline">{t('social.createPost')}</span>
               </button>
             </div>
           </>
@@ -278,7 +280,7 @@ const TopNavbar: React.FC = () => {
           // LTR Layout: Search -> Create Post -> Profile/Settings
           <>
             {/* Left: Search */}
-            <div className="hidden md:flex flex-1 max-w-2xl">
+            <div className="flex flex-1 max-w-2xl">
               <QuickSearch
                 placeholder="Search for friends, groups, pages..."
                 className="w-full"
@@ -288,22 +290,21 @@ const TopNavbar: React.FC = () => {
               />
             </div>
 
-            {/* Mobile Search Button */}
-            <div className="md:hidden">
+            {/* Mobile Search Button - Hidden since we show search bar always */}
+            <div className="hidden">
               <button className="p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-10 rounded-full transition-colors">
                 <MagnifyingGlassIcon className="h-5 w-5" />
               </button>
             </div>
 
             {/* Right: Create Post + Profile/Settings */}
-            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 ml-2 sm:ml-4 md:ml-6">
+            <div className="flex items-center space-x-2 md:space-x-4 ml-4">
               <button
                 onClick={handleCreatePost}
-                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors"
-                style={{ backgroundColor: '#4B0082' }}
+                className="text-white px-2 sm:px-4 py-2 rounded-full flex items-center space-x-1 sm:space-x-2 hover:bg-purple-700 transition-colors bg-purple-600"
               >
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline">{t('social.createPost')}</span>
+                <span className="inline">{t('social.createPost')}</span>
               </button>
 
               <NotificationBell onNotificationClick={handleNotificationClick} />
@@ -468,8 +469,8 @@ const TopNavbar: React.FC = () => {
       {/* Create Post Modal */}
       {showCreatePost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gradient-to-br dark:from-purple-900 dark:via-purple-800 dark:to-indigo-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-white dark:border-opacity-20">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white dark:border-opacity-20">
+          <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t('social.createNewPost')}</h3>
               <button
                 onClick={() => setShowCreatePost(false)}
