@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
 import { socialService, Post, Group, PostLocation } from '../../services/social.service';
 
 interface PostCreationProps {
@@ -14,6 +15,7 @@ const PostCreation: React.FC<PostCreationProps> = ({
   replyToPostId 
 }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [postType, setPostType] = useState<'text' | 'image' | 'video' | 'link' | 'poll'>('text');
@@ -371,9 +373,19 @@ const PostCreation: React.FC<PostCreationProps> = ({
     <div className="post-creation-container bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-6">
       <div className="flex items-start space-x-4">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg">
-          <span className="text-gray-600 dark:text-white text-lg">👤</span>
-        </div>
+        {user?.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt={user.displayName || user.username || 'User'}
+            className="w-12 h-12 rounded-full object-cover shadow-lg"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shadow-lg">
+            <span className="text-gray-600 dark:text-white text-lg">
+              {(user?.displayName || user?.username || 'U').charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
         
         <div className="flex-1 space-y-4">
           {/* Post Type Selector */}
