@@ -1966,3 +1966,57 @@ body {
 [data-theme="black"] .caught-up-icon svg {
   color: #FFFFFF !important; /* White icon */
 }
+
+/* ===========================================
+   DROPDOWN/TAB VISIBILITY FIXES FOR LIGHT MODE
+   =========================================== */
+
+/* Fix dropdown visibility in light mode - make them more visible */
+[data-theme="light"] .absolute.right-0.mt-2,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] {
+  background: linear-gradient(to bottom right, #F3F4F6, #E5E7EB) !important;
+  border: 1px solid #D1D5DB !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Fix dropdown text colors in light mode */
+[data-theme="light"] .absolute.right-0.mt-2 h3,
+[data-theme="light"] .absolute.right-0.mt-2 .text-white,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] h3,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .text-white {
+  color: #1F2937 !important; /* Dark gray text */
+}
+
+/* Fix dropdown border colors in light mode */
+[data-theme="light"] .absolute.right-0.mt-2 .border-white,
+[data-theme="light"] .absolute.right-0.mt-2 .border-opacity-20,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .border-white,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] .border-opacity-20 {
+  border-color: #E5E7EB !important;
+  border-opacity: 1 !important;
+}
+
+/* Fix dropdown hover states in light mode */
+[data-theme="light"] .absolute.right-0.mt-2 button:hover,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] button:hover {
+  background-color: #F9FAFB !important;
+}
+
+/* Fix dropdown icons in light mode */
+[data-theme="light"] .absolute.right-0.mt-2 svg,
+[data-theme="light"] [class*="bg-gradient-to-br from-purple-800 to-indigo-800"] svg {
+  color: #6B7280 !important; /* Gray icons */
+}
+
+/* Fix notification dropdown specifically */
+[data-theme="light"] .absolute.right-0.mt-2.w-80,
+[data-theme="light"] .absolute.right-0.mt-2.w-96 {
+  background: linear-gradient(to bottom right, #F3F4F6, #E5E7EB) !important;
+  border: 1px solid #D1D5DB !important;
+}
+
+/* Fix messages dropdown specifically */
+[data-theme="light"] .absolute.right-0.mt-2.w-80.bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #F3F4F6, #E5E7EB) !important;
+  border: 1px solid #D1D5DB !important;
+}
