@@ -114,7 +114,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             <div className="flex-shrink-0">
               {getConversationAvatar(conversation) ? (
                 <img
-                  src={convertToFullAvatarUrl(getConversationAvatar(conversation)) || ''}
+                  src={convertToFullAvatarUrl(getConversationAvatar(conversation) || undefined) || ''}
                   alt={getConversationDisplayName(conversation)}
                   className="w-12 h-12 rounded-full object-cover"
                   onError={(e) => {

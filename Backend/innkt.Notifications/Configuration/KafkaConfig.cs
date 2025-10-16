@@ -20,6 +20,13 @@ public static class KafkaConfig
         public const string EducationalNotifications = "educational.notifications";
         public const string IndependenceDayNotifications = "independence.notifications";
         public const string GrokResponses = "grok.responses";
+        
+        // Call-related topics
+        public const string CallEvents = "call.events";
+        public const string CallNotifications = "call.notifications";
+        public const string CallQuality = "call.quality";
+        public const string CallHistory = "call.history";
+        public const string CallAnalytics = "call.analytics";
     }
 
     /// <summary>

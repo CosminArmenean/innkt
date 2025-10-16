@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { MessagingProvider } from './contexts/MessagingContext';
+import { CallProvider } from './contexts/CallContext';
 import { LanguageProvider } from './components/providers/LanguageProvider';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './i18n'; // Initialize i18next
@@ -84,7 +85,8 @@ function App() {
         <ThemeProvider>
           <NotificationProvider>
             <MessagingProvider>
-              <Router>
+              <CallProvider>
+                <Router>
                 <div className="min-h-screen bg-white dark:bg-gray-900">
                   <MainLayout>
                     <Routes>
@@ -223,6 +225,7 @@ function App() {
           <PWAInstallPrompt />
         </div>
       </Router>
+                </CallProvider>
               </MessagingProvider>
             </NotificationProvider>
           </ThemeProvider>

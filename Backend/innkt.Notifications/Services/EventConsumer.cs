@@ -55,7 +55,11 @@ public class EventConsumer : IEventConsumer
                 "kid-login-code-generated",   // Kid login code events
                 "kid-maturity-updated",       // Kid maturity level changes
                 "kid-password-changed",       // Kid password events
-                "kid-activity-tracked"        // Kid behavioral tracking
+                "kid-activity-tracked",       // Kid behavioral tracking
+                "call.events",                // Call lifecycle events
+                "call.notifications",         // Call notification events
+                "call.quality",              // Call quality monitoring
+                "call.history"               // Call history events
             };
 
             _kafkaConsumer.Subscribe(topics);
@@ -166,6 +170,18 @@ public class EventConsumer : IEventConsumer
                     break;
                 case "kid-activity-tracked":
                     await ProcessKidActivityTrackedEventAsync(consumeResult);
+                    break;
+                case "call.events":
+                    await ProcessCallEventAsync(consumeResult);
+                    break;
+                case "call.notifications":
+                    await ProcessCallNotificationEventAsync(consumeResult);
+                    break;
+                case "call.quality":
+                    await ProcessCallQualityEventAsync(consumeResult);
+                    break;
+                case "call.history":
+                    await ProcessCallHistoryEventAsync(consumeResult);
                     break;
                 default:
                     _logger.LogWarning("⚠️ Unknown topic: {Topic}", consumeResult.Topic);
@@ -741,6 +757,287 @@ public class EventConsumer : IEventConsumer
         {
             _logger.LogError(ex, "❌ Failed to process kid activity event");
         }
+    }
+
+    private async Task ProcessCallEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            var callEvent = JsonSerializer.Deserialize<CallEvent>(consumeResult.Message.Value);
+            if (callEvent == null) return;
+
+            _logger.LogInformation("📞 Processing call event: {EventType} for call {CallId}", 
+                callEvent.Type, callEvent.CallId);
+
+            // Create notification based on call event type
+            var notification = new CallNotification
+            {
+                Type = GetCallEventNotificationType(callEvent.Type),
+                RecipientId = Guid.Parse(callEvent.UserId),
+                SenderId = !string.IsNullOrEmpty(callEvent.Data?["callerId"]?.ToString()) && 
+                          Guid.TryParse(callEvent.Data["callerId"].ToString(), out var senderId) ? senderId : null,
+                Title = GetCallEventTitle(callEvent),
+                Message = GetCallEventMessage(callEvent),
+                Priority = GetCallEventPriority(callEvent.Type),
+                Channel = GetCallEventChannel(callEvent.Type),
+                CallId = callEvent.CallId,
+                CallType = callEvent.Data?["callType"]?.ToString(),
+                CallStatus = callEvent.Type.ToString(),
+                CallerName = callEvent.SenderName,
+                CallerAvatar = callEvent.SenderAvatar,
+                CallDuration = callEvent.Data?["duration"] != null ? 
+                    Convert.ToInt32(callEvent.Data["duration"]) : null,
+                ActionType = GetCallEventActionType(callEvent.Type),
+                Metadata = new Dictionary<string, object>
+                {
+                    { "callEventType", callEvent.Type.ToString() },
+                    { "timestamp", callEvent.Timestamp },
+                    { "actionUrl", callEvent.ActionUrl ?? "" },
+                    { "relatedContentId", callEvent.RelatedContentId ?? callEvent.CallId },
+                    { "relatedContentType", callEvent.RelatedContentType ?? "call" }
+                }
+            };
+
+            // Add call-specific metadata
+            if (callEvent.Data != null)
+            {
+                foreach (var kvp in callEvent.Data)
+                {
+                    notification.Metadata[kvp.Key] = kvp.Value;
+                }
+            }
+
+            await _notificationService.SendNotificationAsync(notification);
+            
+            // Send real-time notification via SignalR
+            _logger.LogInformation("📡 Sending SignalR call notification to group user_{RecipientId}", notification.RecipientId);
+            await _hubContext.Clients.Group($"user_{notification.RecipientId}").SendAsync("notification", notification);
+            _logger.LogInformation("✅ SignalR call notification sent successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error processing call event");
+        }
+    }
+
+    private async Task ProcessCallNotificationEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            var callNotification = JsonSerializer.Deserialize<CallNotification>(consumeResult.Message.Value);
+            if (callNotification == null) return;
+
+            _logger.LogInformation("📞 Processing call notification: {Type} for user {RecipientId}", 
+                callNotification.Type, callNotification.RecipientId);
+
+            await _notificationService.SendNotificationAsync(callNotification);
+            
+            // Send real-time notification via SignalR
+            await _hubContext.Clients.Group($"user_{callNotification.RecipientId}").SendAsync("notification", callNotification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error processing call notification event");
+        }
+    }
+
+    private async Task ProcessCallQualityEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            var qualityEvent = JsonSerializer.Deserialize<CallQuality>(consumeResult.Message.Value);
+            if (qualityEvent == null) return;
+
+            _logger.LogInformation("📊 Processing call quality event for call {CallId}, user {UserId}, quality: {Quality}", 
+                qualityEvent.CallId, qualityEvent.UserId, qualityEvent.Quality);
+
+            // Only send notifications for poor quality
+            if (qualityEvent.Quality == "poor")
+            {
+                var notification = new CallNotification
+                {
+                    Type = "call_quality_warning",
+                    RecipientId = Guid.Parse(qualityEvent.UserId),
+                    Title = "⚠️ Poor Call Quality",
+                    Message = $"Your call quality is poor. Latency: {qualityEvent.Latency}ms, Packet Loss: {qualityEvent.PacketLoss:F1}%",
+                    Priority = "medium",
+                    Channel = "in_app",
+                    CallId = qualityEvent.CallId,
+                    CallType = "quality_warning",
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "latency", qualityEvent.Latency },
+                        { "packetLoss", qualityEvent.PacketLoss },
+                        { "jitter", qualityEvent.Jitter },
+                        { "bitrate", qualityEvent.Bitrate },
+                        { "quality", qualityEvent.Quality }
+                    }
+                };
+
+                await _notificationService.SendNotificationAsync(notification);
+                await _hubContext.Clients.Group($"user_{notification.RecipientId}").SendAsync("notification", notification);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error processing call quality event");
+        }
+    }
+
+    private async Task ProcessCallHistoryEventAsync(ConsumeResult<string, string> consumeResult)
+    {
+        try
+        {
+            var historyEvent = JsonSerializer.Deserialize<CallHistoryEntry>(consumeResult.Message.Value);
+            if (historyEvent == null) return;
+
+            _logger.LogInformation("📋 Processing call history event for call {CallId}, user {UserId}", 
+                historyEvent.CallId, historyEvent.UserId);
+
+            // Create notification for missed calls
+            if (historyEvent.IsMissed)
+            {
+                var notification = new CallNotification
+                {
+                    Type = "missed_call",
+                    RecipientId = Guid.Parse(historyEvent.UserId),
+                    SenderId = Guid.Parse(historyEvent.OtherUserId),
+                    Title = "📞 Missed Call",
+                    Message = $"You missed a call from {historyEvent.OtherUserName ?? "Unknown"}",
+                    Priority = "medium",
+                    Channel = "in_app,push",
+                    CallId = historyEvent.CallId,
+                    CallType = historyEvent.Type.ToString().ToLower(),
+                    CallStatus = "missed",
+                    CallerName = historyEvent.OtherUserName,
+                    CallerAvatar = historyEvent.OtherUserAvatar,
+                    ActionType = "call_back",
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "otherUserId", historyEvent.OtherUserId },
+                        { "otherUserName", historyEvent.OtherUserName ?? "" },
+                        { "otherUserAvatar", historyEvent.OtherUserAvatar ?? "" },
+                        { "callType", historyEvent.Type.ToString() },
+                        { "isOutgoing", historyEvent.IsOutgoing },
+                        { "startedAt", historyEvent.StartedAt }
+                    }
+                };
+
+                await _notificationService.SendNotificationAsync(notification);
+                await _hubContext.Clients.Group($"user_{notification.RecipientId}").SendAsync("notification", notification);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error processing call history event");
+        }
+    }
+
+    private string GetCallEventNotificationType(CallEventType eventType)
+    {
+        return eventType switch
+        {
+            CallEventType.CallInitiated => "call_initiated",
+            CallEventType.CallRinging => "call_ringing",
+            CallEventType.CallAnswered => "call_answered",
+            CallEventType.CallRejected => "call_rejected",
+            CallEventType.CallEnded => "call_ended",
+            CallEventType.CallMissed => "call_missed",
+            CallEventType.ParticipantJoined => "participant_joined",
+            CallEventType.ParticipantLeft => "participant_left",
+            CallEventType.ParticipantMuted => "participant_muted",
+            CallEventType.ParticipantVideoToggled => "participant_video_toggled",
+            CallEventType.QualityChanged => "call_quality_changed",
+            CallEventType.CallFailed => "call_failed",
+            _ => "call_event"
+        };
+    }
+
+    private string GetCallEventTitle(CallEvent callEvent)
+    {
+        return callEvent.Type switch
+        {
+            CallEventType.CallInitiated => "📞 Incoming Call",
+            CallEventType.CallRinging => "📞 Call Ringing",
+            CallEventType.CallAnswered => "✅ Call Connected",
+            CallEventType.CallRejected => "❌ Call Declined",
+            CallEventType.CallEnded => "📞 Call Ended",
+            CallEventType.CallMissed => "📞 Missed Call",
+            CallEventType.ParticipantJoined => "👤 Participant Joined",
+            CallEventType.ParticipantLeft => "👤 Participant Left",
+            CallEventType.ParticipantMuted => "🔇 Participant Muted",
+            CallEventType.ParticipantVideoToggled => "📹 Video Toggled",
+            CallEventType.QualityChanged => "📊 Call Quality Changed",
+            CallEventType.CallFailed => "❌ Call Failed",
+            _ => "📞 Call Update"
+        };
+    }
+
+    private string GetCallEventMessage(CallEvent callEvent)
+    {
+        var senderName = callEvent.SenderName ?? "Unknown";
+        
+        return callEvent.Type switch
+        {
+            CallEventType.CallInitiated => $"{senderName} is calling you",
+            CallEventType.CallRinging => $"Calling {senderName}...",
+            CallEventType.CallAnswered => $"Call with {senderName} connected",
+            CallEventType.CallRejected => $"{senderName} declined your call",
+            CallEventType.CallEnded => $"Call with {senderName} ended",
+            CallEventType.CallMissed => $"You missed a call from {senderName}",
+            CallEventType.ParticipantJoined => $"{senderName} joined the call",
+            CallEventType.ParticipantLeft => $"{senderName} left the call",
+            CallEventType.ParticipantMuted => $"{senderName} muted their microphone",
+            CallEventType.ParticipantVideoToggled => $"{senderName} toggled their video",
+            CallEventType.QualityChanged => "Call quality has changed",
+            CallEventType.CallFailed => $"Call with {senderName} failed to connect",
+            _ => "Call status updated"
+        };
+    }
+
+    private string GetCallEventPriority(CallEventType eventType)
+    {
+        return eventType switch
+        {
+            CallEventType.CallInitiated => "high",
+            CallEventType.CallRinging => "medium",
+            CallEventType.CallAnswered => "low",
+            CallEventType.CallRejected => "low",
+            CallEventType.CallEnded => "low",
+            CallEventType.CallMissed => "medium",
+            CallEventType.CallFailed => "high",
+            _ => "medium"
+        };
+    }
+
+    private string GetCallEventChannel(CallEventType eventType)
+    {
+        return eventType switch
+        {
+            CallEventType.CallInitiated => "in_app,push",
+            CallEventType.CallRinging => "in_app",
+            CallEventType.CallAnswered => "in_app",
+            CallEventType.CallRejected => "in_app",
+            CallEventType.CallEnded => "in_app",
+            CallEventType.CallMissed => "in_app,push",
+            CallEventType.CallFailed => "in_app,push",
+            _ => "in_app"
+        };
+    }
+
+    private string GetCallEventActionType(CallEventType eventType)
+    {
+        return eventType switch
+        {
+            CallEventType.CallInitiated => "answer",
+            CallEventType.CallRinging => "wait",
+            CallEventType.CallAnswered => "view_call",
+            CallEventType.CallRejected => "none",
+            CallEventType.CallEnded => "view_history",
+            CallEventType.CallMissed => "call_back",
+            CallEventType.CallFailed => "retry",
+            _ => "view_call"
+        };
     }
 
     public void Dispose()
