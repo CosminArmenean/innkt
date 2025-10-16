@@ -100,7 +100,7 @@ class CallService {
       }
 
       this.connection = new HubConnectionBuilder()
-        .withUrl(`${this.SEER_SERVICE_URL}/signalingHub`, {
+        .withUrl(`${this.SEER_SERVICE_URL}/hubs/signaling`, {
           accessTokenFactory: () => token
         })
         .withAutomaticReconnect([0, 2000, 10000, 30000])
