@@ -538,9 +538,21 @@ class CallService {
 
   // Utility methods
   private getCurrentUserId(): string {
-    // This should be implemented to get the current user ID
-    // For now, return a placeholder
-    return 'current-user-id';
+    // Get user ID from localStorage token or AuthContext
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.warn('No access token found for current user ID');
+      return '';
+    }
+    
+    try {
+      // Decode JWT token to get user ID
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || '';
+    } catch (error) {
+      console.error('Failed to decode token for user ID:', error);
+      return '';
+    }
   }
 
   public getCurrentCall(): Call | null {
