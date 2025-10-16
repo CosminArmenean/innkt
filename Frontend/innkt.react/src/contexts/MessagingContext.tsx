@@ -45,7 +45,10 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
 
   // Load conversations with debounce
   const loadConversations = useCallback(async () => {
+    console.log('🔍 MessagingContext - loadConversations called:', { isAuthenticated, user: !!user });
+    
     if (!isAuthenticated || !user) {
+      console.log('🔍 MessagingContext - Not authenticated or no user, clearing conversations');
       setConversations([]);
       setUnreadCount(0);
       return;
@@ -58,15 +61,18 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       return;
     }
 
+    console.log('🔍 MessagingContext - Loading conversations for user:', user.id);
     setLastLoadTime(now);
     setIsLoading(true);
     try {
       const fetchedConversations = await messagingService.getConversations();
+      console.log('🔍 MessagingContext - Loaded conversations:', fetchedConversations.length);
       setConversations(fetchedConversations);
       
       // Calculate total unread count
       const totalUnread = fetchedConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
       setUnreadCount(totalUnread);
+      console.log('🔍 MessagingContext - Total unread count:', totalUnread);
     } catch (error) {
       console.error('Failed to load conversations:', error);
       setConversations([]);
@@ -257,6 +263,19 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       }
     };
   }, [isAuthenticated, user]);
+
+  // Handle authentication state changes
+  useEffect(() => {
+    console.log('🔍 MessagingContext - Auth state changed:', { isAuthenticated, user: !!user });
+    if (isAuthenticated && user) {
+      console.log('🔍 MessagingContext - User authenticated, loading conversations');
+      loadConversations();
+    } else {
+      console.log('🔍 MessagingContext - User not authenticated, clearing conversations');
+      setConversations([]);
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated, user, loadConversations]);
 
   // Load conversations on mount
   useEffect(() => {

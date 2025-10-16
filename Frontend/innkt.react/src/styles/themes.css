@@ -2070,23 +2070,70 @@ body {
 /* Add New Post section with light gradient */
 [data-theme="light"] .post-creation-container,
 [data-theme="light"] .post-creation-container.bg-white,
+[data-theme="light"] .post-creation-container.dark\\:bg-gray-800,
+[data-theme="light"] .post-creation-container[class*="bg-"] {
+  background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+  background-color: transparent !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Override any Tailwind background classes in light mode */
+[data-theme="light"] .post-creation-container.bg-white,
 [data-theme="light"] .post-creation-container.dark\\:bg-gray-800 {
-  background: linear-gradient(135deg, #F1F5F9, #E2E8F0) !important;
-  border: 1px solid #CBD5E1 !important;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+  background-color: transparent !important;
 }
 
 /* Post cards with light gradient */
 [data-theme="light"] .post-card,
 [data-theme="light"] .social-post,
+[data-theme="light"] .post-card.bg-card,
+[data-theme="light"] .social-post.bg-card,
 [data-theme="light"] .post-card.bg-white,
 [data-theme="light"] .social-post.bg-white,
 [data-theme="light"] .post-card.dark\\:bg-gray-800,
 [data-theme="light"] .social-post.dark\\:bg-gray-800 {
-  background: linear-gradient(135deg, #F1F5F9, #E2E8F0) !important;
-  border: 1px solid #CBD5E1 !important;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
 }
+
+/* Override bg-card class specifically for light mode social feed components */
+[data-theme="light"] .social-post.bg-card,
+[data-theme="light"] .post-card.bg-card,
+[data-theme="light"] .social-post,
+[data-theme="light"] .post-card {
+  background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+  background-color: transparent !important;
+}
+
+/* Force override any conflicting background styles */
+[data-theme="light"] div.post-card,
+[data-theme="light"] div.social-post {
+  background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+  background-color: transparent !important;
+}
+
+/* Override CSS variables for light mode social components */
+[data-theme="light"] .social-post,
+[data-theme="light"] .post-card {
+  --bg-card: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+}
+
+/* Nuclear option - override everything */
+[data-theme="light"] .social-post *,
+[data-theme="light"] .post-card * {
+  background-color: transparent !important;
+}
+
+[data-theme="light"] .social-post,
+[data-theme="light"] .post-card {
+  background: linear-gradient(135deg, #FFFFFF, #F8FAFC) !important;
+  background-color: transparent !important;
+}
+
+/* Removed aggressive overrides that broke the theme */
 
 /* Post engagement buttons with secondary color gradient */
 [data-theme="light"] .post-engagement button {
