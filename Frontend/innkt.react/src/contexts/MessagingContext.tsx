@@ -169,19 +169,22 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       return;
     }
 
-    console.log('🔌 MessagingContext: WebSocket TEMPORARILY DISABLED for debugging invite button');
-    setConnectionStatus('disconnected');
-    return; // TEMPORARY: Disable WebSocket to debug invite button
-    
+    // Prevent multiple connections
+    if (socket && socket.connected) {
+      console.log('🔌 Socket already connected, skipping new connection');
+      return;
+    }
+
+    console.log('🔌 Setting up WebSocket connection for user:', user.id);
     setConnectionStatus('connecting');
     
     const newSocket = io('http://localhost:3000', {
       transports: ['websocket', 'polling'],
       timeout: 20000,
-      forceNew: true,
+      forceNew: false, // Changed to false to reuse existing connections
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionDelay: 2000, // Increased delay
+      reconnectionAttempts: 3, // Reduced attempts
       auth: {
         token: token
       },
@@ -258,9 +261,12 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     setSocket(newSocket);
 
     return () => {
+      console.log('🔌 Cleaning up WebSocket connection');
       if (newSocket) {
+        newSocket.removeAllListeners();
         newSocket.disconnect();
       }
+      messagingService.setSocket(null);
     };
   }, [isAuthenticated, user]);
 

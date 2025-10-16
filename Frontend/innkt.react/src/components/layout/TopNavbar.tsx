@@ -160,7 +160,16 @@ const TopNavbar: React.FC = () => {
                           {t('messaging.noConversations')}
                         </div>
                       )}
-                      <div className="border-t border-white border-opacity-20 px-4 py-2">
+                      <div className="border-t border-white border-opacity-20 px-4 py-2 space-y-2">
+                        <button
+                          onClick={() => {
+                            navigate('/messaging?action=new');
+                            setShowMessages(false);
+                          }}
+                          className="w-full text-center text-sm text-white hover:text-purple-200 font-medium bg-purple-600 hover:bg-purple-700 rounded px-3 py-1 transition-colors"
+                        >
+                          {t('messaging.startNewConversation')}
+                        </button>
                         <button
                           onClick={() => {
                             navigate('/messaging');
@@ -321,82 +330,6 @@ const TopNavbar: React.FC = () => {
                 <span className="inline">{t('social.createPost')}</span>
               </button>
 
-              <NotificationBell onNotificationClick={handleNotificationClick} />
-
-              <div className="relative">
-                <button 
-                  onClick={handleMessages}
-                  className="relative p-1.5 sm:p-2 text-white hover:text-purple-200 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
-                >
-                  <ChatBubbleLeftRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  )}
-                </button>
-                
-                {/* Messages Dropdown */}
-                {showMessages && (
-                  <div className="absolute right-0 mt-2 w-80 bg-gradient-to-br from-purple-800 to-indigo-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="py-1">
-                      <div className="px-4 py-2 border-b border-white border-opacity-20">
-                        <h3 className="text-sm font-medium text-white">{t('messaging.recentConversations')}</h3>
-                      </div>
-                      {conversations && conversations.length > 0 ? (
-                        <div className="max-h-64 overflow-y-auto">
-                          {conversations.slice(0, 5).map((conversation) => (
-                            <button
-                              key={conversation.id}
-                              onClick={() => {
-                                navigate('/messaging');
-                                setShowMessages(false);
-                              }}
-                              className="block w-full text-left px-4 py-3 hover:bg-white hover:bg-opacity-10 border-b border-white border-opacity-20"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                  <span className="text-purple-600 text-sm font-medium">
-                                    {conversation.participants?.[0]?.displayName?.charAt(0) || 'U'}
-                                  </span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-white truncate">
-                                    {conversation.participants?.[0]?.displayName} {conversation.participants?.[0]?.username}
-                                  </p>
-                                  <p className="text-xs text-purple-200 truncate">
-                                    {conversation.lastMessage?.content || t('messaging.noMessages')}
-                                  </p>
-                                </div>
-                                {conversation.unreadCount > 0 && (
-                                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
-                                    {conversation.unreadCount}
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="px-4 py-3 text-center text-purple-200 text-sm">
-                          {t('messaging.noConversations')}
-                        </div>
-                      )}
-                      <div className="border-t border-white border-opacity-20 px-4 py-2">
-                        <button
-                          onClick={() => {
-                            navigate('/messaging');
-                            setShowMessages(false);
-                          }}
-                          className="w-full text-center text-sm text-purple-600 hover:text-purple-700 font-medium"
-                        >
-                          {t('messaging.viewAll')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
 
               <div className="relative">
                 <button 
