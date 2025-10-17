@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useCall } from '../../contexts/CallContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useMessaging } from '../../contexts/MessagingContext';
 import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
+import AudioIntensityDetector, { AudioIntensityEvent } from '../../utils/AudioIntensityDetector';
 
 interface CallModalProps {
   isOpen: boolean;
@@ -27,11 +30,20 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
     setVideoQuality,
     upgradeToVideoCall,
   } = useCall();
+  
+  // Get current user ID from auth context
+  const { user } = useAuth();
+  const { conversations } = useMessaging();
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
+  
+  // Audio intensity detection state
+  const [isParticipantSpeaking, setIsParticipantSpeaking] = useState(false);
+  const [audioIntensity, setAudioIntensity] = useState(0);
+  const audioDetectorRef = useRef<AudioIntensityDetector | null>(null);
 
   // Set up video streams
   useEffect(() => {
@@ -45,6 +57,50 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream]);
+
+  // Audio intensity detection for remote stream
+  useEffect(() => {
+    if (remoteStream && callStatus === 'active' && AudioIntensityDetector.isSupported()) {
+      console.log('CallModal: Starting audio intensity detection for remote stream');
+      
+      // Create audio intensity detector
+      audioDetectorRef.current = new AudioIntensityDetector(
+        (event: AudioIntensityEvent) => {
+          setAudioIntensity(event.intensity);
+          setIsParticipantSpeaking(event.isSpeaking);
+        },
+        {
+          threshold: 0.15, // Adjust sensitivity for voice detection
+          smoothing: 0.7,  // Smooth out rapid changes
+          updateInterval: 100 // Update every 100ms
+        }
+      );
+
+      // Start detection
+      audioDetectorRef.current.start(remoteStream).catch((error) => {
+        console.error('CallModal: Failed to start audio intensity detection:', error);
+      });
+
+      // Cleanup on unmount or stream change
+      return () => {
+        if (audioDetectorRef.current) {
+          console.log('CallModal: Stopping audio intensity detection');
+          audioDetectorRef.current.stop();
+          audioDetectorRef.current = null;
+        }
+        setIsParticipantSpeaking(false);
+        setAudioIntensity(0);
+      };
+    } else if (!remoteStream || callStatus !== 'active') {
+      // Clean up when stream is not available or call is not active
+      if (audioDetectorRef.current) {
+        audioDetectorRef.current.stop();
+        audioDetectorRef.current = null;
+      }
+      setIsParticipantSpeaking(false);
+      setAudioIntensity(0);
+    }
+  }, [remoteStream, callStatus]);
 
   // Handle modal close
   const handleClose = () => {
@@ -137,13 +193,60 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  // Helper function to get participant info
+  const getParticipantInfo = () => {
+    // First try to find from participants array
+    let participant = participants.find(p => p.userId !== user?.id) || participants[0];
+    
+    // If no participants, try to get from conversations
+    if (!participant && currentCall?.conversationId) {
+      const conversation = conversations?.find(c => c.id === currentCall.conversationId);
+      if (conversation && conversation.participants) {
+        const conversationParticipant = conversation.participants.find(p => p.userId !== user?.id);
+        if (conversationParticipant) {
+          // Convert ConversationParticipant to CallParticipant
+          participant = {
+            id: conversationParticipant.userId,
+            userId: conversationParticipant.userId,
+            displayName: conversationParticipant.displayName,
+            username: conversationParticipant.username,
+            avatarUrl: conversationParticipant.avatar,
+            role: 'participant' as const,
+            status: 'connected' as const,
+            isMuted: false,
+            isVideoEnabled: false
+          };
+        }
+      }
+    }
+    
+    // If still no participant, create a basic one from caller info
+    if (!participant && currentCall?.callerId) {
+      participant = {
+        id: currentCall.callerId,
+        userId: currentCall.callerId,
+        displayName: 'Caller',
+        username: 'caller',
+        avatarUrl: undefined,
+        role: 'participant' as const,
+        status: 'connected' as const,
+        isMuted: false,
+        isVideoEnabled: false
+      };
+    }
+    
+    return participant;
+  };
+
   if (!isOpen || !currentCall) {
     return null;
   }
 
   // Get the other participant (not current user)
-  const otherParticipant = participants.find(p => p.userId !== currentCall.callerId) || participants[0];
-  const isIncomingCall = currentCall.calleeId === 'current-user-id'; // This should be the actual current user ID
+  const otherParticipant = getParticipantInfo();
+  const isIncomingCall = currentCall.calleeId === user?.id; // Fix: Use actual current user ID
+  
+  console.log('CallModal: Debug - isIncomingCall =', isIncomingCall, 'calleeId =', currentCall.calleeId, 'user?.id =', user?.id);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -170,13 +273,26 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
             )}
           </div>
           
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-            {otherParticipant?.displayName || otherParticipant?.username || 'Unknown User'}
-          </h3>
+          <div className="flex items-center justify-center mb-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {otherParticipant?.displayName || otherParticipant?.username || 'Unknown User'}
+            </h3>
+            {/* Audio pulse indicator - only show during active voice calls */}
+            {callStatus === 'active' && getCurrentCallType() === 'voice' && isParticipantSpeaking && (
+              <div className={`speaking-indicator ${
+                audioIntensity > 0.7 ? 'audio-intensity-high' : 
+                audioIntensity > 0.4 ? 'audio-intensity-medium' : 
+                'audio-intensity-low'
+              }`}>
+                <div className="speaking-ring"></div>
+                <div className="speaking-dot"></div>
+              </div>
+            )}
+          </div>
           
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {callStatus === 'ringing' && (isIncomingCall ? 'Incoming call' : 'Calling...')}
-            {callStatus === 'connecting' && 'Connecting...'}
+            {callStatus === 'connecting' && (isIncomingCall ? 'Connecting...' : 'Connecting...')}
             {callStatus === 'active' && 'Connected'}
             {callStatus === 'ending' && 'Call ending...'}
           </p>
@@ -221,10 +337,21 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
           {!remoteStream && !isVideoEnabled && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="relative w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-white text-2xl font-semibold">
                     {(otherParticipant?.displayName || otherParticipant?.username || 'U').charAt(0).toUpperCase()}
                   </span>
+                  {/* Audio pulse indicator for voice calls */}
+                  {callStatus === 'active' && getCurrentCallType() === 'voice' && isParticipantSpeaking && (
+                    <div className={`absolute -top-1 -right-1 audio-pulse-indicator ${
+                      audioIntensity > 0.7 ? 'audio-intensity-high' : 
+                      audioIntensity > 0.4 ? 'audio-intensity-medium' : 
+                      'audio-intensity-low'
+                    }`}>
+                      <div className="pulse-ring"></div>
+                      <div className="pulse-dot"></div>
+                    </div>
+                  )}
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">
                   {callStatus === 'active' ? 'Voice call active' : 'Connecting...'}
@@ -258,6 +385,20 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </div>
+          ) : callStatus === 'ringing' && !isIncomingCall ? (
+            // Outgoing call controls (caller can cancel)
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleEndCall}
+                disabled={isLoading}
+                className="flex items-center justify-center w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors disabled:opacity-50"
+                title="Cancel call"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>

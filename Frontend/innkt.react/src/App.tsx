@@ -39,6 +39,8 @@ import NotificationToast from './components/notifications/NotificationToast';
 import NotificationsPage from './pages/NotificationsPage';
 import PostDetail from './components/social/PostDetail';
 import PWAInstallPrompt from './components/pwa/PWAInstallPrompt';
+import CallModal from './components/calling/CallModal';
+import { useCall } from './contexts/CallContext';
 import { pwaService } from './services/pwa.service'; 
 import './App.css';
 
@@ -57,6 +59,20 @@ const UserProfileWrapper: React.FC<{ isOwnProfile: boolean }> = ({ isOwnProfile 
   const isActuallyOwnProfile = isOwnProfile || (!!id && !!user?.id && id === user.id);
   
   return <UserProfileProfessional userId={userId} isOwnProfile={isActuallyOwnProfile} currentUserId={user?.id} />;
+};
+
+// Component to render CallModal when needed
+const CallModalWrapper: React.FC = () => {
+  const { showCallModal, setShowCallModal } = useCall();
+  
+  console.log('CallModalWrapper: showCallModal =', showCallModal);
+  
+  return (
+    <CallModal 
+      isOpen={showCallModal} 
+      onClose={() => setShowCallModal(false)} 
+    />
+  );
 };
 
 function App() {
@@ -223,6 +239,7 @@ function App() {
           </MainLayout>
           <NotificationToast />
           <PWAInstallPrompt />
+          <CallModalWrapper />
         </div>
       </Router>
                 </CallProvider>

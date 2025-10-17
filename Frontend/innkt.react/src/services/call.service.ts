@@ -145,12 +145,19 @@ class CallService {
     // Call management events
     this.connection.on('IncomingCall', (data: any) => {
       console.log('CallService: Incoming call received via SignalR:', data);
+      console.log('CallService: About to emit incomingCall event to listeners');
       this.emit('incomingCall', data);
+      console.log('CallService: incomingCall event emitted');
     });
 
     this.connection.on('ParticipantJoined', (data: any) => {
       console.log('Participant joined:', data);
       this.emit('participantJoined', data);
+    });
+
+    this.connection.on('CallAnswered', (data: any) => {
+      console.log('Call answered:', data);
+      this.emit('callAnswered', data);
     });
 
     this.connection.on('ParticipantLeft', (data: any) => {
@@ -228,8 +235,26 @@ class CallService {
 
   private emit(event: string, data?: any) {
     const handlers = this.eventHandlers.get(event);
+    console.log(`CallService: Emitting event '${event}' to ${handlers ? handlers.length : 0} listeners`);
     if (handlers) {
       handlers.forEach(handler => handler(data));
+    } else {
+      console.warn(`CallService: No listeners found for event '${event}'`);
+    }
+  }
+
+  // Public method to establish SignalR connection proactively
+  public async connect(): Promise<void> {
+    console.log('CallService: Connecting to SignalR hub...');
+    
+    // Initialize connection if not already done
+    this.initializeConnection();
+    
+    // Start the connection if not already connected
+    if (this.connection && this.connection.state === HubConnectionState.Disconnected) {
+      await this.startConnection();
+    } else if (this.connection && this.connection.state === HubConnectionState.Connected) {
+      console.log('CallService: Already connected to SignalR hub');
     }
   }
 

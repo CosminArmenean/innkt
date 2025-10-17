@@ -248,6 +248,19 @@ namespace innkt.Seer.Hubs
                     Timestamp = DateTime.UtcNow
                 });
 
+                // Send callAnswered event to caller (if this is the callee joining)
+                var caller = call.Participants.FirstOrDefault(p => p.UserId == call.CallerId);
+                if (caller != null && userId != call.CallerId) // Only send to caller, not to the person who just joined
+                {
+                    await Clients.Group($"user_{call.CallerId}").SendAsync("CallAnswered", new
+                    {
+                        CallId = callId,
+                        AnsweredBy = userId,
+                        Timestamp = DateTime.UtcNow
+                    });
+                    _logger.LogInformation($"CallAnswered event sent to caller {call.CallerId} for call {callId}");
+                }
+
                 _logger.LogInformation($"User {userId} joined call {callId}");
             }
             catch (Exception ex)

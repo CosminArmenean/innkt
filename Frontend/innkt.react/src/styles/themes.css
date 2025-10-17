@@ -2213,3 +2213,197 @@ body {
   color: #1E40AF !important;
   border: 1px solid #93C5FD !important;
 }
+
+/* ===========================================
+   AUDIO PULSE INDICATOR ANIMATIONS
+   =========================================== */
+
+/* Audio pulse indicator container */
+.audio-pulse-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+}
+
+/* Pulse ring animation */
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #10b981;
+  border-radius: 50%;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* Pulse dot animation */
+.pulse-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse-dot 1.5s ease-out infinite;
+}
+
+/* Pulse ring keyframes */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Pulse dot keyframes */
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Speaking indicator - more subtle pulse */
+.speaking-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+}
+
+.speaking-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid #10b981;
+  border-radius: 50%;
+  animation: speaking-pulse 1s ease-in-out infinite;
+}
+
+.speaking-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+}
+
+@keyframes speaking-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Theme-aware audio indicators */
+[data-theme="dark"] .pulse-ring,
+[data-theme="dark"] .speaking-ring {
+  border-color: #34d399; /* Lighter green for dark theme */
+}
+
+[data-theme="dark"] .pulse-dot,
+[data-theme="dark"] .speaking-dot {
+  background: #34d399; /* Lighter green for dark theme */
+}
+
+[data-theme="purple"] .pulse-ring,
+[data-theme="purple"] .speaking-ring {
+  border-color: #a78bfa; /* Purple theme accent */
+}
+
+[data-theme="purple"] .pulse-dot,
+[data-theme="purple"] .speaking-dot {
+  background: #a78bfa; /* Purple theme accent */
+}
+
+/* Audio intensity levels */
+.audio-intensity-low {
+  --pulse-color: #f59e0b; /* Amber for low intensity */
+}
+
+.audio-intensity-medium {
+  --pulse-color: #10b981; /* Green for medium intensity */
+}
+
+.audio-intensity-high {
+  --pulse-color: #ef4444; /* Red for high intensity */
+}
+
+.audio-intensity-low .pulse-ring,
+.audio-intensity-low .speaking-ring,
+.audio-intensity-low .pulse-dot,
+.audio-intensity-low .speaking-dot {
+  border-color: var(--pulse-color);
+  background: var(--pulse-color);
+}
+
+.audio-intensity-medium .pulse-ring,
+.audio-intensity-medium .speaking-ring,
+.audio-intensity-medium .pulse-dot,
+.audio-intensity-medium .speaking-dot {
+  border-color: var(--pulse-color);
+  background: var(--pulse-color);
+}
+
+.audio-intensity-high .pulse-ring,
+.audio-intensity-high .speaking-ring,
+.audio-intensity-high .pulse-dot,
+.audio-intensity-high .speaking-dot {
+  border-color: var(--pulse-color);
+  background: var(--pulse-color);
+}
+
+/* Responsive audio indicators */
+@media (max-width: 640px) {
+  .audio-pulse-indicator {
+    width: 20px;
+    height: 20px;
+    margin-left: 6px;
+  }
+  
+  .speaking-indicator {
+    width: 18px;
+    height: 18px;
+    margin-left: 4px;
+  }
+  
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .speaking-dot {
+    width: 5px;
+    height: 5px;
+  }
+}
+
+/* Accessibility - reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .pulse-ring,
+  .pulse-dot,
+  .speaking-ring,
+  .speaking-dot {
+    animation: none;
+  }
+  
+  .audio-pulse-indicator,
+  .speaking-indicator {
+    opacity: 0.8;
+  }
+}

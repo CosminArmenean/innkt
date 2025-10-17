@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { callService, Call, CallParticipant, CallEvent, WebRTCStats } from '../services/call.service';
 import { useAuth } from './AuthContext';
 
@@ -80,6 +80,16 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   // Flag to ensure setup is only called once
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   
+  // Use ref to store current user ID for event handlers
+  const currentUserIdRef = useRef<string>('');
+  
+  // Update ref when user changes
+  useEffect(() => {
+    const newUserId = user?.id || '';
+    currentUserIdRef.current = newUserId;
+    console.log('CallContext: Updated currentUserIdRef to:', newUserId, 'from user?.id:', user?.id);
+  }, [user?.id]);
+  
   // Debug logging
   console.log('CallProvider: Component mounted/updated', { 
     isAuthenticated, 
@@ -114,6 +124,12 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       console.log('CallContext: Call service connection status:', data);
       setIsConnected(data.connected);
       setConnectionError(data.error?.message || null);
+      
+      // If connection is lost, reset setup completion so it can retry
+      if (!data.connected && data.error) {
+        console.log('CallContext: SignalR connection lost, resetting setup completion to allow retry');
+        setIsSetupComplete(false);
+      }
     });
 
     // Call events
@@ -150,23 +166,35 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setRemoteStream(null);
     });
 
-    callService.on('incomingCall', (data: { CallId: string; CallerId: string; CallType: number; ConversationId?: string; CreatedAt: string }) => {
+    callService.on('incomingCall', (data: { callId: string; callerId: string; callType: number; conversationId?: string; createdAt: string }) => {
       console.log('CallContext: Incoming call received:', data);
+      
+      // Get current user ID from ref (always up-to-date)
+      const currentUserId = currentUserIdRef.current;
+      console.log('CallContext: Debug - currentUserId from ref =', currentUserId);
+      console.log('CallContext: Debug - user?.id from closure =', user?.id);
+      
       const call: Call = {
-        id: data.CallId,
-        callerId: data.CallerId,
-        calleeId: user?.id || '',
-        type: data.CallType === 1 ? 'video' : 'voice',
+        id: data.callId,        // Fix: Map callId to id
+        callerId: data.callerId, // Fix: Map callerId to callerId  
+        calleeId: currentUserId, // Fix: Set calleeId to current user ID for incoming calls
+        type: data.callType === 1 ? 'video' : 'voice', // Fix: Map callType to type
         status: 'ringing',
-        conversationId: data.ConversationId,
-        createdAt: new Date(data.CreatedAt),
+        conversationId: data.conversationId, // Fix: Map conversationId to conversationId
+        createdAt: new Date(data.createdAt), // Fix: Map createdAt to createdAt
         participants: [],
         roomId: ''
       };
+      
+      console.log('CallContext: Debug - currentUserId =', currentUserId, 'calleeId =', call.calleeId, 'isIncomingCall should be:', call.calleeId === currentUserId);
+      console.log('CallContext: Setting incoming call and showing modal:', call);
       setIncomingCall(call);
+      setCurrentCall(call);  // Fix: Set currentCall so CallModal can render
       setShowCallModal(true);
       setCallStatus('ringing');
     });
+    
+    console.log('CallContext: incomingCall event handler registered');
 
     // Video-specific events
     callService.on('callTypeFallback', (data: { from: string; to: string; reason: string }) => {
@@ -263,12 +291,37 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
 
   // Initialize call service when user is authenticated
   useEffect(() => {
+    console.log('CallContext: Main useEffect running. isAuthenticated:', isAuthenticated, 'user:', user, 'isSetupComplete:', isSetupComplete);
+    
     if (isAuthenticated && user && !isSetupComplete) {
       console.log('CallContext: Initializing call service for user:', user.id);
       setupCallService();
-      setIsSetupComplete(true);
+      
+      // Proactively connect to SignalR hub to receive incoming calls
+      console.log('CallContext: Establishing SignalR connection for incoming calls');
+      callService.connect().then(() => {
+        console.log('CallContext: SignalR connection established for user:', user.id);
+        setIsSetupComplete(true);
+      }).catch((error) => {
+        console.error('CallContext: Failed to establish SignalR connection:', error);
+        console.log('CallContext: Retrying SignalR connection in 2 seconds...');
+        // Retry connection after 2 seconds
+        setTimeout(() => {
+          console.log('CallContext: Retrying SignalR connection...');
+          callService.connect().then(() => {
+            console.log('CallContext: SignalR connection established on retry for user:', user.id);
+            setIsSetupComplete(true);
+          }).catch((retryError) => {
+            console.error('CallContext: Failed to establish SignalR connection on retry:', retryError);
+          });
+        }, 2000);
+      });
     } else if (!isAuthenticated) {
       console.log('CallContext: User not authenticated, skipping call service initialization');
+    } else if (!user) {
+      console.log('CallContext: User is null, skipping call service initialization');
+    } else if (isSetupComplete) {
+      console.log('CallContext: Call service already initialized, skipping');
     }
 
     return () => {
@@ -277,7 +330,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
         callService.dispose();
       }
     };
-  }, [isAuthenticated, user, isSetupComplete, setupCallService]);
+  }, [isAuthenticated, user, isSetupComplete]);
 
   // Call management functions
   const startCall = useCallback(async (calleeId: string, type: 'voice' | 'video' = 'voice', conversationId?: string): Promise<Call> => {
