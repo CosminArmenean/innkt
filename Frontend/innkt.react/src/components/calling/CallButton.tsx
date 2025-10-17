@@ -20,6 +20,7 @@ const CallButton: React.FC<CallButtonProps> = ({
 }) => {
   const { startCall, isInCall } = useCall();
   const [isLoading, setIsLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleCall = async (callType: 'voice' | 'video') => {
     if (disabled || isLoading || isInCall) return;
@@ -58,8 +59,6 @@ const CallButton: React.FC<CallButtonProps> = ({
 
   if (variant === 'auto') {
     // Auto variant shows both voice and video options in a dropdown
-    const [showDropdown, setShowDropdown] = useState(false);
-    
     return (
       <div className={`relative inline-block ${className}`}>
         <button
