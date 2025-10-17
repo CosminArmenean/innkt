@@ -172,12 +172,21 @@ const MessagingDashboard: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-2">
-                {/* Call Button */}
+                {/* Voice Call Button */}
                 {selectedConversation && selectedConversation.participants.length > 0 && (
                   <CallButton
                     userId={selectedConversation.participants[0].userId}
                     conversationId={selectedConversation.id}
-                    variant="auto"
+                    variant="voice"
+                    size="md"
+                  />
+                )}
+                {/* Video Call Button */}
+                {selectedConversation && selectedConversation.participants.length > 0 && (
+                  <CallButton
+                    userId={selectedConversation.participants[0].userId}
+                    conversationId={selectedConversation.id}
+                    variant="video"
                     size="md"
                   />
                 )}
