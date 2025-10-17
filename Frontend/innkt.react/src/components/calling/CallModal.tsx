@@ -91,40 +91,46 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
         });
       }
       
-      // Create audio intensity detector
-      audioDetectorRef.current = new AudioIntensityDetector(
-        (event: AudioIntensityEvent) => {
-        // Always log for debugging - we need to see what's happening
-        console.log('CallModal: Audio intensity event', {
-          intensity: event.intensity,
-          isSpeaking: event.isSpeaking,
-          threshold: 0.01, // Lower threshold to detect even quiet audio
-          timestamp: event.timestamp
-        });
-        
-        // Additional debugging: Check if we're getting any audio data at all
-        if (event.intensity === 0 && remoteStream) {
-          const audioTracks = remoteStream.getAudioTracks();
-          if (audioTracks.length > 0) {
-            const track = audioTracks[0];
-            console.log('CallModal: Audio track status:', {
-              enabled: track.enabled,
-              muted: track.muted,
-              readyState: track.readyState,
-              label: track.label,
-              settings: track.getSettings()
-            });
+        // Create audio intensity detector with ultra-low threshold for debugging
+        audioDetectorRef.current = new AudioIntensityDetector(
+          (event: AudioIntensityEvent) => {
+          // Always log for debugging - we need to see what's happening
+          console.log('CallModal: Audio intensity event', {
+            intensity: event.intensity.toFixed(4),
+            isSpeaking: event.isSpeaking,
+            threshold: 0.001, // Ultra-low threshold to detect any audio
+            timestamp: event.timestamp,
+            rawIntensity: event.intensity
+          });
+          
+          // Additional debugging: Check if we're getting any audio data at all
+          if (event.intensity === 0 && remoteStream) {
+            const audioTracks = remoteStream.getAudioTracks();
+            if (audioTracks.length > 0) {
+              const track = audioTracks[0];
+              console.log('CallModal: Audio track status (zero intensity):', {
+                enabled: track.enabled,
+                muted: track.muted,
+                readyState: track.readyState,
+                label: track.label,
+                settings: track.getSettings(),
+                constraints: track.getConstraints(),
+                capabilities: track.getCapabilities()
+              });
+            } else {
+              console.log('CallModal: No audio tracks found in remote stream');
+            }
           }
-        }
-          setAudioIntensity(event.intensity);
-          setIsParticipantSpeaking(event.isSpeaking);
-        },
-        {
-          threshold: 0.01, // Very low threshold for testing
-          smoothing: 0.5,  // Less smoothing to see raw data
-          updateInterval: 50 // More frequent updates for debugging
-        }
-      );
+            setAudioIntensity(event.intensity);
+            setIsParticipantSpeaking(event.isSpeaking);
+          },
+          {
+            threshold: 0.001, // Ultra-low threshold for testing
+            smoothing: 0.1,   // Minimal smoothing to see raw data
+            updateInterval: 50, // More frequent updates for debugging
+            fftSize: 512      // Larger FFT for better frequency resolution
+          }
+        );
 
       // Start detection
       audioDetectorRef.current.start(remoteStream).catch((error) => {
@@ -204,44 +210,58 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   const handleTestAudio = async () => {
     setIsTestingAudio(true);
     try {
+      console.log('🎤 Starting local audio test...');
+      
       // Test local microphone
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const audioTracks = stream.getAudioTracks();
       
       if (audioTracks.length > 0) {
         const track = audioTracks[0];
-        console.log('Local audio track:', {
+        console.log('🎤 Local audio track details:', {
           enabled: track.enabled,
           muted: track.muted,
           readyState: track.readyState,
           label: track.label,
-          settings: track.getSettings()
+          settings: track.getSettings(),
+          constraints: track.getConstraints(),
+          capabilities: track.getCapabilities()
         });
         
         // Test audio intensity detection on local stream
         const localDetector = new AudioIntensityDetector(
           (event: AudioIntensityEvent) => {
-            console.log('Local audio intensity:', event);
+            console.log('🎤 Local audio intensity:', {
+              intensity: event.intensity.toFixed(4),
+              isSpeaking: event.isSpeaking,
+              timestamp: event.timestamp
+            });
           },
-          { threshold: 0.01, updateInterval: 100 }
+          { 
+            threshold: 0.001, // Ultra-low threshold
+            updateInterval: 50,
+            smoothing: 0.1,
+            fftSize: 512
+          }
         );
         
         await localDetector.start(stream);
+        console.log('🎤 Local audio intensity detection started');
         
         setTimeout(() => {
           localDetector.stop();
           stream.getTracks().forEach(track => track.stop());
           setIsTestingAudio(false);
-          alert('Local audio test completed. Check console for results.');
-        }, 5000); // Test for 5 seconds
+          alert('🎤 Local audio test completed. Check console for detailed results. If you see intensity values > 0.0000, your microphone is working!');
+        }, 10000); // Test for 10 seconds for better results
         
       } else {
-        alert('No audio tracks found in local stream');
+        alert('❌ No audio tracks found in local stream');
         setIsTestingAudio(false);
       }
     } catch (error) {
-      console.error('Local audio test failed:', error);
-      alert(`Local audio test failed: ${error}`);
+      console.error('❌ Local audio test failed:', error);
+      alert(`❌ Local audio test failed: ${error}`);
       setIsTestingAudio(false);
     }
   };

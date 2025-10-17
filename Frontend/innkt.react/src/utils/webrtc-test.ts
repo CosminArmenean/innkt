@@ -23,8 +23,9 @@ export class WebRTCTester {
     // STUN servers
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
     
-    // TURN servers
+    // TURN servers - testing multiple options
     {
       urls: 'turn:openrelay.metered.ca:80',
       username: 'openrelayproject',
@@ -34,6 +35,21 @@ export class WebRTCTester {
       urls: 'turn:openrelay.metered.ca:443',
       username: 'openrelayproject',
       credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:relay1.expressturn.com:3478',
+      username: 'efJBwYj8X47Xj3j',
+      credential: 'YfY2Bm6Nk8Lk2Kk'
+    },
+    {
+      urls: 'turn:relay2.expressturn.com:3478',
+      username: 'efJBwYj8X47Xj3j',
+      credential: 'YfY2Bm6Nk8Lk2Kk'
     }
   ];
 

@@ -185,26 +185,43 @@ export class AudioIntensityDetector {
       const average = frequencyData.reduce((a, b) => a + b) / frequencyData.length;
       const intensity = average / 255; // Normalize to 0-1
       
-      // Debug: Log raw frequency data occasionally
-      if (Math.random() < 0.01) { // Log 1% of the time to avoid spam
+      // Calculate RMS (Root Mean Square) for better voice detection
+      let sumSquares = 0;
+      for (let i = 0; i < frequencyData.length; i++) {
+        sumSquares += frequencyData[i] * frequencyData[i];
+      }
+      const rms = Math.sqrt(sumSquares / frequencyData.length) / 255;
+      
+      // Use the higher of average or RMS for better sensitivity
+      const finalIntensity = Math.max(intensity, rms);
+      
+      // Debug: Log raw frequency data more frequently for troubleshooting
+      if (Math.random() < 0.05) { // Log 5% of the time for better debugging
         let maxValue = 0;
         let nonZeroValues = 0;
+        let totalValue = 0;
         for (let i = 0; i < frequencyData.length; i++) {
           if (frequencyData[i] > maxValue) maxValue = frequencyData[i];
           if (frequencyData[i] > 0) nonZeroValues++;
+          totalValue += frequencyData[i];
         }
         console.log('AudioIntensityDetector: Raw frequency data sample', {
-          average,
-          intensity,
+          average: average.toFixed(4),
+          intensity: intensity.toFixed(4),
+          rms: rms.toFixed(4),
+          finalIntensity: finalIntensity.toFixed(4),
           maxValue,
           nonZeroValues,
+          totalValue,
           dataLength: frequencyData.length,
-          analyserState: this.analyser.context?.state
+          analyserState: this.analyser.context?.state,
+          threshold: this.options.threshold,
+          smoothing: this.options.smoothing
         });
       }
       
       // Apply smoothing to reduce jitter
-      const smoothedIntensity = this.applySmoothing(intensity);
+      const smoothedIntensity = this.applySmoothing(finalIntensity);
       
       // Determine if speaking
       const isSpeaking = smoothedIntensity > this.options.threshold;

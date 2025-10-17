@@ -132,8 +132,7 @@ class CallService {
     { urls: 'stun:stun.counterpath.net' },
     { urls: 'stun:stun.internetcalls.com' },
     
-    // Free TURN servers (these may be unreliable but worth trying)
-    // Note: Free TURN servers often have limitations and may not always work
+    // More reliable free TURN servers
     { 
       urls: 'turn:openrelay.metered.ca:80',
       username: 'openrelayproject',
@@ -157,8 +156,22 @@ class CallService {
       credential: 'YfY2Bm6Nk8Lk2Kk'
     },
     
-    // Note: These free TURN servers may not always be available
-    // For production, consider setting up your own TURN server
+    // More free TURN servers for better connectivity
+    { 
+      urls: 'turn:relay2.expressturn.com:3478',
+      username: 'efJBwYj8X47Xj3j',
+      credential: 'YfY2Bm6Nk8Lk2Kk'
+    },
+    
+    // Free TURN from Xirsys (requires registration but free tier available)
+    { 
+      urls: 'turn:global.turn.twilio.com:3478',
+      username: 'your-twilio-username',
+      credential: 'your-twilio-credential'
+    },
+    
+    // Note: For production, consider setting up your own TURN server
+    // or using a commercial TURN service for better reliability
   ];
 
   // User presence management
