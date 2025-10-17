@@ -102,29 +102,7 @@ class CallService {
   };
 
   constructor() {
-    this.initializeConnection();
-  }
-
-  private async initializeConnection() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.warn('No access token found for call service');
-        return;
-      }
-
-      this.connection = new HubConnectionBuilder()
-        .withUrl(`${this.SEER_SERVICE_URL}/hubs/signaling`, {
-          accessTokenFactory: () => token
-        })
-        .withAutomaticReconnect([0, 2000, 10000, 30000])
-        .build();
-
-      this.setupEventHandlers();
-      await this.startConnection();
-    } catch (error) {
-      console.error('Failed to initialize call service connection:', error);
-    }
+    // Connection will be initialized when first call is made
   }
 
   private setupEventHandlers() {
@@ -187,7 +165,7 @@ class CallService {
   }
 
   private async startConnection() {
-    if (!this.connection || this.connection.state === HubConnectionState.Connected) {
+    if (!this.connection || this.connection.state !== HubConnectionState.Disconnected) {
       return;
     }
 
@@ -200,6 +178,29 @@ class CallService {
       console.error('Failed to start call service connection:', error);
       this.emit('connectionStatusChanged', { connected: false, error });
     }
+  }
+
+  private initializeConnection(): void {
+    if (this.connection) {
+      return; // Already initialized
+    }
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.error('No access token found for call service');
+      return;
+    }
+
+    // SignalR connection URL
+    this.connection = new HubConnectionBuilder()
+      .withUrl(`${this.SEER_SERVICE_URL}/hubs/signaling`, {
+        accessTokenFactory: () => token
+      })
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .build();
+
+    // Set up event handlers
+    this.setupEventHandlers();
   }
 
   // Event handling
@@ -231,6 +232,12 @@ class CallService {
   public async startCall(calleeId: string, type: 'voice' | 'video' = 'voice', conversationId?: string): Promise<Call> {
     try {
       console.log(`Starting ${type} call to ${calleeId}`);
+      
+      // Initialize connection if not already done
+      this.initializeConnection();
+      
+      // Ensure connection is established
+      await this.startConnection();
       
       // Store current call type
       this.currentCallType = type;
