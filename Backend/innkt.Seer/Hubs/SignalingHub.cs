@@ -42,7 +42,7 @@ namespace innkt.Seer.Hubs
             // Update user's connection ID in active calls
             await UpdateUserConnectionInActiveCalls(userId, Context.ConnectionId);
 
-            _logger.LogInformation($"User {userId} connected to signaling hub with connection {Context.ConnectionId}");
+            _logger.LogInformation($"User {userId} connected to signaling hub with connection {Context.ConnectionId} and added to group user_{userId}");
             await base.OnConnectedAsync();
         }
 
