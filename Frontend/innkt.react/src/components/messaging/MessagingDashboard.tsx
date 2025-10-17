@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
 import { messagingService, Conversation, Message } from '../../services/messaging.service';
 import { useMessaging } from '../../contexts/MessagingContext';
 import { useCall } from '../../contexts/CallContext';
@@ -17,6 +18,7 @@ import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 const MessagingDashboard: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const { user } = useAuth();
   const { 
     conversations, 
     loadConversations, 
@@ -173,23 +175,35 @@ const MessagingDashboard: React.FC = () => {
               
               <div className="flex items-center space-x-2">
                 {/* Voice Call Button */}
-                {selectedConversation && selectedConversation.participants.length > 0 && (
-                  <CallButton
-                    userId={selectedConversation.participants[0].userId}
-                    conversationId={selectedConversation.id}
-                    variant="voice"
-                    size="md"
-                  />
-                )}
+                {selectedConversation && selectedConversation.participants.length > 0 && (() => {
+                  // Get the other participant (not the current user)
+                  const currentUserId = user?.id;
+                  const otherParticipant = selectedConversation.participants.find(p => p.userId !== currentUserId);
+                  
+                  return otherParticipant && (
+                    <CallButton
+                      userId={otherParticipant.userId}
+                      conversationId={selectedConversation.id}
+                      variant="voice"
+                      size="md"
+                    />
+                  );
+                })()}
                 {/* Video Call Button */}
-                {selectedConversation && selectedConversation.participants.length > 0 && (
-                  <CallButton
-                    userId={selectedConversation.participants[0].userId}
-                    conversationId={selectedConversation.id}
-                    variant="video"
-                    size="md"
-                  />
-                )}
+                {selectedConversation && selectedConversation.participants.length > 0 && (() => {
+                  // Get the other participant (not the current user)
+                  const currentUserId = user?.id;
+                  const otherParticipant = selectedConversation.participants.find(p => p.userId !== currentUserId);
+                  
+                  return otherParticipant && (
+                    <CallButton
+                      userId={otherParticipant.userId}
+                      conversationId={selectedConversation.id}
+                      variant="video"
+                      size="md"
+                    />
+                  );
+                })()}
                 {/* More Options */}
                 <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
