@@ -76,6 +76,14 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   // Flag to ensure setup is only called once
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   
+  // Debug logging
+  console.log('CallProvider: Component mounted/updated', { 
+    isAuthenticated, 
+    userId: user?.id, 
+    username: user?.username,
+    isSetupComplete 
+  });
+  
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
