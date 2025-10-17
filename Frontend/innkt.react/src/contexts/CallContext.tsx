@@ -73,6 +73,9 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   const [isInCall, setIsInCall] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connecting' | 'active' | 'ending'>('idle');
   
+  // Flag to ensure setup is only called once
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -90,21 +93,6 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   // UI state
   const [showCallModal, setShowCallModal] = useState(false);
   const [incomingCall, setIncomingCall] = useState<Call | null>(null);
-
-  // Initialize call service when user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log('CallContext: Initializing call service for user:', user.id);
-      setupCallService();
-    } else {
-      console.log('CallContext: User not authenticated, skipping call service initialization');
-    }
-
-    return () => {
-      // Cleanup on unmount
-      callService.dispose();
-    };
-  }, [isAuthenticated, user]);
 
   const setupCallService = useCallback(() => {
     console.log('CallContext: Setting up call service event handlers');
@@ -242,6 +230,24 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     });
 
   }, []);
+
+  // Initialize call service when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user && !isSetupComplete) {
+      console.log('CallContext: Initializing call service for user:', user.id);
+      setupCallService();
+      setIsSetupComplete(true);
+    } else if (!isAuthenticated) {
+      console.log('CallContext: User not authenticated, skipping call service initialization');
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (isSetupComplete) {
+        callService.dispose();
+      }
+    };
+  }, [isAuthenticated, user, isSetupComplete, setupCallService]);
 
   // Call management functions
   const startCall = useCallback(async (calleeId: string, type: 'voice' | 'video' = 'voice', conversationId?: string): Promise<Call> => {
