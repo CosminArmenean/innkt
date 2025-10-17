@@ -144,7 +144,7 @@ class CallService {
 
     // Call management events
     this.connection.on('IncomingCall', (data: any) => {
-      console.log('Incoming call received:', data);
+      console.log('CallService: Incoming call received via SignalR:', data);
       this.emit('incomingCall', data);
     });
 

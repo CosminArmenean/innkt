@@ -79,6 +79,7 @@ namespace innkt.Seer.Controllers
                     request.ConversationId);
 
                 // Send incoming call notification to callee via SignalR
+                _logger.LogInformation($"Sending IncomingCall notification to user_{request.CalleeId} for call {call.Id}");
                 await _hubContext.Clients.Group($"user_{request.CalleeId}").SendAsync("IncomingCall", new
                 {
                     CallId = call.Id,
@@ -87,6 +88,7 @@ namespace innkt.Seer.Controllers
                     ConversationId = request.ConversationId,
                     CreatedAt = call.CreatedAt
                 });
+                _logger.LogInformation($"IncomingCall notification sent to user_{request.CalleeId}");
 
                 _logger.LogInformation($"Call started: {call.Id} from {callerId} to {request.CalleeId}");
 
