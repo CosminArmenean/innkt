@@ -94,10 +94,10 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   // Initialize call service when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('Initializing call service for user:', user.id);
+      console.log('CallContext: Initializing call service for user:', user.id);
       setupCallService();
     } else {
-      console.log('User not authenticated, skipping call service initialization');
+      console.log('CallContext: User not authenticated, skipping call service initialization');
     }
 
     return () => {
@@ -107,16 +107,18 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   }, [isAuthenticated, user]);
 
   const setupCallService = useCallback(() => {
+    console.log('CallContext: Setting up call service event handlers');
+    
     // Connection status events
     callService.on('connectionStatusChanged', (data: { connected: boolean; reconnecting?: boolean; error?: any }) => {
-      console.log('Call service connection status:', data);
+      console.log('CallContext: Call service connection status:', data);
       setIsConnected(data.connected);
       setConnectionError(data.error?.message || null);
     });
 
     // Call events
     callService.on('callStarted', (call: Call) => {
-      console.log('Call started:', call);
+      console.log('CallContext: Call started event received:', call);
       setCurrentCall(call);
       setIsInCall(true);
       setCallStatus('ringing');

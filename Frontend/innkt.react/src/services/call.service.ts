@@ -284,6 +284,7 @@ class CallService {
       await this.initializeWebRTC(type);
       await this.joinCall(call.id);
 
+      console.log('CallService: Emitting callStarted event for call:', call);
       this.emit('callStarted', call);
       return call;
     } catch (error) {
