@@ -258,9 +258,25 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setParticipants(prev => [...prev.filter(p => p.id !== participant.id), participant]);
     });
 
-    callService.on('participantLeft', (data: { participantId: string }) => {
+    callService.on('participantLeft', (data: { callId: string, userId: string, timestamp: string }) => {
       console.log('Participant left:', data);
-      setParticipants(prev => prev.filter(p => p.id !== data.participantId));
+      
+      // Remove participant from list
+      setParticipants(prev => prev.filter(p => p.id !== data.userId));
+      
+      // If the other participant left, end the call
+      if (currentCall && currentCall.id === data.callId) {
+        console.log('CallContext: Other participant left, ending call');
+        setCallStatus('ending');
+        setIsInCall(false);
+        
+        // Auto-close the modal after a short delay
+        setTimeout(() => {
+          setShowCallModal(false);
+          setCurrentCall(null);
+          setCallStatus('idle');
+        }, 3000); // Show "Call ended by other participant" for 3 seconds
+      }
     });
 
     // Media events

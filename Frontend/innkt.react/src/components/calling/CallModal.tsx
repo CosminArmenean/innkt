@@ -47,6 +47,7 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   const [audioIntensity, setAudioIntensity] = useState(0);
   const [isTestingConnectivity, setIsTestingConnectivity] = useState(false);
   const [isCheckingSeer, setIsCheckingSeer] = useState(false);
+  const [isTestingAudio, setIsTestingAudio] = useState(false);
   const audioDetectorRef = useRef<AudioIntensityDetector | null>(null);
 
   // Set up video streams
@@ -93,13 +94,28 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
       // Create audio intensity detector
       audioDetectorRef.current = new AudioIntensityDetector(
         (event: AudioIntensityEvent) => {
-          // Always log for debugging - we need to see what's happening
-          console.log('CallModal: Audio intensity event', {
-            intensity: event.intensity,
-            isSpeaking: event.isSpeaking,
-            threshold: 0.05,
-            timestamp: event.timestamp
-          });
+        // Always log for debugging - we need to see what's happening
+        console.log('CallModal: Audio intensity event', {
+          intensity: event.intensity,
+          isSpeaking: event.isSpeaking,
+          threshold: 0.01, // Lower threshold to detect even quiet audio
+          timestamp: event.timestamp
+        });
+        
+        // Additional debugging: Check if we're getting any audio data at all
+        if (event.intensity === 0 && remoteStream) {
+          const audioTracks = remoteStream.getAudioTracks();
+          if (audioTracks.length > 0) {
+            const track = audioTracks[0];
+            console.log('CallModal: Audio track status:', {
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+              label: track.label,
+              settings: track.getSettings()
+            });
+          }
+        }
           setAudioIntensity(event.intensity);
           setIsParticipantSpeaking(event.isSpeaking);
         },
@@ -182,6 +198,51 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
       alert(`❌ Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsCheckingSeer(false);
+    }
+  };
+
+  const handleTestAudio = async () => {
+    setIsTestingAudio(true);
+    try {
+      // Test local microphone
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioTracks = stream.getAudioTracks();
+      
+      if (audioTracks.length > 0) {
+        const track = audioTracks[0];
+        console.log('Local audio track:', {
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label,
+          settings: track.getSettings()
+        });
+        
+        // Test audio intensity detection on local stream
+        const localDetector = new AudioIntensityDetector(
+          (event: AudioIntensityEvent) => {
+            console.log('Local audio intensity:', event);
+          },
+          { threshold: 0.01, updateInterval: 100 }
+        );
+        
+        await localDetector.start(stream);
+        
+        setTimeout(() => {
+          localDetector.stop();
+          stream.getTracks().forEach(track => track.stop());
+          setIsTestingAudio(false);
+          alert('Local audio test completed. Check console for results.');
+        }, 5000); // Test for 5 seconds
+        
+      } else {
+        alert('No audio tracks found in local stream');
+        setIsTestingAudio(false);
+      }
+    } catch (error) {
+      console.error('Local audio test failed:', error);
+      alert(`Local audio test failed: ${error}`);
+      setIsTestingAudio(false);
     }
   };
 
@@ -396,6 +457,13 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
                 className="px-3 py-1 text-xs bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-full transition-colors"
               >
                 {isCheckingSeer ? 'Checking...' : '🏥 Check Seer'}
+              </button>
+              <button
+                onClick={handleTestAudio}
+                disabled={isTestingAudio}
+                className="px-3 py-1 text-xs bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded-full transition-colors"
+              >
+                {isTestingAudio ? 'Testing...' : '🎤 Test Audio'}
               </button>
             </div>
           )}

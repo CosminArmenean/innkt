@@ -132,9 +132,33 @@ class CallService {
     { urls: 'stun:stun.counterpath.net' },
     { urls: 'stun:stun.internetcalls.com' },
     
-    // Note: TURN servers are expensive to maintain and often unreliable when free
-    // For now, we'll rely on STUN servers and direct connections
-    // In production, you'd want to set up your own TURN server
+    // Free TURN servers (these may be unreliable but worth trying)
+    // Note: Free TURN servers often have limitations and may not always work
+    { 
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    { 
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    { 
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    
+    // Additional free TURN servers
+    { 
+      urls: 'turn:relay1.expressturn.com:3478',
+      username: 'efJBwYj8X47Xj3j',
+      credential: 'YfY2Bm6Nk8Lk2Kk'
+    },
+    
+    // Note: These free TURN servers may not always be available
+    // For production, consider setting up your own TURN server
   ];
 
   // User presence management
@@ -256,6 +280,15 @@ class CallService {
 
     this.connection.on('ParticipantLeft', (data: any) => {
       console.log('Participant left:', data);
+      
+      // If the other participant left and we have an active call, end the call
+      if (this.currentCall && this.currentCall.id === data.callId && data.userId !== this.getCurrentUserId()) {
+        console.log('Other participant left the call, ending call automatically');
+        this.endCall(data.callId).catch(error => {
+          console.error('Failed to end call after participant left:', error);
+        });
+      }
+      
       this.emit('participantLeft', data);
     });
 
@@ -982,13 +1015,11 @@ class CallService {
         iceServers: this.ICE_SERVERS,
         iceCandidatePoolSize: 10,
         bundlePolicy: 'max-bundle',
-        rtcpMuxPolicy: 'require'
+        rtcpMuxPolicy: 'require',
+        iceTransportPolicy: 'all', // Try both STUN and TURN servers
       };
 
-      // Add video-specific constraints for better performance
-      if (callType === 'video') {
-        peerConnectionConfig.iceTransportPolicy = 'all';
-      }
+      // Video calls already have iceTransportPolicy set to 'all' above
 
       console.log(`🔗 Creating RTCPeerConnection with config:`, peerConnectionConfig);
       this.peerConnection = new RTCPeerConnection(peerConnectionConfig);

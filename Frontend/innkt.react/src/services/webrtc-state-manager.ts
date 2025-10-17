@@ -560,6 +560,23 @@ export class WebRTCStateManager {
 
     const interval = setInterval(async () => {
       try {
+        // Check if connection still exists and is active
+        const connectionState = this.connectionStates.get(callId);
+        if (!connectionState) {
+          console.log(`WebRTCStateManager: Connection no longer exists, stopping quality monitoring for call ${callId}`);
+          clearInterval(interval);
+          this.qualityMonitoringIntervals.delete(callId);
+          return;
+        }
+
+        // Check if connection is closed or failed
+        if (peerConnection.connectionState === 'closed' || peerConnection.connectionState === 'failed') {
+          console.log(`WebRTCStateManager: Connection is closed/failed, stopping quality monitoring for call ${callId}`);
+          clearInterval(interval);
+          this.qualityMonitoringIntervals.delete(callId);
+          return;
+        }
+
         const stats = await peerConnection.getStats();
         const metrics = this.analyzeStats(stats);
         
@@ -582,6 +599,10 @@ export class WebRTCStateManager {
         }
       } catch (error) {
         console.error(`WebRTCStateManager: Failed to get stats for call ${callId}:`, error);
+        // If we can't get stats, the connection might be dead
+        console.log(`WebRTCStateManager: Stopping quality monitoring due to stats error for call ${callId}`);
+        clearInterval(interval);
+        this.qualityMonitoringIntervals.delete(callId);
       }
     }, 5000); // Monitor every 5 seconds
 
@@ -681,6 +702,14 @@ export class WebRTCStateManager {
     // Remove state and metrics
     this.connectionStates.delete(callId);
     this.qualityMetrics.delete(callId);
+
+    // Stop quality monitoring
+    const qualityInterval = this.qualityMonitoringIntervals.get(callId);
+    if (qualityInterval) {
+      clearInterval(qualityInterval);
+      this.qualityMonitoringIntervals.delete(callId);
+      console.log(`WebRTCStateManager: Stopped quality monitoring for call ${callId}`);
+    }
 
     console.log(`WebRTCStateManager: Connection monitoring cleaned up for call ${callId}`);
   }
