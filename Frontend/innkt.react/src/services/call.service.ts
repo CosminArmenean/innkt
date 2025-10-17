@@ -143,6 +143,11 @@ class CallService {
     });
 
     // Call management events
+    this.connection.on('IncomingCall', (data: any) => {
+      console.log('Incoming call received:', data);
+      this.emit('incomingCall', data);
+    });
+
     this.connection.on('ParticipantJoined', (data: any) => {
       console.log('Participant joined:', data);
       this.emit('participantJoined', data);

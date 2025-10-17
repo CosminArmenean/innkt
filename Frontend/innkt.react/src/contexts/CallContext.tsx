@@ -138,6 +138,24 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setRemoteStream(null);
     });
 
+    callService.on('incomingCall', (data: { CallId: string; CallerId: string; CallType: number; ConversationId?: string; CreatedAt: string }) => {
+      console.log('CallContext: Incoming call received:', data);
+      const call: Call = {
+        id: data.CallId,
+        callerId: data.CallerId,
+        calleeId: user?.id || '',
+        type: data.CallType === 1 ? 'video' : 'voice',
+        status: 'ringing',
+        conversationId: data.ConversationId,
+        createdAt: new Date(data.CreatedAt),
+        participants: [],
+        roomId: ''
+      };
+      setIncomingCall(call);
+      setShowCallModal(true);
+      setCallStatus('ringing');
+    });
+
     // Video-specific events
     callService.on('callTypeFallback', (data: { from: string; to: string; reason: string }) => {
       console.log('Call type fallback:', data);

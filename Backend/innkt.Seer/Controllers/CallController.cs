@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using innkt.Seer.Models;
 using innkt.Seer.Services;
+using innkt.Seer.Hubs;
 using innkt.Common.Models;
 using System.Security.Claims;
 
@@ -16,17 +18,20 @@ namespace innkt.Seer.Controllers
         private readonly CallManagementService _callManagementService;
         private readonly CallEventService _callEventService;
         private readonly WebRTCService _webRTCService;
+        private readonly IHubContext<SignalingHub> _hubContext;
 
         public CallController(
             ILogger<CallController> logger,
             CallManagementService callManagementService,
             CallEventService callEventService,
-            WebRTCService webRTCService)
+            WebRTCService webRTCService,
+            IHubContext<SignalingHub> hubContext)
         {
             _logger = logger;
             _callManagementService = callManagementService;
             _callEventService = callEventService;
             _webRTCService = webRTCService;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -72,6 +77,16 @@ namespace innkt.Seer.Controllers
                     request.CalleeId, 
                     request.Type, 
                     request.ConversationId);
+
+                // Send incoming call notification to callee via SignalR
+                await _hubContext.Clients.Group($"user_{request.CalleeId}").SendAsync("IncomingCall", new
+                {
+                    CallId = call.Id,
+                    CallerId = callerId,
+                    CallType = request.Type,
+                    ConversationId = request.ConversationId,
+                    CreatedAt = call.CreatedAt
+                });
 
                 _logger.LogInformation($"Call started: {call.Id} from {callerId} to {request.CalleeId}");
 
