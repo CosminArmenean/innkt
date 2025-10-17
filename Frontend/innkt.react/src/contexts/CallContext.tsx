@@ -2,6 +2,9 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { callService, Call, CallParticipant, CallEvent, WebRTCStats } from '../services/call.service';
 import { useAuth } from './AuthContext';
 
+// Debug: Log when CallContext module is loaded
+console.log('CallContext: Module loaded');
+
 interface CallContextType {
   // Call state
   currentCall: Call | null;
@@ -66,6 +69,7 @@ interface CallProviderProps {
 }
 
 export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
+  console.log('CallProvider: Component function called');
   const { user, isAuthenticated } = useAuth();
   
   // Call state
