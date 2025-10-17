@@ -294,20 +294,73 @@ namespace innkt.Seer.Hubs
                 // Update participant status
                 await _callManagementService.RemoveParticipantAsync(callId, userId);
 
-                // Notify other participants
-                await Clients.Group($"call_{callId}").SendAsync("ParticipantLeft", new
+                // Check if this was the last participant (call ended)
+                var remainingParticipants = call.Participants.Where(p => p.UserId != userId).ToList();
+                
+                if (remainingParticipants.Count == 0)
                 {
-                    CallId = callId,
-                    UserId = userId,
-                    Timestamp = DateTime.UtcNow
-                });
-
-                _logger.LogInformation($"User {userId} left call {callId}");
+                    // Call is ended - notify all participants
+                    await Clients.Group($"call_{callId}").SendAsync("CallEnded", new
+                    {
+                        CallId = callId,
+                        EndedBy = userId,
+                        Reason = "Last participant left",
+                        Timestamp = DateTime.UtcNow
+                    });
+                    _logger.LogInformation($"Call {callId} ended - last participant {userId} left");
+                }
+                else
+                {
+                    // Just notify other participants about this user leaving
+                    await Clients.Group($"call_{callId}").SendAsync("ParticipantLeft", new
+                    {
+                        CallId = callId,
+                        UserId = userId,
+                        Timestamp = DateTime.UtcNow
+                    });
+                    _logger.LogInformation($"User {userId} left call {callId}");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error leaving call {callId}");
                 await Clients.Caller.SendAsync("Error", "Failed to leave call");
+            }
+        }
+
+        public async Task EndCall(string callId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                if (string.IsNullOrEmpty(userId))
+                {
+                    await Clients.Caller.SendAsync("Error", "Unauthorized");
+                    return;
+                }
+
+                var call = await _callManagementService.GetCallAsync(callId);
+                if (call == null)
+                {
+                    await Clients.Caller.SendAsync("Error", "Call not found");
+                    return;
+                }
+
+                // Notify all participants that the call has ended
+                await Clients.Group($"call_{callId}").SendAsync("CallEnded", new
+                {
+                    CallId = callId,
+                    EndedBy = userId,
+                    Reason = "Call ended by participant",
+                    Timestamp = DateTime.UtcNow
+                });
+
+                _logger.LogInformation($"Call {callId} ended by user {userId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error ending call {callId}");
+                await Clients.Caller.SendAsync("Error", "Failed to end call");
             }
         }
 

@@ -178,7 +178,14 @@ const MessagingDashboard: React.FC = () => {
                 {selectedConversation && selectedConversation.participants.length > 0 && (() => {
                   // Get the other participant (not the current user)
                   const currentUserId = user?.id;
+                  console.log('🔍 Debugging call button participants:', {
+                    currentUserId,
+                    participants: selectedConversation.participants.map(p => ({ userId: p.userId, username: p.username })),
+                    conversationId: selectedConversation.id
+                  });
+                  
                   const otherParticipant = selectedConversation.participants.find(p => p.userId !== currentUserId);
+                  console.log('🔍 Other participant found:', otherParticipant);
                   
                   return otherParticipant && (
                     <CallButton

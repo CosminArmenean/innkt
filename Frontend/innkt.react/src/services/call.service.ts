@@ -1,5 +1,20 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { seerApi } from './api.service';
+import { 
+  SignalingProtocol, 
+  SignalingMessage, 
+  SignalingMessageType,
+  OfferMessage,
+  AnswerMessage,
+  IceCandidateMessage,
+  HangUpMessage,
+  CallStartedMessage,
+  CallAnsweredMessage,
+  CallEndedMessage
+} from './signaling-protocol';
+import { userPresenceManager, UserPresence } from './user-presence';
+import { webrtcStateManager } from './webrtc-state-manager';
+import { mediaStreamOptimizer } from './media-stream-optimizer';
 
 export interface CallParticipant {
   id: string;
@@ -7,6 +22,7 @@ export interface CallParticipant {
   username?: string;
   displayName?: string;
   avatarUrl?: string;
+  profilePictureUrl?: string; // Added for consistency with User interface
   role: 'host' | 'moderator' | 'participant';
   status: 'invited' | 'joining' | 'connected' | 'disconnected' | 'left';
   isMuted: boolean;
@@ -85,13 +101,44 @@ class CallService {
   private videoQuality: 'low' | 'medium' | 'high' | 'hd' = 'medium';
   private bandwidthEstimate: number = 0;
   private isVideoSupported: boolean = true;
+  private pendingIceCandidates: WebRTCIceCandidate[] = [];
 
   // Configuration
   private readonly SEER_SERVICE_URL = 'http://localhost:5267';
-  private readonly ICE_SERVERS = [
+  private readonly ICE_SERVERS: RTCIceServer[] = [
+    // Primary STUN servers (these are reliable and free)
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    
+    // Additional STUN servers from other providers
+    { urls: 'stun:stun.ekiga.net' },
+    { urls: 'stun:stun.fwdnet.net' },
+    { urls: 'stun:stun.ideasip.com' },
+    { urls: 'stun:stun.iptel.org' },
+    { urls: 'stun:stun.rixtelecom.se' },
+    { urls: 'stun:stun.schlund.de' },
+    { urls: 'stun:stunserver.org' },
+    { urls: 'stun:stun.softjoys.com' },
+    { urls: 'stun:stun.voiparound.com' },
+    { urls: 'stun:stun.voipbuster.com' },
+    { urls: 'stun:stun.voipstunt.com' },
+    { urls: 'stun:stun.counterpath.com' },
+    { urls: 'stun:stun.1und1.de' },
+    { urls: 'stun:stun.gmx.net' },
+    { urls: 'stun:stun.callwithus.com' },
+    { urls: 'stun:stun.counterpath.net' },
+    { urls: 'stun:stun.internetcalls.com' },
+    
+    // Note: TURN servers are expensive to maintain and often unreliable when free
+    // For now, we'll rely on STUN servers and direct connections
+    // In production, you'd want to set up your own TURN server
   ];
+
+  // User presence management
+  private currentUserPresence: UserPresence | null = null;
   
   // Video quality constraints
   private readonly VIDEO_CONSTRAINTS = {
@@ -128,17 +175,39 @@ class CallService {
 
     // WebRTC signaling events
     this.connection.on('ReceiveOffer', (offer: WebRTCOffer) => {
-      console.log('Received WebRTC offer:', offer);
+      console.log('🎯 Received WebRTC offer:', offer);
+      console.log('🎯 Offer details:', {
+        callId: offer.callId,
+        fromUserId: offer.fromUserId,
+        toUserId: offer.toUserId,
+        sdpLength: offer.sdp.length,
+        type: offer.type
+      });
       this.handleIncomingOffer(offer);
     });
 
     this.connection.on('ReceiveAnswer', (answer: WebRTCAnswer) => {
-      console.log('Received WebRTC answer:', answer);
+      console.log('🎯 Received WebRTC answer:', answer);
+      console.log('🎯 Answer details:', {
+        callId: answer.callId,
+        fromUserId: answer.fromUserId,
+        toUserId: answer.toUserId,
+        sdpLength: answer.sdp.length,
+        type: answer.type
+      });
       this.handleIncomingAnswer(answer);
     });
 
     this.connection.on('ReceiveIceCandidate', (candidate: WebRTCIceCandidate) => {
-      console.log('Received ICE candidate:', candidate);
+      console.log('🎯 Received ICE candidate:', candidate);
+      console.log('🎯 ICE candidate details:', {
+        callId: candidate.callId,
+        fromUserId: candidate.fromUserId,
+        toUserId: candidate.toUserId,
+        candidate: candidate.candidate.substring(0, 50) + '...',
+        sdpMid: candidate.sdpMid,
+        sdpMLineIndex: candidate.sdpMLineIndex
+      });
       this.handleIncomingIceCandidate(candidate);
     });
 
@@ -146,6 +215,22 @@ class CallService {
     this.connection.on('IncomingCall', (data: any) => {
       console.log('CallService: Incoming call received via SignalR:', data);
       console.log('CallService: About to emit incomingCall event to listeners');
+      
+      // Ensure we have a current call set for answering
+      if (data.callId) {
+        console.log('CallService: Setting current call for incoming call:', data.callId);
+        // Create a minimal call object for the incoming call
+        this.currentCall = {
+          id: data.callId,
+          callerId: data.callerId,
+          calleeId: data.calleeId || this.getCurrentUserId(),
+          type: data.callType === 1 ? 'video' : 'voice',
+          status: 'ringing',
+          createdAt: new Date(data.createdAt),
+          participants: []
+        };
+      }
+      
       this.emit('incomingCall', data);
       console.log('CallService: incomingCall event emitted');
     });
@@ -158,6 +243,15 @@ class CallService {
     this.connection.on('CallAnswered', (data: any) => {
       console.log('Call answered:', data);
       this.emit('callAnswered', data);
+    });
+
+    this.connection.on('CallEnded', (data: any) => {
+      console.log('🔚 Call ended event received:', data);
+      console.log('🔚 Current call ID:', this.currentCall?.id);
+      console.log('🔚 Call ended by user:', data.endedBy);
+      console.log('🔚 Current user ID:', this.getCurrentUserId());
+      
+      this.emit('callEnded', data);
     });
 
     this.connection.on('ParticipantLeft', (data: any) => {
@@ -186,10 +280,65 @@ class CallService {
       this.isConnected = true;
       console.log('Call service connected to Seer service');
       this.emit('connectionStatusChanged', { connected: true });
+      
+      // Set up automatic reconnection with exponential backoff
+      this.setupAutomaticReconnection();
     } catch (error) {
       console.error('Failed to start call service connection:', error);
       this.emit('connectionStatusChanged', { connected: false, error });
+      
+      // Retry connection with exponential backoff
+      this.scheduleReconnection();
     }
+  }
+
+  private setupAutomaticReconnection() {
+    // Set up reconnection with exponential backoff
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const baseDelay = 1000; // 1 second
+
+    const attemptReconnection = async () => {
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.error('Max reconnection attempts reached. Giving up.');
+        return;
+      }
+
+      if (!this.connection || this.connection.state === HubConnectionState.Connected) {
+        return; // Already connected or no connection object
+      }
+
+      reconnectAttempts++;
+      const delay = baseDelay * Math.pow(2, reconnectAttempts - 1); // Exponential backoff
+      
+      console.log(`Attempting reconnection ${reconnectAttempts}/${maxReconnectAttempts} in ${delay}ms...`);
+      
+      setTimeout(async () => {
+        try {
+          await this.connection?.start();
+          this.isConnected = true;
+          reconnectAttempts = 0; // Reset on successful connection
+          console.log('Reconnection successful');
+          this.emit('connectionStatusChanged', { connected: true });
+        } catch (error) {
+          console.error(`Reconnection attempt ${reconnectAttempts} failed:`, error);
+          this.emit('connectionStatusChanged', { connected: false, error, reconnecting: true });
+          attemptReconnection(); // Try again
+        }
+      }, delay);
+    };
+
+    // Store the reconnection function for cleanup
+    (this as any).reconnectionFunction = attemptReconnection;
+  }
+
+  private scheduleReconnection() {
+    // Initial reconnection attempt after 2 seconds
+    setTimeout(() => {
+      if ((this as any).reconnectionFunction) {
+        (this as any).reconnectionFunction();
+      }
+    }, 2000);
   }
 
   private initializeConnection(): void {
@@ -221,6 +370,7 @@ class CallService {
       this.eventHandlers.set(event, []);
     }
     this.eventHandlers.get(event)!.push(handler);
+    console.log(`CallService: Added listener for '${event}' event. Total listeners: ${this.eventHandlers.get(event)!.length}`);
   }
 
   public off(event: string, handler: Function) {
@@ -229,7 +379,18 @@ class CallService {
       const index = handlers.indexOf(handler);
       if (index > -1) {
         handlers.splice(index, 1);
+        console.log(`CallService: Removed listener for '${event}' event. Remaining listeners: ${handlers.length}`);
       }
+    }
+  }
+
+  public removeAllListeners(event?: string) {
+    if (event) {
+      this.eventHandlers.delete(event);
+      console.log(`CallService: Removed all listeners for '${event}' event`);
+    } else {
+      this.eventHandlers.clear();
+      console.log('CallService: Removed all event listeners');
     }
   }
 
@@ -256,18 +417,315 @@ class CallService {
     } else if (this.connection && this.connection.state === HubConnectionState.Connected) {
       console.log('CallService: Already connected to SignalR hub');
     }
+    
+    // Initialize user presence after connection
+    this.initializeUserPresence();
+  }
+
+  /**
+   * Initialize user presence management
+   */
+  private initializeUserPresence(): void {
+    console.log('CallService: Initializing user presence management');
+    
+    // Set up user presence event handlers
+    userPresenceManager.on('user-online', (event: any) => {
+      console.log('CallService: User came online:', event);
+      this.emit('userPresenceChanged', event);
+    });
+
+    userPresenceManager.on('user-offline', (event: any) => {
+      console.log('CallService: User went offline:', event);
+      this.emit('userPresenceChanged', event);
+    });
+
+    userPresenceManager.on('user-in-call', (event: any) => {
+      console.log('CallService: User is in call:', event);
+      this.emit('userPresenceChanged', event);
+    });
+
+    userPresenceManager.on('user-available', (event: any) => {
+      console.log('CallService: User is available:', event);
+      this.emit('userPresenceChanged', event);
+    });
+  }
+
+  /**
+   * Send structured signaling message
+   */
+  private async sendSignalingMessage(message: SignalingMessage): Promise<void> {
+    if (!this.connection || !this.isConnected) {
+      throw new Error('SignalR connection not established');
+    }
+
+    try {
+      // Log message for debugging
+      SignalingProtocol.logMessage(message, 'sent');
+
+      // Send via SignalR based on message type
+      switch (message.type) {
+        case SignalingMessageType.OFFER:
+          await this.connection.invoke('SendOffer', 
+            message.callId, 
+            message.toUserId, 
+            (message as OfferMessage).sdp
+          );
+          break;
+
+        case SignalingMessageType.ANSWER:
+          await this.connection.invoke('SendAnswer', 
+            message.callId, 
+            message.toUserId, 
+            (message as AnswerMessage).sdp
+          );
+          break;
+
+        case SignalingMessageType.ICE_CANDIDATE:
+          const iceMsg = message as IceCandidateMessage;
+          await this.connection.invoke('SendIceCandidate', 
+            message.callId, 
+            message.toUserId, 
+            iceMsg.candidate,
+            iceMsg.sdpMid,
+            iceMsg.sdpMLineIndex
+          );
+          break;
+
+        case SignalingMessageType.HANG_UP:
+          await this.connection.invoke('EndCall', message.callId);
+          break;
+
+        default:
+          console.warn('CallService: Unknown signaling message type:', message.type);
+      }
+
+      console.log('CallService: Signaling message sent successfully:', message.type);
+    } catch (error) {
+      console.error('CallService: Failed to send signaling message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Parse and handle incoming signaling message
+   */
+  private handleSignalingMessage(rawMessage: any): void {
+    try {
+      const message = SignalingProtocol.parseMessage(rawMessage);
+      SignalingProtocol.logMessage(message, 'received');
+
+      switch (message.type) {
+        case SignalingMessageType.OFFER:
+          this.handleIncomingOffer(message as OfferMessage);
+          break;
+
+        case SignalingMessageType.ANSWER:
+          this.handleIncomingAnswer(message as AnswerMessage);
+          break;
+
+        case SignalingMessageType.ICE_CANDIDATE:
+          const iceMessage = message as IceCandidateMessage;
+          // Convert to WebRTC format
+          const webRTCCandidate: WebRTCIceCandidate = {
+            callId: iceMessage.callId,
+            fromUserId: iceMessage.fromUserId,
+            toUserId: iceMessage.toUserId,
+            candidate: iceMessage.candidate,
+            sdpMid: iceMessage.sdpMid || '',
+            sdpMLineIndex: iceMessage.sdpMLineIndex || 0
+          };
+          this.handleIncomingIceCandidate(webRTCCandidate);
+          break;
+
+        case SignalingMessageType.HANG_UP:
+          this.handleCallHangUp(message as HangUpMessage);
+          break;
+
+        default:
+          console.warn('CallService: Unhandled signaling message type:', message.type);
+      }
+    } catch (error) {
+      console.error('CallService: Failed to parse signaling message:', error);
+    }
+  }
+
+  /**
+   * Handle hang up message
+   */
+  private handleCallHangUp(message: HangUpMessage): void {
+    console.log('CallService: Received hang up message:', message);
+    
+    if (this.currentCall && this.currentCall.id === message.callId) {
+      console.log('CallService: Ending call due to hang up from other participant');
+      this.endCall(message.callId).catch(error => {
+        console.error('CallService: Failed to end call after hang up:', error);
+      });
+    }
+  }
+
+  /**
+   * Get user presence information
+   */
+  public getUserPresence(userId: string): UserPresence | null {
+    return userPresenceManager.getUserPresence(userId);
+  }
+
+  /**
+   * Get all available users
+   */
+  public getAvailableUsers(): UserPresence[] {
+    return userPresenceManager.getAvailableUsers();
+  }
+
+  /**
+   * Check if user is available for calls
+   */
+  public isUserAvailable(userId: string): boolean {
+    return userPresenceManager.isUserAvailable(userId);
+  }
+
+  /**
+   * Set current user as in call
+   */
+  public setCurrentUserInCall(callId: string): void {
+    const currentUserId = this.getCurrentUserId();
+    if (currentUserId) {
+      userPresenceManager.setUserInCall(currentUserId, callId);
+    }
+  }
+
+  /**
+   * Set current user as available
+   */
+  public setCurrentUserAvailable(): void {
+    const currentUserId = this.getCurrentUserId();
+    if (currentUserId) {
+      userPresenceManager.setUserAvailable(currentUserId);
+    }
+  }
+
+  /**
+   * Set up WebRTC state handlers
+   */
+  private setupWebRTCStateHandlers(callId: string): void {
+    console.log(`CallService: Setting up WebRTC state handlers for call ${callId}`);
+
+    // Connection state changes
+    webrtcStateManager.on('connectionStateChanged', (event: any) => {
+      if (event.callId === callId) {
+        console.log(`CallService: Connection state changed for call ${callId}:`, event.newState);
+        this.emit('connectionStateChanged', event.newState);
+      }
+    });
+
+    // ICE connection state changes
+    webrtcStateManager.on('iceConnectionStateChanged', (event: any) => {
+      if (event.callId === callId) {
+        console.log(`CallService: ICE connection state changed for call ${callId}:`, event.newState);
+        this.emit('iceConnectionStateChanged', event.newState);
+      }
+    });
+
+    // Negotiation needed
+    webrtcStateManager.on('negotiationNeeded', (event: any) => {
+      if (event.callId === callId) {
+        console.log(`CallService: Negotiation needed for call ${callId}`);
+        this.handleNegotiationNeeded(callId);
+      }
+    });
+
+    // ICE candidates
+    webrtcStateManager.on('iceCandidate', (event: any) => {
+      if (event.callId === callId) {
+        console.log(`CallService: ICE candidate for call ${callId}:`, event.candidate.candidate.substring(0, 50) + '...');
+        this.handleLocalIceCandidate(event.candidate);
+      }
+    });
+
+    // Quality metrics
+    webrtcStateManager.on('qualityMetrics', (event: any) => {
+      if (event.callId === callId) {
+        console.log(`CallService: Quality metrics for call ${callId}:`, event.metrics);
+        this.emit('qualityMetrics', event.metrics);
+      }
+    });
+
+    // Quality warnings
+    webrtcStateManager.on('qualityWarning', (event: any) => {
+      if (event.callId === callId) {
+        console.warn(`CallService: Quality warning for call ${callId}:`, event.metrics);
+        this.emit('qualityWarning', event.metrics);
+      }
+    });
+
+    // Reconnection attempts
+    webrtcStateManager.on('reconnectionAttempt', (event: any) => {
+      if (event.callId === callId) {
+        console.log(`CallService: Reconnection attempt ${event.attempt} for call ${callId}`);
+        this.emit('reconnectionAttempt', event);
+      }
+    });
+
+    // Connection failures
+    webrtcStateManager.on('connectionFailed', (event: any) => {
+      if (event.callId === callId) {
+        console.error(`CallService: Connection failed for call ${callId}`);
+        this.emit('connectionFailed', event);
+      }
+    });
+  }
+
+  /**
+   * Handle negotiation needed
+   */
+  private handleNegotiationNeeded(callId: string): void {
+    console.log(`CallService: Handling negotiation needed for call ${callId}`);
+    
+    // Emit negotiation needed event
+    this.emit('negotiationNeeded', {
+      callId,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Handle local ICE candidate
+   */
+  private handleLocalIceCandidate(candidate: RTCIceCandidate): void {
+    if (this.connection && this.isConnected && this.currentCall) {
+      console.log('📤 Sending ICE candidate:', candidate.candidate.substring(0, 50) + '...');
+      
+      // Send via structured signaling
+      const iceMessage = SignalingProtocol.createIceCandidate(
+        this.currentCall.id,
+        this.getCurrentUserId(),
+        this.currentCall.calleeId,
+        candidate.candidate,
+        candidate.sdpMid,
+        candidate.sdpMLineIndex
+      );
+
+      this.sendSignalingMessage(iceMessage).then(() => {
+        console.log('✅ ICE candidate sent successfully via structured signaling');
+      }).catch(error => {
+        console.error('❌ Failed to send ICE candidate via structured signaling:', error);
+      });
+    }
   }
 
   // Call management
   public async startCall(calleeId: string, type: 'voice' | 'video' = 'voice', conversationId?: string): Promise<Call> {
     try {
-      console.log(`Starting ${type} call to ${calleeId}`);
+      console.log(`🚀 Starting ${type} call to ${calleeId}`);
+      console.log(`📋 Call parameters:`, { calleeId, type, conversationId });
       
       // Initialize connection if not already done
       this.initializeConnection();
       
       // Ensure connection is established
+      console.log(`🔌 Ensuring SignalR connection is established...`);
       await this.startConnection();
+      console.log(`✅ SignalR connection established`);
       
       // Store current call type
       this.currentCallType = type;
@@ -303,18 +761,58 @@ class CallService {
         ConversationId: conversationId  // PascalCase to match C# model
       };
       
-      console.log('📞 Sending call request:', requestPayload);
+      console.log('📞 Sending call request to Seer API:', requestPayload);
       
       const response = await seerApi.post('/api/call/start', requestPayload);
+      console.log('📞 Seer API response:', response.data);
 
       const call: Call = response.data.data;
       this.currentCall = call;
+      console.log('📞 Call created successfully:', call);
 
       // Initialize WebRTC
+      console.log('🔧 Initializing WebRTC for call:', call.id);
       await this.initializeWebRTC(type);
+      console.log('✅ WebRTC initialized successfully');
+      
+      console.log('🔗 Joining call:', call.id);
       await this.joinCall(call.id);
+      console.log('✅ Successfully joined call');
 
-      console.log('CallService: Emitting callStarted event for call:', call);
+      // Create and send WebRTC offer to callee
+      if (this.peerConnection && this.connection && this.isConnected) {
+        console.log('📤 Creating WebRTC offer for callee:', calleeId);
+        const offer = await this.peerConnection.createOffer();
+        await this.peerConnection.setLocalDescription(offer);
+
+        // Send offer to callee
+        try {
+          console.log('📤 Sending WebRTC offer to callee:', calleeId);
+          console.log('📤 Offer SDP length:', offer.sdp?.length || 0);
+          console.log('📤 Offer SDP preview:', offer.sdp?.substring(0, 100) + '...' || 'No SDP');
+          
+          await this.connection.invoke('SendOffer', call.id, calleeId, offer.sdp);
+          console.log('✅ WebRTC offer sent successfully to callee:', calleeId);
+          
+          // Wait a moment for the offer to be processed, then send ICE candidates
+          setTimeout(() => {
+            console.log('📤 Sending pending ICE candidates to callee:', calleeId);
+            this.sendPendingIceCandidates(call.id, calleeId);
+          }, 1000);
+        } catch (error) {
+          console.error('❌ Failed to send WebRTC offer:', error);
+          throw error;
+        }
+      } else {
+        console.error('❌ Cannot send WebRTC offer - missing peerConnection or SignalR connection');
+        console.log('Debug info:', {
+          hasPeerConnection: !!this.peerConnection,
+          hasConnection: !!this.connection,
+          isConnected: this.isConnected
+        });
+      }
+
+      console.log('🎉 CallService: Emitting callStarted event for call:', call);
       this.emit('callStarted', call);
       return call;
     } catch (error) {
@@ -328,8 +826,18 @@ class CallService {
     try {
       console.log('Answering call:', callId);
 
+      // Ensure connection is established before answering
       if (!this.connection || !this.isConnected) {
-        throw new Error('Call service not connected');
+        console.log('🔌 Call service not connected, attempting to connect...');
+        await this.connect();
+        
+        // Wait a moment for connection to be fully established
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        if (!this.connection || !this.isConnected) {
+          throw new Error('Failed to establish SignalR connection for call answer');
+        }
+        console.log('✅ SignalR connection established for call answer');
       }
 
       await this.connection.invoke('JoinCall', callId);
@@ -338,6 +846,10 @@ class CallService {
       const callType = this.currentCall?.type === 'video' ? 'video' : 'voice';
       await this.initializeWebRTC(callType);
 
+      // For the callee (answerer), we should wait for the caller's offer
+      // and then create an answer, NOT create a new offer
+      console.log('📞 Callee ready to receive offer from caller');
+      
       this.emit('callAnswered', { callId });
     } catch (error) {
       console.error('Failed to answer call:', error);
@@ -365,22 +877,44 @@ class CallService {
     try {
       console.log('Ending call:', callId);
 
-      // Clean up WebRTC
+      // Clean up WebRTC resources first
       await this.cleanupWebRTC();
 
-      // End call via API
-      await seerApi.post(`/api/call/${callId}/end`, {});
-
-      if (!this.connection || !this.isConnected) {
-        throw new Error('Call service not connected');
+      // End call via API (this will notify other participants)
+      try {
+        await seerApi.post(`/api/call/${callId}/end`, {});
+        console.log('Call ended via API successfully');
+      } catch (apiError) {
+        console.warn('Failed to end call via API, but continuing with cleanup:', apiError);
       }
 
-      await this.connection.invoke('LeaveCall', callId);
+      // Leave call via SignalR (if connected)
+      if (this.connection && this.isConnected) {
+        try {
+          await this.connection.invoke('LeaveCall', callId);
+          console.log('Left call via SignalR successfully');
+        } catch (signalRError) {
+          console.warn('Failed to leave call via SignalR:', signalRError);
+        }
+      }
 
-      this.emit('callEnded', { callId });
+      // Clear current call and emit event
       this.currentCall = null;
+      this.emit('callEnded', { callId });
+      
+      console.log('Call ended successfully:', callId);
     } catch (error) {
       console.error('Failed to end call:', error);
+      
+      // Still cleanup even if backend calls fail
+      try {
+        await this.cleanupWebRTC();
+        this.currentCall = null;
+        this.emit('callEnded', { callId });
+      } catch (cleanupError) {
+        console.error('Failed to cleanup after call end error:', cleanupError);
+      }
+      
       this.emit('error', { message: 'Failed to end call', error });
       throw error;
     }
@@ -417,17 +951,33 @@ class CallService {
   // WebRTC management
   private async initializeWebRTC(callType: 'voice' | 'video' = 'voice'): Promise<void> {
     try {
-      // Get user media based on call type
+      console.log(`🔧 Starting WebRTC initialization for ${callType} call`);
+      
+      // Create optimized media stream using the media optimizer
       const mediaConstraints = {
         audio: true,
         video: callType === 'video' ? this.getVideoConstraints() : false
       };
 
-      console.log(`Initializing WebRTC for ${callType} call with constraints:`, mediaConstraints);
+      console.log(`🎤 Creating optimized media stream with constraints:`, mediaConstraints);
       
-      this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      // Use media stream optimizer for better quality management
+      const callId = this.currentCall?.id || 'temp-call';
+      this.localStream = await mediaStreamOptimizer.createOptimizedStream(
+        callId,
+        mediaConstraints,
+        {
+          enabled: true,
+          adjustmentInterval: 5000
+        }
+      );
+      
+      console.log(`✅ Optimized media stream created successfully:`, {
+        audioTracks: this.localStream.getAudioTracks().length,
+        videoTracks: this.localStream.getVideoTracks().length
+      });
 
-      // Create peer connection with video-specific configuration
+      // Create peer connection with enhanced configuration
       const peerConnectionConfig: RTCConfiguration = {
         iceServers: this.ICE_SERVERS,
         iceCandidatePoolSize: 10,
@@ -440,53 +990,125 @@ class CallService {
         peerConnectionConfig.iceTransportPolicy = 'all';
       }
 
+      console.log(`🔗 Creating RTCPeerConnection with config:`, peerConnectionConfig);
       this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
+      console.log(`✅ RTCPeerConnection created successfully`);
+
+      // Register connection with WebRTC state manager
+      if (this.currentCall) {
+        webrtcStateManager.registerConnection(this.currentCall.id, this.peerConnection);
+        this.setupWebRTCStateHandlers(this.currentCall.id);
+      }
 
       // Add local stream
+      console.log(`📤 Adding local stream tracks to peer connection`);
       this.localStream.getTracks().forEach(track => {
         this.peerConnection!.addTrack(track, this.localStream!);
-        
-        // Set video quality constraints for video tracks
-        if (track.kind === 'video' && callType === 'video') {
-          this.applyVideoConstraints(track);
-        }
+        console.log(`📤 Added ${track.kind} track:`, track.label);
       });
 
       // Handle remote stream
       this.peerConnection.ontrack = (event) => {
-        console.log('Received remote stream');
-        this.remoteStream = event.streams[0];
+        const stream = event.streams[0];
+        console.log('Received remote stream:', stream);
+        
+        // Debug stream details
+        if (stream) {
+          const audioTracks = stream.getAudioTracks();
+          const videoTracks = stream.getVideoTracks();
+          console.log('Remote stream details:', {
+            audioTracks: audioTracks.length,
+            videoTracks: videoTracks.length,
+            audioTrackDetails: audioTracks.map(track => ({
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+              label: track.label,
+              kind: track.kind
+            }))
+          });
+        }
+        
+        this.remoteStream = stream;
         this.emit('remoteStreamReceived', this.remoteStream);
       };
 
       // Handle ICE candidates
       this.peerConnection.onicecandidate = (event) => {
         if (event.candidate && this.connection && this.isConnected && this.currentCall) {
+          console.log('📤 Sending ICE candidate:', event.candidate.candidate.substring(0, 50) + '...');
           this.connection.invoke('SendIceCandidate', 
             this.currentCall.id, 
             this.getCurrentUserId(), 
             event.candidate.candidate, 
             event.candidate.sdpMid, 
             event.candidate.sdpMLineIndex
-          );
+          ).then(() => {
+            console.log('✅ ICE candidate sent successfully');
+          }).catch(error => {
+            console.error('❌ Failed to send ICE candidate:', error);
+          });
+        } else if (!event.candidate) {
+          console.log('🏁 ICE gathering complete - no more candidates');
         }
       };
 
       // Handle connection state changes
       this.peerConnection.onconnectionstatechange = () => {
-        console.log('WebRTC connection state:', this.peerConnection?.connectionState);
-        this.emit('connectionStateChanged', this.peerConnection?.connectionState);
+        const connectionState = this.peerConnection?.connectionState;
+        console.log('WebRTC connection state:', connectionState);
+        
+        // Debug connection state changes
+        if (connectionState === 'failed') {
+          console.error('WebRTC connection failed! Check network connectivity and firewall settings.');
+          console.log('Attempting to reconnect...');
+          
+          // Attempt to restart the connection after a short delay
+          setTimeout(async () => {
+            try {
+              console.log('Retrying WebRTC connection...');
+              await this.cleanupWebRTC();
+              await this.initializeWebRTC(callType);
+              
+              // Re-establish call if we have an active call
+              if (this.currentCall && this.connection && this.isConnected) {
+                await this.joinCall(this.currentCall.id);
+                console.log('Reconnected to call after failure');
+              }
+            } catch (error) {
+              console.error('Failed to reconnect WebRTC:', error);
+            }
+          }, 2000); // Wait 2 seconds before retry
+          
+        } else if (connectionState === 'connected') {
+          console.log('WebRTC connection established successfully!');
+        }
+        
+        this.emit('connectionStateChanged', connectionState);
         
         // Monitor connection quality for video calls
-        if (callType === 'video' && this.peerConnection?.connectionState === 'connected') {
+        if (callType === 'video' && connectionState === 'connected') {
           this.startConnectionQualityMonitoring();
         }
       };
 
       // Handle ICE connection state changes for quality monitoring
       this.peerConnection.oniceconnectionstatechange = () => {
-        console.log('ICE connection state:', this.peerConnection?.iceConnectionState);
-        if (callType === 'video' && this.peerConnection?.iceConnectionState === 'connected') {
+        const iceState = this.peerConnection?.iceConnectionState;
+        console.log('ICE connection state:', iceState);
+        
+        // Debug ICE connection issues
+        if (iceState === 'failed') {
+          console.error('ICE connection failed! This usually means network connectivity issues or firewall blocking.');
+          console.log('Troubleshooting tips:');
+          console.log('1. Check if both users are on the same network');
+          console.log('2. Try disabling firewall temporarily');
+          console.log('3. Check if TURN servers are accessible');
+        } else if (iceState === 'connected') {
+          console.log('ICE connection established! Audio/video should be working now.');
+        }
+        
+        if (callType === 'video' && iceState === 'connected') {
           this.monitorBandwidthAndAdjustQuality();
         }
       };
@@ -501,26 +1123,46 @@ class CallService {
 
   private async handleIncomingOffer(offer: WebRTCOffer): Promise<void> {
     try {
+      console.log('🎯 Handling incoming WebRTC offer:', offer);
+      
       if (!this.peerConnection) {
+        console.log('📞 No peer connection, initializing WebRTC for incoming offer');
         // Determine call type from current call or default to voice
         const callType = this.currentCall?.type === 'video' ? 'video' : 'voice';
         await this.initializeWebRTC(callType);
       }
 
+      // Check if we already have a remote description set (we might have received an answer already)
+      if (this.peerConnection!.remoteDescription) {
+        console.log('⚠️ Already have remote description, ignoring incoming offer');
+        console.log('Current signaling state:', this.peerConnection!.signalingState);
+        console.log('Current remote description type:', this.peerConnection!.remoteDescription.type);
+        return; // Ignore the offer if we already have a remote description
+      }
+
+      console.log('📥 Setting remote description (offer)...');
       await this.peerConnection!.setRemoteDescription({
         type: 'offer',
         sdp: offer.sdp
       });
+      console.log('✅ Remote description set successfully');
 
+      // Process any pending ICE candidates
+      await this.processPendingIceCandidates();
+
+      console.log('📤 Creating answer...');
       const answer = await this.peerConnection!.createAnswer();
       await this.peerConnection!.setLocalDescription(answer);
+      console.log('✅ Answer created and set as local description');
 
       if (this.connection && this.isConnected) {
+        console.log('📤 Sending answer to caller:', offer.fromUserId);
         await this.connection.invoke('SendAnswer', 
           offer.callId, 
           offer.fromUserId, 
           answer.sdp
         );
+        console.log('✅ Answer sent successfully');
       }
     } catch (error) {
       console.error('Failed to handle incoming offer:', error);
@@ -530,14 +1172,31 @@ class CallService {
 
   private async handleIncomingAnswer(answer: WebRTCAnswer): Promise<void> {
     try {
+      console.log('🎯 Handling incoming WebRTC answer:', answer);
+      
       if (!this.peerConnection) {
+        console.error('❌ No peer connection available to handle answer');
         throw new Error('No peer connection available');
       }
 
+      // Check if we already have a remote description set
+      if (this.peerConnection.remoteDescription) {
+        console.log('⚠️ Already have remote description, ignoring incoming answer');
+        console.log('Current signaling state:', this.peerConnection.signalingState);
+        console.log('Current remote description type:', this.peerConnection.remoteDescription.type);
+        return; // Ignore the answer if we already have a remote description
+      }
+
+      console.log('📥 Setting remote description (answer)...');
       await this.peerConnection.setRemoteDescription({
         type: 'answer',
         sdp: answer.sdp
       });
+      console.log('✅ Remote description set successfully');
+
+      // Process any pending ICE candidates
+      await this.processPendingIceCandidates();
+      console.log('✅ Processed pending ICE candidates');
     } catch (error) {
       console.error('Failed to handle incoming answer:', error);
       this.emit('error', { message: 'Failed to handle incoming answer', error });
@@ -550,19 +1209,115 @@ class CallService {
         throw new Error('No peer connection available');
       }
 
+      // Check if remote description is set
+      if (this.peerConnection.remoteDescription === null) {
+        console.log('Remote description not set yet, queuing ICE candidate');
+        // Queue the candidate to be added later
+        if (!this.pendingIceCandidates) {
+          this.pendingIceCandidates = [];
+        }
+        this.pendingIceCandidates.push(candidate);
+        return;
+      }
+
       await this.peerConnection.addIceCandidate({
         candidate: candidate.candidate,
         sdpMid: candidate.sdpMid,
         sdpMLineIndex: candidate.sdpMLineIndex
       });
+      
+      console.log('ICE candidate added successfully');
     } catch (error) {
       console.error('Failed to handle ICE candidate:', error);
       this.emit('error', { message: 'Failed to handle ICE candidate', error });
     }
   }
 
+  private async processPendingIceCandidates(): Promise<void> {
+    if (!this.peerConnection || this.pendingIceCandidates.length === 0) {
+      return;
+    }
+
+    console.log(`Processing ${this.pendingIceCandidates.length} pending ICE candidates`);
+    
+    for (const candidate of this.pendingIceCandidates) {
+      try {
+        await this.peerConnection.addIceCandidate({
+          candidate: candidate.candidate,
+          sdpMid: candidate.sdpMid,
+          sdpMLineIndex: candidate.sdpMLineIndex
+        });
+        console.log('Queued ICE candidate added successfully');
+      } catch (error) {
+        console.error('Failed to add queued ICE candidate:', error);
+      }
+    }
+    
+    // Clear the pending candidates
+    this.pendingIceCandidates = [];
+  }
+
+  private async sendPendingIceCandidates(callId: string, targetUserId: string): Promise<void> {
+    if (!this.connection || !this.isConnected) {
+      return;
+    }
+
+    // Collect ICE candidates that were generated during offer creation
+    const iceCandidates: RTCIceCandidate[] = [];
+    
+    // Wait for ICE gathering to complete
+    await new Promise<void>((resolve) => {
+      if (this.peerConnection!.iceGatheringState === 'complete') {
+        resolve();
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        console.log('ICE gathering timeout, proceeding with available candidates');
+        resolve();
+      }, 5000);
+
+      this.peerConnection!.onicecandidate = (event) => {
+        if (event.candidate) {
+          iceCandidates.push(event.candidate);
+          console.log('Collected ICE candidate:', event.candidate.candidate);
+        } else {
+          clearTimeout(timeout);
+          console.log('ICE gathering complete, sending all candidates');
+          resolve();
+        }
+      };
+    });
+
+    // Send all collected ICE candidates
+    for (const candidate of iceCandidates) {
+      try {
+        await this.connection.invoke('SendIceCandidate', callId, targetUserId, {
+          candidate: candidate.candidate,
+          sdpMid: candidate.sdpMid,
+          sdpMLineIndex: candidate.sdpMLineIndex
+        });
+        console.log('Sent ICE candidate to', targetUserId);
+      } catch (error) {
+        console.error('Failed to send ICE candidate:', error);
+      }
+    }
+  }
+
   private async cleanupWebRTC(): Promise<void> {
     try {
+      console.log('🧹 Cleaning up WebRTC resources');
+
+      // Clean up media stream optimizer
+      if (this.currentCall) {
+        mediaStreamOptimizer.cleanupStream(this.currentCall.id);
+      }
+
+      // Clean up WebRTC state manager
+      if (this.currentCall) {
+        webrtcStateManager.cleanupConnection(this.currentCall.id);
+      }
+
       // Clear quality monitoring interval
       if ((this as any).qualityInterval) {
         clearInterval((this as any).qualityInterval);
@@ -571,7 +1326,10 @@ class CallService {
 
       // Stop local stream
       if (this.localStream) {
-        this.localStream.getTracks().forEach(track => track.stop());
+        this.localStream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`🧹 Stopped ${track.kind} track: ${track.label}`);
+        });
         this.localStream = null;
       }
 
@@ -579,10 +1337,14 @@ class CallService {
       if (this.peerConnection) {
         this.peerConnection.close();
         this.peerConnection = null;
+        console.log('🧹 Peer connection closed');
       }
 
       this.remoteStream = null;
       this.currentCallType = 'voice'; // Reset call type
+      this.pendingIceCandidates = []; // Clear pending candidates
+      
+      console.log('✅ WebRTC cleanup completed');
       this.emit('webRTCCleanedUp');
     } catch (error) {
       console.error('Failed to cleanup WebRTC:', error);
@@ -977,9 +1739,11 @@ class CallService {
         this.connection = null;
       }
 
-      this.eventHandlers.clear();
+      // Don't clear event handlers as they might be needed by other components
+      // this.eventHandlers.clear(); // Commented out to prevent losing event listeners
       this.isConnected = false;
       this.currentCall = null;
+      console.log('CallService: Disposed but keeping event handlers intact');
     } catch (error) {
       console.error('Failed to dispose call service:', error);
     }

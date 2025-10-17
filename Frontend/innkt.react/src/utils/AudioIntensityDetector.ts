@@ -185,6 +185,24 @@ export class AudioIntensityDetector {
       const average = frequencyData.reduce((a, b) => a + b) / frequencyData.length;
       const intensity = average / 255; // Normalize to 0-1
       
+      // Debug: Log raw frequency data occasionally
+      if (Math.random() < 0.01) { // Log 1% of the time to avoid spam
+        let maxValue = 0;
+        let nonZeroValues = 0;
+        for (let i = 0; i < frequencyData.length; i++) {
+          if (frequencyData[i] > maxValue) maxValue = frequencyData[i];
+          if (frequencyData[i] > 0) nonZeroValues++;
+        }
+        console.log('AudioIntensityDetector: Raw frequency data sample', {
+          average,
+          intensity,
+          maxValue,
+          nonZeroValues,
+          dataLength: frequencyData.length,
+          analyserState: this.analyser.context?.state
+        });
+      }
+      
       // Apply smoothing to reduce jitter
       const smoothedIntensity = this.applySmoothing(intensity);
       

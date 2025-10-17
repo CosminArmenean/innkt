@@ -78,6 +78,10 @@ namespace innkt.Seer.Controllers
                     request.Type, 
                     request.ConversationId);
 
+                // Delay sending incoming call notification to allow SignalR connection to establish
+                _logger.LogInformation($"Delaying IncomingCall notification by 3 seconds to allow connection stability for call {call.Id}");
+                await Task.Delay(3000);
+                
                 // Send incoming call notification to callee via SignalR
                 _logger.LogInformation($"Sending IncomingCall notification to user_{request.CalleeId} for call {call.Id}");
                 await _hubContext.Clients.Group($"user_{request.CalleeId}").SendAsync("IncomingCall", new
@@ -317,6 +321,19 @@ namespace innkt.Seer.Controllers
                         Message = "Failed to end call"
                     });
                 }
+
+                // Send CallEnded notification to all participants
+                foreach (var participant in call.Participants.Where(p => p.UserId != userId))
+                {
+                    _logger.LogInformation($"Sending CallEnded notification to user_{participant.UserId} for call {callId}");
+                    await _hubContext.Clients.Group($"user_{participant.UserId}").SendAsync("CallEnded", new
+                    {
+                        CallId = callId,
+                        EndedBy = userId,
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+                _logger.LogInformation($"CallEnded notifications sent to all participants for call {callId}");
 
                 _logger.LogInformation($"Call {callId} ended by {userId}");
 

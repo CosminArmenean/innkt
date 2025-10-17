@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMessaging } from '../../contexts/MessagingContext';
 import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 import AudioIntensityDetector, { AudioIntensityEvent } from '../../utils/AudioIntensityDetector';
+import { webrtcTester } from '../../utils/webrtc-test';
+import { seerHealthChecker } from '../../utils/seer-health-check';
 
 interface CallModalProps {
   isOpen: boolean;
@@ -43,6 +45,8 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   // Audio intensity detection state
   const [isParticipantSpeaking, setIsParticipantSpeaking] = useState(false);
   const [audioIntensity, setAudioIntensity] = useState(0);
+  const [isTestingConnectivity, setIsTestingConnectivity] = useState(false);
+  const [isCheckingSeer, setIsCheckingSeer] = useState(false);
   const audioDetectorRef = useRef<AudioIntensityDetector | null>(null);
 
   // Set up video streams
@@ -60,19 +64,49 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
 
   // Audio intensity detection for remote stream
   useEffect(() => {
+    console.log('CallModal: Audio detection useEffect triggered', {
+      remoteStream: !!remoteStream,
+      callStatus,
+      isSupported: AudioIntensityDetector.isSupported(),
+      audioTracks: remoteStream?.getAudioTracks().length || 0
+    });
+
     if (remoteStream && callStatus === 'active' && AudioIntensityDetector.isSupported()) {
-      console.log('CallModal: Starting audio intensity detection for remote stream');
+      console.log('CallModal: Starting audio intensity detection for remote stream', {
+        audioTracks: remoteStream.getAudioTracks().length,
+        videoTracks: remoteStream.getVideoTracks().length
+      });
+
+      // Check if remote stream actually has audio data
+      const audioTracks = remoteStream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        const audioTrack = audioTracks[0];
+        console.log('CallModal: Remote audio track details', {
+          enabled: audioTrack.enabled,
+          muted: audioTrack.muted,
+          readyState: audioTrack.readyState,
+          label: audioTrack.label,
+          kind: audioTrack.kind
+        });
+      }
       
       // Create audio intensity detector
       audioDetectorRef.current = new AudioIntensityDetector(
         (event: AudioIntensityEvent) => {
+          // Always log for debugging - we need to see what's happening
+          console.log('CallModal: Audio intensity event', {
+            intensity: event.intensity,
+            isSpeaking: event.isSpeaking,
+            threshold: 0.05,
+            timestamp: event.timestamp
+          });
           setAudioIntensity(event.intensity);
           setIsParticipantSpeaking(event.isSpeaking);
         },
         {
-          threshold: 0.15, // Adjust sensitivity for voice detection
-          smoothing: 0.7,  // Smooth out rapid changes
-          updateInterval: 100 // Update every 100ms
+          threshold: 0.01, // Very low threshold for testing
+          smoothing: 0.5,  // Less smoothing to see raw data
+          updateInterval: 50 // More frequent updates for debugging
         }
       );
 
@@ -109,6 +143,46 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
       return;
     }
     onClose();
+  };
+
+  // Test WebRTC connectivity
+  const handleTestConnectivity = async () => {
+    setIsTestingConnectivity(true);
+    try {
+      console.log('🧪 Running WebRTC connectivity test...');
+      const result = await webrtcTester.runFullTest();
+      
+      if (result.connectivity.success) {
+        alert(`✅ Connectivity Test Passed!\n\nSTUN: ${result.connectivity.stunWorking ? 'Working' : 'Failed'}\nTURN: ${result.connectivity.turnWorking ? 'Working' : 'Failed'}\nCandidates: ${result.connectivity.details.iceCandidates}\nMicrophone: ${result.microphone.success ? 'Accessible' : 'Blocked'}`);
+      } else {
+        alert(`❌ Connectivity Test Failed!\n\nError: ${result.connectivity.error || 'Unknown error'}\nMicrophone: ${result.microphone.success ? 'Accessible' : 'Blocked'}\n\nTroubleshooting:\n1. Check firewall settings\n2. Try a different network\n3. Disable VPN if active`);
+      }
+    } catch (error) {
+      console.error('Connectivity test failed:', error);
+      alert(`❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsTestingConnectivity(false);
+    }
+  };
+
+  // Check Seer service health
+  const handleCheckSeer = async () => {
+    setIsCheckingSeer(true);
+    try {
+      console.log('🏥 Checking Seer service health...');
+      const result = await seerHealthChecker.runFullCheck();
+      
+      if (result.health.isHealthy && result.apiEndpoints.startCall) {
+        alert(`✅ Seer Service is Healthy!\n\nStatus: ${result.health.status}\nResponse Time: ${result.health.responseTime}ms\nAPI Endpoints: Accessible`);
+      } else {
+        alert(`❌ Seer Service Issues Detected!\n\nHealth: ${result.health.status}\nAPI Endpoints: ${result.apiEndpoints.startCall ? 'Working' : 'Failed'}\n\nErrors:\n${result.health.error || 'None'}\n${result.apiEndpoints.errors.join('\n')}\n\nTroubleshooting:\n1. Check if Seer service is running\n2. Verify port 5267 is accessible\n3. Check Seer service logs`);
+      }
+    } catch (error) {
+      console.error('Seer health check failed:', error);
+      alert(`❌ Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsCheckingSeer(false);
+    }
   };
 
   // Handle call actions
@@ -254,23 +328,24 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="p-6 text-center border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-center mb-4">
-            {otherParticipant?.avatarUrl ? (
+            {otherParticipant?.profilePictureUrl ? (
               <img
-                src={convertToFullAvatarUrl(otherParticipant.avatarUrl)}
+                src={convertToFullAvatarUrl(otherParticipant.profilePictureUrl)}
                 alt={otherParticipant.displayName || otherParticipant.username || 'Participant'}
-                className="w-16 h-16 rounded-full object-cover"
+                className="w-16 h-16 rounded-full object-cover border-2 border-purple-600 shadow-lg"
                 onError={(e) => {
-                  console.log('Call modal avatar image failed to load:', otherParticipant.avatarUrl);
+                  console.log('Call modal profile picture failed to load:', otherParticipant.profilePictureUrl);
                   e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
                 }}
               />
-            ) : (
-              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xl font-semibold">
-                  {(otherParticipant?.displayName || otherParticipant?.username || 'U').charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            ) : null}
+            {/* Fallback to initials if no profile picture */}
+            <div className={`w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center ${otherParticipant?.profilePictureUrl ? 'hidden' : ''}`}>
+              <span className="text-white text-xl font-semibold">
+                {(otherParticipant?.displayName || otherParticipant?.username || 'U').charAt(0).toUpperCase()}
+              </span>
+            </div>
           </div>
           
           <div className="flex items-center justify-center mb-1">
@@ -294,8 +369,36 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
             {callStatus === 'ringing' && (isIncomingCall ? 'Incoming call' : 'Calling...')}
             {callStatus === 'connecting' && (isIncomingCall ? 'Connecting...' : 'Connecting...')}
             {callStatus === 'active' && 'Connected'}
-            {callStatus === 'ending' && 'Call ending...'}
+            {callStatus === 'ending' && 'Call ended by other participant'}
+            {callStatus === 'idle' && 'Call ended'}
           </p>
+          
+          {/* Debug info for audio detection */}
+          {callStatus === 'active' && (
+            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              Audio: {audioIntensity.toFixed(3)} | Speaking: {isParticipantSpeaking ? 'Yes' : 'No'} | Tracks: {remoteStream?.getAudioTracks().length || 0}
+            </div>
+          )}
+          
+          {/* Test buttons */}
+          {callStatus === 'active' && audioIntensity === 0 && (
+            <div className="mt-2 space-x-2">
+              <button
+                onClick={handleTestConnectivity}
+                disabled={isTestingConnectivity}
+                className="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full transition-colors"
+              >
+                {isTestingConnectivity ? 'Testing...' : '🔧 Test Connectivity'}
+              </button>
+              <button
+                onClick={handleCheckSeer}
+                disabled={isCheckingSeer}
+                className="px-3 py-1 text-xs bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-full transition-colors"
+              >
+                {isCheckingSeer ? 'Checking...' : '🏥 Check Seer'}
+              </button>
+            </div>
+          )}
 
           {connectionStats && (
             <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -337,10 +440,25 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
           {!remoteStream && !isVideoEnabled && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="relative w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white text-2xl font-semibold">
-                    {(otherParticipant?.displayName || otherParticipant?.username || 'U').charAt(0).toUpperCase()}
-                  </span>
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  {otherParticipant?.profilePictureUrl ? (
+                    <img
+                      src={convertToFullAvatarUrl(otherParticipant.profilePictureUrl)}
+                      alt={otherParticipant.displayName || otherParticipant.username || 'User'}
+                      className="w-full h-full rounded-full object-cover border-2 border-purple-600 shadow-lg"
+                      onError={(e) => {
+                        console.log('Participant profile picture failed to load:', otherParticipant.profilePictureUrl);
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback to initials if no profile picture */}
+                  <div className={`w-full h-full bg-purple-600 rounded-full flex items-center justify-center ${otherParticipant?.profilePictureUrl ? 'hidden' : ''}`}>
+                    <span className="text-white text-2xl font-semibold">
+                      {(otherParticipant?.displayName || otherParticipant?.username || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                   {/* Audio pulse indicator for voice calls */}
                   {callStatus === 'active' && getCurrentCallType() === 'voice' && isParticipantSpeaking && (
                     <div className={`absolute -top-1 -right-1 audio-pulse-indicator ${

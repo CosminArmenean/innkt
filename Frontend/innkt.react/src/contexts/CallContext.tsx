@@ -118,6 +118,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
 
   const setupCallService = useCallback(() => {
     console.log('CallContext: Setting up call service event handlers');
+    console.log('CallContext: Current callService instance:', callService);
     
     // Connection status events
     callService.on('connectionStatusChanged', (data: { connected: boolean; reconnecting?: boolean; error?: any }) => {
@@ -138,13 +139,31 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setCurrentCall(call);
       setIsInCall(true);
       setCallStatus('ringing');
-      setShowCallModal(true);
       setParticipants(call.participants || []);
+      
+      // Delay showing the modal to allow backend connection to establish
+      console.log('CallContext: Delaying call modal display by 3 seconds for connection stability...');
+      setTimeout(() => {
+        console.log('CallContext: Showing call modal after delay for outgoing call');
+        setShowCallModal(true);
+      }, 3000);
     });
 
     callService.on('callAnswered', (data: { callId: string }) => {
       console.log('Call answered:', data);
       setCallStatus('active');
+      setIsInCall(true);
+      
+      // Update current call status if we have an active call
+      if (currentCall && currentCall.id === data.callId) {
+        setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
+      }
+      
+      // If we already have a remote stream, the call should be active
+      if (remoteStream) {
+        console.log('CallContext: Call answered and remote stream already available, ensuring active status');
+        setCallStatus('active');
+      }
     });
 
     callService.on('callRejected', (data: { callId: string }) => {
@@ -155,15 +174,20 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setShowCallModal(false);
     });
 
-    callService.on('callEnded', (data: { callId: string }) => {
+    callService.on('callEnded', (data: { callId: string; endedBy: string; reason: string }) => {
       console.log('Call ended:', data);
-      setCallStatus('idle');
-      setIsInCall(false);
-      setCurrentCall(null);
-      setShowCallModal(false);
-      setParticipants([]);
-      setLocalStream(null);
-      setRemoteStream(null);
+      setCallStatus('ending');
+      
+      // Show "Call ended" message briefly before closing
+      setTimeout(() => {
+        setCallStatus('idle');
+        setIsInCall(false);
+        setCurrentCall(null);
+        setShowCallModal(false);
+        setParticipants([]);
+        setLocalStream(null);
+        setRemoteStream(null);
+      }, 2000); // Show for 2 seconds
     });
 
     callService.on('incomingCall', (data: { callId: string; callerId: string; callType: number; conversationId?: string; createdAt: string }) => {
@@ -187,11 +211,17 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       };
       
       console.log('CallContext: Debug - currentUserId =', currentUserId, 'calleeId =', call.calleeId, 'isIncomingCall should be:', call.calleeId === currentUserId);
-      console.log('CallContext: Setting incoming call and showing modal:', call);
+      console.log('CallContext: Setting incoming call and preparing modal:', call);
       setIncomingCall(call);
       setCurrentCall(call);  // Fix: Set currentCall so CallModal can render
-      setShowCallModal(true);
       setCallStatus('ringing');
+      
+      // Delay showing the modal to allow backend connection to establish
+      console.log('CallContext: Delaying incoming call modal display by 3 seconds for connection stability...');
+      setTimeout(() => {
+        console.log('CallContext: Showing incoming call modal after delay');
+        setShowCallModal(true);
+      }, 3000);
     });
     
     console.log('CallContext: incomingCall event handler registered');
@@ -237,6 +267,18 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     callService.on('remoteStreamReceived', (stream: MediaStream) => {
       console.log('Remote stream received');
       setRemoteStream(stream);
+      
+      // If we receive a remote stream and we're still in connecting state,
+      // it likely means the WebRTC connection is working but the state hasn't updated
+      if (callStatus === 'connecting') {
+        console.log('CallContext: Remote stream received while connecting, forcing call status to active');
+        setTimeout(() => {
+          if (callStatus === 'connecting') {
+            console.log('CallContext: Timeout reached, forcing call status to active');
+            setCallStatus('active');
+          }
+        }, 2000); // Wait 2 seconds for WebRTC state to catch up
+      }
     });
 
     callService.on('muteToggled', (data: { muted: boolean }) => {
@@ -269,15 +311,34 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       // Update call status based on WebRTC connection state
       switch (state) {
         case 'connecting':
+          console.log('CallContext: Setting call status to connecting');
           setCallStatus('connecting');
           break;
         case 'connected':
+          console.log('CallContext: Setting call status to active - WebRTC connected!');
           setCallStatus('active');
           break;
         case 'disconnected':
         case 'failed':
+          console.log('CallContext: WebRTC disconnected/failed, ending call');
           setCallStatus('ending');
           break;
+        default:
+          console.log('CallContext: Unknown WebRTC connection state:', state);
+      }
+    });
+
+    // Also listen for ICE connection state changes
+    callService.on('iceConnectionStateChanged', (state: string) => {
+      console.log('ICE connection state changed:', state);
+      
+      // ICE connection state can also indicate when the call is truly connected
+      if (state === 'connected' || state === 'completed') {
+        console.log('CallContext: ICE connected, ensuring call status is active');
+        setCallStatus('active');
+      } else if (state === 'failed' || state === 'disconnected') {
+        console.log('CallContext: ICE failed/disconnected, ending call');
+        setCallStatus('ending');
       }
     });
 
@@ -287,7 +348,23 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       setConnectionError(error.message);
     });
 
+    // Debug: Confirm event listeners are registered
+    console.log('CallContext: Event listeners registered successfully!');
+    console.log('CallContext: All major events should now be handled:', [
+      'connectionStatusChanged', 'callStarted', 'callAnswered', 'callEnded',
+      'participantJoined', 'participantLeft', 'remoteStreamReceived',
+      'webRTCInitialized', 'connectionStateChanged', 'error'
+    ].join(', '));
+
   }, []);
+
+  // Additional effect to handle call status updates based on stream availability
+  useEffect(() => {
+    if (callStatus === 'connecting' && remoteStream && currentCall) {
+      console.log('CallContext: Call is connecting but remote stream is available, updating to active');
+      setCallStatus('active');
+    }
+  }, [callStatus, remoteStream, currentCall]);
 
   // Initialize call service when user is authenticated
   useEffect(() => {
@@ -295,13 +372,16 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     
     if (isAuthenticated && user && !isSetupComplete) {
       console.log('CallContext: Initializing call service for user:', user.id);
+      console.log('CallContext: About to call setupCallService()');
       setupCallService();
+      console.log('CallContext: setupCallService() completed');
       
       // Proactively connect to SignalR hub to receive incoming calls
       console.log('CallContext: Establishing SignalR connection for incoming calls');
       callService.connect().then(() => {
         console.log('CallContext: SignalR connection established for user:', user.id);
         setIsSetupComplete(true);
+        console.log('CallContext: isSetupComplete set to true');
       }).catch((error) => {
         console.error('CallContext: Failed to establish SignalR connection:', error);
         console.log('CallContext: Retrying SignalR connection in 2 seconds...');
@@ -311,6 +391,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
           callService.connect().then(() => {
             console.log('CallContext: SignalR connection established on retry for user:', user.id);
             setIsSetupComplete(true);
+            console.log('CallContext: isSetupComplete set to true on retry');
           }).catch((retryError) => {
             console.error('CallContext: Failed to establish SignalR connection on retry:', retryError);
           });
@@ -325,10 +406,10 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     }
 
     return () => {
-      // Cleanup on unmount
-      if (isSetupComplete) {
-        callService.dispose();
-      }
+      // Cleanup on unmount - but don't dispose the call service as it's shared
+      console.log('CallContext: Component unmounting, but keeping CallService alive for other components');
+      // Note: We don't call callService.dispose() here because it would clear event handlers
+      // that might be needed by other components. The CallService is a singleton.
     };
   }, [isAuthenticated, user, isSetupComplete]);
 
@@ -348,13 +429,22 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   const answerCall = useCallback(async (callId: string): Promise<void> => {
     try {
       console.log('Answering call:', callId);
+      
+      // Ensure call service is connected before answering
+      if (!isConnected) {
+        console.log('CallContext: SignalR not connected, attempting to connect before answering...');
+        await callService.connect();
+        // Wait for connection to be established
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
       await callService.answerCall(callId);
     } catch (error) {
       console.error('Failed to answer call:', error);
       setConnectionError('Failed to answer call');
       throw error;
     }
-  }, []);
+  }, [isConnected]);
 
   const rejectCall = useCallback(async (callId: string): Promise<void> => {
     try {
