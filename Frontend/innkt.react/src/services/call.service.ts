@@ -257,12 +257,12 @@ class CallService {
       }
 
       // Create call via Seer service API
-      // Match C# PascalCase property names and capitalize enum value
-      const callType = type.charAt(0).toUpperCase() + type.slice(1);
+      // Match C# PascalCase property names and send enum as integer
+      const callTypeValue = type === 'video' ? 1 : 0; // 0 = Voice, 1 = Video, 2 = ScreenShare
       
       const requestPayload = {
         CalleeId: calleeId,  // PascalCase to match C# model
-        Type: callType,      // PascalCase and capitalized enum value
+        Type: callTypeValue, // Integer enum value (0 = Voice, 1 = Video)
         ConversationId: conversationId  // PascalCase to match C# model
       };
       
