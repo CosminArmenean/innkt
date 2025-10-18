@@ -251,21 +251,43 @@ class CallService {
     // Call management events
     this.connection.on('IncomingCall', (data: any) => {
       console.log('CallService: Incoming call received via SignalR:', data);
+      console.log('CallService: IncomingCall data debug:', {
+        callId: data.callId,
+        callerId: data.callerId,
+        calleeId: data.calleeId,
+        callType: data.callType,
+        currentUserId: this.getCurrentUserId()
+      });
       console.log('CallService: About to emit incomingCall event to listeners');
       
       // Ensure we have a current call set for answering
       if (data.callId) {
         console.log('CallService: Setting current call for incoming call:', data.callId);
+        
+        // CRITICAL: For incoming calls, the current user is the CALLEE
+        // So we should use the current user's ID as the calleeId
+        const calleeId = this.getCurrentUserId();
+        const callerId = data.callerId || data.calleeId; // Backend might send calleeId as callerId
+        
+        console.log('CallService: Incoming call assignment:', {
+          callerId,
+          calleeId,
+          'data.callerId': data.callerId,
+          'data.calleeId': data.calleeId
+        });
+        
         // Create a minimal call object for the incoming call
         this.currentCall = {
           id: data.callId,
-          callerId: data.callerId,
-          calleeId: data.calleeId || this.getCurrentUserId(),
+          callerId: callerId,
+          calleeId: calleeId,
           type: data.callType === 1 ? 'video' : 'voice',
           status: 'ringing',
           createdAt: new Date(data.createdAt),
           participants: []
         };
+        
+        console.log('CallService: Current call set:', this.currentCall);
       }
       
       this.emit('incomingCall', data);
@@ -935,10 +957,18 @@ class CallService {
       }
 
       // Leave call via SignalR (if connected)
-      if (this.connection && this.isConnected) {
+      if (this.connection) {
         try {
-          await this.connection.invoke('LeaveCall', callId);
-          console.log('Left call via SignalR successfully');
+          // Check connection state before attempting to send
+          if (this.connection.state === 'Connected') {
+            await this.connection.invoke('LeaveCall', callId);
+            console.log('Left call via SignalR successfully');
+          } else {
+            console.log('SignalR connection not in Connected state, skipping LeaveCall', {
+              state: this.connection.state,
+              isConnected: this.isConnected
+            });
+          }
         } catch (signalRError) {
           console.warn('Failed to leave call via SignalR:', signalRError);
         }

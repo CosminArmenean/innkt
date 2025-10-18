@@ -176,6 +176,8 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
 
     callService.on('callEnded', (data: { callId: string; endedBy: string; reason: string }) => {
       console.log('Call ended:', data);
+      console.log('CallContext: callEnded debug - currentUserIdRef:', currentUserIdRef.current, 'endedBy:', data.endedBy);
+      console.log('CallContext: Current call:', currentCall);
       setCallStatus('ending');
       
       // Show "Call ended" message briefly before closing
@@ -260,12 +262,16 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
 
     callService.on('participantLeft', (data: { callId: string, userId: string, timestamp: string }) => {
       console.log('Participant left:', data);
+      console.log('CallContext: participantLeft debug - currentUserIdRef:', currentUserIdRef.current, 'leaving userId:', data.userId);
       
       // Remove participant from list
       setParticipants(prev => prev.filter(p => p.id !== data.userId));
       
-      // If the other participant left, end the call
-      if (currentCall && currentCall.id === data.callId) {
+      // Only end the call if the OTHER participant left (not the current user)
+      const isCurrentUserLeaving = data.userId === currentUserIdRef.current;
+      console.log('CallContext: Is current user leaving?', isCurrentUserLeaving);
+      
+      if (currentCall && currentCall.id === data.callId && !isCurrentUserLeaving) {
         console.log('CallContext: Other participant left, ending call');
         setCallStatus('ending');
         setIsInCall(false);
@@ -276,6 +282,8 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
           setCurrentCall(null);
           setCallStatus('idle');
         }, 3000); // Show "Call ended by other participant" for 3 seconds
+      } else if (isCurrentUserLeaving) {
+        console.log('CallContext: Current user left, not ending call from participantLeft event');
       }
     });
 
@@ -347,14 +355,24 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     // Also listen for ICE connection state changes
     callService.on('iceConnectionStateChanged', (state: string) => {
       console.log('ICE connection state changed:', state);
+      console.log('CallContext: ICE state change debug - callStatus:', callStatus, 'currentCall:', !!currentCall);
       
       // ICE connection state can also indicate when the call is truly connected
       if (state === 'connected' || state === 'completed') {
         console.log('CallContext: ICE connected, ensuring call status is active');
         setCallStatus('active');
-      } else if (state === 'failed' || state === 'disconnected') {
-        console.log('CallContext: ICE failed/disconnected, ending call');
-        setCallStatus('ending');
+      } else if (state === 'failed') {
+        // Only end the call on ICE failure if we were previously connected or active
+        if (callStatus === 'active' || callStatus === 'connecting') {
+          console.log('CallContext: ICE failed during active/connecting call, ending call');
+          setCallStatus('ending');
+        } else {
+          console.log('CallContext: ICE failed but call was not active/connecting, ignoring');
+        }
+      } else if (state === 'disconnected') {
+        // Disconnected is transient and might reconnect, don't end the call immediately
+        console.log('CallContext: ICE disconnected, monitoring for reconnection...');
+        // Could add a timeout here to end the call if it doesn't reconnect
       }
     });
 
