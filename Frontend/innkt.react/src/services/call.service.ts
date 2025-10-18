@@ -105,6 +105,7 @@ class CallService {
   private adaptiveBitrate: boolean = true;
   private privacyMode: boolean = false;
   private pendingIceCandidates: WebRTCIceCandidate[] = [];
+  private pendingOffer: WebRTCOffer | null = null; // Buffer for incoming offers
 
   // Configuration
   private readonly SEER_SERVICE_URL = environment.api.seer;
@@ -333,7 +334,18 @@ class CallService {
         sdpLength: offer.sdp.length,
         type: offer.type
       });
-      this.handleIncomingOffer(offer);
+      
+      // CRITICAL FIX: Don't automatically process offers for incoming calls
+      // Only process offers if we're in an active call (user has already accepted)
+      if (this.currentCall && this.currentCall.status === 'active') {
+        console.log('🎯 Call is active, processing WebRTC offer');
+        this.handleIncomingOffer(offer);
+      } else {
+        console.log('🎯 Call not active yet, buffering WebRTC offer for later processing');
+        // Buffer the offer for later processing when user accepts
+        this.pendingOffer = offer;
+        console.log('🎯 WebRTC offer buffered, waiting for user to accept call');
+      }
     });
 
     this.connection.on('ReceiveAnswer', (answer: WebRTCAnswer) => {
@@ -1040,6 +1052,13 @@ class CallService {
       // and then create an answer, NOT create a new offer
       console.log('📞 Callee ready to receive offer from caller');
       
+      // CRITICAL FIX: Process any pending WebRTC offer now that user has accepted
+      if (this.pendingOffer && this.pendingOffer.callId === callId) {
+        console.log('🎯 Processing buffered WebRTC offer after user accepted call');
+        await this.handleIncomingOffer(this.pendingOffer);
+        this.pendingOffer = null; // Clear the buffered offer
+      }
+      
       // DON'T emit callAnswered here - wait for WebRTC connection to be established
       // this.emit('callAnswered', { callId });
     } catch (error) {
@@ -1099,6 +1118,7 @@ class CallService {
 
       // Clear current call and emit event
       this.currentCall = null;
+      this.pendingOffer = null; // Clear any buffered offers
       this.emit('callEnded', { callId });
       
       console.log('Call ended successfully:', callId);
@@ -1109,6 +1129,7 @@ class CallService {
       try {
         await this.cleanupWebRTC();
         this.currentCall = null;
+        this.pendingOffer = null; // Clear any buffered offers
         this.emit('callEnded', { callId });
       } catch (cleanupError) {
         console.error('Failed to cleanup after call end error:', cleanupError);

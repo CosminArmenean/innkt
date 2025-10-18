@@ -120,10 +120,9 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     console.log('CallContext: Setting up call service event handlers');
     console.log('CallContext: Current callService instance:', callService);
     
-    // Remove all existing event listeners to prevent duplicates
-    console.log('CallContext: Clearing any existing event listeners');
-    callService.removeAllListeners();
-    console.log('CallContext: All existing listeners cleared');
+    // DON'T remove all listeners - this would destroy SignalR event handlers!
+    // Instead, we'll just re-register our handlers (the CallService handles duplicates internally)
+    console.log('CallContext: Registering CallContext-specific event handlers');
     
     // Connection status events
     callService.on('connectionStatusChanged', (data: { connected: boolean; reconnecting?: boolean; error?: any }) => {
@@ -155,18 +154,25 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     });
 
     callService.on('callAnswered', (data: { callId: string }) => {
-      console.log('Call answered:', data);
+      console.log('🟢 CallContext: callAnswered event received:', data);
+      console.log('🟢 CallContext: Timestamp:', new Date().toISOString());
+      console.log('🟢 CallContext: Current callStatus before change:', callStatus);
+      console.log('🟢 CallContext: Current currentCall:', currentCall);
+      console.log('🟢 CallContext: Current remoteStream:', !!remoteStream);
+      
       setCallStatus('active');
       setIsInCall(true);
+      console.log('🟢 CallContext: callStatus set to active, isInCall set to true');
       
       // Update current call status if we have an active call
       if (currentCall && currentCall.id === data.callId) {
+        console.log('🟢 CallContext: Updating currentCall status to active');
         setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
       }
       
       // If we already have a remote stream, the call should be active
       if (remoteStream) {
-        console.log('CallContext: Call answered and remote stream already available, ensuring active status');
+        console.log('🟢 CallContext: Call answered and remote stream already available, ensuring active status');
         setCallStatus('active');
       }
     });
@@ -198,12 +204,13 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     });
 
     callService.on('incomingCall', (data: { callId: string; callerId: string; callType: number; conversationId?: string; createdAt: string }) => {
-      console.log('CallContext: Incoming call received:', data);
+      console.log('🔔 CallContext: Incoming call received:', data);
+      console.log('🔔 CallContext: Timestamp:', new Date().toISOString());
       
       // Get current user ID from ref (always up-to-date)
       const currentUserId = currentUserIdRef.current;
-      console.log('CallContext: Debug - currentUserId from ref =', currentUserId);
-      console.log('CallContext: Debug - user?.id from closure =', user?.id);
+      console.log('🔍 CallContext: Debug - currentUserId from ref =', currentUserId);
+      console.log('🔍 CallContext: Debug - user?.id from closure =', user?.id);
       
       const call: Call = {
         id: data.callId,        // Fix: Map callId to id
@@ -225,8 +232,21 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       console.log('🔍 CallContext: Call status set to ringing, should show Accept/Reject UI');
       
       // Show incoming call modal immediately
-      console.log('CallContext: Showing incoming call modal immediately');
+      console.log('🔔 CallContext: Showing incoming call modal immediately');
       setShowCallModal(true);
+      
+      // Set up a timer to monitor what happens in the next 5 seconds
+      console.log('⏰ CallContext: Setting up 5-second monitoring timer...');
+      let checkCount = 0;
+      const monitorInterval = setInterval(() => {
+        checkCount++;
+        console.log(`⏰ CallContext: Monitor check #${checkCount} - callStatus:`, callStatus, 'currentCall:', !!currentCall, 'showCallModal:', showCallModal);
+        
+        if (checkCount >= 5) {
+          clearInterval(monitorInterval);
+          console.log('⏰ CallContext: 5-second monitoring completed');
+        }
+      }, 1000);
     });
     
     console.log('CallContext: incomingCall event handler registered');
