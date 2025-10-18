@@ -74,12 +74,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add Authorization
 builder.Services.AddAuthorization();
 
-// Add CORS
+// Add CORS - Allow all origins for development/testing
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3001", "http://localhost:3000")
+        policy.SetIsOriginAllowed(origin => true) // Allow all origins in development
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

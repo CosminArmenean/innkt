@@ -18,7 +18,7 @@ ipconfig
 
 Look for your **IPv4 Address** under Wi-Fi or Ethernet:
 - Example: `192.168.1.100`
-- Write it down: `_________________`
+- Write it down: `192.168.1.6`
 
 ---
 

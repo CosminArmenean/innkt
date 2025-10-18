@@ -174,7 +174,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "http://localhost:4173")
+        policy.SetIsOriginAllowed(origin => true) // Allow all origins in development
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -183,7 +183,7 @@ builder.Services.AddCors(options =>
     // Development CORS policy for React development server
     options.AddPolicy("Development", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "http://localhost:4173")
+        policy.SetIsOriginAllowed(origin => true) // Allow all origins in development
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
