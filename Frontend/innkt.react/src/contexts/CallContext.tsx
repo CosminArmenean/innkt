@@ -120,6 +120,11 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     console.log('CallContext: Setting up call service event handlers');
     console.log('CallContext: Current callService instance:', callService);
     
+    // Remove all existing event listeners to prevent duplicates
+    console.log('CallContext: Clearing any existing event listeners');
+    callService.removeAllListeners();
+    console.log('CallContext: All existing listeners cleared');
+    
     // Connection status events
     callService.on('connectionStatusChanged', (data: { connected: boolean; reconnecting?: boolean; error?: any }) => {
       console.log('CallContext: Call service connection status:', data);
@@ -212,18 +217,16 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
         roomId: ''
       };
       
-      console.log('CallContext: Debug - currentUserId =', currentUserId, 'calleeId =', call.calleeId, 'isIncomingCall should be:', call.calleeId === currentUserId);
-      console.log('CallContext: Setting incoming call and preparing modal:', call);
+      console.log('🔍 CallContext: Debug - currentUserId =', currentUserId, 'calleeId =', call.calleeId, 'isIncomingCall should be:', call.calleeId === currentUserId);
+      console.log('🔍 CallContext: Setting incoming call and preparing modal:', call);
       setIncomingCall(call);
       setCurrentCall(call);  // Fix: Set currentCall so CallModal can render
       setCallStatus('ringing');
+      console.log('🔍 CallContext: Call status set to ringing, should show Accept/Reject UI');
       
-      // Delay showing the modal to allow backend connection to establish
-      console.log('CallContext: Delaying incoming call modal display by 3 seconds for connection stability...');
-      setTimeout(() => {
-        console.log('CallContext: Showing incoming call modal after delay');
-        setShowCallModal(true);
-      }, 3000);
+      // Show incoming call modal immediately
+      console.log('CallContext: Showing incoming call modal immediately');
+      setShowCallModal(true);
     });
     
     console.log('CallContext: incomingCall event handler registered');
@@ -450,19 +453,34 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   // Call management functions
   const startCall = useCallback(async (calleeId: string, type: 'voice' | 'video' = 'voice', conversationId?: string): Promise<Call> => {
     try {
-      console.log(`Starting ${type} call to ${calleeId}`);
+      console.log(`🚀 Starting ${type} call to ${calleeId}`);
+      setCallStatus('connecting');
+      setIsInCall(true);
+      setShowCallModal(true);
+      
+      // Show "Calling..." state while establishing connection
+      console.log('📞 Establishing connection...');
       const call = await callService.startCall(calleeId, type, conversationId);
+      
+      // Update UI to show call is ringing
+      setCallStatus('ringing');
+      setCurrentCall(call);
+      
       return call;
     } catch (error) {
       console.error('Failed to start call:', error);
       setConnectionError('Failed to start call');
+      setCallStatus('idle');
+      setIsInCall(false);
+      setShowCallModal(false);
       throw error;
     }
   }, []);
 
   const answerCall = useCallback(async (callId: string): Promise<void> => {
     try {
-      console.log('Answering call:', callId);
+      console.log('📞 CallContext: Answering call:', callId);
+      setCallStatus('connecting');
       
       // Ensure call service is connected before answering
       if (!isConnected) {
@@ -472,10 +490,26 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
+      // Show "Connecting..." for a moment (like real apps)
+      console.log('⏳ CallContext: Establishing connection...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      console.log('📞 CallContext: Calling callService.answerCall...');
       await callService.answerCall(callId);
+      setIsInCall(true);
+      
+      // Wait a bit more for WebRTC to establish
+      console.log('⏳ CallContext: Waiting for WebRTC connection...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('✅ CallContext: Call answered successfully');
+      
     } catch (error) {
-      console.error('Failed to answer call:', error);
+      console.error('❌ CallContext: Failed to answer call:', error);
       setConnectionError('Failed to answer call');
+      setCallStatus('idle');
+      setIsInCall(false);
+      setShowCallModal(false);
       throw error;
     }
   }, [isConnected]);

@@ -1,16 +1,16 @@
 export const environment = {
   production: false,
   
-  // API Endpoints
+  // API Endpoints - Configured for multi-device testing with IP 192.168.1.6
   api: {
-    officer: process.env.REACT_APP_OFFICER_API_URL || 'http://localhost:5001',
-    social: process.env.REACT_APP_SOCIAL_API_URL || 'http://localhost:8081',
-    groups: process.env.REACT_APP_GROUPS_API_URL || 'http://localhost:5002',
-    neurospark: process.env.REACT_APP_NEUROSPARK_API_URL || 'http://localhost:5003',
-    messaging: process.env.REACT_APP_MESSAGING_API_URL || 'http://localhost:3000',
-    notifications: process.env.REACT_APP_NOTIFICATIONS_API_URL || 'http://localhost:5006',
-    frontier: process.env.REACT_APP_FRONTIER_API_URL || 'http://localhost:51303',
-    seer: process.env.REACT_APP_SEER_API_URL || 'http://localhost:5267',
+    officer: process.env.REACT_APP_OFFICER_API_URL || 'http://192.168.1.6:5001',
+    social: process.env.REACT_APP_SOCIAL_API_URL || 'http://192.168.1.6:8081',
+    groups: process.env.REACT_APP_GROUPS_API_URL || 'http://192.168.1.6:5002',
+    neurospark: process.env.REACT_APP_NEUROSPARK_API_URL || 'http://192.168.1.6:5003',
+    messaging: process.env.REACT_APP_MESSAGING_API_URL || 'http://192.168.1.6:3000',
+    notifications: process.env.REACT_APP_NOTIFICATIONS_API_URL || 'http://192.168.1.6:5006',
+    frontier: process.env.REACT_APP_FRONTIER_API_URL || 'http://192.168.1.6:51303',
+    seer: process.env.REACT_APP_SEER_API_URL || 'http://192.168.1.6:5267',
   },
   
   // Feature Flags

@@ -1,5 +1,6 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { seerApi } from './api.service';
+import { environment } from '../config/environment';
 import { 
   SignalingProtocol, 
   SignalingMessage, 
@@ -101,10 +102,12 @@ class CallService {
   private videoQuality: 'low' | 'medium' | 'high' | 'hd' = 'medium';
   private bandwidthEstimate: number = 0;
   private isVideoSupported: boolean = true;
+  private adaptiveBitrate: boolean = true;
+  private privacyMode: boolean = false;
   private pendingIceCandidates: WebRTCIceCandidate[] = [];
 
   // Configuration
-  private readonly SEER_SERVICE_URL = 'http://localhost:5267';
+  private readonly SEER_SERVICE_URL = environment.api.seer;
   private readonly ICE_SERVERS: RTCIceServer[] = [
     // Primary STUN servers (these are reliable and free)
     { urls: 'stun:stun.l.google.com:19302' },
@@ -187,6 +190,116 @@ class CallService {
 
   constructor() {
     // Connection will be initialized when first call is made
+    this.loadPrivacySettings();
+  }
+
+  private loadPrivacySettings(): void {
+    try {
+      const settings = localStorage.getItem('callPrivacy');
+      if (settings) {
+        const parsed = JSON.parse(settings);
+        this.privacyMode = parsed.enhancedPrivacy || false;
+        console.log('CallService: Privacy settings loaded:', { privacyMode: this.privacyMode });
+      }
+    } catch (error) {
+      console.warn('CallService: Failed to load privacy settings:', error);
+    }
+  }
+
+  public setPrivacyMode(enabled: boolean): void {
+    this.privacyMode = enabled;
+    console.log('CallService: Privacy mode set to:', enabled);
+    
+    // If privacy mode is enabled, prefer TURN servers
+    if (enabled) {
+      console.log('CallService: Enhanced privacy enabled - prioritizing TURN servers');
+    }
+  }
+
+  /**
+   * Configure Opus codec for audio tracks
+   */
+  private async configureOpusCodec(): Promise<void> {
+    if (!this.peerConnection) return;
+
+    try {
+      // Get all audio transceivers
+      const transceivers = this.peerConnection.getTransceivers();
+      const audioTransceivers = transceivers.filter(t => t.sender.track?.kind === 'audio');
+
+      for (const transceiver of audioTransceivers) {
+        if (transceiver.setCodecPreferences) {
+          // Prefer Opus codec for audio
+          console.log('CallService: Configuring Opus codec for audio transceiver');
+          
+          // Get available codecs and prioritize Opus
+          const capabilities = RTCRtpReceiver.getCapabilities('audio');
+          if (capabilities) {
+            const opusCodec = capabilities.codecs.find(codec => 
+              codec.mimeType.toLowerCase().includes('opus')
+            );
+            
+            if (opusCodec) {
+              console.log('CallService: Opus codec available, setting as preferred');
+              transceiver.setCodecPreferences([opusCodec]);
+            } else {
+              console.log('CallService: Opus codec not available, using browser default');
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('CallService: Failed to configure Opus codec:', error);
+    }
+  }
+
+  private async estimateNetworkQuality(): Promise<'excellent' | 'good' | 'fair' | 'poor'> {
+    try {
+      // Simple network quality estimation
+      const start = performance.now();
+      
+      // Test connection to our backend
+      const response = await fetch(`${this.SEER_SERVICE_URL}/api/call/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      
+      const latency = performance.now() - start;
+      
+      if (response.ok) {
+        if (latency < 100) return 'excellent';
+        if (latency < 300) return 'good';
+        if (latency < 1000) return 'fair';
+        return 'poor';
+      }
+      
+      return 'poor';
+    } catch (error) {
+      console.warn('CallService: Network quality test failed:', error);
+      return 'poor';
+    }
+  }
+
+  private adjustQualityForNetwork(quality: 'excellent' | 'good' | 'fair' | 'poor'): void {
+    console.log(`CallService: Adjusting quality for network condition: ${quality}`);
+    
+    switch (quality) {
+      case 'excellent':
+        this.videoQuality = 'hd';
+        break;
+      case 'good':
+        this.videoQuality = 'high';
+        break;
+      case 'fair':
+        this.videoQuality = 'medium';
+        break;
+      case 'poor':
+        this.videoQuality = 'low';
+        break;
+    }
+    
+    console.log(`CallService: Video quality adjusted to: ${this.videoQuality}`);
+    this.emit('qualityAdjusted', { networkQuality: quality, videoQuality: this.videoQuality });
   }
 
   private setupEventHandlers() {
@@ -250,7 +363,7 @@ class CallService {
 
     // Call management events
     this.connection.on('IncomingCall', (data: any) => {
-      console.log('CallService: Incoming call received via SignalR:', data);
+      console.log('🔔🔔🔔 CallService: Incoming call received via SignalR:', data);
       console.log('CallService: IncomingCall data debug:', {
         callId: data.callId,
         callerId: data.callerId,
@@ -300,8 +413,10 @@ class CallService {
     });
 
     this.connection.on('CallAnswered', (data: any) => {
-      console.log('Call answered:', data);
-      this.emit('callAnswered', data);
+      console.log('🔔 CallService: Backend CallAnswered event received:', data);
+      console.log('🔔 CallService: NOT emitting callAnswered yet - waiting for WebRTC connection');
+      // Don't emit callAnswered here - wait for WebRTC connection to be established
+      // this.emit('callAnswered', data);
     });
 
     this.connection.on('CallEnded', (data: any) => {
@@ -838,14 +953,19 @@ class CallService {
       this.currentCall = call;
       console.log('📞 Call created successfully:', call);
 
-      // Initialize WebRTC
-      console.log('🔧 Initializing WebRTC for call:', call.id);
-      await this.initializeWebRTC(type);
-      console.log('✅ WebRTC initialized successfully');
-      
-      console.log('🔗 Joining call:', call.id);
-      await this.joinCall(call.id);
-      console.log('✅ Successfully joined call');
+             // Initialize WebRTC
+             console.log('🔧 Initializing WebRTC for call:', call.id);
+             await this.initializeWebRTC(type);
+             console.log('✅ WebRTC initialized successfully');
+             
+             console.log('🔗 Joining call:', call.id);
+             await this.joinCall(call.id);
+             console.log('✅ Successfully joined call');
+
+             // Wait for connection stability before sending offer (like real apps)
+             console.log('⏳ Waiting for connection stability (2 seconds)...');
+             await new Promise(resolve => setTimeout(resolve, 2000));
+             console.log('✅ Connection stability wait completed');
 
       // Create and send WebRTC offer to callee
       if (this.peerConnection && this.connection && this.isConnected) {
@@ -892,11 +1012,11 @@ class CallService {
 
   public async answerCall(callId: string): Promise<void> {
     try {
-      console.log('Answering call:', callId);
+      console.log('📞 CallService: Answering call:', callId);
 
       // Ensure connection is established before answering
       if (!this.connection || !this.isConnected) {
-        console.log('🔌 Call service not connected, attempting to connect...');
+        console.log('🔌 CallService: SignalR not connected, attempting to connect...');
         await this.connect();
         
         // Wait a moment for connection to be fully established
@@ -905,10 +1025,12 @@ class CallService {
         if (!this.connection || !this.isConnected) {
           throw new Error('Failed to establish SignalR connection for call answer');
         }
-        console.log('✅ SignalR connection established for call answer');
+        console.log('✅ CallService: SignalR connection established for call answer');
       }
 
+      console.log('📞 CallService: Joining call via SignalR:', callId);
       await this.connection.invoke('JoinCall', callId);
+      console.log('✅ CallService: Successfully joined call:', callId);
       
       // Determine call type from current call or default to voice
       const callType = this.currentCall?.type === 'video' ? 'video' : 'voice';
@@ -918,7 +1040,8 @@ class CallService {
       // and then create an answer, NOT create a new offer
       console.log('📞 Callee ready to receive offer from caller');
       
-      this.emit('callAnswered', { callId });
+      // DON'T emit callAnswered here - wait for WebRTC connection to be established
+      // this.emit('callAnswered', { callId });
     } catch (error) {
       console.error('Failed to answer call:', error);
       this.emit('error', { message: 'Failed to answer call', error });
@@ -1053,19 +1176,22 @@ class CallService {
         videoTracks: this.localStream.getVideoTracks().length
       });
 
-      // Create peer connection with enhanced configuration
-      const peerConnectionConfig: RTCConfiguration = {
-        iceServers: this.ICE_SERVERS,
-        iceCandidatePoolSize: 10,
-        bundlePolicy: 'max-bundle',
-        rtcpMuxPolicy: 'require',
-        iceTransportPolicy: 'all', // Try both STUN and TURN servers
-      };
+    // Create peer connection with enhanced configuration
+    const peerConnectionConfig: RTCConfiguration = {
+      iceServers: this.ICE_SERVERS,
+      iceCandidatePoolSize: 10,
+      bundlePolicy: 'max-bundle',
+      rtcpMuxPolicy: 'require',
+      iceTransportPolicy: 'all', // Try both STUN and TURN servers
+    };
 
       // Video calls already have iceTransportPolicy set to 'all' above
 
       console.log(`🔗 Creating RTCPeerConnection with config:`, peerConnectionConfig);
       this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
+      
+      // Configure Opus codec for audio tracks
+      await this.configureOpusCodec();
       console.log(`✅ RTCPeerConnection created successfully`);
 
       // Register connection with WebRTC state manager
@@ -1084,13 +1210,23 @@ class CallService {
       // Handle remote stream
       this.peerConnection.ontrack = (event) => {
         const stream = event.streams[0];
-        console.log('Received remote stream:', stream);
+        console.log('🎯 Received remote stream:', stream);
+        console.log('🎯 Event details:', {
+          streams: event.streams.length,
+          track: event.track ? {
+            kind: event.track.kind,
+            enabled: event.track.enabled,
+            muted: event.track.muted,
+            readyState: event.track.readyState,
+            label: event.track.label
+          } : 'No track'
+        });
         
-        // Debug stream details
+        // Debug stream details and fix audio muting
         if (stream) {
           const audioTracks = stream.getAudioTracks();
           const videoTracks = stream.getVideoTracks();
-          console.log('Remote stream details:', {
+          console.log('🔍 Remote stream details:', {
             audioTracks: audioTracks.length,
             videoTracks: videoTracks.length,
             audioTrackDetails: audioTracks.map(track => ({
@@ -1101,10 +1237,52 @@ class CallService {
               kind: track.kind
             }))
           });
+          
+          // CRITICAL: Check if WE are muting the tracks
+          audioTracks.forEach((track, index) => {
+            console.log(`🔍 BEFORE fixing - Audio track ${index}:`, {
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+              label: track.label
+            });
+            
+            // Force enable the track (this should NOT cause muted=true)
+            track.enabled = true;
+            
+            console.log(`🔍 AFTER enabling - Audio track ${index}:`, {
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+              label: track.label
+            });
+            
+            // If still muted, it's definitely browser/system level
+            if (track.muted) {
+              console.error(`❌ Audio track ${index} is STILL muted after enabling - this is browser/system level muting`);
+            } else {
+              console.log(`✅ Audio track ${index} is now unmuted`);
+            }
+          });
         }
         
         this.remoteStream = stream;
         this.emit('remoteStreamReceived', this.remoteStream);
+        
+        // Only emit callAnswered if we're the CALLEE (not the caller)
+        // The caller's UI should stay in "ringing" state until callee accepts
+        if (this.currentCall) {
+          const isCallee = this.currentCall.calleeId === this.getCurrentUserId();
+          console.log('✅ CallService: WebRTC connection established');
+          console.log('🔍 CallService: isCallee =', isCallee, 'currentUserId =', this.getCurrentUserId(), 'calleeId =', this.currentCall.calleeId);
+          
+          if (isCallee) {
+            console.log('✅ CallService: We are callee, emitting callAnswered');
+            this.emit('callAnswered', { callId: this.currentCall.id });
+          } else {
+            console.log('🔍 CallService: We are caller, NOT emitting callAnswered yet');
+          }
+        }
       };
 
       // Handle ICE candidates
@@ -1249,8 +1427,8 @@ class CallService {
       console.log('🎯 Handling incoming WebRTC answer:', answer);
       
       if (!this.peerConnection) {
-        console.error('❌ No peer connection available to handle answer');
-        throw new Error('No peer connection available');
+        console.warn('⏸️ No peer connection yet, ignoring answer (this is normal for callee)');
+        return; // Callee doesn't need to process answers
       }
 
       // Check if we already have a remote description set
@@ -1279,18 +1457,26 @@ class CallService {
 
   private async handleIncomingIceCandidate(candidate: WebRTCIceCandidate): Promise<void> {
     try {
+      // If no peer connection yet, buffer the candidate for later
       if (!this.peerConnection) {
-        throw new Error('No peer connection available');
+        console.log('⏸️ No peer connection yet, buffering ICE candidate for later');
+        if (!this.pendingIceCandidates) {
+          this.pendingIceCandidates = [];
+        }
+        this.pendingIceCandidates.push(candidate);
+        console.log(`📦 Buffered ICE candidate. Total buffered: ${this.pendingIceCandidates.length}`);
+        return;
       }
 
       // Check if remote description is set
       if (this.peerConnection.remoteDescription === null) {
-        console.log('Remote description not set yet, queuing ICE candidate');
+        console.log('⏸️ Remote description not set yet, queuing ICE candidate');
         // Queue the candidate to be added later
         if (!this.pendingIceCandidates) {
           this.pendingIceCandidates = [];
         }
         this.pendingIceCandidates.push(candidate);
+        console.log(`📦 Queued ICE candidate. Total queued: ${this.pendingIceCandidates.length}`);
         return;
       }
 

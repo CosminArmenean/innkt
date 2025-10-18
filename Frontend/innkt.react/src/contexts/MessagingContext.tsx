@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { messagingService, Conversation, Message } from '../services/messaging.service';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { environment } from '../config/environment';
 
 interface MessagingContextType {
   conversations: Conversation[];
@@ -178,7 +179,11 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     console.log('🔌 Setting up WebSocket connection for user:', user.id);
     setConnectionStatus('connecting');
     
-    const newSocket = io('http://localhost:3000', {
+    // Use environment configuration for messaging URL
+    const messagingUrl = environment.api.messaging;
+    console.log('🔌 Connecting to messaging WebSocket:', messagingUrl);
+    
+    const newSocket = io(messagingUrl, {
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: false, // Changed to false to reuse existing connections

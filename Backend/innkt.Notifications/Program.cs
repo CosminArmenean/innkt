@@ -184,6 +184,7 @@ app.MapGet("/health", () => new {
 
 Console.WriteLine("🔔 NOTIFICATIONS SERVICE - KAFKA-POWERED MESSAGING");
 Console.WriteLine("🎯 Port: 5006");
+Console.WriteLine("🌐 Listening on: http://0.0.0.0:5006 (configured in appsettings.json)");
 
-app.Run("http://localhost:5006");
+app.Run(); // Use Kestrel configuration from appsettings.json
 

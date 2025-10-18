@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("innkt.StringLibrary")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+adb162509248e9728e165754d830e2e7ff6b7a47")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb77c49f0d4bc8e25b74571a3aa2a9f31777228c")]
 [assembly: System.Reflection.AssemblyProductAttribute("innkt.StringLibrary")]
 [assembly: System.Reflection.AssemblyTitleAttribute("innkt.StringLibrary")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

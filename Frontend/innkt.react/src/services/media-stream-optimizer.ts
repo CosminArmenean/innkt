@@ -8,6 +8,16 @@ export interface MediaConstraints {
   video: boolean | MediaTrackConstraints;
 }
 
+export interface OpusAudioConstraints extends MediaTrackConstraints {
+  sampleRate?: number;
+  channelCount?: number;
+  echoCancellation?: boolean;
+  noiseSuppression?: boolean;
+  autoGainControl?: boolean;
+  sampleSize?: number;
+  latency?: number;
+}
+
 export interface VideoQualitySettings {
   width: number;
   height: number;
@@ -68,7 +78,84 @@ export class MediaStreamOptimizer {
   };
 
   constructor() {
-    console.log('MediaStreamOptimizer: Initialized');
+    console.log('MediaStreamOptimizer: Initialized with Opus audio codec support');
+  }
+
+  /**
+   * Get optimized Opus audio constraints for voice calls
+   */
+  private getOpusAudioConstraints(): OpusAudioConstraints {
+    return {
+      // Opus-optimized settings for voice calls
+      sampleRate: 48000,        // Opus standard sample rate
+      channelCount: 1,          // Mono for voice (more efficient)
+      echoCancellation: true,   // Reduce echo
+      noiseSuppression: true,   // Reduce background noise
+      autoGainControl: true,    // Automatic volume adjustment
+      
+      // Additional constraints for better audio quality
+      sampleSize: 16,           // 16-bit audio
+      latency: 0.02             // 20ms latency target
+    };
+  }
+
+  lowLatencyAudioConstraints(): OpusAudioConstraints {
+    return {
+      // Simplified constraints that shouldn't cause muting
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+      sampleRate: 48000,
+      channelCount: 1
+    };
+  }
+
+  /**
+   * Check if Opus codec is supported
+   */
+  public isOpusSupported(): boolean {
+    // Check if RTCRtpTransceiver supports Opus
+    if (typeof RTCRtpTransceiver === 'undefined') {
+      return false;
+    }
+    
+    // Modern browsers support Opus by default
+    return true;
+  }
+
+  /**
+   * Optimize media constraints for Opus codec
+   */
+  private optimizeConstraints(constraints: MediaConstraints): MediaStreamConstraints {
+    const optimized: MediaStreamConstraints = {
+      audio: false,
+      video: false
+    };
+
+    // Optimize audio constraints for Opus
+    if (constraints.audio) {
+      if (this.isOpusSupported()) {
+        console.log('MediaStreamOptimizer: Applying simplified Opus audio optimization (avoiding potential muting)');
+        // Use simpler constraints to avoid browser muting
+        optimized.audio = this.lowLatencyAudioConstraints();
+      } else {
+        console.log('MediaStreamOptimizer: Opus not supported, using fallback audio constraints');
+        optimized.audio = {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100,
+          channelCount: 1
+        };
+      }
+    }
+
+    // Keep video constraints as-is
+    if (constraints.video) {
+      optimized.video = constraints.video;
+    }
+
+    return optimized;
   }
 
   /**
@@ -123,8 +210,31 @@ export class MediaStreamOptimizer {
     console.log(`MediaStreamOptimizer: Creating optimized stream for call ${callId}`, constraints);
 
     try {
-      // Get user media with initial constraints
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('MediaStreamOptimizer: getUserMedia is not available. This may be due to insecure context (non-HTTPS).');
+        
+        // Try legacy getUserMedia as fallback
+        const legacyGetUserMedia = (navigator as any).getUserMedia ||
+                                   (navigator as any).webkitGetUserMedia ||
+                                   (navigator as any).mozGetUserMedia ||
+                                   (navigator as any).msGetUserMedia;
+        
+        if (legacyGetUserMedia) {
+          console.log('MediaStreamOptimizer: Trying legacy getUserMedia...');
+          return new Promise((resolve, reject) => {
+            legacyGetUserMedia.call(navigator, constraints, resolve, reject);
+          });
+        }
+        
+        throw new Error('getUserMedia is not supported in this browser or context. Please use HTTPS or localhost.');
+      }
+
+      // Get user media with Opus-optimized constraints
+      const optimizedConstraints = this.optimizeConstraints(constraints);
+      console.log('MediaStreamOptimizer: Using optimized constraints:', optimizedConstraints);
+      
+      const stream = await navigator.mediaDevices.getUserMedia(optimizedConstraints);
       
       // Store stream
       this.streams.set(callId, stream);

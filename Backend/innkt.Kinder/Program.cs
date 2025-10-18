@@ -74,7 +74,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("KinderSafetyPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3001", "http://localhost:51303")
+        policy.SetIsOriginAllowed(origin => true) // Allow all origins in development
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

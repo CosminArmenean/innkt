@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMessaging } from '../../contexts/MessagingContext';
 import { convertToFullAvatarUrl } from '../../utils/avatarUtils';
 import AudioIntensityDetector, { AudioIntensityEvent } from '../../utils/AudioIntensityDetector';
+import PrivacySettings from './PrivacySettings';
 import { webrtcTester } from '../../utils/webrtc-test';
 import { seerHealthChecker } from '../../utils/seer-health-check';
 
@@ -39,6 +40,7 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null); // For voice calls
   const [isLoading, setIsLoading] = useState(false);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   
@@ -48,6 +50,8 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   const [isTestingConnectivity, setIsTestingConnectivity] = useState(false);
   const [isCheckingSeer, setIsCheckingSeer] = useState(false);
   const [isTestingAudio, setIsTestingAudio] = useState(false);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [isRemoteAudioMuted, setIsRemoteAudioMuted] = useState(false);
   const audioDetectorRef = useRef<AudioIntensityDetector | null>(null);
 
   // Set up video streams
@@ -60,6 +64,71 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (remoteStream && remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  // Set up remote audio stream for voice calls
+  useEffect(() => {
+    console.log('CallModal: Remote audio setup useEffect', {
+      remoteStream: !!remoteStream,
+      remoteAudioRef: !!remoteAudioRef.current,
+      audioTracks: remoteStream?.getAudioTracks().length || 0
+    });
+
+    if (remoteStream && remoteAudioRef.current) {
+      console.log('CallModal: Connecting remote stream to audio element');
+      remoteAudioRef.current.srcObject = remoteStream;
+      
+      // Force unmute and enable all audio tracks
+      const audioTracks = remoteStream.getAudioTracks();
+      audioTracks.forEach((track, index) => {
+        console.log(`🔊 Audio track ${index} status:`, {
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label
+        });
+        
+        // Force enable the track
+        track.enabled = true;
+        
+        // Log if track is muted by system (read-only property)
+        if (track.muted) {
+          console.warn(`⚠️ Audio track ${index} is muted by browser/system - this cannot be changed programmatically`);
+          console.warn('This is likely due to same-PC testing or browser autoplay policy');
+          setIsRemoteAudioMuted(true);
+        } else {
+          setIsRemoteAudioMuted(false);
+        }
+      });
+      
+      // Set audio element properties to force playback
+      console.log('🔍 Audio element BEFORE setting properties:', {
+        muted: remoteAudioRef.current.muted,
+        volume: remoteAudioRef.current.volume,
+        autoplay: remoteAudioRef.current.autoplay,
+        srcObject: !!remoteAudioRef.current.srcObject
+      });
+      
+      remoteAudioRef.current.muted = false;
+      remoteAudioRef.current.volume = 1.0;
+      
+      console.log('🔍 Audio element AFTER setting properties:', {
+        muted: remoteAudioRef.current.muted,
+        volume: remoteAudioRef.current.volume,
+        autoplay: remoteAudioRef.current.autoplay,
+        srcObject: !!remoteAudioRef.current.srcObject
+      });
+      
+      // Ensure audio plays automatically with high priority
+      remoteAudioRef.current.play().then(() => {
+        console.log('✅ CallModal: Remote audio playback started successfully');
+        console.log('Audio element volume:', remoteAudioRef.current?.volume);
+        console.log('Audio element muted:', remoteAudioRef.current?.muted);
+      }).catch(error => {
+        console.error('❌ CallModal: Failed to start remote audio playback:', error);
+        console.error('This may be due to browser autoplay policy or same-PC testing');
+      });
     }
   }, [remoteStream]);
 
@@ -270,11 +339,16 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   const handleAnswer = async () => {
     if (!currentCall) return;
     
+    console.log('🟢 USER CLICKED ACCEPT BUTTON - Call ID:', currentCall.id);
+    console.log('🟢 Call details:', currentCall);
+    
     setIsLoading(true);
     try {
+      console.log('🟢 Calling answerCall...');
       await answerCall(currentCall.id);
+      console.log('🟢 answerCall completed successfully');
     } catch (error) {
-      console.error('Failed to answer call:', error);
+      console.error('❌ Failed to answer call:', error);
     } finally {
       setIsLoading(false);
     }
@@ -401,7 +475,9 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
   const otherParticipant = getParticipantInfo();
   const isIncomingCall = currentCall.calleeId === user?.id; // Fix: Use actual current user ID
   
-  console.log('CallModal: Debug - isIncomingCall =', isIncomingCall, 'calleeId =', currentCall.calleeId, 'user?.id =', user?.id);
+  console.log('🔍 CallModal: Debug - isIncomingCall =', isIncomingCall, 'calleeId =', currentCall.calleeId, 'user?.id =', user?.id);
+  console.log('🔍 CallModal: callStatus =', callStatus, 'isIncomingCall =', isIncomingCall);
+  console.log('🔍 CallModal: Should show Accept/Reject?', callStatus === 'ringing' && isIncomingCall);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -454,10 +530,27 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
             {callStatus === 'idle' && 'Call ended'}
           </p>
           
+          {/* Remote audio muted warning */}
+          {isRemoteAudioMuted && callStatus === 'active' && (
+            <div className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-3 mt-2">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">
+                ⚠️ Remote audio is muted by your browser/system
+              </p>
+              <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                This is likely due to testing on the same PC. Try:
+              </p>
+              <ul className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 list-disc list-inside">
+                <li>Testing with two separate devices</li>
+                <li>Check browser audio settings</li>
+                <li>Check Windows audio mixer</li>
+              </ul>
+            </div>
+          )}
+          
           {/* Debug info for audio detection */}
           {callStatus === 'active' && (
             <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              Audio: {audioIntensity.toFixed(3)} | Speaking: {isParticipantSpeaking ? 'Yes' : 'No'} | Tracks: {remoteStream?.getAudioTracks().length || 0}
+              Audio: {audioIntensity.toFixed(3)} | Speaking: {isParticipantSpeaking ? 'Yes' : 'No'} | Tracks: {remoteStream?.getAudioTracks().length || 0} | Muted: {isRemoteAudioMuted ? 'Yes' : 'No'}
             </div>
           )}
           
@@ -484,6 +577,12 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
                 className="px-3 py-1 text-xs bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded-full transition-colors"
               >
                 {isTestingAudio ? 'Testing...' : '🎤 Test Audio'}
+              </button>
+              <button
+                onClick={() => setShowPrivacySettings(true)}
+                className="px-3 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded-full transition-colors"
+              >
+                🔒 Privacy
               </button>
             </div>
           )}
@@ -512,6 +611,14 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
               className="w-full h-full object-cover"
             />
           )}
+          
+          {/* Remote audio for voice calls (hidden) */}
+          <audio
+            ref={remoteAudioRef}
+            autoPlay
+            playsInline
+            style={{ display: 'none' }}
+          />
           
           {/* Local video (picture-in-picture) */}
           {localStream && isVideoEnabled && (
@@ -737,6 +844,12 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
+
+      {/* Privacy Settings Modal */}
+      <PrivacySettings
+        isOpen={showPrivacySettings}
+        onClose={() => setShowPrivacySettings(false)}
+      />
     </div>
   );
 };
